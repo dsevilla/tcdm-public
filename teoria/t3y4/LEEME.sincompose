@@ -1,0 +1,18 @@
+
+Crea una imagen con Apache Zeppelin instalado ejecutando el siguiente comando en el directorio en el que se encuentra el Dockerfile:
+
+docker build -t tema5-spark-image .
+
+Una vez creada la imagen, inicia el contenedor (en el mismo directorio) ejecutando:
+
+docker run -d -p 8080:8080 -p 4040:4040 -v $PWD/logs:/logs -v $PWD/notebook:/notebook -v $PWD/datos:/datos -e ZEPPELIN_LOG_DIR='/logs' -e ZEPPELIN_NOTEBOOK_DIR='/notebook' --name tema5-spark tema5-spark-image 
+
+Una vez inciado el contenedor, accede a los notebooks a través de http://localhost:8080 (si no carga espera unos minutos y/o borra la cache del navegador).
+
+Para detener el contenedor:
+
+docker container stop tema5-spark
+
+Y para volver a arrancarlo:
+
+docker container stop tema5-spark

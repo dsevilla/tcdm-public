@@ -1,0 +1,792 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n## Spark Streaming\n\n-   Procesamiento escalable, *high-throughput* y tolerante a fallos de flujos de datos\n\n![Flujo de Spark Streaming](http://persoal.citius.usc.es/tf.pena/TCDM/figs/streaming-flow.png)\n\n-   Entrada desde muchas fuentes: Kafka, Flume, Twitter, ZeroMQ, Kinesis o sockets TCP\n\n### APIs SPARK para Streaming\n\n- DStream API\n      - API original, basada en RDDs\n- Structured Streaming\n      - Disponible desde la versión 2.2, basada en DataFrames\n\nPágina de Spark Streaming: \u003chttps://spark.apache.org/streaming/\u003e\nDocumentación principal (de la última versión): \u003chttps://spark.apache.org/docs/latest/streaming-programming-guide.html\u003e",
+      "user": "anonymous",
+      "dateUpdated": "2018-11-09 12:54:11.000",
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionSupport": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "fontSize": 9.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eSpark Streaming\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003eProcesamiento escalable, \u003cem\u003ehigh-throughput\u003c/em\u003e y tolerante a fallos de flujos de datos\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/streaming-flow.png\" alt\u003d\"Flujo de Spark Streaming\" /\u003e\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eEntrada desde muchas fuentes: Kafka, Flume, Twitter, ZeroMQ, Kinesis o sockets TCP\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eAPIs SPARK para Streaming\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eDStream API\n    \u003cul\u003e\n      \u003cli\u003eAPI original, basada en RDDs\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eStructured Streaming\n    \u003cul\u003e\n      \u003cli\u003eDisponible desde la versión 2.2, basada en DataFrames\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003ePágina de Spark Streaming: \u003ca href\u003d\"https://spark.apache.org/streaming/\"\u003ehttps://spark.apache.org/streaming/\u003c/a\u003e\u003cbr/\u003eDocumentación principal (de la última versión): \u003ca href\u003d\"https://spark.apache.org/docs/latest/streaming-programming-guide.html\"\u003ehttps://spark.apache.org/docs/latest/streaming-programming-guide.html\u003c/a\u003e\u003c/p\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1508256483942_879412034",
+      "id": "20170331-180408_986053486",
+      "dateCreated": "2017-10-17 16:08:03.000",
+      "dateStarted": "2018-11-09 12:54:08.000",
+      "dateFinished": "2018-11-09 12:54:08.000",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n## DStream API\n\nAbstracción principal: DStream (`discretized stream`).\n\n-   Representa un flujo continuo de datos\n\n![dstreams](http://persoal.citius.usc.es/tf.pena/TCDM/figs/dstreams.png)\n\nArquitectura *micro-batch*\n\n-   Los datos recibidos se agrupan en batches\n-   Los batches se crean a intervalos regulares (batch interval)\n-   Cada batch forma un RDD, que es procesado por Spark\n-   Adicionalmente: transformaciones con estado mediante\n    -   Operaciones con ventanas\n    -   Tracking del estado por cada clave\n\nPágina de Spark Streaming: \u003chttps://spark.apache.org/streaming/\u003e\nDocumentación principal (de la última versión): \u003chttps://spark.apache.org/docs/latest/streaming-programming-guide.html\u003e",
+      "user": "anonymous",
+      "dateUpdated": "2018-11-09 12:54:14.000",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eDStream API\u003c/h2\u003e\n\u003cp\u003eAbstracción principal: DStream (\u003ccode\u003ediscretized stream\u003c/code\u003e).\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eRepresenta un flujo continuo de datos\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/dstreams.png\" alt\u003d\"dstreams\" /\u003e\u003c/p\u003e\n\u003cp\u003eArquitectura \u003cem\u003emicro-batch\u003c/em\u003e\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eLos datos recibidos se agrupan en batches\u003c/li\u003e\n  \u003cli\u003eLos batches se crean a intervalos regulares (batch interval)\u003c/li\u003e\n  \u003cli\u003eCada batch forma un RDD, que es procesado por Spark\u003c/li\u003e\n  \u003cli\u003eAdicionalmente: transformaciones con estado mediante\n    \u003cul\u003e\n      \u003cli\u003eOperaciones con ventanas\u003c/li\u003e\n      \u003cli\u003eTracking del estado por cada clave\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003ePágina de Spark Streaming: \u003ca href\u003d\"https://spark.apache.org/streaming/\"\u003ehttps://spark.apache.org/streaming/\u003c/a\u003e\u003cbr/\u003eDocumentación principal (de la última versión): \u003ca href\u003d\"https://spark.apache.org/docs/latest/streaming-programming-guide.html\"\u003ehttps://spark.apache.org/docs/latest/streaming-programming-guide.html\u003c/a\u003e\u003c/p\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541667231410_-964935190",
+      "id": "20181108-085351_174852477",
+      "dateCreated": "2018-11-08 08:53:51.000",
+      "dateStarted": "2018-11-08 10:50:33.000",
+      "dateFinished": "2018-11-08 10:50:33.000",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### DStream  ejemplo de WordCount en red y sin estado\n\nPara ejecutar el ejemplo:\n\n   1. En un terminal, accede al container con `docker exec -ti container_id /bin/bash`\n   2. Una vez en el terminal del container, usa netcat como un servidor en el puerto 9999\n\n    `# nc -lk 9999`\n\n   2. Ejecuta el código PySpark que viene a continuación \n\n   3. Escribe líneas en el terminal del netcat, que serán recogidas y procesadas por el script\n    - Escribe palabras repetidas, para comprobar que las cuenta bien",
+      "user": "anonymous",
+      "dateUpdated": "2018-11-09 12:54:19.000",
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionSupport": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "fontSize": 9.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eDStream ejemplo de WordCount en red y sin estado\u003c/h4\u003e\n\u003cp\u003ePara ejecutar el ejemplo:\u003c/p\u003e\n\u003col\u003e\n  \u003cli\u003eEn un terminal, accede al container con \u003ccode\u003edocker exec -ti container_id /bin/bash\u003c/code\u003e\u003c/li\u003e\n  \u003cli\u003eUna vez en el terminal del container, usa netcat como un servidor en el puerto 9999\n    \u003cp\u003e\u003ccode\u003e# nc -lk 9999\u003c/code\u003e\u003c/p\u003e\n  \u003c/li\u003e\n  \u003cli\u003e\n  \u003cp\u003eEjecuta el código PySpark que viene a continuación \u003c/p\u003e\u003c/li\u003e\n  \u003cli\u003e\n    \u003cp\u003eEscribe líneas en el terminal del netcat, que serán recogidas y procesadas por el script\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli\u003eEscribe palabras repetidas, para comprobar que las cuenta bien\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ol\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1508256483943_879027285",
+      "id": "20170726-153125_653257795",
+      "dateCreated": "2017-10-17 16:08:03.000",
+      "dateStarted": "2018-11-08 10:49:28.000",
+      "dateFinished": "2018-11-08 10:49:28.000",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\nfrom pyspark.streaming import StreamingContext\nfrom operator import add\n\nsc.setLogLevel(\"WARN\")\n\n# Contexto Streaming con un batch interval de 5 s\nssc \u003d StreamingContext(sc, 5)\n\n# DStream que conecta a localhost:9999\nlines \u003d ssc.socketTextStream(\"localhost\", 9999)\n\n# Ejecuta un WordCount\ncounts \u003d lines.flatMap(lambda line: line.split(\" \"))\\\n              .map(lambda word: (word, 1))\\\n              .reduceByKey(add)\n              \ncounts.pprint()\n\nssc.start() # Inicia la computacion\nssc.awaitTerminationOrTimeout(60) # Espera a que termine (acaba en 60 segundos)\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:19:40.059",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "-------------------------------------------\nTime: 2020-12-02 16:20:00\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:05\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:10\n-------------------------------------------\n(u\u0027dos\u0027, 8)\n(u\u0027tres\u0027, 11)\n(u\u0027uno\u0027, 4)\n\n-------------------------------------------\nTime: 2020-12-02 16:20:15\n-------------------------------------------\n(u\u0027dos\u0027, 2)\n(u\u0027tres\u0027, 4)\n(u\u0027uno\u0027, 1)\n\n-------------------------------------------\nTime: 2020-12-02 16:20:20\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:25\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:30\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:35\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:40\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:45\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:50\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:55\n-------------------------------------------\n\nFalse"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1590521032065_2100976314",
+      "id": "20200526-192352_815012466",
+      "dateCreated": "2020-05-26 19:23:52.065",
+      "dateStarted": "2020-12-02 16:19:40.082",
+      "dateFinished": "2020-12-02 16:20:56.914",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n### Spark Streaming: ejemplo de WordCount en red con estado\n\nRepite los pasos anteriores, ejecutando el siguiente código\n\n - Comprueba que el número de palabras se acumula entre accesos",
+      "dateUpdated": "2017-10-17 16:08:03.000",
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eSpark Streaming: ejemplo de WordCount en red con estado\u003c/h3\u003e\n\u003cp\u003eRepite los pasos anteriores, ejecutando el siguiente código\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eComprueba que el número de palabras se acumula entre accesos\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1508256483947_877488290",
+      "id": "20170726-124258_1594244715",
+      "dateCreated": "2017-10-17 16:08:03.000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\nfrom pyspark.streaming import StreamingContext\nfrom operator import add\n\nsc.setLogLevel(\"WARN\")\n\n# Contexto Streaming con un batch interval de 5 s\nssc \u003d StreamingContext(sc, 5)\n\n# DStream que conecta a localhost:9999\nlines \u003d ssc.socketTextStream(\"localhost\", 9999)\n\nssc.checkpoint(\"/tmp/cpdir\") # Activa checkpoint\n\ndef updateFunc(new_values, last_sum):\n    return sum(new_values) + (last_sum or 0)\n\ncounts \u003d lines.flatMap(lambda line: line.split(\" \"))\\\n              .map(lambda word: (word, 1))\\\n              .updateStateByKey(updateFunc)\n\ncounts.pprint()\n\nssc.start() # Inicia la computacion\nssc.awaitTerminationOrTimeout(60) # Espera a que termine (acaba en 60 segundos)",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:20:54.804",
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "results": {},
+        "enabled": true,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "fontSize": 9.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "ERROR",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u001b[0;31m\u001b[0m\n\u001b[0;31mPy4JJavaError\u001b[0mTraceback (most recent call last)\n\u001b[0;32m\u003cipython-input-6-9001bac52e45\u003e\u001b[0m in \u001b[0;36m\u003cmodule\u003e\u001b[0;34m()\u001b[0m\n\u001b[1;32m     19\u001b[0m \u001b[0mcounts\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     20\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---\u003e 21\u001b[0;31m \u001b[0mssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstart\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m# Inicia la computacion\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     22\u001b[0m \u001b[0mssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mawaitTerminationOrTimeout\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m60\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m# Espera a que termine (acaba en 60 segundos)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/pyspark.zip/pyspark/streaming/context.py\u001b[0m in \u001b[0;36mstart\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m    194\u001b[0m         \u001b[0mStart\u001b[0m \u001b[0mthe\u001b[0m \u001b[0mexecution\u001b[0m \u001b[0mof\u001b[0m \u001b[0mthe\u001b[0m \u001b[0mstreams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    195\u001b[0m         \"\"\"\n\u001b[0;32m--\u003e 196\u001b[0;31m         \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_jssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstart\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    197\u001b[0m         \u001b[0mStreamingContext\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_activeContext\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    198\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.4-src.zip/py4j/java_gateway.py\u001b[0m in \u001b[0;36m__call__\u001b[0;34m(self, *args)\u001b[0m\n\u001b[1;32m   1131\u001b[0m         \u001b[0manswer\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgateway_client\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msend_command\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcommand\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1132\u001b[0m         return_value \u003d get_return_value(\n\u001b[0;32m-\u003e 1133\u001b[0;31m             answer, self.gateway_client, self.target_id, self.name)\n\u001b[0m\u001b[1;32m   1134\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1135\u001b[0m         \u001b[0;32mfor\u001b[0m \u001b[0mtemp_arg\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mtemp_args\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/pyspark.zip/pyspark/sql/utils.py\u001b[0m in \u001b[0;36mdeco\u001b[0;34m(*a, **kw)\u001b[0m\n\u001b[1;32m     61\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0mdeco\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     62\u001b[0m         \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---\u003e 63\u001b[0;31m             \u001b[0;32mreturn\u001b[0m \u001b[0mf\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     64\u001b[0m         \u001b[0;32mexcept\u001b[0m \u001b[0mpy4j\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mprotocol\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mPy4JJavaError\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     65\u001b[0m             \u001b[0ms\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjava_exception\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtoString\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.4-src.zip/py4j/protocol.py\u001b[0m in \u001b[0;36mget_return_value\u001b[0;34m(answer, gateway_client, target_id, name)\u001b[0m\n\u001b[1;32m    317\u001b[0m                 raise Py4JJavaError(\n\u001b[1;32m    318\u001b[0m                     \u001b[0;34m\"An error occurred while calling {0}{1}{2}.\\n\"\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--\u003e 319\u001b[0;31m                     format(target_id, \".\", name), value)\n\u001b[0m\u001b[1;32m    320\u001b[0m             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    321\u001b[0m                 raise Py4JError(\n\n\u001b[0;31mPy4JJavaError\u001b[0m: An error occurred while calling o1105.start.\n: java.lang.IllegalStateException: Only one StreamingContext may be started in this JVM. Currently running StreamingContext was started atorg.apache.spark.streaming.api.java.JavaStreamingContext.start(JavaStreamingContext.scala:556)\nsun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nsun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\nsun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\njava.lang.reflect.Method.invoke(Method.java:498)\npy4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)\npy4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)\npy4j.Gateway.invoke(Gateway.java:280)\npy4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)\npy4j.commands.CallCommand.execute(CallCommand.java:79)\npy4j.GatewayConnection.run(GatewayConnection.java:214)\njava.lang.Thread.run(Thread.java:748)\n\tat org.apache.spark.streaming.StreamingContext$.org$apache$spark$streaming$StreamingContext$$assertNoOtherContextIsActive(StreamingContext.scala:739)\n\tat org.apache.spark.streaming.StreamingContext.start(StreamingContext.scala:571)\n\tat org.apache.spark.streaming.api.java.JavaStreamingContext.start(JavaStreamingContext.scala:556)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat py4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)\n\tat py4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)\n\tat py4j.Gateway.invoke(Gateway.java:280)\n\tat py4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)\n\tat py4j.commands.CallCommand.execute(CallCommand.java:79)\n\tat py4j.GatewayConnection.run(GatewayConnection.java:214)\n\tat java.lang.Thread.run(Thread.java:748)\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1508256483949_875179796",
+      "id": "20170726-154030_861974889",
+      "dateCreated": "2017-10-17 16:08:03.000",
+      "dateStarted": "2020-12-02 16:20:54.831",
+      "dateFinished": "2020-12-02 16:20:57.137",
+      "status": "ERROR",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n## Structured Streaming \n\nUtiliza la API estructurada (DataFrames, DataSets y SQL)\n\n- Lee los datos a medida que llegan al sistema, los procesa y los añade a un DataFrame\n\nFuentes de datos ( *input sources* ):\n\n- [Apache Kafka](https://kafka.apache.org/)\n- Ficheros (lee los ficheros en un directorio de forma continua)\n- Sockets\n\nDestino de datos ( *sinks* ):\n\n- Apache Kafka\n- Ficheros\n- Otras computaciones\n- Memoria (para depuración y testing)\n\nEstá todavía en desarrollo\n",
+      "user": "anonymous",
+      "dateUpdated": "2018-12-14 16:35:25.000",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eStructured Streaming\u003c/h2\u003e\n\u003cp\u003eUtiliza la API estructurada (DataFrames, DataSets y SQL)\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eLee los datos a medida que llegan al sistema, los procesa y los añade a un DataFrame\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eFuentes de datos ( \u003cem\u003einput sources\u003c/em\u003e ):\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e\u003ca href\u003d\"https://kafka.apache.org/\"\u003eApache Kafka\u003c/a\u003e\u003c/li\u003e\n  \u003cli\u003eFicheros (lee los ficheros en un directorio de forma continua)\u003c/li\u003e\n  \u003cli\u003eSockets\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eDestino de datos ( \u003cem\u003esinks\u003c/em\u003e ):\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eApache Kafka\u003c/li\u003e\n  \u003cli\u003eFicheros\u003c/li\u003e\n  \u003cli\u003eOtras computaciones\u003c/li\u003e\n  \u003cli\u003eMemoria (para depuración y testing)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eEstá todavía en desarrollo\u003c/p\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674179658_2129202627",
+      "id": "20181108-104939_1082403554",
+      "dateCreated": "2018-11-08 10:49:39.000",
+      "dateStarted": "2018-12-14 16:35:17.000",
+      "dateFinished": "2018-12-14 16:35:20.000",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n### Ejemplo: procesar los ficheros en el directorio /datos/by-day/",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-07 10:47:29.261",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eEjemplo: procesar los ficheros en el directorio /datos/by-day/\u003c/h3\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674753703_2050017060",
+      "id": "20181108-105913_557769606",
+      "dateCreated": "2018-11-08 10:59:13.000",
+      "dateStarted": "2020-06-07 10:47:29.264",
+      "dateFinished": "2020-06-07 10:47:29.302",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%sh\n# Vemos el formato de un fichero\nls /datos/by-day/\nhead /datos/by-day/2010-12-01.csv",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:24:44.118",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/sh"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "2010-12-01.csv\n2010-12-02.csv\n2010-12-03.csv\n2010-12-05.csv\n2010-12-06.csv\n2010-12-07.csv\n2010-12-08.csv\n2010-12-09.csv\n2010-12-10.csv\n2010-12-12.csv\n2010-12-13.csv\n2010-12-14.csv\n2010-12-15.csv\n2010-12-16.csv\n2010-12-17.csv\n2010-12-19.csv\n2010-12-20.csv\n2010-12-21.csv\n2010-12-22.csv\n2010-12-23.csv\n2011-01-04.csv\n2011-01-05.csv\n2011-01-06.csv\n2011-01-07.csv\n2011-01-09.csv\n2011-01-10.csv\n2011-01-11.csv\n2011-01-12.csv\n2011-01-13.csv\n2011-01-14.csv\n2011-01-16.csv\n2011-01-17.csv\n2011-01-18.csv\n2011-01-19.csv\n2011-01-20.csv\n2011-01-21.csv\n2011-01-23.csv\n2011-01-24.csv\n2011-01-25.csv\n2011-01-26.csv\n2011-01-27.csv\n2011-01-28.csv\n2011-01-30.csv\n2011-01-31.csv\n2011-02-01.csv\n2011-02-02.csv\n2011-02-03.csv\n2011-02-04.csv\n2011-02-06.csv\n2011-02-07.csv\n2011-02-08.csv\n2011-02-09.csv\n2011-02-10.csv\n2011-02-11.csv\n2011-02-13.csv\n2011-02-14.csv\n2011-02-15.csv\n2011-02-16.csv\n2011-02-17.csv\n2011-02-18.csv\n2011-02-20.csv\n2011-02-21.csv\n2011-02-22.csv\n2011-02-23.csv\n2011-02-24.csv\n2011-02-25.csv\n2011-02-27.csv\n2011-02-28.csv\n2011-03-01.csv\n2011-03-02.csv\n2011-03-03.csv\n2011-03-04.csv\n2011-03-06.csv\n2011-03-07.csv\n2011-03-08.csv\n2011-03-09.csv\n2011-03-10.csv\n2011-03-11.csv\n2011-03-13.csv\n2011-03-14.csv\n2011-03-15.csv\n2011-03-16.csv\n2011-03-17.csv\n2011-03-18.csv\n2011-03-20.csv\n2011-03-21.csv\n2011-03-22.csv\n2011-03-23.csv\n2011-03-24.csv\n2011-03-25.csv\n2011-03-27.csv\n2011-03-28.csv\n2011-03-29.csv\n2011-03-30.csv\n2011-03-31.csv\n2011-04-01.csv\n2011-04-03.csv\n2011-04-04.csv\n2011-04-05.csv\n2011-04-06.csv\n2011-04-07.csv\n2011-04-08.csv\n2011-04-10.csv\n2011-04-11.csv\n2011-04-12.csv\n2011-04-13.csv\n2011-04-14.csv\n2011-04-15.csv\n2011-04-17.csv\n2011-04-18.csv\n2011-04-19.csv\n2011-04-20.csv\n2011-04-21.csv\n2011-04-26.csv\n2011-04-27.csv\n2011-04-28.csv\n2011-05-01.csv\n2011-05-03.csv\n2011-05-04.csv\n2011-05-05.csv\n2011-05-06.csv\n2011-05-08.csv\n2011-05-09.csv\n2011-05-10.csv\n2011-05-11.csv\n2011-05-12.csv\n2011-05-13.csv\n2011-05-15.csv\n2011-05-16.csv\n2011-05-17.csv\n2011-05-18.csv\n2011-05-19.csv\n2011-05-20.csv\n2011-05-22.csv\n2011-05-23.csv\n2011-05-24.csv\n2011-05-25.csv\n2011-05-26.csv\n2011-05-27.csv\n2011-05-29.csv\n2011-05-31.csv\n2011-06-01.csv\n2011-06-02.csv\n2011-06-03.csv\n2011-06-05.csv\n2011-06-06.csv\n2011-06-07.csv\n2011-06-08.csv\n2011-06-09.csv\n2011-06-10.csv\n2011-06-12.csv\n2011-06-13.csv\n2011-06-14.csv\n2011-06-15.csv\n2011-06-16.csv\n2011-06-17.csv\n2011-06-19.csv\n2011-06-20.csv\n2011-06-21.csv\n2011-06-22.csv\n2011-06-23.csv\n2011-06-24.csv\n2011-06-26.csv\n2011-06-27.csv\n2011-06-28.csv\n2011-06-29.csv\n2011-06-30.csv\n2011-07-01.csv\n2011-07-03.csv\n2011-07-04.csv\n2011-07-05.csv\n2011-07-06.csv\n2011-07-07.csv\n2011-07-08.csv\n2011-07-10.csv\n2011-07-11.csv\n2011-07-12.csv\n2011-07-13.csv\n2011-07-14.csv\n2011-07-15.csv\n2011-07-17.csv\n2011-07-18.csv\n2011-07-19.csv\n2011-07-20.csv\n2011-07-21.csv\n2011-07-22.csv\n2011-07-24.csv\n2011-07-25.csv\n2011-07-26.csv\n2011-07-27.csv\n2011-07-28.csv\n2011-07-29.csv\n2011-07-31.csv\n2011-08-01.csv\n2011-08-02.csv\n2011-08-03.csv\n2011-08-04.csv\n2011-08-05.csv\n2011-08-07.csv\n2011-08-08.csv\n2011-08-09.csv\n2011-08-10.csv\n2011-08-11.csv\n2011-08-12.csv\n2011-08-14.csv\n2011-08-15.csv\n2011-08-16.csv\n2011-08-17.csv\n2011-08-18.csv\n2011-08-19.csv\n2011-08-21.csv\n2011-08-22.csv\n2011-08-23.csv\n2011-08-24.csv\n2011-08-25.csv\n2011-08-26.csv\n2011-08-28.csv\n2011-08-30.csv\n2011-08-31.csv\n2011-09-01.csv\n2011-09-02.csv\n2011-09-04.csv\n2011-09-05.csv\n2011-09-06.csv\n2011-09-07.csv\n2011-09-08.csv\n2011-09-09.csv\n2011-09-11.csv\n2011-09-12.csv\n2011-09-13.csv\n2011-09-14.csv\n2011-09-15.csv\n2011-09-16.csv\n2011-09-18.csv\n2011-09-19.csv\n2011-09-20.csv\n2011-09-21.csv\n2011-09-22.csv\n2011-09-23.csv\n2011-09-25.csv\n2011-09-26.csv\n2011-09-27.csv\n2011-09-28.csv\n2011-09-29.csv\n2011-09-30.csv\n2011-10-02.csv\n2011-10-03.csv\n2011-10-04.csv\n2011-10-05.csv\n2011-10-06.csv\n2011-10-07.csv\n2011-10-09.csv\n2011-10-10.csv\n2011-10-11.csv\n2011-10-12.csv\n2011-10-13.csv\n2011-10-14.csv\n2011-10-16.csv\n2011-10-17.csv\n2011-10-18.csv\n2011-10-19.csv\n2011-10-20.csv\n2011-10-21.csv\n2011-10-23.csv\n2011-10-24.csv\n2011-10-25.csv\n2011-10-26.csv\n2011-10-27.csv\n2011-10-28.csv\n2011-10-30.csv\n2011-10-31.csv\n2011-11-01.csv\n2011-11-02.csv\n2011-11-03.csv\n2011-11-04.csv\n2011-11-06.csv\n2011-11-07.csv\n2011-11-08.csv\n2011-11-09.csv\n2011-11-10.csv\n2011-11-11.csv\n2011-11-13.csv\n2011-11-14.csv\n2011-11-15.csv\n2011-11-16.csv\n2011-11-17.csv\n2011-11-18.csv\n2011-11-20.csv\n2011-11-21.csv\n2011-11-22.csv\n2011-11-23.csv\n2011-11-24.csv\n2011-11-25.csv\n2011-11-27.csv\n2011-11-28.csv\n2011-11-29.csv\n2011-11-30.csv\n2011-12-01.csv\n2011-12-02.csv\n2011-12-04.csv\n2011-12-05.csv\n2011-12-06.csv\n2011-12-07.csv\n2011-12-08.csv\n2011-12-09.csv\nInvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country\n536365,85123A,WHITE HANGING HEART T-LIGHT HOLDER,6,2010-12-01 08:26:00,2.55,17850.0,United Kingdom\n536365,71053,WHITE METAL LANTERN,6,2010-12-01 08:26:00,3.39,17850.0,United Kingdom\n536365,84406B,CREAM CUPID HEARTS COAT HANGER,8,2010-12-01 08:26:00,2.75,17850.0,United Kingdom\n536365,84029G,KNITTED UNION FLAG HOT WATER BOTTLE,6,2010-12-01 08:26:00,3.39,17850.0,United Kingdom\n536365,84029E,RED WOOLLY HOTTIE WHITE HEART.,6,2010-12-01 08:26:00,3.39,17850.0,United Kingdom\n536365,22752,SET 7 BABUSHKA NESTING BOXES,2,2010-12-01 08:26:00,7.65,17850.0,United Kingdom\n536365,21730,GLASS STAR FROSTED T-LIGHT HOLDER,6,2010-12-01 08:26:00,4.25,17850.0,United Kingdom\n536366,22633,HAND WARMER UNION JACK,6,2010-12-01 08:28:00,1.85,17850.0,United Kingdom\n536366,22632,HAND WARMER RED POLKA DOT,6,2010-12-01 08:28:00,1.85,17850.0,United Kingdom\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674439080_479351160",
+      "id": "20181108-105359_629624751",
+      "dateCreated": "2018-11-08 10:53:59.000",
+      "dateStarted": "2020-12-02 16:24:44.177",
+      "dateFinished": "2020-12-02 16:24:44.200",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### Procesamos un fichero como DataFrame",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-07 10:48:00.355",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eProcesamos un fichero como DataFrame\u003c/h4\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591526853500_761692599",
+      "id": "20200607-104733_346833380",
+      "dateCreated": "2020-06-07 10:47:33.500",
+      "dateStarted": "2020-06-07 10:47:57.946",
+      "dateFinished": "2020-06-07 10:47:57.960",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Creamos un DataFrame normal con los datos de uno de los ficheros\ndfEstatico \u003d spark.read\\\n                  .format(\"csv\")\\\n                  .option(\"header\", \"true\")\\\n                  .option(\"inferSchema\", \"true\")\\\n                  .load(\"/datos/by-day/2010-12-01.csv\")\nprint(\"Número de particiones del DataFrame \u003d {0}\".\n      format(dfEstatico.rdd.getNumPartitions()))\ndfEstatico.show()",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:25:49.511",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Número de particiones del DataFrame \u003d 1\n+---------+---------+--------------------+--------+-------------------+---------+----------+--------------+\n|InvoiceNo|StockCode|         Description|Quantity|        InvoiceDate|UnitPrice|CustomerID|       Country|\n+---------+---------+--------------------+--------+-------------------+---------+----------+--------------+\n|   536365|   85123A|WHITE HANGING HEA...|       6|2010-12-01 08:26:00|     2.55|   17850.0|United Kingdom|\n|   536365|    71053| WHITE METAL LANTERN|       6|2010-12-01 08:26:00|     3.39|   17850.0|United Kingdom|\n|   536365|   84406B|CREAM CUPID HEART...|       8|2010-12-01 08:26:00|     2.75|   17850.0|United Kingdom|\n|   536365|   84029G|KNITTED UNION FLA...|       6|2010-12-01 08:26:00|     3.39|   17850.0|United Kingdom|\n|   536365|   84029E|RED WOOLLY HOTTIE...|       6|2010-12-01 08:26:00|     3.39|   17850.0|United Kingdom|\n|   536365|    22752|SET 7 BABUSHKA NE...|       2|2010-12-01 08:26:00|     7.65|   17850.0|United Kingdom|\n|   536365|    21730|GLASS STAR FROSTE...|       6|2010-12-01 08:26:00|     4.25|   17850.0|United Kingdom|\n|   536366|    22633|HAND WARMER UNION...|       6|2010-12-01 08:28:00|     1.85|   17850.0|United Kingdom|\n|   536366|    22632|HAND WARMER RED P...|       6|2010-12-01 08:28:00|     1.85|   17850.0|United Kingdom|\n|   536367|    84879|ASSORTED COLOUR B...|      32|2010-12-01 08:34:00|     1.69|   13047.0|United Kingdom|\n|   536367|    22745|POPPY\u0027S PLAYHOUSE...|       6|2010-12-01 08:34:00|      2.1|   13047.0|United Kingdom|\n|   536367|    22748|POPPY\u0027S PLAYHOUSE...|       6|2010-12-01 08:34:00|      2.1|   13047.0|United Kingdom|\n|   536367|    22749|FELTCRAFT PRINCES...|       8|2010-12-01 08:34:00|     3.75|   13047.0|United Kingdom|\n|   536367|    22310|IVORY KNITTED MUG...|       6|2010-12-01 08:34:00|     1.65|   13047.0|United Kingdom|\n|   536367|    84969|BOX OF 6 ASSORTED...|       6|2010-12-01 08:34:00|     4.25|   13047.0|United Kingdom|\n|   536367|    22623|BOX OF VINTAGE JI...|       3|2010-12-01 08:34:00|     4.95|   13047.0|United Kingdom|\n|   536367|    22622|BOX OF VINTAGE AL...|       2|2010-12-01 08:34:00|     9.95|   13047.0|United Kingdom|\n|   536367|    21754|HOME BUILDING BLO...|       3|2010-12-01 08:34:00|     5.95|   13047.0|United Kingdom|\n|   536367|    21755|LOVE BUILDING BLO...|       3|2010-12-01 08:34:00|     5.95|   13047.0|United Kingdom|\n|   536367|    21777|RECIPE BOX WITH M...|       4|2010-12-01 08:34:00|     7.95|   13047.0|United Kingdom|\n+---------+---------+--------------------+--------+-------------------+---------+----------+--------------+\nonly showing top 20 rows\n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674785018_491407705",
+      "id": "20181108-105945_2117475700",
+      "dateCreated": "2018-11-08 10:59:45.000",
+      "dateStarted": "2020-12-02 16:25:49.532",
+      "dateFinished": "2020-12-02 16:26:08.436",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Obtenemos un DataFrame con la compra por hora y por cliente durante ese día\nfrom pyspark.sql.functions import window, col, desc\n\n# Pedimos que se usen 4 particiones (opcional)\nspark.conf.set(\"spark.sql.shuffle.partitions\", \"4\")\n\ndfCompraPorClientePorHoraEstatico \u003d\\\n             dfEstatico.select(\n                                col(\"CustomerId\"), \n                                (col(\"UnitPrice\")*col(\"Quantity\")).alias(\"total_cost\"), \n                                col(\"InvoiceDate\"))\\\n                       .groupBy(col(\"CustomerId\"), window(col(\"InvoiceDate\"), \"1 hour\"))\\\n                       .sum(\"total_cost\")\n                            \nprint(\"Número de particiones del DataFrame \u003d {0}\".\n      format(dfCompraPorClientePorHoraEstatico.rdd.getNumPartitions()))\n      \nprint(\"Número de filas del DataFrame \u003d {0}\".\n      format(dfCompraPorClientePorHoraEstatico.count()))      \n\ndfCompraPorClientePorHoraEstatico.show(15, False)\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:27:22.087",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674830673_-1200853026",
+      "id": "20181108-110030_1772671455",
+      "dateCreated": "2018-11-08 11:00:30.000",
+      "dateStarted": "2020-12-02 16:27:22.109",
+      "dateFinished": "2020-12-02 16:27:24.020",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### Procesamos todos los ficheros en Streaming",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-07 10:52:23.161",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eProcesamos todos los ficheros en Streaming\u003c/h4\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591527120738_695428278",
+      "id": "20200607-105200_1720506066",
+      "dateCreated": "2020-06-07 10:52:00.738",
+      "dateStarted": "2020-06-07 10:52:23.172",
+      "dateFinished": "2020-06-07 10:52:23.209",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Definimos un DataFrame en Streaming que toma como fuente de datos \n# los ficheros en el directorio /datos/by-day/\n# Indicamos que se lea 1 fichero en cada activación\ndfStreaming \u003d spark.readStream\\\n                   .schema(dfEstatico.schema)\\\n                   .option(\"maxFilesPerTrigger\", 1)\\\n                   .format(\"csv\")\\\n                   .option(\"header\", \"true\")\\\n                   .load(\"/datos/by-day/*.csv\")\nprint(type(dfStreaming))",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:29:12.912",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u003cclass \u0027pyspark.sql.dataframe.DataFrame\u0027\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674980696_1520313932",
+      "id": "20181108-110300_295840656",
+      "dateCreated": "2018-11-08 11:03:00.000",
+      "dateStarted": "2020-12-02 16:29:12.931",
+      "dateFinished": "2020-12-02 16:29:14.297",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# A partir del anterior, obtenemos la compra por hora y por cliente\ndfCompraPorClientePorHoraStreaming \u003d \\\n            dfStreaming.select(\n                               col(\"CustomerId\"), \n                              (col(\"UnitPrice\")*col(\"Quantity\")).alias(\"total_cost\"), \n                               col(\"InvoiceDate\"))\\\n                       .groupBy(col(\"CustomerId\"), window(col(\"InvoiceDate\"), \"1 hour\"))\\\n                       .sum(\"total_cost\")\n                       \nprint(type(dfCompraPorClientePorHoraStreaming))                       ",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:30:22.601",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u003cclass \u0027pyspark.sql.dataframe.DataFrame\u0027\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541674984829_-1598564312",
+      "id": "20181108-110304_1011401279",
+      "dateCreated": "2018-11-08 11:03:04.000",
+      "dateStarted": "2020-12-02 16:30:22.628",
+      "dateFinished": "2020-12-02 16:30:22.766",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Creamos un objeto DataStreamWriter para escribir los valores del DataFrame previo\n# Los valores se escriben a una tabla en memoria\n# El modo de escritura es \"complete\": se reescribe la salida entera\n# Los datos se pueden acceder a traves de la tabla compras_por_hora\n# Se leen los datos de entrada cada segundo\ndswConsultaCompras \u003d dfCompraPorClientePorHoraStreaming\\\n                    .writeStream\\\n                    .format(\"memory\")\\\n                    .queryName(\"compras_por_hora\")\\\n                    .outputMode(\"complete\")\\\n                    .trigger(processingTime\u003d\u00271 seconds\u0027)\nprint(type(dswConsultaCompras))    ",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:31:19.529",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u003cclass \u0027pyspark.sql.streaming.DataStreamWriter\u0027\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541675054840_-734640240",
+      "id": "20181108-110414_814640682",
+      "dateCreated": "2018-11-08 11:04:14.000",
+      "dateStarted": "2020-12-02 16:31:19.551",
+      "dateFinished": "2020-12-02 16:31:19.618",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Métodos definidos para un DataStreamWriter\n[method_name for method_name in dir(dswConsultaCompras)\n if callable(getattr(dswConsultaCompras, method_name))]",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 12:17:50.906",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1541681406713_-112281197",
+      "id": "20181108-125006_1923934307",
+      "dateCreated": "2018-11-08 12:50:06.000",
+      "dateStarted": "2020-12-02 12:17:50.934",
+      "dateFinished": "2020-12-02 12:17:50.967",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Iniciamos el acceso a los datos de entrada\ndswConsultaCompras.start()",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:31:42.394",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "\u003cpyspark.sql.streaming.StreamingQuery at 0x7f1488b97750\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541675370741_-891249112",
+      "id": "20181108-110930_1480774597",
+      "dateCreated": "2018-11-08 11:09:30.000",
+      "dateStarted": "2020-12-02 16:31:42.416",
+      "dateFinished": "2020-12-02 16:31:43.009",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n# Vamos mostrando la tabla cada segundo\nfrom time import sleep\nfor x in range(20):\n    spark.sql(\"\"\"\n            SELECT *\n            FROM compras_por_hora\n            ORDER BY `sum(total_cost)` DESC\n            \"\"\").show(5, truncate\u003dFalse)\n    sleep(1)",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-02 16:31:47.529",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|12536.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|4279.710000000004 |\n|14866.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|3930.94           |\n|null      |[2011-10-11 16:00:00.0,2011-10-11 17:00:00.0]|3833.2300000000046|\n|16013.0   |[2011-02-11 11:00:00.0,2011-02-11 12:00:00.0]|2963.1000000000004|\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|null      |[2011-06-14 17:00:00.0,2011-06-14 18:00:00.0]|4857.5600000000095|\n|12536.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|4279.710000000004 |\n|14866.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|3930.94           |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|null      |[2011-06-14 17:00:00.0,2011-06-14 18:00:00.0]|4857.5600000000095|\n|12536.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|4279.710000000004 |\n|14866.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|3930.94           |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|12415.0   |[2011-01-06 11:00:00.0,2011-01-06 12:00:00.0]|7011.379999999997 |\n|null      |[2011-06-14 17:00:00.0,2011-06-14 18:00:00.0]|4857.5600000000095|\n|12536.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|4279.710000000004 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|12415.0   |[2011-01-06 11:00:00.0,2011-01-06 12:00:00.0]|7011.379999999997 |\n|null      |[2011-06-14 17:00:00.0,2011-06-14 18:00:00.0]|4857.5600000000095|\n|12536.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|4279.710000000004 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|12415.0   |[2011-01-06 11:00:00.0,2011-01-06 12:00:00.0]|7011.379999999997 |\n|null      |[2011-06-14 17:00:00.0,2011-06-14 18:00:00.0]|4857.5600000000095|\n|12536.0   |[2011-10-11 14:00:00.0,2011-10-11 15:00:00.0]|4279.710000000004 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|13081.0   |[2011-11-04 09:00:00.0,2011-11-04 10:00:00.0]|7271.339999999996 |\n|12415.0   |[2011-01-06 11:00:00.0,2011-01-06 12:00:00.0]|7011.379999999997 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|13081.0   |[2011-11-04 09:00:00.0,2011-11-04 10:00:00.0]|7271.339999999996 |\n|12415.0   |[2011-01-06 11:00:00.0,2011-01-06 12:00:00.0]|7011.379999999997 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n|13081.0   |[2011-11-04 09:00:00.0,2011-11-04 10:00:00.0]|7271.339999999996 |\n|12415.0   |[2011-01-06 11:00:00.0,2011-01-06 12:00:00.0]|7011.379999999997 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n+----------+---------------------------------------------+------------------+\n|CustomerId|window                                       |sum(total_cost)   |\n+----------+---------------------------------------------+------------------+\n|18102.0   |[2011-11-04 10:00:00.0,2011-11-04 11:00:00.0]|14964.400000000001|\n|18102.0   |[2011-06-14 11:00:00.0,2011-06-14 12:00:00.0]|14471.92          |\n|null      |[2011-08-30 12:00:00.0,2011-08-30 13:00:00.0]|12132.259999999973|\n|null      |[2011-08-30 10:00:00.0,2011-08-30 11:00:00.0]|9125.170000000006 |\n|16684.0   |[2011-07-24 13:00:00.0,2011-07-24 14:00:00.0]|8375.560000000001 |\n+----------+---------------------------------------------+------------------+\nonly showing top 5 rows\n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1541675401056_750803096",
+      "id": "20181108-111001_1159778883",
+      "dateCreated": "2018-11-08 11:10:01.000",
+      "dateStarted": "2020-12-02 16:31:47.562",
+      "dateFinished": "2020-12-02 16:32:10.616",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-11-05 17:35:08.095",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {}
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1544805591544_807927172",
+      "id": "20181214-163951_1012543026",
+      "dateCreated": "2018-12-14 16:39:51.000",
+      "dateStarted": "2020-11-05 17:34:57.767",
+      "dateFinished": "2020-11-05 17:34:57.835",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%pyspark\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-11-05 17:34:57.752",
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1604597697752_-1296664003",
+      "id": "20201105-173457_1538146954",
+      "dateCreated": "2020-11-05 17:34:57.752",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "Apache Spark/10 - Spark Streaming",
+  "id": "2CWUSD4UV",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {
+    "md:shared_process": [],
+    "sh:shared_process": [],
+    "spark:shared_process": []
+  },
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {}
+}

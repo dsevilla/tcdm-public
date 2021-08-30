@@ -1,0 +1,784 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n## [DataStream API](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/datastream_api.html)\n\nTransformaciones realizadas sobre flujos de datos\n- Se recogen los datos de diferentes fuentes (sources)\n- Se realizan transformaciones sobre los flujos de datos\n- Se envían los flujos a diferentes destinos (sinks)",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-26 18:46:55.564",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003e\u003ca href\u003d\"https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/datastream_api.html\"\u003eDataStream API\u003c/a\u003e\u003c/h2\u003e\n\u003cp\u003eTransformaciones realizadas sobre flujos de datos\u003cbr/\u003e- Se recogen los datos de diferentes fuentes (sources)\u003cbr/\u003e- Se realizan transformaciones sobre los flujos de datos\u003cbr/\u003e- Se envían los flujos a diferentes destinos (sinks)\u003c/p\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1590518564036_741188967",
+      "id": "20200526-184244_1274355986",
+      "dateCreated": "2020-05-26 18:42:44.036",
+      "dateStarted": "2020-05-26 18:46:55.582",
+      "dateFinished": "2020-05-26 18:46:55.636",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n### Ejemplo: WordCount en red sin estado\n\nPara ejecutar el ejemplo:\n\n1. En un terminal, accede al container con `docker exec -ti container_id /bin/bash`\n2. Una vez en el terminal del container, usa netcat como un servidor en el puerto 9999\n\n    `# nc -lk 9999`\n\n2. Ejecuta el código Flink que viene a continuación \n\n3. Escribe líneas en el terminal del netcat, que serán recogidas y procesadas por el script\n    - Escribe palabras repetidas, para comprobar que las cuenta bien\n \n4. Termina con Ctrl-C en el terminal",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-05 10:30:01.527",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eEjemplo: WordCount en red sin estado\u003c/h3\u003e\n\u003cp\u003ePara ejecutar el ejemplo:\u003c/p\u003e\n\u003col\u003e\n  \u003cli\u003eEn un terminal, accede al container con \u003ccode\u003edocker exec -ti container_id /bin/bash\u003c/code\u003e\u003c/li\u003e\n  \u003cli\u003eUna vez en el terminal del container, usa netcat como un servidor en el puerto 9999\n    \u003cp\u003e\u003ccode\u003e# nc -lk 9999\u003c/code\u003e\u003c/p\u003e\n  \u003c/li\u003e\n  \u003cli\u003e\n  \u003cp\u003eEjecuta el código Flink que viene a continuación \u003c/p\u003e\u003c/li\u003e\n  \u003cli\u003e\n    \u003cp\u003eEscribe líneas en el terminal del netcat, que serán recogidas y procesadas por el script\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli\u003eEscribe palabras repetidas, para comprobar que las cuenta bien\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003e\n  \u003cp\u003eTermina con Ctrl-C en el terminal\u003c/p\u003e\u003c/li\u003e\n\u003c/ol\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1590518815550_614234567",
+      "id": "20200526-184655_1809895452",
+      "dateCreated": "2020-05-26 18:46:55.550",
+      "dateStarted": "2020-06-05 10:30:01.534",
+      "dateFinished": "2020-06-05 10:30:04.194",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nimport org.apache.flink.streaming.api.TimeCharacteristic\n\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime)\n\ncase class WordWithCount(word: String, count: Long)\n\n// Obtiene las lineas del socket\nval text \u003d senv.socketTextStream(\"localhost\", 9999, \u0027\\n\u0027)\n\n// Separa en palabras, lo convierte en pares (palabra, 1), agrupa por palabra y suma\nval windowCounts \u003d text\n      .flatMap { w \u003d\u003e w.split(\"\\\\s\") }\n      .map { w \u003d\u003e WordWithCount(w, 1) }\n      .keyBy(\"word\")\n      .timeWindow(Time.seconds(5))\n      .sum(\"count\")\n\n// Muestra los resultados usando un único hilo\nwindowCounts.print().setParallelism(1)\n\nsenv.execute(\"WordCount desde socket\")\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:00:57.083",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "ERROR",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import org.apache.flink.streaming.api.TimeCharacteristic\ndefined class WordWithCount\ntext: org.apache.flink.streaming.api.scala.DataStream[String] \u003d org.apache.flink.streaming.api.scala.DataStream@632d3786\nwindowCounts: org.apache.flink.streaming.api.scala.DataStream[WordWithCount] \u003d org.apache.flink.streaming.api.scala.DataStream@5054a5f0\nres6: org.apache.flink.streaming.api.datastream.DataStreamSink[WordWithCount] \u003d org.apache.flink.streaming.api.datastream.DataStreamSink@4acee127\nWordWithCount(tres,12)\nWordWithCount(dos,8)\nWordWithCount(cuatro,12)\nWordWithCount(,4)\nWordWithCount(unod,4)\norg.apache.flink.client.program.ProgramInvocationException: The program execution failed: Job was cancelled.\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:409)\n  at org.apache.flink.client.program.StandaloneClusterClient.submitJob(StandaloneClusterClient.java:95)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:382)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:374)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.executeRemotely(RemoteStreamEnvironment.java:209)\n  at org.apache.flink.api.java.ScalaShellRemoteStreamEnvironment.executeRemotely(ScalaShellRemoteStreamEnvironment.java:87)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.execute(RemoteStreamEnvironment.java:173)\n  at org.apache.flink.streaming.api.scala.StreamExecutionEnvironment.execute(StreamExecutionEnvironment.scala:585)\n  ... 36 elided\nCaused by: org.apache.flink.runtime.client.JobCancellationException: Job was cancelled.\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply$mcV$sp(JobManager.scala:814)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)\n  at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:41)\n  at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:401)\n  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.pollAndExecAll(ForkJoinPool.java:1253)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1346)\n  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)\n  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1590518834016_-247448874",
+      "id": "20200526-184714_768013622",
+      "dateCreated": "2020-05-26 18:47:14.016",
+      "dateStarted": "2020-12-14 16:00:57.117",
+      "dateFinished": "2020-12-14 16:01:09.325",
+      "status": "ABORT",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n## Operaciones sobre flujos de datos\nTransformaciones\n\n  - Procesan cada evento de forma independiente\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/transformaciones.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\nAgregaciones (rolling aggregations)\n\n- Agregan datos a medida que se reciben: suma, mínimo, máximo, media, etc.\n- Combinan el estado actual con los eventos que llegan\n- La operación debe de ser asociativa y conmutativa\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/agregaciones.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\nOperaciones de ventana\n\n- Almacenan eventos hasta una cierta condición antes de procesarlos\n- Permiten agregaciones holísticas: necesitan aplicarse sobre conjuntos limitados de datos (pe. mediana, moda o rango)\n- Se crean conjuntos finitos de eventos (buckets) a partir de un flujo ilimitado\n    - Cuando el bucket se completa, se lanza la computación\n- Los eventos se pueden agrupar por tiempo, número de eventos o alguna propiedad de los mismos\n- Las ventanas pueden ser de tamaño fijo (tumbling windows), deslizantes (sliding windows) o por sesión (session windows)\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/windows.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:02:25.100",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eOperaciones sobre flujos de datos\u003c/h2\u003e\n\u003cp\u003eTransformaciones\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eProcesan cada evento de forma independiente\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/transformaciones.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eAgregaciones (rolling aggregations)\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eAgregan datos a medida que se reciben: suma, mínimo, máximo, media, etc.\u003c/li\u003e\n  \u003cli\u003eCombinan el estado actual con los eventos que llegan\u003c/li\u003e\n  \u003cli\u003eLa operación debe de ser asociativa y conmutativa\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/agregaciones.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eOperaciones de ventana\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eAlmacenan eventos hasta una cierta condición antes de procesarlos\u003c/li\u003e\n  \u003cli\u003ePermiten agregaciones holísticas: necesitan aplicarse sobre conjuntos limitados de datos (pe. mediana, moda o rango)\u003c/li\u003e\n  \u003cli\u003eSe crean conjuntos finitos de eventos (buckets) a partir de un flujo ilimitado\n    \u003cul\u003e\n      \u003cli\u003eCuando el bucket se completa, se lanza la computación\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eLos eventos se pueden agrupar por tiempo, número de eventos o alguna propiedad de los mismos\u003c/li\u003e\n  \u003cli\u003eLas ventanas pueden ser de tamaño fijo (tumbling windows), deslizantes (sliding windows) o por sesión (session windows)\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/windows.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591356231077_-303179814",
+      "id": "20200605-112351_2020755688",
+      "dateCreated": "2020-06-05 11:23:51.078",
+      "dateStarted": "2020-12-14 16:02:25.100",
+      "dateFinished": "2020-12-14 16:02:25.127",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n## Semantica temporal\nFormas de medir el tiempo en streaming:\n\n### Tiempo de procesamiento (processing time) \n- El tiempo de llegada de los paquetes se establece en destino\n- No considera el orden de generación de los eventos\n    - Dos eventos simultáneos en origen pueden llegar como eventos separados en destino\n    - Resultados no deterministas\n- Útil para aplicaciones en las que la velocidad es más importante que la precisión\n    - Ejemplo: información en tiempo real de agregados (p.e. media) de datos de sensores\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/processingtime.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\n### Tiempo de evento (event time)\n- El tiempo de llegada de los paquetes se establece en origen\n- Los eventos se acompañan de una marca de tiempo (Timestamp) establecida en origen\n    - Se gestionan eventos fuera de orden y retrasados\n    - Resultados deterministas\n- Necesario el establecimiento de *marcas de agua* (Watermarks)\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/eventtime.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\n#### Watermaks\nNecesitamos establecer un *límite* de espera de eventos\n\n- Cuando se recibe una marca con tiempo T, se asume que se han recibido todos los eventos con Timestamp \u003c T\n- Si después de recibir la Watermark T se recibe un evento con TS \u003c T, este se ignora o se procesa de forma especial\n- La llegada de una Watermark puede disparar una acción para procesar los eventos recibidos hasta ese momento\n- Watermarks frecuentes proporcionan baja latencia pero menor confianza (se ignoran eventos tardíos)\n- Watermarks poco frecuentes mejoran la confianza pero aumentan la latencia",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-22 17:50:06.109",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eSemantica temporal\u003c/h2\u003e\n\u003cp\u003eFormas de medir el tiempo en streaming:\u003c/p\u003e\n\u003ch3\u003eTiempo de procesamiento (processing time)\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eEl tiempo de llegada de los paquetes se establece en destino\u003c/li\u003e\n  \u003cli\u003eNo considera el orden de generación de los eventos\n    \u003cul\u003e\n      \u003cli\u003eDos eventos simultáneos en origen pueden llegar como eventos separados en destino\u003c/li\u003e\n      \u003cli\u003eResultados no deterministas\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eÚtil para aplicaciones en las que la velocidad es más importante que la precisión\n    \u003cul\u003e\n      \u003cli\u003eEjemplo: información en tiempo real de agregados (p.e. media) de datos de sensores\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/processingtime.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eTiempo de evento (event time)\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eEl tiempo de llegada de los paquetes se establece en origen\u003c/li\u003e\n  \u003cli\u003eLos eventos se acompañan de una marca de tiempo (Timestamp) establecida en origen\n    \u003cul\u003e\n      \u003cli\u003eSe gestionan eventos fuera de orden y retrasados\u003c/li\u003e\n      \u003cli\u003eResultados deterministas\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eNecesario el establecimiento de \u003cem\u003emarcas de agua\u003c/em\u003e (Watermarks)\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/eventtime.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eWatermaks\u003c/h4\u003e\n\u003cp\u003eNecesitamos establecer un \u003cem\u003elímite\u003c/em\u003e de espera de eventos\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eCuando se recibe una marca con tiempo T, se asume que se han recibido todos los eventos con Timestamp \u0026lt; T\u003c/li\u003e\n  \u003cli\u003eSi después de recibir la Watermark T se recibe un evento con TS \u0026lt; T, este se ignora o se procesa de forma especial\u003c/li\u003e\n  \u003cli\u003eLa llegada de una Watermark puede disparar una acción para procesar los eventos recibidos hasta ese momento\u003c/li\u003e\n  \u003cli\u003eWatermarks frecuentes proporcionan baja latencia pero menor confianza (se ignoran eventos tardíos)\u003c/li\u003e\n  \u003cli\u003eWatermarks poco frecuentes mejoran la confianza pero aumentan la latencia\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591353418884_1459900896",
+      "id": "20200605-103658_1359523177",
+      "dateCreated": "2020-06-05 10:36:58.884",
+      "dateStarted": "2020-06-22 17:50:06.119",
+      "dateFinished": "2020-06-22 17:50:06.244",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n### Ejemplo: procesamiento de flujos de varios sensores de temperatura",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-05 16:04:22.052",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eEjemplo: procesamiento de flujos de varios sensores de temperatura\u003c/h3\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591373004281_-348852676",
+      "id": "20200605-160324_1311277836",
+      "dateCreated": "2020-06-05 16:03:24.281",
+      "dateStarted": "2020-06-05 16:04:22.052",
+      "dateFinished": "2020-06-05 16:04:22.080",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### SourceFunction para usar como generador de señales",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-05 18:52:16.484",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eSourceFunction para usar como generador de señales\u003c/h4\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591383108832_-2142740241",
+      "id": "20200605-185148_1639626211",
+      "dateCreated": "2020-06-05 18:51:48.832",
+      "dateStarted": "2020-06-05 18:52:16.487",
+      "dateFinished": "2020-06-05 18:52:16.515",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nimport java.util.Calendar\n\nimport org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction\nimport org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext\n\nimport scala.util.Random\n\n/**\n  * Flink SourceFunction para generar objetos de tipo LecturaSensor con valores aleatorios de temperaturas\n  * \n  * Cada instancia paralela de esta fuente simula 10 sensores que emiten una lectura cada 100 ms\n  *\n  * Nota: esta función simple no hace checkpoints, en caso de fallo la función no reenvía\n  * ningún dato.\n  * \n  */\n  \n/** Case class de los datos que generan los sensores\n  *\n  * id: identificador del sensor\n  * timestamp: tiempo de generación\n  * temperatura: valor de temperatura en Fahrenheit\n  * \n  */\ncase class LecturaSensor(id: String, timestamp: Long, temperatura: Double)\n\nclass GeneradorSeñal extends RichParallelSourceFunction[LecturaSensor] {\n\n  // Flag que indica si la fuente está corriendo\n  var activo: Boolean \u003d true\n\n  /** run() emite lecturas de los sensores de forma continua a través del SourceContext */\n  override def run(srcCtx: SourceContext[LecturaSensor]): Unit \u003d {\n\n    // inicia el generador de números aleatorios\n    val rand \u003d new Random()\n    // obtiene el índice de esta tarea paralela (usado para identificar el sensor)\n    // Zeppelin solo permite 1 tarea paralela con lo que taskIdx\u003d0\n    val taskIdx \u003d this.getRuntimeContext.getIndexOfThisSubtask\n\n    // inicializa los ids y las temperaturas de los 10 sensores\n    var lecturasFTemp \u003d (1 to 10).map {\n      i \u003d\u003e (\"sensor_\" + (taskIdx * 10 + i), 65 + (rand.nextGaussian() * 20))\n    }\n\n    // emite datos hasta que se cancele\n    while (activo) {\n\n      // actualiza la temperatura\n      lecturasFTemp \u003d lecturasFTemp.map( t \u003d\u003e (t._1, t._2 + (rand.nextGaussian() * 0.5)) )\n      // obtiene la fecha y hora actual\n      val fecha \u003d Calendar.getInstance.getTimeInMillis\n\n      // emite las lecturas de los sensores\n      lecturasFTemp.foreach( t \u003d\u003e srcCtx.collect(LecturaSensor(t._1, fecha, t._2)))\n\n      // espera 100 ms\n      Thread.sleep(100)\n    }\n\n  }\n\n  /** Cancela la emisión de datos */\n  override def cancel(): Unit \u003d {\n    activo \u003d false\n  }\n\n}",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:19:53.494",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import java.util.Calendar\nimport org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction\nimport org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext\nimport scala.util.Random\ndefined class LecturaSensor\ndefined class GeneradorSeñal\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1590519744995_-47181300",
+      "id": "20200526-190224_511804482",
+      "dateCreated": "2020-05-26 19:02:24.995",
+      "dateStarted": "2020-12-14 16:19:53.520",
+      "dateFinished": "2020-12-14 16:19:55.330",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### Transformaciones básicas: map, filter",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-05 18:52:47.248",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eTransformaciones básicas: map, filter\u003c/h4\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591383141249_-139883855",
+      "id": "20200605-185221_1789007932",
+      "dateCreated": "2020-06-05 18:52:21.249",
+      "dateStarted": "2020-06-05 18:52:47.249",
+      "dateFinished": "2020-06-05 18:52:47.260",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\n/**\n * Lee los sensores, convierte la temperatura a Celsius \n * y filtra por valor de temperatura.\n * \n */\n\nimport org.apache.flink.streaming.api.TimeCharacteristic\n\n// Usando tienpos generados en origen (Event Time)\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)\n// Especificamos el intervalo de emisión de WaterMarks a 1 segundo\nsenv.getConfig.setAutoWatermarkInterval(1000L)\n// Especificamos el paralelismo (Zeppelin solo permite valor 1)\nsenv.setParallelism(1)\n\n// Generamos un DataStream con los datos de los sensores \n// y le asignamos la fuente definida antes\nval lecturasF: DataStream[LecturaSensor] \u003d senv\n  .addSource(new GeneradorSeñal)\n  // Usamos las timestamp de los eventos para generar watermarks\n  // Solo sirve si los timestamps se incrementan monotónicamente\n  // para casos generales, usar assignTimestampsAndWatermarks(new TimeStampAssigner())\n  .assignAscendingTimestamps(e \u003d\u003e e.timestamp)\n\n// Cambiamos las temperaturas a Celsius\nval lecturasC: DataStream[LecturaSensor] \u003d lecturasF\n  .map( l \u003d\u003e \n  LecturaSensor(l.id, l.timestamp, (l.temperatura - 32) * (5.0 / 9.0)) )\n\n// Filtra las lecturas con temperaturas inferiores a 10 C\nval masDe10C: DataStream[LecturaSensor] \u003d lecturasC\n  .filter( l \u003d\u003e l.temperatura \u003e\u003d 10 )\n  \n// Quedate con el id y la temperatura\nval idTemp: DataStream[(String, Double)] \u003d masDe10C\n  .map( l \u003d\u003e (l.id, l.temperatura) )\n\nidTemp.print()\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:25:06.562",
+      "config": {
+        "colWidth": 11.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 223.2,
+              "optionOpen": false
+            }
+          }
+        },
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import org.apache.flink.streaming.api.TimeCharacteristic\nres18: org.apache.flink.api.common.ExecutionConfig \u003d org.apache.flink.api.common.ExecutionConfig@8d295956\nlecturasF: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@153d4887\nlecturasC: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@6bd6ab80\nmasDe10C: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@6647221d\nidTemp: org.apache.flink.streaming.api.scala.DataStream[(String, Double)] \u003d org.apache.flink.streaming.api.scala.DataStream@52e4c765\nres20: org.apache.flink.streaming.api.datastream.DataStreamSink[LecturaSensor] \u003d org.apache.flink.streaming.api.datastream.DataStreamSink@4d8b3405\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591376091716_1165294473",
+      "id": "20200605-165451_2117192444",
+      "dateCreated": "2020-06-05 16:54:51.716",
+      "dateStarted": "2020-12-14 16:24:10.652",
+      "dateFinished": "2020-12-14 16:24:12.925",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nsenv.execute(\"Ejemplo de transformaciones básicas\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:24:15.305",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "ERROR",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "LecturaSensor(sensor_1,1607963056667,25.455126077349547)\nLecturaSensor(sensor_2,1607963056667,12.00843260668564)\nLecturaSensor(sensor_3,1607963056667,17.845676935290818)\nLecturaSensor(sensor_4,1607963056667,23.05041500019491)\nLecturaSensor(sensor_5,1607963056667,15.840003550130533)\nLecturaSensor(sensor_6,1607963056667,29.252316636304478)\nLecturaSensor(sensor_7,1607963056667,23.06981628800177)\nLecturaSensor(sensor_8,1607963056667,39.47550747392601)\nLecturaSensor(sensor_9,1607963056667,27.621379679854883)\nLecturaSensor(sensor_10,1607963056667,37.051550806517064)\nLecturaSensor(sensor_1,1607963056770,25.553542737068486)\nLecturaSensor(sensor_2,1607963056770,11.781503744131447)\nLecturaSensor(sensor_3,1607963056770,17.8062419247625)\nLecturaSensor(sensor_4,1607963056770,22.89600346489754)\nLecturaSensor(sensor_5,1607963056770,15.379643978457405)\nLecturaSensor(sensor_6,1607963056770,29.575442412111332)\nLecturaSensor(sensor_7,1607963056770,23.40546317566552)\nLecturaSensor(sensor_8,1607963056770,39.52403583307882)\nLecturaSensor(sensor_9,1607963056770,27.592476710628496)\nLecturaSensor(sensor_10,1607963056770,36.77293062507901)\nLecturaSensor(sensor_1,1607963056870,25.342683481456195)\nLecturaSensor(sensor_2,1607963056870,11.719497757509467)\nLecturaSensor(sensor_3,1607963056870,17.1229676153916)\nLecturaSensor(sensor_4,1607963056870,22.880021028422753)\nLecturaSensor(sensor_5,1607963056870,15.405749145328416)\nLecturaSensor(sensor_6,1607963056870,29.746224257851765)\nLecturaSensor(sensor_7,1607963056870,23.425398421983)\nLecturaSensor(sensor_8,1607963056870,39.40198190629949)\nLecturaSensor(sensor_9,1607963056870,27.583617430428248)\nLecturaSensor(sensor_10,1607963056870,37.008728037499566)\nLecturaSensor(sensor_1,1607963056970,25.658881278594333)\nLecturaSensor(sensor_2,1607963056970,11.47549813411449)\nLecturaSensor(sensor_3,1607963056970,17.539315435418295)\nLecturaSensor(sensor_4,1607963056970,23.187753854733412)\nLecturaSensor(sensor_5,1607963056970,14.835782746037001)\nLecturaSensor(sensor_6,1607963056970,29.648257082322704)\nLecturaSensor(sensor_7,1607963056970,23.554286496458012)\nLecturaSensor(sensor_8,1607963056970,39.48434490763696)\nLecturaSensor(sensor_9,1607963056970,27.114146653552197)\nLecturaSensor(sensor_10,1607963056970,37.1052712339906)\nLecturaSensor(sensor_1,1607963057071,25.961527761422065)\nLecturaSensor(sensor_2,1607963057071,11.666357025560067)\nLecturaSensor(sensor_3,1607963057071,17.80851280016289)\nLecturaSensor(sensor_4,1607963057071,23.087254332162903)\nLecturaSensor(sensor_5,1607963057071,14.59754658300955)\nLecturaSensor(sensor_6,1607963057071,29.534945627941806)\nLecturaSensor(sensor_7,1607963057071,23.469735058688183)\nLecturaSensor(sensor_8,1607963057071,39.29039581224974)\nLecturaSensor(sensor_9,1607963057071,27.092063439511048)\nLecturaSensor(sensor_10,1607963057071,36.85675108298643)\nLecturaSensor(sensor_1,1607963057171,26.087336479006346)\nLecturaSensor(sensor_2,1607963057171,11.544709314528056)\nLecturaSensor(sensor_3,1607963057171,18.24184798446881)\nLecturaSensor(sensor_4,1607963057171,23.20559440827007)\nLecturaSensor(sensor_5,1607963057171,14.771407935673576)\nLecturaSensor(sensor_6,1607963057171,29.90292214867224)\nLecturaSensor(sensor_7,1607963057171,23.83404085719388)\nLecturaSensor(sensor_8,1607963057171,39.54657816606918)\nLecturaSensor(sensor_9,1607963057171,27.239480602324615)\nLecturaSensor(sensor_10,1607963057171,37.03802034612022)\nLecturaSensor(sensor_1,1607963057271,25.849093311460532)\nLecturaSensor(sensor_2,1607963057271,11.442132903808302)\nLecturaSensor(sensor_3,1607963057271,17.756637754858854)\nLecturaSensor(sensor_4,1607963057271,23.800739326992346)\nLecturaSensor(sensor_5,1607963057271,14.6944241680258)\nLecturaSensor(sensor_6,1607963057271,29.985446765075505)\nLecturaSensor(sensor_7,1607963057271,23.924159333976846)\nLecturaSensor(sensor_8,1607963057271,39.063791313097056)\nLecturaSensor(sensor_9,1607963057271,27.28269573139757)\nLecturaSensor(sensor_10,1607963057271,37.42647064419668)\nLecturaSensor(sensor_1,1607963057372,25.921633883832683)\nLecturaSensor(sensor_2,1607963057372,11.605730660232124)\nLecturaSensor(sensor_3,1607963057372,17.574119684620356)\nLecturaSensor(sensor_4,1607963057372,23.923094041422083)\nLecturaSensor(sensor_5,1607963057372,14.640430703109766)\nLecturaSensor(sensor_6,1607963057372,30.38849643387218)\nLecturaSensor(sensor_7,1607963057372,24.485568665418864)\nLecturaSensor(sensor_8,1607963057372,39.09619021939483)\nLecturaSensor(sensor_9,1607963057372,27.85701025467085)\nLecturaSensor(sensor_10,1607963057372,37.73215689615662)\nLecturaSensor(sensor_1,1607963057472,26.281464019159053)\nLecturaSensor(sensor_2,1607963057472,11.57116118553083)\nLecturaSensor(sensor_3,1607963057472,17.675299530994334)\nLecturaSensor(sensor_4,1607963057472,23.734481580774208)\nLecturaSensor(sensor_5,1607963057472,14.365074226019157)\nLecturaSensor(sensor_6,1607963057472,30.332443924445815)\nLecturaSensor(sensor_7,1607963057472,24.363910478924055)\nLecturaSensor(sensor_8,1607963057472,38.98370416449306)\nLecturaSensor(sensor_9,1607963057472,27.68640508516243)\nLecturaSensor(sensor_10,1607963057472,38.05164285543526)\nLecturaSensor(sensor_1,1607963057572,26.54459745301831)\nLecturaSensor(sensor_2,1607963057572,11.749153164501193)\nLecturaSensor(sensor_3,1607963057572,17.610646850981887)\nLecturaSensor(sensor_4,1607963057572,23.573611118453595)\nLecturaSensor(sensor_5,1607963057572,14.78081217641175)\nLecturaSensor(sensor_6,1607963057572,30.215931143883942)\nLecturaSensor(sensor_7,1607963057572,24.875077712577088)\nLecturaSensor(sensor_8,1607963057572,39.29555664009324)\nLecturaSensor(sensor_9,1607963057572,27.90483676136682)\nLecturaSensor(sensor_10,1607963057572,38.13175267916816)\nLecturaSensor(sensor_1,1607963057673,26.325865615602666)\nLecturaSensor(sensor_2,1607963057673,11.825058960492191)\nLecturaSensor(sensor_3,1607963057673,17.843804181186602)\nLecturaSensor(sensor_4,1607963057673,23.568047111989774)\nLecturaSensor(sensor_5,1607963057673,14.927522238438675)\nLecturaSensor(sensor_6,1607963057673,30.21345769543956)\nLecturaSensor(sensor_7,1607963057673,25.003033745958497)\nLecturaSensor(sensor_8,1607963057673,39.385139274999155)\nLecturaSensor(sensor_9,1607963057673,28.1500617632247)\nLecturaSensor(sensor_10,1607963057673,38.04595129945182)\nLecturaSensor(sensor_1,1607963057773,26.61351438715547)\nLecturaSensor(sensor_2,1607963057773,11.664773971863116)\nLecturaSensor(sensor_3,1607963057773,17.35845575100526)\nLecturaSensor(sensor_4,1607963057773,23.281663600441078)\nLecturaSensor(sensor_5,1607963057773,14.672794114975416)\nLecturaSensor(sensor_6,1607963057773,30.37918868491238)\nLecturaSensor(sensor_7,1607963057773,24.72083691909315)\nLecturaSensor(sensor_8,1607963057773,39.329558608647645)\nLecturaSensor(sensor_9,1607963057773,27.907337075957596)\nLecturaSensor(sensor_10,1607963057773,38.21847495371418)\nLecturaSensor(sensor_1,1607963057873,26.958034077941925)\nLecturaSensor(sensor_2,1607963057873,11.614341996746889)\nLecturaSensor(sensor_3,1607963057873,17.335737721874903)\nLecturaSensor(sensor_4,1607963057873,23.451890816211684)\nLecturaSensor(sensor_5,1607963057873,14.729475377469763)\nLecturaSensor(sensor_6,1607963057873,30.269483102753014)\nLecturaSensor(sensor_7,1607963057873,24.48497078151034)\nLecturaSensor(sensor_8,1607963057873,39.31164306128828)\nLecturaSensor(sensor_9,1607963057873,27.895746378079167)\nLecturaSensor(sensor_10,1607963057873,38.22710846607941)\nLecturaSensor(sensor_1,1607963057974,26.90931940129904)\nLecturaSensor(sensor_2,1607963057974,12.180618056828393)\nLecturaSensor(sensor_3,1607963057974,17.603260262768742)\nLecturaSensor(sensor_4,1607963057974,23.442427566498782)\nLecturaSensor(sensor_5,1607963057974,14.848222437666074)\nLecturaSensor(sensor_6,1607963057974,30.421589453240347)\nLecturaSensor(sensor_7,1607963057974,24.881367102212355)\nLecturaSensor(sensor_8,1607963057974,39.46734325224886)\nLecturaSensor(sensor_9,1607963057974,27.832395490896257)\nLecturaSensor(sensor_10,1607963057974,38.27892207172546)\nLecturaSensor(sensor_1,1607963058074,27.390273974839303)\nLecturaSensor(sensor_2,1607963058074,11.956407539054396)\nLecturaSensor(sensor_3,1607963058074,17.577086640271375)\nLecturaSensor(sensor_4,1607963058074,23.757098518216807)\nLecturaSensor(sensor_5,1607963058074,14.710412932774116)\nLecturaSensor(sensor_6,1607963058074,30.695234237104415)\nLecturaSensor(sensor_7,1607963058074,24.922727568014693)\nLecturaSensor(sensor_8,1607963058074,39.70912617817401)\nLecturaSensor(sensor_9,1607963058074,27.718090896757285)\nLecturaSensor(sensor_10,1607963058074,38.053071817261)\nLecturaSensor(sensor_1,1607963058174,27.47941391512596)\nLecturaSensor(sensor_2,1607963058174,11.987855041725522)\nLecturaSensor(sensor_3,1607963058174,17.76152117892353)\nLecturaSensor(sensor_4,1607963058174,23.742990500528425)\nLecturaSensor(sensor_5,1607963058174,14.913519642731632)\nLecturaSensor(sensor_6,1607963058174,30.473576963250274)\nLecturaSensor(sensor_7,1607963058174,25.08031912152574)\nLecturaSensor(sensor_8,1607963058174,39.865518576377404)\nLecturaSensor(sensor_9,1607963058174,27.55628474909359)\nLecturaSensor(sensor_10,1607963058174,37.98341456481872)\nLecturaSensor(sensor_1,1607963058275,27.294173260677628)\nLecturaSensor(sensor_2,1607963058275,12.28639529437964)\nLecturaSensor(sensor_3,1607963058275,17.496646556286983)\nLecturaSensor(sensor_4,1607963058275,23.280950791958958)\nLecturaSensor(sensor_5,1607963058275,14.964465562921454)\nLecturaSensor(sensor_6,1607963058275,30.600995396895424)\nLecturaSensor(sensor_7,1607963058275,25.69234072357222)\nLecturaSensor(sensor_8,1607963058275,40.24906686942146)\nLecturaSensor(sensor_9,1607963058275,27.697711264308737)\nLecturaSensor(sensor_10,1607963058275,37.99041230722015)\nLecturaSensor(sensor_1,1607963058375,27.38007126383801)\nLecturaSensor(sensor_2,1607963058375,12.067714233375147)\nLecturaSensor(sensor_3,1607963058375,17.49620949536249)\nLecturaSensor(sensor_4,1607963058375,23.028645006222547)\nLecturaSensor(sensor_5,1607963058375,15.123175724943533)\nLecturaSensor(sensor_6,1607963058375,31.061597983882677)\nLecturaSensor(sensor_7,1607963058375,25.206322074296345)\nLecturaSensor(sensor_8,1607963058375,39.98939213048843)\nLecturaSensor(sensor_9,1607963058375,28.113127948276603)\nLecturaSensor(sensor_10,1607963058375,38.11686993405295)\nLecturaSensor(sensor_1,1607963058475,27.26554729144644)\nLecturaSensor(sensor_2,1607963058475,12.525250183608943)\nLecturaSensor(sensor_3,1607963058475,17.617513454109538)\nLecturaSensor(sensor_4,1607963058475,23.327852527255075)\nLecturaSensor(sensor_5,1607963058475,15.027092604343805)\nLecturaSensor(sensor_6,1607963058475,30.905625486170294)\nLecturaSensor(sensor_7,1607963058475,24.93789124522015)\nLecturaSensor(sensor_8,1607963058475,39.60899822139724)\nLecturaSensor(sensor_9,1607963058475,28.283671053219113)\nLecturaSensor(sensor_10,1607963058475,37.988589884289766)\nLecturaSensor(sensor_1,1607963058575,27.068522997554215)\nLecturaSensor(sensor_2,1607963058575,12.484055380971322)\nLecturaSensor(sensor_3,1607963058575,17.04317271057262)\nLecturaSensor(sensor_4,1607963058575,23.293047426382692)\nLecturaSensor(sensor_5,1607963058575,15.148923734835277)\nLecturaSensor(sensor_6,1607963058575,30.63481107339362)\nLecturaSensor(sensor_7,1607963058575,24.9840755816022)\nLecturaSensor(sensor_8,1607963058575,39.12490259979101)\nLecturaSensor(sensor_9,1607963058575,27.93324299532592)\nLecturaSensor(sensor_10,1607963058575,38.46035544845091)\nLecturaSensor(sensor_1,1607963058676,26.967201524971397)\nLecturaSensor(sensor_2,1607963058676,11.881332714258319)\nLecturaSensor(sensor_3,1607963058676,17.137588622015873)\nLecturaSensor(sensor_4,1607963058676,23.559352818041514)\nLecturaSensor(sensor_5,1607963058676,14.935323203492949)\nLecturaSensor(sensor_6,1607963058676,31.071729476925785)\nLecturaSensor(sensor_7,1607963058676,24.904445108394015)\nLecturaSensor(sensor_8,1607963058676,39.0409791500403)\nLecturaSensor(sensor_9,1607963058676,28.255785805790286)\nLecturaSensor(sensor_10,1607963058676,38.64022105765461)\nLecturaSensor(sensor_1,1607963058776,27.321181001576083)\nLecturaSensor(sensor_2,1607963058776,11.357155318350271)\nLecturaSensor(sensor_3,1607963058776,17.123300668367776)\nLecturaSensor(sensor_4,1607963058776,23.74319143914795)\nLecturaSensor(sensor_5,1607963058776,14.936319787153392)\nLecturaSensor(sensor_6,1607963058776,31.568969882801053)\nLecturaSensor(sensor_7,1607963058776,25.21365585305818)\nLecturaSensor(sensor_8,1607963058776,38.96413590354459)\nLecturaSensor(sensor_9,1607963058776,28.420091293271636)\nLecturaSensor(sensor_10,1607963058776,38.64644604522887)\nLecturaSensor(sensor_1,1607963058876,27.396022384694497)\nLecturaSensor(sensor_2,1607963058876,11.5661498333106)\nLecturaSensor(sensor_3,1607963058876,17.140759128190332)\nLecturaSensor(sensor_4,1607963058876,23.302607120560452)\nLecturaSensor(sensor_5,1607963058876,15.087817713991091)\nLecturaSensor(sensor_6,1607963058876,31.383421094428254)\nLecturaSensor(sensor_7,1607963058876,25.1712001483493)\nLecturaSensor(sensor_8,1607963058876,38.81425297536996)\nLecturaSensor(sensor_9,1607963058876,28.548835998564943)\nLecturaSensor(sensor_10,1607963058876,38.48246919785688)\nLecturaSensor(sensor_1,1607963058977,27.631156985662)\nLecturaSensor(sensor_2,1607963058977,11.224309878346235)\nLecturaSensor(sensor_3,1607963058977,17.593362015998714)\nLecturaSensor(sensor_4,1607963058977,23.411794082823317)\nLecturaSensor(sensor_5,1607963058977,14.926277104442905)\nLecturaSensor(sensor_6,1607963058977,30.93935661855834)\nLecturaSensor(sensor_7,1607963058977,25.167419893748185)\nLecturaSensor(sensor_8,1607963058977,38.79126755568676)\nLecturaSensor(sensor_9,1607963058977,28.29323582038273)\nLecturaSensor(sensor_10,1607963058977,38.81798900557581)\nLecturaSensor(sensor_1,1607963059077,27.97018692654252)\nLecturaSensor(sensor_2,1607963059077,11.24326732485824)\nLecturaSensor(sensor_3,1607963059077,17.650623542535)\nLecturaSensor(sensor_4,1607963059077,23.429241190175613)\nLecturaSensor(sensor_5,1607963059077,15.233163273722836)\nLecturaSensor(sensor_6,1607963059077,31.35774387908158)\nLecturaSensor(sensor_7,1607963059077,25.47906973198433)\nLecturaSensor(sensor_8,1607963059077,39.17326502315079)\nLecturaSensor(sensor_9,1607963059077,28.49178240086367)\nLecturaSensor(sensor_10,1607963059077,38.37450826852291)\nLecturaSensor(sensor_1,1607963059177,27.736522495861067)\nLecturaSensor(sensor_2,1607963059177,11.434786002927352)\nLecturaSensor(sensor_3,1607963059177,17.607286746000106)\nLecturaSensor(sensor_4,1607963059177,23.570843486377896)\nLecturaSensor(sensor_5,1607963059177,15.436152786384046)\nLecturaSensor(sensor_6,1607963059177,31.6694035720743)\nLecturaSensor(sensor_7,1607963059177,25.131203116827322)\nLecturaSensor(sensor_8,1607963059177,39.445783825424066)\nLecturaSensor(sensor_9,1607963059177,28.91896509305674)\nLecturaSensor(sensor_10,1607963059177,38.59013293728821)\nLecturaSensor(sensor_1,1607963059278,28.05070593907335)\nLecturaSensor(sensor_2,1607963059278,11.769330399257482)\nLecturaSensor(sensor_3,1607963059278,17.924887476088337)\nLecturaSensor(sensor_4,1607963059278,23.43567972266715)\nLecturaSensor(sensor_5,1607963059278,15.207060191668376)\nLecturaSensor(sensor_6,1607963059278,31.482806375253148)\nLecturaSensor(sensor_7,1607963059278,25.236146194118962)\nLecturaSensor(sensor_8,1607963059278,39.31582229834227)\nLecturaSensor(sensor_9,1607963059278,29.58362191005985)\nLecturaSensor(sensor_10,1607963059278,38.4304896944826)\nLecturaSensor(sensor_1,1607963059378,27.58914487847024)\nLecturaSensor(sensor_2,1607963059378,11.980279441014021)\nLecturaSensor(sensor_3,1607963059378,18.052924790726085)\nLecturaSensor(sensor_4,1607963059378,23.465602079030162)\nLecturaSensor(sensor_5,1607963059378,15.245244209672839)\nLecturaSensor(sensor_6,1607963059378,31.80663866339372)\nLecturaSensor(sensor_7,1607963059378,25.430666028567522)\nLecturaSensor(sensor_8,1607963059378,39.457374978153)\nLecturaSensor(sensor_9,1607963059378,29.872365829769723)\nLecturaSensor(sensor_10,1607963059378,38.025473635055725)\nLecturaSensor(sensor_1,1607963059478,27.425000166422482)\nLecturaSensor(sensor_2,1607963059478,12.118920246063324)\nLecturaSensor(sensor_3,1607963059478,18.100909638157944)\nLecturaSensor(sensor_4,1607963059478,23.506590856658566)\nLecturaSensor(sensor_5,1607963059478,15.5096949097377)\nLecturaSensor(sensor_6,1607963059478,31.590153337299856)\nLecturaSensor(sensor_7,1607963059478,25.57493930262651)\nLecturaSensor(sensor_8,1607963059478,39.09157367707999)\nLecturaSensor(sensor_9,1607963059478,29.689342143310316)\nLecturaSensor(sensor_10,1607963059478,37.78749470893036)\nLecturaSensor(sensor_1,1607963059578,26.609058611305862)\nLecturaSensor(sensor_2,1607963059578,12.156617213623031)\nLecturaSensor(sensor_3,1607963059578,18.350507409192424)\nLecturaSensor(sensor_4,1607963059578,23.61852645946927)\nLecturaSensor(sensor_5,1607963059578,15.666314044019428)\nLecturaSensor(sensor_6,1607963059578,31.21032550664363)\nLecturaSensor(sensor_7,1607963059578,25.63892324027399)\nLecturaSensor(sensor_8,1607963059578,39.2682602602016)\nLecturaSensor(sensor_9,1607963059578,29.79958984122907)\nLecturaSensor(sensor_10,1607963059578,37.78749394609393)\nLecturaSensor(sensor_1,1607963059679,26.3722971594361)\nLecturaSensor(sensor_2,1607963059679,12.182193947228031)\nLecturaSensor(sensor_3,1607963059679,18.496754809947216)\nLecturaSensor(sensor_4,1607963059679,23.626016549443452)\nLecturaSensor(sensor_5,1607963059679,15.740239413686657)\nLecturaSensor(sensor_6,1607963059679,31.18423520672343)\nLecturaSensor(sensor_7,1607963059679,25.80799234020434)\nLecturaSensor(sensor_8,1607963059679,39.6610351778966)\nLecturaSensor(sensor_9,1607963059679,29.40797155955993)\nLecturaSensor(sensor_10,1607963059679,37.83201707604843)\nLecturaSensor(sensor_1,1607963059779,26.203415875406627)\nLecturaSensor(sensor_2,1607963059779,12.338470124711497)\nLecturaSensor(sensor_3,1607963059779,18.284391518986165)\nLecturaSensor(sensor_4,1607963059779,23.63437106877087)\nLecturaSensor(sensor_5,1607963059779,15.935063226973295)\nLecturaSensor(sensor_6,1607963059779,31.43879522595031)\nLecturaSensor(sensor_7,1607963059779,26.05485258477616)\nLecturaSensor(sensor_8,1607963059779,39.28693535677098)\nLecturaSensor(sensor_9,1607963059779,29.35382430642091)\nLecturaSensor(sensor_10,1607963059779,37.82317615265123)\nLecturaSensor(sensor_1,1607963059879,26.106412365520423)\nLecturaSensor(sensor_2,1607963059879,12.462800966730873)\nLecturaSensor(sensor_3,1607963059879,18.440276257460567)\nLecturaSensor(sensor_4,1607963059879,23.44189268747601)\nLecturaSensor(sensor_5,1607963059879,15.45757018345862)\nLecturaSensor(sensor_6,1607963059879,31.663119062965652)\nLecturaSensor(sensor_7,1607963059879,25.82096863738074)\nLecturaSensor(sensor_8,1607963059879,39.57024843388863)\nLecturaSensor(sensor_9,1607963059879,29.30669163876565)\nLecturaSensor(sensor_10,1607963059879,37.87289440709603)\nLecturaSensor(sensor_1,1607963059980,25.912636897416363)\nLecturaSensor(sensor_2,1607963059980,12.649622176524938)\nLecturaSensor(sensor_3,1607963059980,18.113979801698388)\nLecturaSensor(sensor_4,1607963059980,23.403451040685738)\nLecturaSensor(sensor_5,1607963059980,15.662000013082826)\nLecturaSensor(sensor_6,1607963059980,31.866546782630987)\nLecturaSensor(sensor_7,1607963059980,26.07531821828166)\nLecturaSensor(sensor_8,1607963059980,39.53390461911642)\nLecturaSensor(sensor_9,1607963059980,29.47033131305241)\nLecturaSensor(sensor_10,1607963059980,38.105275229898716)\nLecturaSensor(sensor_1,1607963060080,25.67110167726948)\nLecturaSensor(sensor_2,1607963060080,12.26773434525661)\nLecturaSensor(sensor_3,1607963060080,18.12238241424591)\nLecturaSensor(sensor_4,1607963060080,22.880645865508733)\nLecturaSensor(sensor_5,1607963060080,15.86282433303925)\nLecturaSensor(sensor_6,1607963060080,31.715001869233298)\nLecturaSensor(sensor_7,1607963060080,25.99595228481794)\nLecturaSensor(sensor_8,1607963060080,39.56386792781879)\nLecturaSensor(sensor_9,1607963060080,29.154606400489232)\nLecturaSensor(sensor_10,1607963060080,38.05597147788157)\nLecturaSensor(sensor_1,1607963060180,25.701123343190314)\nLecturaSensor(sensor_2,1607963060180,12.471817889989625)\nLecturaSensor(sensor_3,1607963060180,17.99929428939154)\nLecturaSensor(sensor_4,1607963060180,23.045275369657457)\nLecturaSensor(sensor_5,1607963060180,16.014958110129175)\nLecturaSensor(sensor_6,1607963060180,32.264150607471066)\nLecturaSensor(sensor_7,1607963060180,26.524165459037818)\nLecturaSensor(sensor_8,1607963060180,39.74752685809513)\nLecturaSensor(sensor_9,1607963060180,29.143585592934205)\nLecturaSensor(sensor_10,1607963060180,37.69249212124364)\nLecturaSensor(sensor_1,1607963060281,26.07437800667388)\nLecturaSensor(sensor_2,1607963060281,11.902405438328328)\nLecturaSensor(sensor_3,1607963060281,17.550723563324556)\nLecturaSensor(sensor_4,1607963060281,23.104339217555093)\nLecturaSensor(sensor_5,1607963060281,15.93112591308004)\nLecturaSensor(sensor_6,1607963060281,32.36139155669383)\nLecturaSensor(sensor_7,1607963060281,26.64364891988514)\nLecturaSensor(sensor_8,1607963060281,39.69766354615914)\nLecturaSensor(sensor_9,1607963060281,28.694482888721435)\nLecturaSensor(sensor_10,1607963060281,37.84537612135929)\nLecturaSensor(sensor_1,1607963060381,26.209932444962572)\nLecturaSensor(sensor_2,1607963060381,12.067483659155672)\nLecturaSensor(sensor_3,1607963060381,17.582903173020306)\nLecturaSensor(sensor_4,1607963060381,22.711329248172923)\nLecturaSensor(sensor_5,1607963060381,15.442674996541692)\nLecturaSensor(sensor_6,1607963060381,32.35201375056444)\nLecturaSensor(sensor_7,1607963060381,26.48751910327429)\nLecturaSensor(sensor_8,1607963060381,39.87935530224852)\nLecturaSensor(sensor_9,1607963060381,29.317269604024858)\nLecturaSensor(sensor_10,1607963060381,38.11273877568002)\nLecturaSensor(sensor_1,1607963060481,26.545824888719856)\nLecturaSensor(sensor_2,1607963060481,12.230992122673598)\nLecturaSensor(sensor_3,1607963060481,17.6520704721925)\nLecturaSensor(sensor_4,1607963060481,22.585858805446072)\nLecturaSensor(sensor_5,1607963060481,15.488824350633243)\nLecturaSensor(sensor_6,1607963060481,31.923365559578635)\nLecturaSensor(sensor_7,1607963060481,26.67245092898156)\nLecturaSensor(sensor_8,1607963060481,39.74730981526441)\nLecturaSensor(sensor_9,1607963060481,29.526003489160733)\nLecturaSensor(sensor_10,1607963060481,37.666852468865955)\nLecturaSensor(sensor_1,1607963060582,26.292721409508154)\nLecturaSensor(sensor_2,1607963060582,12.463074198941422)\nLecturaSensor(sensor_3,1607963060582,17.457221752480077)\nLecturaSensor(sensor_4,1607963060582,22.38244806511592)\nLecturaSensor(sensor_5,1607963060582,15.629219055182404)\nLecturaSensor(sensor_6,1607963060582,31.850365617200485)\nLecturaSensor(sensor_7,1607963060582,26.461860422428966)\nLecturaSensor(sensor_8,1607963060582,40.24232433699366)\nLecturaSensor(sensor_9,1607963060582,29.271034887449325)\nLecturaSensor(sensor_10,1607963060582,38.26060252543662)\nLecturaSensor(sensor_1,1607963060682,26.315674386278182)\nLecturaSensor(sensor_2,1607963060682,12.169879395018015)\nLecturaSensor(sensor_3,1607963060682,17.1127921387553)\nLecturaSensor(sensor_4,1607963060682,22.75815154306327)\nLecturaSensor(sensor_5,1607963060682,15.365267188899574)\nLecturaSensor(sensor_6,1607963060682,32.392532641761456)\nLecturaSensor(sensor_7,1607963060682,26.632191388496505)\nLecturaSensor(sensor_8,1607963060682,40.496277365870256)\nLecturaSensor(sensor_9,1607963060682,29.632179250370154)\nLecturaSensor(sensor_10,1607963060682,38.51410613995259)\nLecturaSensor(sensor_1,1607963060782,26.370494876346573)\nLecturaSensor(sensor_2,1607963060782,11.66558057889204)\nLecturaSensor(sensor_3,1607963060782,17.023245237164943)\nLecturaSensor(sensor_4,1607963060782,22.83082671090207)\nLecturaSensor(sensor_5,1607963060782,15.255605821625789)\nLecturaSensor(sensor_6,1607963060782,32.336062901186786)\nLecturaSensor(sensor_7,1607963060782,26.844374962802643)\nLecturaSensor(sensor_8,1607963060782,41.025266245922005)\nLecturaSensor(sensor_9,1607963060782,29.806540447744762)\nLecturaSensor(sensor_10,1607963060782,38.53986228193591)\nLecturaSensor(sensor_1,1607963060883,26.46951967840459)\nLecturaSensor(sensor_2,1607963060883,11.471968916273802)\nLecturaSensor(sensor_3,1607963060883,16.965003096296286)\nLecturaSensor(sensor_4,1607963060883,23.046874216659667)\nLecturaSensor(sensor_5,1607963060883,15.079535164118601)\nLecturaSensor(sensor_6,1607963060883,32.93379552307933)\nLecturaSensor(sensor_7,1607963060883,27.105478194319677)\nLecturaSensor(sensor_8,1607963060883,41.87022139669214)\nLecturaSensor(sensor_9,1607963060883,29.146037792885725)\nLecturaSensor(sensor_10,1607963060883,38.58996894067816)\nLecturaSensor(sensor_1,1607963060983,26.37092050371928)\nLecturaSensor(sensor_2,1607963060983,11.15414329104071)\nLecturaSensor(sensor_3,1607963060983,16.758947286752065)\nLecturaSensor(sensor_4,1607963060983,22.517489469348803)\nLecturaSensor(sensor_5,1607963060983,15.125552735491235)\nLecturaSensor(sensor_6,1607963060983,33.056339889683564)\nLecturaSensor(sensor_7,1607963060983,27.141051487181095)\nLecturaSensor(sensor_8,1607963060983,41.85064384088173)\nLecturaSensor(sensor_9,1607963060983,28.805403458487703)\nLecturaSensor(sensor_10,1607963060983,39.07056498993522)\nLecturaSensor(sensor_1,1607963061083,26.19401879336524)\nLecturaSensor(sensor_2,1607963061083,11.272081640928006)\nLecturaSensor(sensor_3,1607963061083,17.10794283789269)\nLecturaSensor(sensor_4,1607963061083,22.197684749279144)\nLecturaSensor(sensor_5,1607963061083,15.149058872790084)\nLecturaSensor(sensor_6,1607963061083,33.220662896692566)\nLecturaSensor(sensor_7,1607963061083,27.043833582643586)\nLecturaSensor(sensor_8,1607963061083,41.879633927280715)\nLecturaSensor(sensor_9,1607963061083,28.61050545592151)\nLecturaSensor(sensor_10,1607963061083,38.86946140222533)\nLecturaSensor(sensor_1,1607963061184,26.190387207505484)\nLecturaSensor(sensor_2,1607963061184,10.817913855865042)\nLecturaSensor(sensor_3,1607963061184,17.306581004113568)\nLecturaSensor(sensor_4,1607963061184,22.101551290749793)\nLecturaSensor(sensor_5,1607963061184,14.702721528896696)\nLecturaSensor(sensor_6,1607963061184,33.32677586611198)\nLecturaSensor(sensor_7,1607963061184,27.285734477547834)\nLecturaSensor(sensor_8,1607963061184,41.59904977801428)\nLecturaSensor(sensor_9,1607963061184,28.465256587677846)\nLecturaSensor(sensor_10,1607963061184,38.64304057433338)\norg.apache.flink.client.program.ProgramInvocationException: The program execution failed: Job was cancelled.\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:409)\n  at org.apache.flink.client.program.StandaloneClusterClient.submitJob(StandaloneClusterClient.java:95)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:382)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:374)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.executeRemotely(RemoteStreamEnvironment.java:209)\n  at org.apache.flink.api.java.ScalaShellRemoteStreamEnvironment.executeRemotely(ScalaShellRemoteStreamEnvironment.java:87)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.execute(RemoteStreamEnvironment.java:173)\n  at org.apache.flink.streaming.api.scala.StreamExecutionEnvironment.execute(StreamExecutionEnvironment.scala:585)\n  ... 36 elided\nCaused by: org.apache.flink.runtime.client.JobCancellationException: Job was cancelled.\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply$mcV$sp(JobManager.scala:814)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)\n  at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:41)\n  at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:401)\n  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.pollAndExecAll(ForkJoinPool.java:1253)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1346)\n  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)\n  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591379229427_-1375473261",
+      "id": "20200605-174709_1138747448",
+      "dateCreated": "2020-06-05 17:47:09.427",
+      "dateStarted": "2020-12-14 16:24:15.332",
+      "dateFinished": "2020-12-14 16:24:21.441",
+      "status": "ABORT",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### KeyedStreams: Flujos agrupados por clave \n",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-05 18:56:38.426",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eKeyedStreams: Flujos agrupados por clave\u003c/h4\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591383228848_2107060066",
+      "id": "20200605-185348_562734997",
+      "dateCreated": "2020-06-05 18:53:48.848",
+      "dateStarted": "2020-06-05 18:56:38.426",
+      "dateFinished": "2020-06-05 18:56:38.432",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\n/**\n * Lee los sensores, los agrupa por id y muestra el máximo de temperatura\n */\n \nimport org.apache.flink.streaming.api.TimeCharacteristic\n\n// Usando tienpos generados en origen (Event Time)\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)\n// Especificamos el intervalo de emisión de WaterMarks a 1 segundo\nsenv.getConfig.setAutoWatermarkInterval(1000L)\n// Especificamos el paralelismo (Zeppelin solo permite valor 1)\nsenv.setParallelism(1)\n\n// Generamos un DataStream con los datos de los sensores \n// y le asignamos la fuente definida antes\nval lecturasF: DataStream[LecturaSensor] \u003d senv\n  .addSource(new GeneradorSeñal)\n  .assignAscendingTimestamps(e \u003d\u003e e.timestamp)\n  \nval lecturasPorId \u003d lecturasF\n  // Agrupa los flujos por id (campo 0)\n  .keyBy(0)\n  // Mantiene el máximo de temperatura (campo 2)\n  .max(2)\n \n// Imprimimos los resultados\nlecturasPorId.map{\n  l \u003d\u003e \"Sensor \"+l.id.split(\"_\")(1)+\" -\u003e \"+l.temperatura\n}.print()\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:26:10.495",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import org.apache.flink.streaming.api.TimeCharacteristic\nres25: org.apache.flink.api.common.ExecutionConfig \u003d org.apache.flink.api.common.ExecutionConfig@8d295956\nlecturasF: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@26f15651\nlecturasPorId: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@53114503\nres27: org.apache.flink.streaming.api.datastream.DataStreamSink[String] \u003d org.apache.flink.streaming.api.datastream.DataStreamSink@18d87c5\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591383388446_-290923886",
+      "id": "20200605-185628_1464939049",
+      "dateCreated": "2020-06-05 18:56:28.446",
+      "dateStarted": "2020-12-14 16:26:10.515",
+      "dateFinished": "2020-12-14 16:26:11.774",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nsenv.execute(\"Ejemplo de transformaciones básicas\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:26:17.605",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "ERROR",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Sensor 1 -\u003e 56.40152573891441\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 51.61250867937334\nSensor 4 -\u003e 46.404579985083295\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.83310903300767\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.039676297966196\nSensor 9 -\u003e 93.33767238965096\nSensor 10 -\u003e 45.033429587974126\nSensor 1 -\u003e 56.40152573891441\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 51.61250867937334\nSensor 4 -\u003e 46.79311762116498\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.83310903300767\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.60066849721234\nSensor 9 -\u003e 93.33767238965096\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 56.40152573891441\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.50863100336178\nSensor 4 -\u003e 46.79311762116498\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.83310903300767\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 93.33767238965096\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.09674165740599\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.58809110213797\nSensor 4 -\u003e 46.79311762116498\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.83310903300767\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.16407572298307\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.09674165740599\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.58809110213797\nSensor 4 -\u003e 47.488011647921844\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.83310903300767\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.09674165740599\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.65999359566203\nSensor 4 -\u003e 47.488011647921844\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.83310903300767\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.09674165740599\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.65999359566203\nSensor 4 -\u003e 47.67951694070272\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.09674165740599\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.279734161717755\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.279734161717755\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.279734161717755\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 57.892292896892286\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 58.94543767311886\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 41.54846792892749\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 58.61336829822175\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 42.02371437815899\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 58.96112275331912\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 42.30136375266096\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.370262479257214\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.370262479257214\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.370262479257214\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.370262479257214\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.370262479257214\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.42680194142054\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 59.9307809512291\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.0977455863929\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.26658096962662\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.287493879097575\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 68.8511384851699\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.41229491963043\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\nSensor 2 -\u003e 60.10073949961709\nSensor 3 -\u003e 52.927797373092204\nSensor 4 -\u003e 49.38555264652198\nSensor 5 -\u003e 68.20073418951122\nSensor 6 -\u003e 69.74036200898036\nSensor 7 -\u003e 43.69436448777066\nSensor 8 -\u003e 36.95739963497569\nSensor 9 -\u003e 94.27176456109838\nSensor 10 -\u003e 45.35908511278367\nSensor 1 -\u003e 59.11271676746782\norg.apache.flink.client.program.ProgramInvocationException: The program execution failed: Job was cancelled.\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:409)\n  at org.apache.flink.client.program.StandaloneClusterClient.submitJob(StandaloneClusterClient.java:95)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:382)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:374)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.executeRemotely(RemoteStreamEnvironment.java:209)\n  at org.apache.flink.api.java.ScalaShellRemoteStreamEnvironment.executeRemotely(ScalaShellRemoteStreamEnvironment.java:87)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.execute(RemoteStreamEnvironment.java:173)\n  at org.apache.flink.streaming.api.scala.StreamExecutionEnvironment.execute(StreamExecutionEnvironment.scala:585)\n  ... 36 elided\nCaused by: org.apache.flink.runtime.client.JobCancellationException: Job was cancelled.\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply$mcV$sp(JobManager.scala:814)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)\n  at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:41)\n  at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:401)\n  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.pollAndExecAll(ForkJoinPool.java:1253)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1346)\n  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)\n  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591383772999_553259548",
+      "id": "20200605-190252_1900425642",
+      "dateCreated": "2020-06-05 19:02:52.999",
+      "dateStarted": "2020-12-14 16:26:17.629",
+      "dateFinished": "2020-12-14 16:26:23.360",
+      "status": "ABORT",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%md\n#### Operaciones sobre ventanas",
+      "user": "anonymous",
+      "dateUpdated": "2020-06-05 19:36:36.098",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eOperaciones sobre ventanas\u003c/h4\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591385765477_1380207036",
+      "id": "20200605-193605_2133515999",
+      "dateCreated": "2020-06-05 19:36:05.477",
+      "dateStarted": "2020-06-05 19:36:36.098",
+      "dateFinished": "2020-06-05 19:36:36.120",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nimport org.apache.flink.streaming.api.scala.function.WindowFunction\nimport org.apache.flink.streaming.api.windowing.windows.TimeWindow\nimport org.apache.flink.util.Collector\n\n/**\n * Clase para calcular la media de temperatura sobre los datos de una ventana\n */\n \nclass TemperaturaMedia extends WindowFunction[LecturaSensor, LecturaSensor, String, TimeWindow] {\n\n  // El método apply() se invoca una vez para cada ventana\n  override def apply(\n    sensorId: String,\n    ventana: TimeWindow,\n    valores: Iterable[LecturaSensor],\n    salida: Collector[LecturaSensor]): Unit \u003d {\n\n    // calcula la temperatura media sobre los valores de la ventana\n    val (cuenta, suma) \u003d valores.foldLeft((0, 0.0))((c, l) \u003d\u003e (c._1 + 1, c._2 + l.temperatura))\n    val tempMedia \u003d suma / cuenta\n\n    // emite un objeto LecturaSensor con la temperatura media y el fin de la ventana como timestamp\n    salida.collect(LecturaSensor(sensorId, ventana.getEnd, tempMedia))\n  }\n}",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:29:06.075",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import org.apache.flink.streaming.api.scala.function.WindowFunction\nimport org.apache.flink.streaming.api.windowing.windows.TimeWindow\nimport org.apache.flink.util.Collector\ndefined class TemperaturaMedia\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591382153582_1247712918",
+      "id": "20200605-183553_1051471725",
+      "dateCreated": "2020-06-05 18:35:53.582",
+      "dateStarted": "2020-12-14 16:29:06.098",
+      "dateFinished": "2020-12-14 16:29:06.815",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nimport org.apache.flink.streaming.api.TimeCharacteristic\n\n// Usando tiempos generados en origen (Event Time)\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)\n// Especificamos el intervalo de emisión de WaterMarks a 1 segundo\nsenv.getConfig.setAutoWatermarkInterval(1000L)\n// Especificamos el paralelismo (Zeppelin solo permite valor 1)\nsenv.setParallelism(1)\n\n// Generamos un DataStream con los datos de los sensores \n// y le asignamos la fuente definida antes\nval lecturasF: DataStream[LecturaSensor] \u003d senv\n  .addSource(new GeneradorSeñal)\n  .assignAscendingTimestamps(e \u003d\u003e e.timestamp)\n  \nval tempMedia: DataStream[LecturaSensor] \u003d lecturasF\n  // convertimos Fahrenheit a Celsius\n  .map( r \u003d\u003e\n  LecturaSensor(r.id, r.timestamp, (r.temperatura - 32) * (5.0 / 9.0)) )\n  // agrupamos por sensores\n  .keyBy(_.id)\n  // establecemos el tiempo de la ventana a 1 segundo\n  .timeWindow(Time.seconds(1))\n  // calculamos la temperatura media usando la clase antes definida\n  .apply(new TemperaturaMedia)\n \n// imprimimos los resultados\ntempMedia.print()",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:29:08.741",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import org.apache.flink.streaming.api.TimeCharacteristic\nres40: org.apache.flink.api.common.ExecutionConfig \u003d org.apache.flink.api.common.ExecutionConfig@8d295956\nlecturasF: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@67bd9251\ntempMedia: org.apache.flink.streaming.api.scala.DataStream[LecturaSensor] \u003d org.apache.flink.streaming.api.scala.DataStream@30ec8ce0\nres42: org.apache.flink.streaming.api.datastream.DataStreamSink[LecturaSensor] \u003d org.apache.flink.streaming.api.datastream.DataStreamSink@3e0fdc43\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591376441834_260386194",
+      "id": "20200605-170041_1785142764",
+      "dateCreated": "2020-06-05 17:00:41.834",
+      "dateStarted": "2020-12-14 16:29:08.776",
+      "dateFinished": "2020-12-14 16:29:10.277",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\nsenv.execute(\"Temperatura media\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-12-14 16:29:12.929",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "ERROR",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "LecturaSensor(sensor_1,1607963356000,10.479855498293414)\nLecturaSensor(sensor_2,1607963356000,21.10714397164553)\nLecturaSensor(sensor_4,1607963356000,-9.892277560994135)\nLecturaSensor(sensor_8,1607963356000,22.027404919034634)\nLecturaSensor(sensor_9,1607963356000,22.869137429796613)\nLecturaSensor(sensor_5,1607963356000,16.099397938229806)\nLecturaSensor(sensor_10,1607963356000,8.764045417077455)\nLecturaSensor(sensor_3,1607963356000,14.609538866516866)\nLecturaSensor(sensor_6,1607963356000,25.42950581870883)\nLecturaSensor(sensor_7,1607963356000,18.671653507407346)\nLecturaSensor(sensor_1,1607963357000,10.771322068009828)\nLecturaSensor(sensor_5,1607963357000,15.460618916691928)\nLecturaSensor(sensor_8,1607963357000,23.502587202527458)\nLecturaSensor(sensor_10,1607963357000,8.265254952298074)\nLecturaSensor(sensor_9,1607963357000,22.168156178073904)\nLecturaSensor(sensor_6,1607963357000,25.722668237941615)\nLecturaSensor(sensor_7,1607963357000,19.89558135932914)\nLecturaSensor(sensor_2,1607963357000,20.646574139164663)\nLecturaSensor(sensor_4,1607963357000,-9.66276845836081)\nLecturaSensor(sensor_3,1607963357000,16.474878169081556)\nLecturaSensor(sensor_1,1607963358000,11.499083768386898)\nLecturaSensor(sensor_5,1607963358000,15.695727305426567)\nLecturaSensor(sensor_8,1607963358000,23.412482672596674)\nLecturaSensor(sensor_10,1607963358000,8.360347454538719)\nLecturaSensor(sensor_9,1607963358000,22.703032240973737)\nLecturaSensor(sensor_6,1607963358000,25.42325884891345)\nLecturaSensor(sensor_7,1607963358000,21.126621940203272)\nLecturaSensor(sensor_2,1607963358000,20.931034060422384)\nLecturaSensor(sensor_4,1607963358000,-10.834445515174734)\nLecturaSensor(sensor_3,1607963358000,17.410918566847744)\nLecturaSensor(sensor_1,1607963359000,12.013959934265385)\nLecturaSensor(sensor_5,1607963359000,15.224133832373742)\nLecturaSensor(sensor_8,1607963359000,23.40612991331175)\nLecturaSensor(sensor_10,1607963359000,7.440635487534271)\nLecturaSensor(sensor_9,1607963359000,23.526252243505766)\nLecturaSensor(sensor_6,1607963359000,25.667983728522405)\nLecturaSensor(sensor_7,1607963359000,20.7865130791262)\nLecturaSensor(sensor_2,1607963359000,21.655087460336354)\nLecturaSensor(sensor_4,1607963359000,-10.192259491996413)\nLecturaSensor(sensor_3,1607963359000,17.91060831266985)\nLecturaSensor(sensor_1,1607963360000,10.58591739304127)\nLecturaSensor(sensor_5,1607963360000,14.077891109986851)\nLecturaSensor(sensor_8,1607963360000,23.635307560608695)\nLecturaSensor(sensor_10,1607963360000,6.9994344554082915)\nLecturaSensor(sensor_9,1607963360000,22.716733450665018)\nLecturaSensor(sensor_6,1607963360000,26.842413781392416)\nLecturaSensor(sensor_7,1607963360000,21.392994120345445)\nLecturaSensor(sensor_2,1607963360000,21.92451778303525)\nLecturaSensor(sensor_4,1607963360000,-11.438729754086035)\nLecturaSensor(sensor_3,1607963360000,18.23008297708696)\nLecturaSensor(sensor_1,1607963361000,9.580141979509044)\nLecturaSensor(sensor_5,1607963361000,13.970991014583106)\nLecturaSensor(sensor_8,1607963361000,22.932148397447865)\nLecturaSensor(sensor_10,1607963361000,6.532561973635337)\nLecturaSensor(sensor_9,1607963361000,22.6768944161009)\nLecturaSensor(sensor_6,1607963361000,27.35606613148274)\nLecturaSensor(sensor_7,1607963361000,21.61406783127104)\nLecturaSensor(sensor_2,1607963361000,21.865646281182073)\nLecturaSensor(sensor_4,1607963361000,-11.247506689235726)\nLecturaSensor(sensor_3,1607963361000,17.851657664382586)\nLecturaSensor(sensor_1,1607963362000,8.785254893979014)\nLecturaSensor(sensor_5,1607963362000,14.293862399309365)\nLecturaSensor(sensor_8,1607963362000,23.68801364906914)\nLecturaSensor(sensor_10,1607963362000,6.137398173740309)\nLecturaSensor(sensor_9,1607963362000,22.105576248045775)\nLecturaSensor(sensor_6,1607963362000,28.19531981959131)\nLecturaSensor(sensor_7,1607963362000,21.346204133937825)\nLecturaSensor(sensor_2,1607963362000,22.083025744278007)\nLecturaSensor(sensor_4,1607963362000,-10.804239766370745)\nLecturaSensor(sensor_3,1607963362000,19.2172210583443)\nLecturaSensor(sensor_1,1607963363000,9.512690247258845)\nLecturaSensor(sensor_5,1607963363000,15.031093149128163)\nLecturaSensor(sensor_8,1607963363000,24.798807503342523)\nLecturaSensor(sensor_10,1607963363000,5.44641838308747)\nLecturaSensor(sensor_9,1607963363000,22.18128254746411)\nLecturaSensor(sensor_6,1607963363000,28.690717489590504)\nLecturaSensor(sensor_7,1607963363000,21.186647785606027)\nLecturaSensor(sensor_2,1607963363000,23.04345569645354)\nLecturaSensor(sensor_4,1607963363000,-10.635090606158597)\nLecturaSensor(sensor_3,1607963363000,19.355916509350592)\nLecturaSensor(sensor_1,1607963364000,9.873673513707633)\nLecturaSensor(sensor_5,1607963364000,14.975024578630453)\nLecturaSensor(sensor_8,1607963364000,25.605607542067254)\nLecturaSensor(sensor_10,1607963364000,5.364987833546303)\nLecturaSensor(sensor_9,1607963364000,22.339893537295726)\nLecturaSensor(sensor_6,1607963364000,28.528690457975166)\nLecturaSensor(sensor_7,1607963364000,21.33159299483747)\nLecturaSensor(sensor_2,1607963364000,23.662078864533783)\nLecturaSensor(sensor_4,1607963364000,-11.256598185664679)\nLecturaSensor(sensor_3,1607963364000,18.99318880920858)\norg.apache.flink.client.program.ProgramInvocationException: The program execution failed: Job was cancelled.\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:409)\n  at org.apache.flink.client.program.StandaloneClusterClient.submitJob(StandaloneClusterClient.java:95)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:382)\n  at org.apache.flink.client.program.ClusterClient.run(ClusterClient.java:374)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.executeRemotely(RemoteStreamEnvironment.java:209)\n  at org.apache.flink.api.java.ScalaShellRemoteStreamEnvironment.executeRemotely(ScalaShellRemoteStreamEnvironment.java:87)\n  at org.apache.flink.streaming.api.environment.RemoteStreamEnvironment.execute(RemoteStreamEnvironment.java:173)\n  at org.apache.flink.streaming.api.scala.StreamExecutionEnvironment.execute(StreamExecutionEnvironment.scala:585)\n  ... 36 elided\nCaused by: org.apache.flink.runtime.client.JobCancellationException: Job was cancelled.\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply$mcV$sp(JobManager.scala:814)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at org.apache.flink.runtime.jobmanager.JobManager$$anonfun$handleMessage$1$$anonfun$applyOrElse$7.apply(JobManager.scala:768)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)\n  at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:41)\n  at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:401)\n  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.pollAndExecAll(ForkJoinPool.java:1253)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1346)\n  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)\n  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1591382570572_356059236",
+      "id": "20200605-184250_1376619238",
+      "dateCreated": "2020-06-05 18:42:50.572",
+      "dateStarted": "2020-12-14 16:29:12.955",
+      "dateFinished": "2020-12-14 16:29:25.591",
+      "status": "ABORT",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-11-05 17:41:37.730",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {}
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1591374753397_293864110",
+      "id": "20200605-163233_1566638623",
+      "dateCreated": "2020-06-05 16:32:33.397",
+      "dateStarted": "2020-11-05 17:41:16.149",
+      "dateFinished": "2020-11-05 17:41:23.316",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%flink\n",
+      "user": "anonymous",
+      "dateUpdated": "2020-11-05 17:41:16.129",
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1604598076128_866063034",
+      "id": "20201105-174116_1811179771",
+      "dateCreated": "2020-11-05 17:41:16.128",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "Introducción a Apache Flink/DataStream API",
+  "id": "2F8Z2HQYM",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {
+    "md:shared_process": [],
+    "sh:shared_process": [],
+    "flink:shared_process": [],
+    "spark:shared_process": []
+  },
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {}
+}
