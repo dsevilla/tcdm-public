@@ -1,5 +1,5 @@
-FROM apache/zeppelin:0.8.2
-MAINTAINER tf.pena@usc.es
+FROM apache/zeppelin:0.10.0
+MAINTAINER dsevilla@um.es
 USER root
 ENV LANG=es_ES.UTF-8 \ 
     JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
@@ -14,7 +14,7 @@ RUN locale-gen $LANG &&\
 RUN echo "Instalando paquetes adicionales" && \
     apt-get install -y netcat-openbsd 
 
-ENV SPARK_VERSION=2.2.0 \
+ENV SPARK_VERSION=2.4.5 \
     HADOOP_VERSION=2.7 \
     SPARK_DIR=/usr/local 
 ENV SPARK_HOME=${SPARK_DIR}/spark
@@ -28,6 +28,3 @@ RUN echo "Instalando Spark" && \
 
 EXPOSE 8080
 EXPOSE 4040
-
-
-
