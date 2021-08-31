@@ -12,7 +12,7 @@ RUN locale-gen $LANG &&\
     update-locale LANG=$LANG
 
 RUN echo "Instalando paquetes adicionales" && \
-    apt-get install -y netcat-openbsd 
+    apt-get install -y netcat-openbsd vim-tiny
 
 ENV SPARK_VERSION=2.4.5 \
     HADOOP_VERSION=2.7 \
@@ -25,6 +25,8 @@ RUN echo "Instalando Spark" && \
     rm -rf /tmp/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz && \
     mv -f spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_DIR} && \
     ln -s ${SPARK_DIR}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_HOME}
+
+COPY conf/zeppelin-site.xml /opt/zeppelin/conf/zeppelin-site.xml
 
 EXPOSE 8080
 EXPOSE 4040
