@@ -12,7 +12,11 @@ RUN locale-gen $LANG &&\
     update-locale LANG=$LANG
 
 RUN echo "Instalando paquetes adicionales" && \
-    apt-get install -y netcat-openbsd vim-tiny
+    apt-get install -y netcat-openbsd vim-tiny && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "Adaptaciones de Zeppelin..." && \
+    sed -i -e 's/"flexmark"/"pegdown"/' /opt/zeppelin/interpreter/md/interpreter-setting.json
 
 ENV SPARK_VERSION=2.4.5 \
     HADOOP_VERSION=2.7 \
