@@ -4,6 +4,7 @@
       "text": "%md\n## [DataStream API](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/datastream_api.html)\n\nTransformaciones realizadas sobre flujos de datos\n- Se recogen los datos de diferentes fuentes (sources)\n- Se realizan transformaciones sobre los flujos de datos\n- Se envían los flujos a diferentes destinos (sinks)",
       "user": "anonymous",
       "dateUpdated": "2020-05-26 18:46:55.564",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -32,18 +33,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1590518564036_741188967",
       "id": "20200526-184244_1274355986",
       "dateCreated": "2020-05-26 18:42:44.036",
       "dateStarted": "2020-05-26 18:46:55.582",
       "dateFinished": "2020-05-26 18:46:55.636",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Ejemplo: WordCount en red sin estado\n\nPara ejecutar el ejemplo:\n\n1. En un terminal, accede al container con `docker exec -ti container_id /bin/bash`\n2. Una vez en el terminal del container, usa netcat como un servidor en el puerto 9999\n\n    `# nc -lk 9999`\n\n2. Ejecuta el código Flink que viene a continuación \n\n3. Escribe líneas en el terminal del netcat, que serán recogidas y procesadas por el script\n    - Escribe palabras repetidas, para comprobar que las cuenta bien\n \n4. Termina con Ctrl-C en el terminal",
       "user": "anonymous",
       "dateUpdated": "2020-06-05 10:30:01.527",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -72,18 +75,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1590518815550_614234567",
       "id": "20200526-184655_1809895452",
       "dateCreated": "2020-05-26 18:46:55.550",
       "dateStarted": "2020-06-05 10:30:01.534",
       "dateFinished": "2020-06-05 10:30:04.194",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nimport org.apache.flink.streaming.api.TimeCharacteristic\n\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime)\n\ncase class WordWithCount(word: String, count: Long)\n\n// Obtiene las lineas del socket\nval text \u003d senv.socketTextStream(\"localhost\", 9999, \u0027\\n\u0027)\n\n// Separa en palabras, lo convierte en pares (palabra, 1), agrupa por palabra y suma\nval windowCounts \u003d text\n      .flatMap { w \u003d\u003e w.split(\"\\\\s\") }\n      .map { w \u003d\u003e WordWithCount(w, 1) }\n      .keyBy(\"word\")\n      .timeWindow(Time.seconds(5))\n      .sum(\"count\")\n\n// Muestra los resultados usando un único hilo\nwindowCounts.print().setParallelism(1)\n\nsenv.execute(\"WordCount desde socket\")\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:00:57.083",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -110,18 +115,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1590518834016_-247448874",
       "id": "20200526-184714_768013622",
       "dateCreated": "2020-05-26 18:47:14.016",
       "dateStarted": "2020-12-14 16:00:57.117",
       "dateFinished": "2020-12-14 16:01:09.325",
-      "status": "ABORT",
-      "progressUpdateIntervalMs": 500
+      "status": "ABORT"
     },
     {
       "text": "%md\n## Operaciones sobre flujos de datos\nTransformaciones\n\n  - Procesan cada evento de forma independiente\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/transformaciones.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\nAgregaciones (rolling aggregations)\n\n- Agregan datos a medida que se reciben: suma, mínimo, máximo, media, etc.\n- Combinan el estado actual con los eventos que llegan\n- La operación debe de ser asociativa y conmutativa\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/agregaciones.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\nOperaciones de ventana\n\n- Almacenan eventos hasta una cierta condición antes de procesarlos\n- Permiten agregaciones holísticas: necesitan aplicarse sobre conjuntos limitados de datos (pe. mediana, moda o rango)\n- Se crean conjuntos finitos de eventos (buckets) a partir de un flujo ilimitado\n    - Cuando el bucket se completa, se lanza la computación\n- Los eventos se pueden agrupar por tiempo, número de eventos o alguna propiedad de los mismos\n- Las ventanas pueden ser de tamaño fijo (tumbling windows), deslizantes (sliding windows) o por sesión (session windows)\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/windows.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e",
       "user": "anonymous",
-      "dateUpdated": "2020-12-14 16:02:25.100",
+      "dateUpdated": "2021-08-31 23:33:19.864",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -151,18 +158,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591356231077_-303179814",
       "id": "20200605-112351_2020755688",
       "dateCreated": "2020-06-05 11:23:51.078",
-      "dateStarted": "2020-12-14 16:02:25.100",
-      "dateFinished": "2020-12-14 16:02:25.127",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-08-31 23:33:19.864",
+      "dateFinished": "2021-08-31 23:33:23.253",
+      "status": "FINISHED"
     },
     {
-      "text": "%md\n## Semantica temporal\nFormas de medir el tiempo en streaming:\n\n### Tiempo de procesamiento (processing time) \n- El tiempo de llegada de los paquetes se establece en destino\n- No considera el orden de generación de los eventos\n    - Dos eventos simultáneos en origen pueden llegar como eventos separados en destino\n    - Resultados no deterministas\n- Útil para aplicaciones en las que la velocidad es más importante que la precisión\n    - Ejemplo: información en tiempo real de agregados (p.e. media) de datos de sensores\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/processingtime.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\n### Tiempo de evento (event time)\n- El tiempo de llegada de los paquetes se establece en origen\n- Los eventos se acompañan de una marca de tiempo (Timestamp) establecida en origen\n    - Se gestionan eventos fuera de orden y retrasados\n    - Resultados deterministas\n- Necesario el establecimiento de *marcas de agua* (Watermarks)\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/eventtime.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\n#### Watermaks\nNecesitamos establecer un *límite* de espera de eventos\n\n- Cuando se recibe una marca con tiempo T, se asume que se han recibido todos los eventos con Timestamp \u003c T\n- Si después de recibir la Watermark T se recibe un evento con TS \u003c T, este se ignora o se procesa de forma especial\n- La llegada de una Watermark puede disparar una acción para procesar los eventos recibidos hasta ese momento\n- Watermarks frecuentes proporcionan baja latencia pero menor confianza (se ignoran eventos tardíos)\n- Watermarks poco frecuentes mejoran la confianza pero aumentan la latencia",
+      "text": "%md\n## Semántica temporal\nFormas de medir el tiempo en streaming:\n\n\u003c!--\n%%%yuml type\u003dclass scale\u003d100 style\u003dscruffy dir\u003dLR format\u003dpng\n[Customer]\u003c\u003e1-\u003e*[Order],[Customer]-[note: Aggregate Root{bg:cornsilk}]\n%%%\n--\u003e\n\n### Tiempo de procesamiento (processing time) \n- El tiempo de llegada de los paquetes se establece en destino\n- No considera el orden de generación de los eventos\n    - Dos eventos simultáneos en origen pueden llegar como eventos separados en destino\n    - Resultados no deterministas\n- Útil para aplicaciones en las que la velocidad es más importante que la precisión\n    - Ejemplo: información en tiempo real de agregados (p.e. media) de datos de sensores\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/processingtime.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\n### Tiempo de evento (event time)\n- El tiempo de llegada de los paquetes se establece en origen\n- Los eventos se acompañan de una marca de tiempo (Timestamp) establecida en origen\n    - Se gestionan eventos fuera de orden y retrasados\n    - Resultados deterministas\n- Necesario el establecimiento de *marcas de agua* (Watermarks)\n\u003chr /\u003e\n![sparkstack](http://persoal.citius.usc.es/tf.pena/TCDM/figs/eventtime.png)\n(Fuente: H. Hueske, V. Kalavri, \"Stream Processing with Apache Flink\", O\u0027Reilly, 2019)\n\u003chr /\u003e\n\n#### Watermaks\nNecesitamos establecer un *límite* de espera de eventos\n\n- Cuando se recibe una marca con tiempo T, se asume que se han recibido todos los eventos con Timestamp \u003c T\n- Si después de recibir la Watermark T se recibe un evento con TS \u003c T, este se ignora o se procesa de forma especial\n- La llegada de una Watermark puede disparar una acción para procesar los eventos recibidos hasta ese momento\n- Watermarks frecuentes proporcionan baja latencia pero menor confianza (se ignoran eventos tardíos)\n- Watermarks poco frecuentes mejoran la confianza pero aumentan la latencia",
       "user": "anonymous",
-      "dateUpdated": "2020-06-22 17:50:06.109",
+      "dateUpdated": "2021-08-31 23:34:37.641",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -176,7 +185,8 @@
         },
         "editorMode": "ace/mode/markdown",
         "editorHide": true,
-        "tableHide": false
+        "tableHide": false,
+        "title": false
       },
       "settings": {
         "params": {},
@@ -187,23 +197,25 @@
         "msg": [
           {
             "type": "HTML",
-            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eSemantica temporal\u003c/h2\u003e\n\u003cp\u003eFormas de medir el tiempo en streaming:\u003c/p\u003e\n\u003ch3\u003eTiempo de procesamiento (processing time)\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eEl tiempo de llegada de los paquetes se establece en destino\u003c/li\u003e\n  \u003cli\u003eNo considera el orden de generación de los eventos\n    \u003cul\u003e\n      \u003cli\u003eDos eventos simultáneos en origen pueden llegar como eventos separados en destino\u003c/li\u003e\n      \u003cli\u003eResultados no deterministas\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eÚtil para aplicaciones en las que la velocidad es más importante que la precisión\n    \u003cul\u003e\n      \u003cli\u003eEjemplo: información en tiempo real de agregados (p.e. media) de datos de sensores\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/processingtime.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eTiempo de evento (event time)\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eEl tiempo de llegada de los paquetes se establece en origen\u003c/li\u003e\n  \u003cli\u003eLos eventos se acompañan de una marca de tiempo (Timestamp) establecida en origen\n    \u003cul\u003e\n      \u003cli\u003eSe gestionan eventos fuera de orden y retrasados\u003c/li\u003e\n      \u003cli\u003eResultados deterministas\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eNecesario el establecimiento de \u003cem\u003emarcas de agua\u003c/em\u003e (Watermarks)\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/eventtime.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eWatermaks\u003c/h4\u003e\n\u003cp\u003eNecesitamos establecer un \u003cem\u003elímite\u003c/em\u003e de espera de eventos\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eCuando se recibe una marca con tiempo T, se asume que se han recibido todos los eventos con Timestamp \u0026lt; T\u003c/li\u003e\n  \u003cli\u003eSi después de recibir la Watermark T se recibe un evento con TS \u0026lt; T, este se ignora o se procesa de forma especial\u003c/li\u003e\n  \u003cli\u003eLa llegada de una Watermark puede disparar una acción para procesar los eventos recibidos hasta ese momento\u003c/li\u003e\n  \u003cli\u003eWatermarks frecuentes proporcionan baja latencia pero menor confianza (se ignoran eventos tardíos)\u003c/li\u003e\n  \u003cli\u003eWatermarks poco frecuentes mejoran la confianza pero aumentan la latencia\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eSemántica temporal\u003c/h2\u003e\n\u003cp\u003eFormas de medir el tiempo en streaming:\u003c/p\u003e\n\u003c!--\n%%%yuml type\u003dclass scale\u003d100 style\u003dscruffy dir\u003dLR format\u003dpng\n[Customer]\u003c\u003e1-\u003e*[Order],[Customer]-[note: Aggregate Root{bg:cornsilk}]\n%%%\n--\u003e\n\u003ch3\u003eTiempo de procesamiento (processing time)\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eEl tiempo de llegada de los paquetes se establece en destino\u003c/li\u003e\n  \u003cli\u003eNo considera el orden de generación de los eventos\n    \u003cul\u003e\n      \u003cli\u003eDos eventos simultáneos en origen pueden llegar como eventos separados en destino\u003c/li\u003e\n      \u003cli\u003eResultados no deterministas\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eÚtil para aplicaciones en las que la velocidad es más importante que la precisión\n    \u003cul\u003e\n      \u003cli\u003eEjemplo: información en tiempo real de agregados (p.e. media) de datos de sensores\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/processingtime.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eTiempo de evento (event time)\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003eEl tiempo de llegada de los paquetes se establece en origen\u003c/li\u003e\n  \u003cli\u003eLos eventos se acompañan de una marca de tiempo (Timestamp) establecida en origen\n    \u003cul\u003e\n      \u003cli\u003eSe gestionan eventos fuera de orden y retrasados\u003c/li\u003e\n      \u003cli\u003eResultados deterministas\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003eNecesario el establecimiento de \u003cem\u003emarcas de agua\u003c/em\u003e (Watermarks)\u003cbr/\u003e\u003chr /\u003e\u003cbr/\u003e\u003cimg src\u003d\"http://persoal.citius.usc.es/tf.pena/TCDM/figs/eventtime.png\" alt\u003d\"sparkstack\" /\u003e\u003cbr/\u003e(Fuente: H. Hueske, V. Kalavri, \u0026ldquo;Stream Processing with Apache Flink\u0026rdquo;, O\u0026rsquo;Reilly, 2019)\u003cbr/\u003e\u003chr /\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eWatermaks\u003c/h4\u003e\n\u003cp\u003eNecesitamos establecer un \u003cem\u003elímite\u003c/em\u003e de espera de eventos\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eCuando se recibe una marca con tiempo T, se asume que se han recibido todos los eventos con Timestamp \u0026lt; T\u003c/li\u003e\n  \u003cli\u003eSi después de recibir la Watermark T se recibe un evento con TS \u0026lt; T, este se ignora o se procesa de forma especial\u003c/li\u003e\n  \u003cli\u003eLa llegada de una Watermark puede disparar una acción para procesar los eventos recibidos hasta ese momento\u003c/li\u003e\n  \u003cli\u003eWatermarks frecuentes proporcionan baja latencia pero menor confianza (se ignoran eventos tardíos)\u003c/li\u003e\n  \u003cli\u003eWatermarks poco frecuentes mejoran la confianza pero aumentan la latencia\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591353418884_1459900896",
       "id": "20200605-103658_1359523177",
       "dateCreated": "2020-06-05 10:36:58.884",
-      "dateStarted": "2020-06-22 17:50:06.119",
-      "dateFinished": "2020-06-22 17:50:06.244",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-08-31 23:34:37.643",
+      "dateFinished": "2021-08-31 23:34:37.696",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Ejemplo: procesamiento de flujos de varios sensores de temperatura",
       "user": "anonymous",
-      "dateUpdated": "2020-06-05 16:04:22.052",
+      "dateUpdated": "2021-08-31 23:34:47.474",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -233,18 +245,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591373004281_-348852676",
       "id": "20200605-160324_1311277836",
       "dateCreated": "2020-06-05 16:03:24.281",
-      "dateStarted": "2020-06-05 16:04:22.052",
-      "dateFinished": "2020-06-05 16:04:22.080",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-08-31 23:34:47.477",
+      "dateFinished": "2021-08-31 23:34:47.486",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n#### SourceFunction para usar como generador de señales",
       "user": "anonymous",
       "dateUpdated": "2020-06-05 18:52:16.484",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -274,18 +288,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591383108832_-2142740241",
       "id": "20200605-185148_1639626211",
       "dateCreated": "2020-06-05 18:51:48.832",
       "dateStarted": "2020-06-05 18:52:16.487",
       "dateFinished": "2020-06-05 18:52:16.515",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nimport java.util.Calendar\n\nimport org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction\nimport org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext\n\nimport scala.util.Random\n\n/**\n  * Flink SourceFunction para generar objetos de tipo LecturaSensor con valores aleatorios de temperaturas\n  * \n  * Cada instancia paralela de esta fuente simula 10 sensores que emiten una lectura cada 100 ms\n  *\n  * Nota: esta función simple no hace checkpoints, en caso de fallo la función no reenvía\n  * ningún dato.\n  * \n  */\n  \n/** Case class de los datos que generan los sensores\n  *\n  * id: identificador del sensor\n  * timestamp: tiempo de generación\n  * temperatura: valor de temperatura en Fahrenheit\n  * \n  */\ncase class LecturaSensor(id: String, timestamp: Long, temperatura: Double)\n\nclass GeneradorSeñal extends RichParallelSourceFunction[LecturaSensor] {\n\n  // Flag que indica si la fuente está corriendo\n  var activo: Boolean \u003d true\n\n  /** run() emite lecturas de los sensores de forma continua a través del SourceContext */\n  override def run(srcCtx: SourceContext[LecturaSensor]): Unit \u003d {\n\n    // inicia el generador de números aleatorios\n    val rand \u003d new Random()\n    // obtiene el índice de esta tarea paralela (usado para identificar el sensor)\n    // Zeppelin solo permite 1 tarea paralela con lo que taskIdx\u003d0\n    val taskIdx \u003d this.getRuntimeContext.getIndexOfThisSubtask\n\n    // inicializa los ids y las temperaturas de los 10 sensores\n    var lecturasFTemp \u003d (1 to 10).map {\n      i \u003d\u003e (\"sensor_\" + (taskIdx * 10 + i), 65 + (rand.nextGaussian() * 20))\n    }\n\n    // emite datos hasta que se cancele\n    while (activo) {\n\n      // actualiza la temperatura\n      lecturasFTemp \u003d lecturasFTemp.map( t \u003d\u003e (t._1, t._2 + (rand.nextGaussian() * 0.5)) )\n      // obtiene la fecha y hora actual\n      val fecha \u003d Calendar.getInstance.getTimeInMillis\n\n      // emite las lecturas de los sensores\n      lecturasFTemp.foreach( t \u003d\u003e srcCtx.collect(LecturaSensor(t._1, fecha, t._2)))\n\n      // espera 100 ms\n      Thread.sleep(100)\n    }\n\n  }\n\n  /** Cancela la emisión de datos */\n  override def cancel(): Unit \u003d {\n    activo \u003d false\n  }\n\n}",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:19:53.494",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -313,18 +329,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1590519744995_-47181300",
       "id": "20200526-190224_511804482",
       "dateCreated": "2020-05-26 19:02:24.995",
       "dateStarted": "2020-12-14 16:19:53.520",
       "dateFinished": "2020-12-14 16:19:55.330",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n#### Transformaciones básicas: map, filter",
       "user": "anonymous",
       "dateUpdated": "2020-06-05 18:52:47.248",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -354,18 +372,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591383141249_-139883855",
       "id": "20200605-185221_1789007932",
       "dateCreated": "2020-06-05 18:52:21.249",
       "dateStarted": "2020-06-05 18:52:47.249",
       "dateFinished": "2020-06-05 18:52:47.260",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\n/**\n * Lee los sensores, convierte la temperatura a Celsius \n * y filtra por valor de temperatura.\n * \n */\n\nimport org.apache.flink.streaming.api.TimeCharacteristic\n\n// Usando tienpos generados en origen (Event Time)\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)\n// Especificamos el intervalo de emisión de WaterMarks a 1 segundo\nsenv.getConfig.setAutoWatermarkInterval(1000L)\n// Especificamos el paralelismo (Zeppelin solo permite valor 1)\nsenv.setParallelism(1)\n\n// Generamos un DataStream con los datos de los sensores \n// y le asignamos la fuente definida antes\nval lecturasF: DataStream[LecturaSensor] \u003d senv\n  .addSource(new GeneradorSeñal)\n  // Usamos las timestamp de los eventos para generar watermarks\n  // Solo sirve si los timestamps se incrementan monotónicamente\n  // para casos generales, usar assignTimestampsAndWatermarks(new TimeStampAssigner())\n  .assignAscendingTimestamps(e \u003d\u003e e.timestamp)\n\n// Cambiamos las temperaturas a Celsius\nval lecturasC: DataStream[LecturaSensor] \u003d lecturasF\n  .map( l \u003d\u003e \n  LecturaSensor(l.id, l.timestamp, (l.temperatura - 32) * (5.0 / 9.0)) )\n\n// Filtra las lecturas con temperaturas inferiores a 10 C\nval masDe10C: DataStream[LecturaSensor] \u003d lecturasC\n  .filter( l \u003d\u003e l.temperatura \u003e\u003d 10 )\n  \n// Quedate con el id y la temperatura\nval idTemp: DataStream[(String, Double)] \u003d masDe10C\n  .map( l \u003d\u003e (l.id, l.temperatura) )\n\nidTemp.print()\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:25:06.562",
+      "progress": 0,
       "config": {
         "colWidth": 11.0,
         "fontSize": 9.0,
@@ -401,18 +421,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591376091716_1165294473",
       "id": "20200605-165451_2117192444",
       "dateCreated": "2020-06-05 16:54:51.716",
       "dateStarted": "2020-12-14 16:24:10.652",
       "dateFinished": "2020-12-14 16:24:12.925",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nsenv.execute(\"Ejemplo de transformaciones básicas\")",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:24:15.305",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -440,18 +462,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591379229427_-1375473261",
       "id": "20200605-174709_1138747448",
       "dateCreated": "2020-06-05 17:47:09.427",
       "dateStarted": "2020-12-14 16:24:15.332",
       "dateFinished": "2020-12-14 16:24:21.441",
-      "status": "ABORT",
-      "progressUpdateIntervalMs": 500
+      "status": "ABORT"
     },
     {
       "text": "%md\n#### KeyedStreams: Flujos agrupados por clave \n",
       "user": "anonymous",
       "dateUpdated": "2020-06-05 18:56:38.426",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -481,18 +505,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591383228848_2107060066",
       "id": "20200605-185348_562734997",
       "dateCreated": "2020-06-05 18:53:48.848",
       "dateStarted": "2020-06-05 18:56:38.426",
       "dateFinished": "2020-06-05 18:56:38.432",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\n/**\n * Lee los sensores, los agrupa por id y muestra el máximo de temperatura\n */\n \nimport org.apache.flink.streaming.api.TimeCharacteristic\n\n// Usando tienpos generados en origen (Event Time)\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)\n// Especificamos el intervalo de emisión de WaterMarks a 1 segundo\nsenv.getConfig.setAutoWatermarkInterval(1000L)\n// Especificamos el paralelismo (Zeppelin solo permite valor 1)\nsenv.setParallelism(1)\n\n// Generamos un DataStream con los datos de los sensores \n// y le asignamos la fuente definida antes\nval lecturasF: DataStream[LecturaSensor] \u003d senv\n  .addSource(new GeneradorSeñal)\n  .assignAscendingTimestamps(e \u003d\u003e e.timestamp)\n  \nval lecturasPorId \u003d lecturasF\n  // Agrupa los flujos por id (campo 0)\n  .keyBy(0)\n  // Mantiene el máximo de temperatura (campo 2)\n  .max(2)\n \n// Imprimimos los resultados\nlecturasPorId.map{\n  l \u003d\u003e \"Sensor \"+l.id.split(\"_\")(1)+\" -\u003e \"+l.temperatura\n}.print()\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:26:10.495",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -520,18 +546,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591383388446_-290923886",
       "id": "20200605-185628_1464939049",
       "dateCreated": "2020-06-05 18:56:28.446",
       "dateStarted": "2020-12-14 16:26:10.515",
       "dateFinished": "2020-12-14 16:26:11.774",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nsenv.execute(\"Ejemplo de transformaciones básicas\")",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:26:17.605",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -559,18 +587,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591383772999_553259548",
       "id": "20200605-190252_1900425642",
       "dateCreated": "2020-06-05 19:02:52.999",
       "dateStarted": "2020-12-14 16:26:17.629",
       "dateFinished": "2020-12-14 16:26:23.360",
-      "status": "ABORT",
-      "progressUpdateIntervalMs": 500
+      "status": "ABORT"
     },
     {
       "text": "%md\n#### Operaciones sobre ventanas",
       "user": "anonymous",
       "dateUpdated": "2020-06-05 19:36:36.098",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -600,18 +630,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591385765477_1380207036",
       "id": "20200605-193605_2133515999",
       "dateCreated": "2020-06-05 19:36:05.477",
       "dateStarted": "2020-06-05 19:36:36.098",
       "dateFinished": "2020-06-05 19:36:36.120",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nimport org.apache.flink.streaming.api.scala.function.WindowFunction\nimport org.apache.flink.streaming.api.windowing.windows.TimeWindow\nimport org.apache.flink.util.Collector\n\n/**\n * Clase para calcular la media de temperatura sobre los datos de una ventana\n */\n \nclass TemperaturaMedia extends WindowFunction[LecturaSensor, LecturaSensor, String, TimeWindow] {\n\n  // El método apply() se invoca una vez para cada ventana\n  override def apply(\n    sensorId: String,\n    ventana: TimeWindow,\n    valores: Iterable[LecturaSensor],\n    salida: Collector[LecturaSensor]): Unit \u003d {\n\n    // calcula la temperatura media sobre los valores de la ventana\n    val (cuenta, suma) \u003d valores.foldLeft((0, 0.0))((c, l) \u003d\u003e (c._1 + 1, c._2 + l.temperatura))\n    val tempMedia \u003d suma / cuenta\n\n    // emite un objeto LecturaSensor con la temperatura media y el fin de la ventana como timestamp\n    salida.collect(LecturaSensor(sensorId, ventana.getEnd, tempMedia))\n  }\n}",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:29:06.075",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -639,18 +671,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591382153582_1247712918",
       "id": "20200605-183553_1051471725",
       "dateCreated": "2020-06-05 18:35:53.582",
       "dateStarted": "2020-12-14 16:29:06.098",
       "dateFinished": "2020-12-14 16:29:06.815",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nimport org.apache.flink.streaming.api.TimeCharacteristic\n\n// Usando tiempos generados en origen (Event Time)\nsenv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)\n// Especificamos el intervalo de emisión de WaterMarks a 1 segundo\nsenv.getConfig.setAutoWatermarkInterval(1000L)\n// Especificamos el paralelismo (Zeppelin solo permite valor 1)\nsenv.setParallelism(1)\n\n// Generamos un DataStream con los datos de los sensores \n// y le asignamos la fuente definida antes\nval lecturasF: DataStream[LecturaSensor] \u003d senv\n  .addSource(new GeneradorSeñal)\n  .assignAscendingTimestamps(e \u003d\u003e e.timestamp)\n  \nval tempMedia: DataStream[LecturaSensor] \u003d lecturasF\n  // convertimos Fahrenheit a Celsius\n  .map( r \u003d\u003e\n  LecturaSensor(r.id, r.timestamp, (r.temperatura - 32) * (5.0 / 9.0)) )\n  // agrupamos por sensores\n  .keyBy(_.id)\n  // establecemos el tiempo de la ventana a 1 segundo\n  .timeWindow(Time.seconds(1))\n  // calculamos la temperatura media usando la clase antes definida\n  .apply(new TemperaturaMedia)\n \n// imprimimos los resultados\ntempMedia.print()",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:29:08.741",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -678,18 +712,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591376441834_260386194",
       "id": "20200605-170041_1785142764",
       "dateCreated": "2020-06-05 17:00:41.834",
       "dateStarted": "2020-12-14 16:29:08.776",
       "dateFinished": "2020-12-14 16:29:10.277",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\nsenv.execute(\"Temperatura media\")",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 16:29:12.929",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -717,18 +753,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591382570572_356059236",
       "id": "20200605-184250_1376619238",
       "dateCreated": "2020-06-05 18:42:50.572",
       "dateStarted": "2020-12-14 16:29:12.955",
       "dateFinished": "2020-12-14 16:29:25.591",
-      "status": "ABORT",
-      "progressUpdateIntervalMs": 500
+      "status": "ABORT"
     },
     {
       "text": "%flink\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:41:37.730",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -741,42 +779,41 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591374753397_293864110",
       "id": "20200605-163233_1566638623",
       "dateCreated": "2020-06-05 16:32:33.397",
       "dateStarted": "2020-11-05 17:41:16.149",
       "dateFinished": "2020-11-05 17:41:23.316",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:41:16.129",
+      "progress": 0,
       "config": {},
       "settings": {
         "params": {},
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1604598076128_866063034",
       "id": "20201105-174116_1811179771",
       "dateCreated": "2020-11-05 17:41:16.128",
-      "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "status": "READY"
     }
   ],
-  "name": "Introducción a Apache Flink/DataStream API",
+  "name": "39note",
   "id": "2F8Z2HQYM",
+  "defaultInterpreterGroup": "spark",
   "noteParams": {},
   "noteForms": {},
-  "angularObjects": {
-    "md:shared_process": [],
-    "sh:shared_process": [],
-    "flink:shared_process": [],
-    "spark:shared_process": []
-  },
+  "angularObjects": {},
   "config": {
     "isZeppelinNotebookCronEnable": false
   },

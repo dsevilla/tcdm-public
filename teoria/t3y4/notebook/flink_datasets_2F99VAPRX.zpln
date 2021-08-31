@@ -1,9 +1,10 @@
 {
   "paragraphs": [
     {
-      "text": "%md\n## [DataSets](https://ci.apache.org/projects/flink/flink-docs-stable/dev/batch/)\n\nSimilares a los de Spark\n- Crear DataSets\n- Realizar operaciones sobre los DataSets\n- Guardar DataSets",
+      "text": "%md\n## [Flink DataSets](https://ci.apache.org/projects/flink/flink-docs-stable/dev/batch/)\n\nSimilares a los de Spark\n- Crear DataSets\n- Realizar operaciones sobre los DataSets\n- Guardar DataSets",
       "user": "anonymous",
-      "dateUpdated": "2020-05-26 18:45:16.249",
+      "dateUpdated": "2021-08-31 23:44:55.858",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -27,23 +28,25 @@
         "msg": [
           {
             "type": "HTML",
-            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003e\u003ca href\u003d\"https://ci.apache.org/projects/flink/flink-docs-stable/dev/batch/\"\u003eDataSets\u003c/a\u003e\u003c/h2\u003e\n\u003cp\u003eSimilares a los de Spark\u003cbr/\u003e- Crear DataSets\u003cbr/\u003e- Realizar operaciones sobre los DataSets\u003cbr/\u003e- Guardar DataSets\u003c/p\u003e\n\u003c/div\u003e"
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003e\u003ca href\u003d\"https://ci.apache.org/projects/flink/flink-docs-stable/dev/batch/\"\u003eFlink DataSets\u003c/a\u003e\u003c/h2\u003e\n\u003cp\u003eSimilares a los de Spark\u003cbr/\u003e- Crear DataSets\u003cbr/\u003e- Realizar operaciones sobre los DataSets\u003cbr/\u003e- Guardar DataSets\u003c/p\u003e\n\u003c/div\u003e"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587747349182_-1014405919",
       "id": "20200424-165549_1000593872",
       "dateCreated": "2020-04-24 16:55:49.182",
-      "dateStarted": "2020-05-26 18:45:16.271",
-      "dateFinished": "2020-05-26 18:45:19.248",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-08-31 23:44:55.850",
+      "dateFinished": "2021-08-31 23:44:55.865",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Ejemplo: WordCount simple",
       "user": "anonymous",
       "dateUpdated": "2020-05-26 19:00:58.924",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -72,18 +75,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587747488000_-1474963630",
       "id": "20200424-165808_1650488832",
       "dateCreated": "2020-04-24 16:58:08.000",
       "dateStarted": "2020-05-26 19:00:58.939",
       "dateFinished": "2020-05-26 19:00:58.971",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\n// Definimos una clase para las tuplas (palabra, n_ocurrencias)\ncase class PalabraOcurrencias(palabra: String, ocurrencias: Int)\n\n// Leemos el fichero como un DataSet de filas\nval quijote: DataSet[String] \u003d benv.readTextFile(\"/datos/quijote.txt\")\n\n// Usamos una expresión regular para separar cada línea en palabras\n// y creamos un DataSet de objetos PalabraOcurrencias\n// conteniendo (palabra, 1)\nval cuentaParcial: DataSet[PalabraOcurrencias] \u003d quijote.flatMap{\n    linea \u003d\u003e\n        \"\"\"\\b[a-z]+\\b\"\"\".r.findAllIn(linea.toLowerCase).map(palabra \u003d\u003e PalabraOcurrencias(palabra, 1))\n}\n\n// Agrupamos el DataSet anterior por palabra y reducimos sumando los 1s\nval cuentaFinal: DataSet[PalabraOcurrencias] \u003d cuentaParcial.groupBy(\"palabra\").sum(\"ocurrencias\")\n// Obtenemos los 10 primeros elementos del DataSet cuentaFinal\nval result10 \u003d cuentaFinal.first(10).collect()\n",
       "user": "anonymous",
       "dateUpdated": "2020-09-29 19:18:06.058",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -101,19 +106,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587747519164_-1450822458",
       "id": "20200424-165839_929425849",
       "dateCreated": "2020-04-24 16:58:39.164",
       "dateStarted": "2020-09-29 19:18:06.185",
       "dateFinished": "2020-09-29 19:18:15.961",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%md\n### Creación de DataSets\nPodemos crear DataSet desde colecciones o ficheros",
       "user": "anonymous",
       "dateUpdated": "2020-04-24 17:19:19.214",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -142,18 +149,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587748678705_-593689134",
       "id": "20200424-171758_1851375202",
       "dateCreated": "2020-04-24 17:17:58.705",
       "dateStarted": "2020-04-24 17:19:19.216",
       "dateFinished": "2020-04-24 17:19:19.227",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\n// DataSets desde colecciones\nval ds1 \u003d benv.fromElements(1,2,3,4,5,6,7,8)\nval ds2 \u003d benv.fromCollection(1 to 100)\n\nds1.print\nprintln(ds2.collect)",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:01:06.745",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -171,19 +180,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587748768615_173283315",
       "id": "20200424-171928_571394599",
       "dateCreated": "2020-04-24 17:19:28.615",
       "dateStarted": "2020-04-28 19:00:43.529",
       "dateFinished": "2020-04-28 19:00:52.647",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// DataSet desde un fichero CSV\nval dfDatosVuelos2015 \u003d benv.readCsvFile[(String, String, Int)](\"/datos/2015-summary.csv\",ignoreFirstLine \u003d true)\ndfDatosVuelos2015.first(5).print",
       "user": "anonymous",
       "dateUpdated": "2020-12-14 15:55:56.456",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -209,18 +220,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587748996209_359445163",
       "id": "20200424-172316_912056455",
       "dateCreated": "2020-04-24 17:23:16.209",
       "dateStarted": "2020-12-14 15:55:56.494",
       "dateFinished": "2020-12-14 15:56:11.072",
-      "status": "ERROR",
-      "progressUpdateIntervalMs": 500
+      "status": "ERROR"
     },
     {
       "text": "%md\n### Operaciones sobre DataSets\n\n- [Transformaciones](https://ci.apache.org/projects/flink/flink-docs-stable/dev/batch/dataset_transformations.html)\n\n    - Convierten uno o más DataSets en un nuevo DataSet\n    - Operaciones similares a las de Spark: map, flatMap, filter, reduce, join, ...\n\n- Otras operaciones\n  \n    - Obtienen datos sobre el DataSet: print, collect, first, count, ...  ",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:00:04.698",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -249,18 +262,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587747914682_817812881",
       "id": "20200424-170514_1751131897",
       "dateCreated": "2020-04-24 17:05:14.683",
       "dateStarted": "2020-04-28 19:00:04.698",
       "dateFinished": "2020-04-28 19:00:04.713",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\n// Ejemplo de map\nval dsIn : DataSet[String] \u003d benv.fromElements(\"uno dos\", \"dos tres\", \"tres cuatro\", \"cuatro cinco\")\n// Para cada string de la lista obtiene su longitud\nval dsOut : DataSet[Int]\u003d dsIn.map{\n    str \u003d\u003e str.length()\n    \n}\ndsOut.print\n",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:00:14.435",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -279,19 +294,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587748610565_-41805956",
       "id": "20200424-171650_562396733",
       "dateCreated": "2020-04-24 17:16:50.565",
       "dateStarted": "2020-04-28 19:00:14.457",
       "dateFinished": "2020-04-28 19:00:19.062",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de flatMap\n// Por cada elemento, flatMap devuelve cero, uno o más elementos\nval dsIn : DataSet[String] \u003d benv.fromElements(\"En un lugar de la Mancha\", \"tres tristes\", \"-1\", \"string de cuatro palabras\", \"-1\", \"ocho\")\nval dsOut : DataSet[String] \u003d dsIn.flatMap{\n    _.split(\" \")\n}\n\nprintln(dsOut.collect)\n",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:03:36.748",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -310,19 +327,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587838717063_482439109",
       "id": "20200425-181837_132372709",
       "dateCreated": "2020-04-25 18:18:37.063",
       "dateStarted": "2020-04-28 19:03:36.774",
       "dateFinished": "2020-04-28 19:03:41.732",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de filter\ndsIn.filter(_ !\u003d \"-1\").print",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:03:28.909",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -341,19 +360,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587839468825_-741845324",
       "id": "20200425-183108_235176153",
       "dateCreated": "2020-04-25 18:31:08.825",
       "dateStarted": "2020-04-28 19:03:28.934",
       "dateFinished": "2020-04-28 19:03:33.464",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de reduce\nval dsIn \u003d benv.fromCollection(1 to 10)\n\nval dsOut \u003d dsIn.reduce(_+_)\n\ndsOut.print",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 18:59:41.991",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -372,19 +393,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588099804711_1057477753",
       "id": "20200428-185004_1211967500",
       "dateCreated": "2020-04-28 18:50:04.711",
       "dateStarted": "2020-04-28 18:59:42.016",
       "dateFinished": "2020-04-28 18:59:46.601",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de reduce en un DataSet agrupado (con groupBy)\nbenv.setParallelism(1)\nval dsIn: DataSet[Tuple2[String, Int]] \u003d benv.fromElements((\"a\",1), (\"b\",2), (\"a\",5), (\"c\",3), (\"b\",99))\n// Agrupa por el primer elemento de la tupla y obtiene el máximo del segundo\nval dsOut \u003d dsIn.groupBy(_._1).reduce{\n    (l,r) \u003d\u003e (l._1, l._2 max r._2) \n}\ndsOut.print",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:14:20.920",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -403,19 +426,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587840542280_2095887359",
       "id": "20200425-184902_625749215",
       "dateCreated": "2020-04-25 18:49:02.280",
       "dateStarted": "2020-04-28 19:06:10.404",
       "dateFinished": "2020-04-28 19:06:16.295",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de reduceGroup: la función de reducción recibe los elementos en forma de un iterable\n// Obtiene el número de elementos en cada grupo\nval dsOut \u003d dsIn.groupBy(_._1).reduceGroup{\n    element \u003d\u003e element.length\n}\ndsOut.print",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:13:23.048",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -434,19 +459,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588099798778_1583401368",
       "id": "20200428-184958_2012876485",
       "dateCreated": "2020-04-28 18:49:58.778",
       "dateStarted": "2020-04-28 19:12:34.265",
       "dateFinished": "2020-04-28 19:12:39.495",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de join\ncase class Precio(nombre: String, codigo: String, precio: Double)\ncase class Compra(code: String, cantidad: Int)\nval dsPrecios: DataSet[Precio] \u003d benv.fromElements(Precio(\"Cerveza\", \"a101\", 2), Precio(\"Aceite\",\"b231\",5.99), Precio(\"Ginebra\",\"c101\",19.99))\nval dsProductos: DataSet[Compra] \u003d benv.fromElements(Compra(\"a101\",6), Compra(\"c101\",2), Compra(\"c101\",1), Compra(\"a101\",12)) \n\nval dsOut \u003d dsPrecios.rightOuterJoin(dsProductos).where(\"codigo\").equalTo(\"code\") {\n    (precio, compra) \u003d\u003e (precio.nombre, compra.cantidad*precio.precio)\n}.groupBy(0).sum(1)\n\nprintln(dsOut.collect)\n\n",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:42:57.479",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -465,19 +492,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587840830403_-1768181781",
       "id": "20200425-185350_212156322",
       "dateCreated": "2020-04-25 18:53:50.403",
       "dateStarted": "2020-04-28 19:42:57.509",
       "dateFinished": "2020-04-28 19:43:18.447",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de union de DataSets del mismo tipo\nval dsIn1 \u003d benv.fromCollection(-10 to 0)\nval dsIn2 \u003d benv.fromCollection(1 to 10)\n\nval dsUnion \u003d dsIn1.union(dsIn2)\n\nprintln(dsUnion.collect)\n",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:28:48.044",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -496,19 +525,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588101904090_97825434",
       "id": "20200428-192504_962331085",
       "dateCreated": "2020-04-28 19:25:04.090",
       "dateStarted": "2020-04-28 19:28:48.070",
       "dateFinished": "2020-04-28 19:28:54.125",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n// Ejemplo de distinct, count y first\nval dsIn \u003d benv.fromElements(2,4,2,1,4,6,7,8,7,9,7)\nprintln(\"Números diferentes \"+dsIn.distinct.count)\ndsIn.first(3).print",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:20:49.027",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -527,19 +558,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588101415914_-1717431343",
       "id": "20200428-191655_128029567",
       "dateCreated": "2020-04-28 19:16:55.915",
       "dateStarted": "2020-04-28 19:20:49.050",
       "dateFinished": "2020-04-28 19:20:59.867",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%md\n### Salvar DataSets (Data Sinks)\n- Funciones para escribir en ficheros\n\n    - writeAsText(), writeAsCsv(): Escriben en ficheros en formato texto/CSV\n    - write(): Escribe usando un formato especifico (definido a través de un [FileOutputFormat](https://ci.apache.org/projects/flink/flink-docs-release-1.10/api/java/org/apache/flink/api/common/io/FileOutputFormat.html))\n    - output(): Método genérico para salidas que no son ficheros (p.e. bases de datos)\n\n- Necesario llamar al método execute sobre el ExecutionEnvironment para activar la ejecución",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:52:17.618",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -569,18 +602,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588101678838_1514403916",
       "id": "20200428-192118_1378461631",
       "dateCreated": "2020-04-28 19:21:18.838",
       "dateStarted": "2020-04-28 19:52:17.622",
       "dateFinished": "2020-04-28 19:52:17.666",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%flink\ndsPrecios.writeAsCsv(\"/tmp/precios.csv\", \"\\n\", \"|\")\nbenv.execute()",
       "user": "anonymous",
       "dateUpdated": "2020-04-28 19:55:21.235",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -599,19 +634,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1587842731888_-885050127",
       "id": "20200425-192531_361371779",
       "dateCreated": "2020-04-25 19:25:31.888",
       "dateStarted": "2020-04-28 19:55:21.260",
       "dateFinished": "2020-04-28 19:55:22.906",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%sh\ncat /tmp/precios.csv\nrm /tmp/precios.csv\n",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:57:40.598",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -630,19 +667,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588102580202_-11811259",
       "id": "20200428-193620_1190133380",
       "dateCreated": "2020-04-28 19:36:20.202",
       "dateStarted": "2020-06-07 10:57:40.626",
       "dateFinished": "2020-06-07 10:57:40.661",
       "status": "ERROR",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:39:41.671",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -661,19 +700,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1588102628153_224295118",
       "id": "20200428-193708_942775949",
       "dateCreated": "2020-04-28 19:37:08.153",
       "dateStarted": "2020-11-05 17:39:23.374",
       "dateFinished": "2020-11-05 17:39:23.510",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%flink\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:39:48.545",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -692,15 +733,17 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1604597963353_-253116274",
       "id": "20201105-173923_89740608",
       "dateCreated": "2020-11-05 17:39:23.353",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     }
   ],
-  "name": "Introducción a Apache Flink/DataSet API",
+  "name": "40note",
   "id": "2F99VAPRX",
+  "defaultInterpreterGroup": "spark",
   "noteParams": {},
   "noteForms": {},
   "angularObjects": {

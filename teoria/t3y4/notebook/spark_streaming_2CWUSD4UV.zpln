@@ -4,6 +4,7 @@
       "text": "%md\n## Spark Streaming\n\n-   Procesamiento escalable, *high-throughput* y tolerante a fallos de flujos de datos\n\n![Flujo de Spark Streaming](http://persoal.citius.usc.es/tf.pena/TCDM/figs/streaming-flow.png)\n\n-   Entrada desde muchas fuentes: Kafka, Flume, Twitter, ZeroMQ, Kinesis o sockets TCP\n\n### APIs SPARK para Streaming\n\n- DStream API\n      - API original, basada en RDDs\n- Structured Streaming\n      - Disponible desde la versión 2.2, basada en DataFrames\n\nPágina de Spark Streaming: \u003chttps://spark.apache.org/streaming/\u003e\nDocumentación principal (de la última versión): \u003chttps://spark.apache.org/docs/latest/streaming-programming-guide.html\u003e",
       "user": "anonymous",
       "dateUpdated": "2018-11-09 12:54:11.000",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -32,18 +33,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256483942_879412034",
       "id": "20170331-180408_986053486",
       "dateCreated": "2017-10-17 16:08:03.000",
       "dateStarted": "2018-11-09 12:54:08.000",
       "dateFinished": "2018-11-09 12:54:08.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n## DStream API\n\nAbstracción principal: DStream (`discretized stream`).\n\n-   Representa un flujo continuo de datos\n\n![dstreams](http://persoal.citius.usc.es/tf.pena/TCDM/figs/dstreams.png)\n\nArquitectura *micro-batch*\n\n-   Los datos recibidos se agrupan en batches\n-   Los batches se crean a intervalos regulares (batch interval)\n-   Cada batch forma un RDD, que es procesado por Spark\n-   Adicionalmente: transformaciones con estado mediante\n    -   Operaciones con ventanas\n    -   Tracking del estado por cada clave\n\nPágina de Spark Streaming: \u003chttps://spark.apache.org/streaming/\u003e\nDocumentación principal (de la última versión): \u003chttps://spark.apache.org/docs/latest/streaming-programming-guide.html\u003e",
       "user": "anonymous",
       "dateUpdated": "2018-11-09 12:54:14.000",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -73,18 +76,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541667231410_-964935190",
       "id": "20181108-085351_174852477",
       "dateCreated": "2018-11-08 08:53:51.000",
       "dateStarted": "2018-11-08 10:50:33.000",
       "dateFinished": "2018-11-08 10:50:33.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n#### DStream  ejemplo de WordCount en red y sin estado\n\nPara ejecutar el ejemplo:\n\n   1. En un terminal, accede al container con `docker exec -ti container_id /bin/bash`\n   2. Una vez en el terminal del container, usa netcat como un servidor en el puerto 9999\n\n    `# nc -lk 9999`\n\n   2. Ejecuta el código PySpark que viene a continuación \n\n   3. Escribe líneas en el terminal del netcat, que serán recogidas y procesadas por el script\n    - Escribe palabras repetidas, para comprobar que las cuenta bien",
       "user": "anonymous",
       "dateUpdated": "2018-11-09 12:54:19.000",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -113,18 +118,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256483943_879027285",
       "id": "20170726-153125_653257795",
       "dateCreated": "2017-10-17 16:08:03.000",
       "dateStarted": "2018-11-08 10:49:28.000",
       "dateFinished": "2018-11-08 10:49:28.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nfrom pyspark.streaming import StreamingContext\nfrom operator import add\n\nsc.setLogLevel(\"WARN\")\n\n# Contexto Streaming con un batch interval de 5 s\nssc \u003d StreamingContext(sc, 5)\n\n# DStream que conecta a localhost:9999\nlines \u003d ssc.socketTextStream(\"localhost\", 9999)\n\n# Ejecuta un WordCount\ncounts \u003d lines.flatMap(lambda line: line.split(\" \"))\\\n              .map(lambda word: (word, 1))\\\n              .reduceByKey(add)\n              \ncounts.pprint()\n\nssc.start() # Inicia la computacion\nssc.awaitTerminationOrTimeout(60) # Espera a que termine (acaba en 60 segundos)\n",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 16:19:40.059",
+      "dateUpdated": "2021-08-31 23:05:48.893",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -143,26 +150,29 @@
         "forms": {}
       },
       "results": {
-        "code": "SUCCESS",
+        "code": "ERROR",
         "msg": [
           {
             "type": "TEXT",
-            "data": "-------------------------------------------\nTime: 2020-12-02 16:20:00\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:05\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:10\n-------------------------------------------\n(u\u0027dos\u0027, 8)\n(u\u0027tres\u0027, 11)\n(u\u0027uno\u0027, 4)\n\n-------------------------------------------\nTime: 2020-12-02 16:20:15\n-------------------------------------------\n(u\u0027dos\u0027, 2)\n(u\u0027tres\u0027, 4)\n(u\u0027uno\u0027, 1)\n\n-------------------------------------------\nTime: 2020-12-02 16:20:20\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:25\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:30\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:35\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:40\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:45\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:50\n-------------------------------------------\n\n-------------------------------------------\nTime: 2020-12-02 16:20:55\n-------------------------------------------\n\nFalse"
+            "data": "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m\n\u001b[0;31mPy4JJavaError\u001b[0m                             Traceback (most recent call last)\n\u001b[0;32m/tmp/ipykernel_371/3451659320.py\u001b[0m in \u001b[0;36m\u003cmodule\u003e\u001b[0;34m\u001b[0m\n\u001b[1;32m     18\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     19\u001b[0m \u001b[0mssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstart\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m# Inicia la computacion\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---\u003e 20\u001b[0;31m \u001b[0mssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mawaitTerminationOrTimeout\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m60\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m# Espera a que termine (acaba en 60 segundos)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\n\u001b[0;32m/usr/local/spark/python/lib/pyspark.zip/pyspark/streaming/context.py\u001b[0m in \u001b[0;36mawaitTerminationOrTimeout\u001b[0;34m(self, timeout)\u001b[0m\n\u001b[1;32m    202\u001b[0m         \u001b[0;34m@\u001b[0m\u001b[0mparam\u001b[0m \u001b[0mtimeout\u001b[0m\u001b[0;34m:\u001b[0m \u001b[0mtime\u001b[0m \u001b[0mto\u001b[0m \u001b[0mwait\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mseconds\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    203\u001b[0m         \"\"\"\n\u001b[0;32m--\u003e 204\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_jssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mawaitTerminationOrTimeout\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtimeout\u001b[0m \u001b[0;34m*\u001b[0m \u001b[0;36m1000\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    205\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    206\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0mstop\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mstopSparkContext\u001b[0m\u001b[0;34m\u003d\u001b[0m\u001b[0;32mTrue\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mstopGraceFully\u001b[0m\u001b[0;34m\u003d\u001b[0m\u001b[0;32mFalse\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.7-src.zip/py4j/java_gateway.py\u001b[0m in \u001b[0;36m__call__\u001b[0;34m(self, *args)\u001b[0m\n\u001b[1;32m   1255\u001b[0m         \u001b[0manswer\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgateway_client\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msend_command\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcommand\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1256\u001b[0m         return_value \u003d get_return_value(\n\u001b[0;32m-\u003e 1257\u001b[0;31m             answer, self.gateway_client, self.target_id, self.name)\n\u001b[0m\u001b[1;32m   1258\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1259\u001b[0m         \u001b[0;32mfor\u001b[0m \u001b[0mtemp_arg\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mtemp_args\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/pyspark.zip/pyspark/sql/utils.py\u001b[0m in \u001b[0;36mdeco\u001b[0;34m(*a, **kw)\u001b[0m\n\u001b[1;32m     61\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0mdeco\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     62\u001b[0m         \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---\u003e 63\u001b[0;31m             \u001b[0;32mreturn\u001b[0m \u001b[0mf\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     64\u001b[0m         \u001b[0;32mexcept\u001b[0m \u001b[0mpy4j\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mprotocol\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mPy4JJavaError\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     65\u001b[0m             \u001b[0ms\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjava_exception\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtoString\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.7-src.zip/py4j/protocol.py\u001b[0m in \u001b[0;36mget_return_value\u001b[0;34m(answer, gateway_client, target_id, name)\u001b[0m\n\u001b[1;32m    326\u001b[0m                 raise Py4JJavaError(\n\u001b[1;32m    327\u001b[0m                     \u001b[0;34m\"An error occurred while calling {0}{1}{2}.\\n\"\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--\u003e 328\u001b[0;31m                     format(target_id, \".\", name), value)\n\u001b[0m\u001b[1;32m    329\u001b[0m             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    330\u001b[0m                 raise Py4JError(\n\n\u001b[0;31mPy4JJavaError\u001b[0m: An error occurred while calling o66.awaitTerminationOrTimeout.\n: java.net.ConnectException: Connection refused (Connection refused)\n\tat java.net.PlainSocketImpl.socketConnect(Native Method)\n\tat java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)\n\tat java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)\n\tat java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)\n\tat java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)\n\tat java.net.Socket.connect(Socket.java:607)\n\tat java.net.Socket.connect(Socket.java:556)\n\tat java.net.Socket.\u003cinit\u003e(Socket.java:452)\n\tat java.net.Socket.\u003cinit\u003e(Socket.java:262)\n\tat javax.net.DefaultSocketFactory.createSocket(SocketFactory.java:277)\n\tat py4j.CallbackConnection.start(CallbackConnection.java:226)\n\tat py4j.CallbackClient.getConnection(CallbackClient.java:238)\n\tat py4j.CallbackClient.getConnectionLock(CallbackClient.java:250)\n\tat py4j.CallbackClient.sendCommand(CallbackClient.java:377)\n\tat py4j.CallbackClient.sendCommand(CallbackClient.java:356)\n\tat py4j.reflection.PythonProxyHandler.invoke(PythonProxyHandler.java:106)\n\tat com.sun.proxy.$Proxy19.call(Unknown Source)\n\tat org.apache.spark.streaming.api.python.TransformFunction.callPythonTransformFunction(PythonDStream.scala:92)\n\tat org.apache.spark.streaming.api.python.TransformFunction.apply(PythonDStream.scala:78)\n\tat org.apache.spark.streaming.api.python.PythonTransformedDStream.compute(PythonDStream.scala:246)\n\tat org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1$$anonfun$apply$7.apply(DStream.scala:342)\n\tat org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1$$anonfun$apply$7.apply(DStream.scala:342)\n\tat scala.util.DynamicVariable.withValue(DynamicVariable.scala:58)\n\tat org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1.apply(DStream.scala:341)\n\tat org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1$$anonfun$1.apply(DStream.scala:341)\n\tat org.apache.spark.streaming.dstream.DStream.createRDDWithLocalProperties(DStream.scala:416)\n\tat org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1.apply(DStream.scala:336)\n\tat org.apache.spark.streaming.dstream.DStream$$anonfun$getOrCompute$1.apply(DStream.scala:334)\n\tat scala.Option.orElse(Option.scala:289)\n\tat org.apache.spark.streaming.dstream.DStream.getOrCompute(DStream.scala:331)\n\tat org.apache.spark.streaming.dstream.ForEachDStream.generateJob(ForEachDStream.scala:48)\n\tat org.apache.spark.streaming.DStreamGraph$$anonfun$1.apply(DStreamGraph.scala:122)\n\tat org.apache.spark.streaming.DStreamGraph$$anonfun$1.apply(DStreamGraph.scala:121)\n\tat scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)\n\tat scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)\n\tat scala.collection.mutable.ResizableArray$class.foreach(ResizableArray.scala:59)\n\tat scala.collection.mutable.ArrayBuffer.foreach(ArrayBuffer.scala:48)\n\tat scala.collection.TraversableLike$class.flatMap(TraversableLike.scala:241)\n\tat scala.collection.AbstractTraversable.flatMap(Traversable.scala:104)\n\tat org.apache.spark.streaming.DStreamGraph.generateJobs(DStreamGraph.scala:121)\n\tat org.apache.spark.streaming.scheduler.JobGenerator$$anonfun$3.apply(JobGenerator.scala:249)\n\tat org.apache.spark.streaming.scheduler.JobGenerator$$anonfun$3.apply(JobGenerator.scala:247)\n\tat scala.util.Try$.apply(Try.scala:192)\n\tat org.apache.spark.streaming.scheduler.JobGenerator.generateJobs(JobGenerator.scala:247)\n\tat org.apache.spark.streaming.scheduler.JobGenerator.org$apache$spark$streaming$scheduler$JobGenerator$$processEvent(JobGenerator.scala:183)\n\tat org.apache.spark.streaming.scheduler.JobGenerator$$anon$1.onReceive(JobGenerator.scala:89)\n\tat org.apache.spark.streaming.scheduler.JobGenerator$$anon$1.onReceive(JobGenerator.scala:88)\n\tat org.apache.spark.util.EventLoop$$anon$1.run(EventLoop.scala:49)\n"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1590521032065_2100976314",
       "id": "20200526-192352_815012466",
       "dateCreated": "2020-05-26 19:23:52.065",
-      "dateStarted": "2020-12-02 16:19:40.082",
-      "dateFinished": "2020-12-02 16:20:56.914",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-08-31 23:05:48.899",
+      "dateFinished": "2021-08-31 23:05:50.477",
+      "status": "ERROR"
     },
     {
       "text": "%md\n### Spark Streaming: ejemplo de WordCount en red con estado\n\nRepite los pasos anteriores, ejecutando el siguiente código\n\n - Comprueba que el número de palabras se acumula entre accesos",
+      "user": "anonymous",
       "dateUpdated": "2017-10-17 16:08:03.000",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -189,17 +199,19 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256483947_877488290",
       "id": "20170726-124258_1594244715",
       "dateCreated": "2017-10-17 16:08:03.000",
       "status": "READY",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%pyspark\nfrom pyspark.streaming import StreamingContext\nfrom operator import add\n\nsc.setLogLevel(\"WARN\")\n\n# Contexto Streaming con un batch interval de 5 s\nssc \u003d StreamingContext(sc, 5)\n\n# DStream que conecta a localhost:9999\nlines \u003d ssc.socketTextStream(\"localhost\", 9999)\n\nssc.checkpoint(\"/tmp/cpdir\") # Activa checkpoint\n\ndef updateFunc(new_values, last_sum):\n    return sum(new_values) + (last_sum or 0)\n\ncounts \u003d lines.flatMap(lambda line: line.split(\" \"))\\\n              .map(lambda word: (word, 1))\\\n              .updateStateByKey(updateFunc)\n\ncounts.pprint()\n\nssc.start() # Inicia la computacion\nssc.awaitTerminationOrTimeout(60) # Espera a que termine (acaba en 60 segundos)",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 16:20:54.804",
+      "dateUpdated": "2021-08-31 23:03:12.460",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -211,34 +223,28 @@
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "fontSize": 9.0
+        "fontSize": 9.0,
+        "tableHide": false
       },
       "settings": {
         "params": {},
         "forms": {}
       },
-      "results": {
-        "code": "ERROR",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "\u001b[0;31m\u001b[0m\n\u001b[0;31mPy4JJavaError\u001b[0mTraceback (most recent call last)\n\u001b[0;32m\u003cipython-input-6-9001bac52e45\u003e\u001b[0m in \u001b[0;36m\u003cmodule\u003e\u001b[0;34m()\u001b[0m\n\u001b[1;32m     19\u001b[0m \u001b[0mcounts\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     20\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---\u003e 21\u001b[0;31m \u001b[0mssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstart\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m# Inicia la computacion\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     22\u001b[0m \u001b[0mssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mawaitTerminationOrTimeout\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m60\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m# Espera a que termine (acaba en 60 segundos)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/pyspark.zip/pyspark/streaming/context.py\u001b[0m in \u001b[0;36mstart\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m    194\u001b[0m         \u001b[0mStart\u001b[0m \u001b[0mthe\u001b[0m \u001b[0mexecution\u001b[0m \u001b[0mof\u001b[0m \u001b[0mthe\u001b[0m \u001b[0mstreams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    195\u001b[0m         \"\"\"\n\u001b[0;32m--\u003e 196\u001b[0;31m         \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_jssc\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstart\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    197\u001b[0m         \u001b[0mStreamingContext\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_activeContext\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    198\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.4-src.zip/py4j/java_gateway.py\u001b[0m in \u001b[0;36m__call__\u001b[0;34m(self, *args)\u001b[0m\n\u001b[1;32m   1131\u001b[0m         \u001b[0manswer\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgateway_client\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msend_command\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcommand\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1132\u001b[0m         return_value \u003d get_return_value(\n\u001b[0;32m-\u003e 1133\u001b[0;31m             answer, self.gateway_client, self.target_id, self.name)\n\u001b[0m\u001b[1;32m   1134\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1135\u001b[0m         \u001b[0;32mfor\u001b[0m \u001b[0mtemp_arg\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mtemp_args\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/pyspark.zip/pyspark/sql/utils.py\u001b[0m in \u001b[0;36mdeco\u001b[0;34m(*a, **kw)\u001b[0m\n\u001b[1;32m     61\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0mdeco\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     62\u001b[0m         \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---\u003e 63\u001b[0;31m             \u001b[0;32mreturn\u001b[0m \u001b[0mf\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     64\u001b[0m         \u001b[0;32mexcept\u001b[0m \u001b[0mpy4j\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mprotocol\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mPy4JJavaError\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     65\u001b[0m             \u001b[0ms\u001b[0m \u001b[0;34m\u003d\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjava_exception\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtoString\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\n\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.4-src.zip/py4j/protocol.py\u001b[0m in \u001b[0;36mget_return_value\u001b[0;34m(answer, gateway_client, target_id, name)\u001b[0m\n\u001b[1;32m    317\u001b[0m                 raise Py4JJavaError(\n\u001b[1;32m    318\u001b[0m                     \u001b[0;34m\"An error occurred while calling {0}{1}{2}.\\n\"\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--\u003e 319\u001b[0;31m                     format(target_id, \".\", name), value)\n\u001b[0m\u001b[1;32m    320\u001b[0m             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    321\u001b[0m                 raise Py4JError(\n\n\u001b[0;31mPy4JJavaError\u001b[0m: An error occurred while calling o1105.start.\n: java.lang.IllegalStateException: Only one StreamingContext may be started in this JVM. Currently running StreamingContext was started atorg.apache.spark.streaming.api.java.JavaStreamingContext.start(JavaStreamingContext.scala:556)\nsun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nsun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\nsun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\njava.lang.reflect.Method.invoke(Method.java:498)\npy4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)\npy4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)\npy4j.Gateway.invoke(Gateway.java:280)\npy4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)\npy4j.commands.CallCommand.execute(CallCommand.java:79)\npy4j.GatewayConnection.run(GatewayConnection.java:214)\njava.lang.Thread.run(Thread.java:748)\n\tat org.apache.spark.streaming.StreamingContext$.org$apache$spark$streaming$StreamingContext$$assertNoOtherContextIsActive(StreamingContext.scala:739)\n\tat org.apache.spark.streaming.StreamingContext.start(StreamingContext.scala:571)\n\tat org.apache.spark.streaming.api.java.JavaStreamingContext.start(JavaStreamingContext.scala:556)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat py4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)\n\tat py4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)\n\tat py4j.Gateway.invoke(Gateway.java:280)\n\tat py4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)\n\tat py4j.commands.CallCommand.execute(CallCommand.java:79)\n\tat py4j.GatewayConnection.run(GatewayConnection.java:214)\n\tat java.lang.Thread.run(Thread.java:748)\n"
-          }
-        ]
-      },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256483949_875179796",
       "id": "20170726-154030_861974889",
       "dateCreated": "2017-10-17 16:08:03.000",
       "dateStarted": "2020-12-02 16:20:54.831",
       "dateFinished": "2020-12-02 16:20:57.137",
-      "status": "ERROR",
-      "progressUpdateIntervalMs": 500
+      "status": "ERROR"
     },
     {
       "text": "%md\n## Structured Streaming \n\nUtiliza la API estructurada (DataFrames, DataSets y SQL)\n\n- Lee los datos a medida que llegan al sistema, los procesa y los añade a un DataFrame\n\nFuentes de datos ( *input sources* ):\n\n- [Apache Kafka](https://kafka.apache.org/)\n- Ficheros (lee los ficheros en un directorio de forma continua)\n- Sockets\n\nDestino de datos ( *sinks* ):\n\n- Apache Kafka\n- Ficheros\n- Otras computaciones\n- Memoria (para depuración y testing)\n\nEstá todavía en desarrollo\n",
       "user": "anonymous",
       "dateUpdated": "2018-12-14 16:35:25.000",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -268,18 +274,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674179658_2129202627",
       "id": "20181108-104939_1082403554",
       "dateCreated": "2018-11-08 10:49:39.000",
       "dateStarted": "2018-12-14 16:35:17.000",
       "dateFinished": "2018-12-14 16:35:20.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Ejemplo: procesar los ficheros en el directorio /datos/by-day/",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:47:29.261",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -309,18 +317,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674753703_2050017060",
       "id": "20181108-105913_557769606",
       "dateCreated": "2018-11-08 10:59:13.000",
       "dateStarted": "2020-06-07 10:47:29.264",
       "dateFinished": "2020-06-07 10:47:29.302",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%sh\n# Vemos el formato de un fichero\nls /datos/by-day/\nhead /datos/by-day/2010-12-01.csv",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:24:44.118",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -348,18 +358,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674439080_479351160",
       "id": "20181108-105359_629624751",
       "dateCreated": "2018-11-08 10:53:59.000",
       "dateStarted": "2020-12-02 16:24:44.177",
       "dateFinished": "2020-12-02 16:24:44.200",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n#### Procesamos un fichero como DataFrame",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:48:00.355",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -389,18 +401,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591526853500_761692599",
       "id": "20200607-104733_346833380",
       "dateCreated": "2020-06-07 10:47:33.500",
       "dateStarted": "2020-06-07 10:47:57.946",
       "dateFinished": "2020-06-07 10:47:57.960",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Creamos un DataFrame normal con los datos de uno de los ficheros\ndfEstatico \u003d spark.read\\\n                  .format(\"csv\")\\\n                  .option(\"header\", \"true\")\\\n                  .option(\"inferSchema\", \"true\")\\\n                  .load(\"/datos/by-day/2010-12-01.csv\")\nprint(\"Número de particiones del DataFrame \u003d {0}\".\n      format(dfEstatico.rdd.getNumPartitions()))\ndfEstatico.show()",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:25:49.511",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -428,18 +442,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674785018_491407705",
       "id": "20181108-105945_2117475700",
       "dateCreated": "2018-11-08 10:59:45.000",
       "dateStarted": "2020-12-02 16:25:49.532",
       "dateFinished": "2020-12-02 16:26:08.436",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Obtenemos un DataFrame con la compra por hora y por cliente durante ese día\nfrom pyspark.sql.functions import window, col, desc\n\n# Pedimos que se usen 4 particiones (opcional)\nspark.conf.set(\"spark.sql.shuffle.partitions\", \"4\")\n\ndfCompraPorClientePorHoraEstatico \u003d\\\n             dfEstatico.select(\n                                col(\"CustomerId\"), \n                                (col(\"UnitPrice\")*col(\"Quantity\")).alias(\"total_cost\"), \n                                col(\"InvoiceDate\"))\\\n                       .groupBy(col(\"CustomerId\"), window(col(\"InvoiceDate\"), \"1 hour\"))\\\n                       .sum(\"total_cost\")\n                            \nprint(\"Número de particiones del DataFrame \u003d {0}\".\n      format(dfCompraPorClientePorHoraEstatico.rdd.getNumPartitions()))\n      \nprint(\"Número de filas del DataFrame \u003d {0}\".\n      format(dfCompraPorClientePorHoraEstatico.count()))      \n\ndfCompraPorClientePorHoraEstatico.show(15, False)\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:27:22.087",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -458,19 +474,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674830673_-1200853026",
       "id": "20181108-110030_1772671455",
       "dateCreated": "2018-11-08 11:00:30.000",
       "dateStarted": "2020-12-02 16:27:22.109",
       "dateFinished": "2020-12-02 16:27:24.020",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%md\n#### Procesamos todos los ficheros en Streaming",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:52:23.161",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -500,18 +518,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1591527120738_695428278",
       "id": "20200607-105200_1720506066",
       "dateCreated": "2020-06-07 10:52:00.738",
       "dateStarted": "2020-06-07 10:52:23.172",
       "dateFinished": "2020-06-07 10:52:23.209",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Definimos un DataFrame en Streaming que toma como fuente de datos \n# los ficheros en el directorio /datos/by-day/\n# Indicamos que se lea 1 fichero en cada activación\ndfStreaming \u003d spark.readStream\\\n                   .schema(dfEstatico.schema)\\\n                   .option(\"maxFilesPerTrigger\", 1)\\\n                   .format(\"csv\")\\\n                   .option(\"header\", \"true\")\\\n                   .load(\"/datos/by-day/*.csv\")\nprint(type(dfStreaming))",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:29:12.912",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -539,18 +559,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674980696_1520313932",
       "id": "20181108-110300_295840656",
       "dateCreated": "2018-11-08 11:03:00.000",
       "dateStarted": "2020-12-02 16:29:12.931",
       "dateFinished": "2020-12-02 16:29:14.297",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# A partir del anterior, obtenemos la compra por hora y por cliente\ndfCompraPorClientePorHoraStreaming \u003d \\\n            dfStreaming.select(\n                               col(\"CustomerId\"), \n                              (col(\"UnitPrice\")*col(\"Quantity\")).alias(\"total_cost\"), \n                               col(\"InvoiceDate\"))\\\n                       .groupBy(col(\"CustomerId\"), window(col(\"InvoiceDate\"), \"1 hour\"))\\\n                       .sum(\"total_cost\")\n                       \nprint(type(dfCompraPorClientePorHoraStreaming))                       ",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:30:22.601",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -578,18 +600,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541674984829_-1598564312",
       "id": "20181108-110304_1011401279",
       "dateCreated": "2018-11-08 11:03:04.000",
       "dateStarted": "2020-12-02 16:30:22.628",
       "dateFinished": "2020-12-02 16:30:22.766",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Creamos un objeto DataStreamWriter para escribir los valores del DataFrame previo\n# Los valores se escriben a una tabla en memoria\n# El modo de escritura es \"complete\": se reescribe la salida entera\n# Los datos se pueden acceder a traves de la tabla compras_por_hora\n# Se leen los datos de entrada cada segundo\ndswConsultaCompras \u003d dfCompraPorClientePorHoraStreaming\\\n                    .writeStream\\\n                    .format(\"memory\")\\\n                    .queryName(\"compras_por_hora\")\\\n                    .outputMode(\"complete\")\\\n                    .trigger(processingTime\u003d\u00271 seconds\u0027)\nprint(type(dswConsultaCompras))    ",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:31:19.529",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -617,18 +641,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541675054840_-734640240",
       "id": "20181108-110414_814640682",
       "dateCreated": "2018-11-08 11:04:14.000",
       "dateStarted": "2020-12-02 16:31:19.551",
       "dateFinished": "2020-12-02 16:31:19.618",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Métodos definidos para un DataStreamWriter\n[method_name for method_name in dir(dswConsultaCompras)\n if callable(getattr(dswConsultaCompras, method_name))]",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 12:17:50.906",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -647,19 +673,21 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541681406713_-112281197",
       "id": "20181108-125006_1923934307",
       "dateCreated": "2018-11-08 12:50:06.000",
       "dateStarted": "2020-12-02 12:17:50.934",
       "dateFinished": "2020-12-02 12:17:50.967",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%pyspark\n# Iniciamos el acceso a los datos de entrada\ndswConsultaCompras.start()",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:31:42.394",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -687,18 +715,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541675370741_-891249112",
       "id": "20181108-110930_1480774597",
       "dateCreated": "2018-11-08 11:09:30.000",
       "dateStarted": "2020-12-02 16:31:42.416",
       "dateFinished": "2020-12-02 16:31:43.009",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Vamos mostrando la tabla cada segundo\nfrom time import sleep\nfor x in range(20):\n    spark.sql(\"\"\"\n            SELECT *\n            FROM compras_por_hora\n            ORDER BY `sum(total_cost)` DESC\n            \"\"\").show(5, truncate\u003dFalse)\n    sleep(1)",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:31:47.529",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -726,18 +756,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541675401056_750803096",
       "id": "20181108-111001_1159778883",
       "dateCreated": "2018-11-08 11:10:01.000",
       "dateStarted": "2020-12-02 16:31:47.562",
       "dateFinished": "2020-12-02 16:32:10.616",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:35:08.095",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -750,34 +782,38 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1544805591544_807927172",
       "id": "20181214-163951_1012543026",
       "dateCreated": "2018-12-14 16:39:51.000",
       "dateStarted": "2020-11-05 17:34:57.767",
       "dateFinished": "2020-11-05 17:34:57.835",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%pyspark\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:34:57.752",
+      "progress": 0,
       "config": {},
       "settings": {
         "params": {},
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1604597697752_-1296664003",
       "id": "20201105-173457_1538146954",
       "dateCreated": "2020-11-05 17:34:57.752",
-      "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "status": "READY"
     }
   ],
-  "name": "Apache Spark/10 - Spark Streaming",
+  "name": "30note",
   "id": "2CWUSD4UV",
+  "defaultInterpreterGroup": "spark",
   "noteParams": {},
   "noteForms": {},
   "angularObjects": {
