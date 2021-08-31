@@ -4,6 +4,7 @@
       "text": "%md\n## Aspectos avanzados\nEn este tema trataremos algunos aspectos adicionales de Apache Spark\n\n- Cómo se ejecuta una aplicación Spark\n- Uso de variables de broadcast y acumuladores",
       "user": "anonymous",
       "dateUpdated": "2020-06-06 20:39:50.987",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -33,18 +34,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541767808960_1343828852",
       "id": "20181109-125008_941141234",
       "dateCreated": "2018-11-09 12:50:08.000",
       "dateStarted": "2018-11-09 12:52:43.000",
       "dateFinished": "2018-11-09 12:52:43.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n## Ejecución de una aplicación Spark\n\nVeremos conceptos relacionados con la ejecución de un código Spark\n\n  - Plan lógico y físico\n  - Trabajos, etapas y tareas",
       "user": "anonymous",
       "dateUpdated": "2020-06-06 20:39:50.987",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -74,18 +77,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541505846471_2141409806",
       "id": "20181106-120406_2117275787",
       "dateCreated": "2018-11-06 12:04:06.000",
       "dateStarted": "2018-11-06 12:05:10.000",
       "dateFinished": "2018-11-06 12:05:10.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Plan lógico y físico\nA partir de un código de usuario, Spark genera un *plan lógico*\n\n  -  DAG (denominado *lineage graph*) con las operaciones a realizar\n  -  No incluye información sobre el sistema físico en el que se va a ejecutar\n  -  El optimizador *Catalyst* genera un plan lógico optimizado\n  \nA partir del plan lógico optimizado, se elabora un plan físico\n\n  - Especifica como se ejecutará el plan lógico en el cluster\n  - Se generan diferentes estrategias de ejecución que se comparan mediante un modelo de costes\n      - Por ejemplo, cómo realizar un join en función de las características de los datos (tamaño, particiones, ...)\n\nEl plan físico se ejecuta en el cluster\n\n  - La ejecución se hace sobre RDDs\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 11:57:26.908",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -115,18 +120,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541501776337_-838166472",
       "id": "20181106-105616_1297731624",
       "dateCreated": "2018-11-06 10:56:16.000",
       "dateStarted": "2020-12-02 11:57:26.909",
       "dateFinished": "2020-12-02 11:57:26.918",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Trabajos, etapas y tareas\n\nUna acción genera un *trabajo* (Spark job)\n\n-   El job se descompone en una o más *etapas* (stages)\n-   Las etapas representan grupos de *tareas* (tasks) que se ejecutan en paralelo\n    - Cada tarea ejecuta una o más transformaciones sobre una partición\n    - Las tareas se ejecutan en los nodos del cluster\n- Una etapa termina cuando se realiza una operación de *barajado* (shuffle)\n    - Implica mover datos entre los nodos del cluster\n\nPipelining: varios operaciones se pueden computan en una misma etapa\n\n-   Operaciones que no impliquen movimiento de datos (pe. select, filter o map)\n-   La salida de cada operación se pasa a la entrada de la siguiente sin ir a disco\n\nPersistencia en el barajado\n\n-  Antes de un barajado, los datos se escriben a disco local\n-  Permite relanzar tareas falladas sin necesidad de recomputar todas las transformaciones\n-  No se realiza si los datos a barajar ya han sido cacheados (con `cache` o `persist`)\n\nEn el [interfaz web de Spark](http://localhost:4040 \"PySpark en localhost\") se muestran información sobre las etapas y tareas \n\n- El método `explain` de los DataFrames o `toDebugString` de los RDDs muestra el plan físico",
       "user": "anonymous",
       "dateUpdated": "2020-10-13 18:49:52.408",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -156,18 +163,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541505819639_-1786782471",
       "id": "20181106-120339_1765391363",
       "dateCreated": "2018-11-06 12:03:39.000",
       "dateStarted": "2020-10-13 18:49:52.408",
       "dateFinished": "2020-10-13 18:49:54.642",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nfrom pyspark.sql.functions import sum,col\n\n# Ejemplo para visualizar el plan físico\ndf1 \u003d spark.range(2, 10000000, 2)\ndf2 \u003d spark.range(2, 10000000, 4)\nstep1 \u003d df1.repartition(5)\nstep12 \u003d df2.repartition(6)\nstep2 \u003d step1.selectExpr(\"id * 5 as id\")\nstep3 \u003d step2.join(step12, [\"id\"])\nstep4 \u003d step3.select(sum(col(\"id\")))\n\nprint(step4.collect())\nstep4.explain()",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 15:54:25.413",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -195,18 +204,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541502173825_1787963776",
       "id": "20181106-110253_873891254",
       "dateCreated": "2018-11-06 11:02:53.000",
       "dateStarted": "2020-12-02 15:54:25.433",
       "dateFinished": "2020-12-02 15:54:30.706",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n## Variables de broadcast\n\n-   Por defecto, todas las variables compartidas (no RDDs) son enviadas a todos los ejecutores\n\n    -   Se reenvían en cada operación en la que aparezcan\n\n-   Variables de broadcast: permiten enviar de forma eficiente variables de solo lectura a los workers\n\n    -   Se envían solo una vez\n",
       "user": "anonymous",
       "dateUpdated": "2020-06-06 20:40:03.380",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -235,18 +246,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256454459_1123296865",
       "id": "20170721-183153_571912860",
       "dateCreated": "2017-10-17 16:07:34.000",
       "dateStarted": "2018-11-06 17:11:59.000",
       "dateFinished": "2018-11-06 17:11:59.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nrdd \u003d sc.parallelize([1,2,3,4])\nx\u003d5\nrdd2 \u003d rdd.map(lambda n: x*n)\nrdd2 \u003d rdd2.map(lambda n: x-n)\nprint(rdd2.collect())\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:00:53.915",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -274,18 +287,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1592423374485_11723226",
       "id": "20200617-194934_1753249737",
       "dateCreated": "2020-06-17 19:49:34.485",
       "dateStarted": "2020-12-02 16:00:53.935",
       "dateFinished": "2020-12-02 16:00:54.115",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nfrom operator import add\n\n# dicc es una variable de broadcast\ndicc\u003d{\"a\":\"alpha\",\"b\":\"beta\",\"c\":\"gamma\"}\nbcastDicc\u003dsc.broadcast(dicc)\n\nrdd\u003dsc.parallelize([(\"a\", 1),(\"b\", 3),(\"a\", -4),(\"c\", 0)])\nreduced_rdd \u003d rdd.reduceByKey(add).map(lambda tupla: (bcastDicc.value.get(tupla[0]), tupla[1]))\n\nprint(reduced_rdd.collect())\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:02:40.733",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -313,18 +328,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256454459_1123296865",
       "id": "20170721-183656_606745752",
       "dateCreated": "2017-10-17 16:07:34.000",
       "dateStarted": "2020-12-02 16:02:40.749",
       "dateFinished": "2020-12-02 16:02:41.103",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n## Acumuladores\n\nPermiten agregar valores desde los *worker nodes*, que se pasan al *driver*\n\n-   Útiles para contar eventos\n\n-   Solo el driver puede acceder a su valor\n\n-   Acumuladores usados en transformaciones de RDDs pueden ser incorrectos\n\n    -   Si el RDD se recalcula, el acumulador puede actualizarse\n\n    -   En acciones, este problema no ocurre\n\n-   Por defecto, los acumuladores son enteros o flotantes\n    - Es posible crear “acumuladores a medida” usando [`AccumulatorParam`](https://spark.apache.org/docs/1.5.2/api/python/pyspark.html#pyspark.AccumulatorParam)",
       "user": "anonymous",
       "dateUpdated": "2020-06-06 20:40:04.019",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -353,18 +370,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256454459_1123296865",
       "id": "20170331-180057_1836578886",
       "dateCreated": "2017-10-17 16:07:34.000",
       "dateStarted": "2018-11-06 17:11:40.000",
       "dateFinished": "2018-11-06 17:11:40.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nfrom pyspark.sql import Row\nfrom pyspark.sql.types import *\nfrom random import randint\n\n# Creamos el DataFrame a partir de una lista de objetos Row\n# con enteros aleatorios\nl \u003d [Row(randint(1,10)) for n in range(10000)]\ndf \u003d spark.createDataFrame(l)\n\n# Definimos un acumulador\nnpares \u003d sc.accumulator(0)\n\n# si el número en una fila es par, incrementamos en acumulador\ndef esPar(fila):\n    global npares\n    if fila[\"_1\"]%2 \u003d\u003d 0:\n        npares +\u003d 1\n\n# Ejecutamos la función una vez por fila\ndf.foreach(esPar)\n\nprint(\"Numero de pares: {0}\".format(npares.value))",
       "user": "anonymous",
       "dateUpdated": "2020-12-02 16:06:04.713",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -392,65 +411,22 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541530117649_2140016358",
       "id": "20181106-184837_597426845",
       "dateCreated": "2018-11-06 18:48:37.000",
       "dateStarted": "2020-12-02 16:06:04.727",
       "dateFinished": "2020-12-02 16:06:05.493",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-11-05 17:32:35.166",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {}
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1544630709317_567052651",
-      "id": "20181212-160509_158499435",
-      "dateCreated": "2018-12-12 16:05:09.000",
-      "dateStarted": "2020-11-05 17:32:25.871",
-      "dateFinished": "2020-11-05 17:32:25.901",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-11-05 17:32:25.856",
-      "config": {},
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1604597545852_1408918703",
-      "id": "20201105-173225_48760955",
-      "dateCreated": "2020-11-05 17:32:25.852",
-      "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     }
   ],
-  "name": "Apache Spark/08 - Aspectos avanzados",
+  "name": "31note",
   "id": "2CX1QPZDM",
+  "defaultInterpreterGroup": "spark",
   "noteParams": {},
   "noteForms": {},
-  "angularObjects": {
-    "md:shared_process": [],
-    "sh:shared_process": [],
-    "spark:shared_process": []
-  },
+  "angularObjects": {},
   "config": {
     "isZeppelinNotebookCronEnable": false
   },
