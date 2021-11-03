@@ -130,10 +130,10 @@
       "status": "FINISHED"
     },
     {
-      "text": "%pyspark\nfrom pyspark.sql.functions import col,expr\n# Creando un DataFrame desde un rango y añadiendole dos columna\ndf \u003d spark.range(1,7,2).toDF(\"n\")\ndf.show()\nn \u003d col(\"n\")\ndf.withColumn(\"n1\", n+1).withColumn(\"n2\", expr(\"2*n1\")).show()\n# En la llamada a expr se puede indicar código SQL",
+      "text": "%pyspark\nfrom pyspark.sql.functions import col\n# Creando un DataFrame desde un rango y añadiendole dos columna\ndf \u003d spark.range(1,7,2).toDF(\"n\")\ndf.show()\ndf.withColumn(\"n1\", col(\"n\")+1).withColumn(\"n2\", 2*col(\"n1\")).show()\n# En la llamada a expr se puede indicar código SQL",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:35.185",
-      "progress": 100,
+      "dateUpdated": "2021-10-28 17:07:05.892",
+      "progress": 0,
       "config": {
         "colWidth": 6.0,
         "fontSize": 9.0,
@@ -169,22 +169,22 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d99"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d71"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d100"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d72"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d101"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d73"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d102"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d74"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d103"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d75"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d104"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d76"
             }
           ],
           "interpreterSettingId": "spark"
@@ -194,8 +194,8 @@
       "jobName": "paragraph_1539250571278_-544185546",
       "id": "20181011-093611_1482695093",
       "dateCreated": "2018-10-11 09:36:11.000",
-      "dateStarted": "2021-10-11 14:42:35.192",
-      "dateFinished": "2021-10-11 14:42:35.664",
+      "dateStarted": "2021-10-28 15:51:06.432",
+      "dateFinished": "2021-10-28 15:51:06.858",
       "status": "FINISHED"
     },
     {
@@ -270,8 +270,8 @@
     {
       "text": "%pyspark\n# DataFrame a partir de una lista de tuplas\nl \u003d [(\"Pepe\", 5.1, \"Aprobado\"),\\\n     (\"Juan\", 4.0, \"Suspenso\"),\\\n     (\"Manuel\", None, None)]\ndfNotas \u003d spark.createDataFrame(l, schema\u003d[\"Nombre\", \"nota\", \"cal\"])\ndfNotas.show()\ndfNotas.printSchema()",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:36.100",
-      "progress": 100,
+      "dateUpdated": "2021-10-28 15:51:12.918",
+      "progress": 0,
       "config": {
         "colWidth": 6.0,
         "fontSize": 9.0,
@@ -307,13 +307,13 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d111"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d77"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d112"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d78"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d113"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d79"
             }
           ],
           "interpreterSettingId": "spark"
@@ -323,8 +323,8 @@
       "jobName": "paragraph_1539251722760_188962191",
       "id": "20181011-095522_2112387600",
       "dateCreated": "2018-10-11 09:55:22.000",
-      "dateStarted": "2021-10-11 14:42:36.103",
-      "dateFinished": "2021-10-11 14:42:36.519",
+      "dateStarted": "2021-10-28 15:51:12.926",
+      "dateFinished": "2021-10-28 15:51:14.703",
       "status": "FINISHED"
     },
     {
@@ -369,9 +369,9 @@
       "status": "FINISHED"
     },
     {
-      "text": "%md\n## Creando DataFrames con esquema\nA la hora de crear un DataFrame, es conveniente especificar el esquema del mismo:\n\n  - El esquema define los nombres y tipos de datos de las columnas\n  - Se usa un objeto de tipo ``StructType`` para definir el nombre y tipo de las columnas, mediante \n  - Los tipos de datos que utiliza Spark están definidos en:\n      - Para PySpark: http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#module-pyspark.sql.types\n      - Para Scala: https://spark.apache.org/docs/latest/api/scala/#org.apache.spark.sql.types.package\n",
+      "text": "%md\n## Creando DataFrames con esquema\nA la hora de crear un DataFrame, es conveniente especificar el esquema del mismo:\n\n  - El esquema define los nombres y tipos de datos de las columnas\n  - Se usa un objeto de tipo ``StructType`` para definir el nombre y tipo de las columnas, mediante \n  - Los tipos de datos que utiliza Spark están definidos en:\n      - Para PySpark: https://spark.apache.org/docs/2.4.5/api/python/pyspark.sql.html#module-pyspark.sql.types\n      - Para Scala: https://spark.apache.org/docs/latest/api/scala/org/apache/spark/sql/types/index.html\n",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:44:00.396",
+      "dateUpdated": "2021-10-28 15:54:58.947",
       "progress": 0,
       "config": {
         "colWidth": 12.0,
@@ -397,7 +397,7 @@
         "msg": [
           {
             "type": "HTML",
-            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eCreando DataFrames con esquema\u003c/h2\u003e\n\u003cp\u003eA la hora de crear un DataFrame, es conveniente especificar el esquema del mismo:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eEl esquema define los nombres y tipos de datos de las columnas\u003c/li\u003e\n  \u003cli\u003eSe usa un objeto de tipo \u003ccode\u003eStructType\u003c/code\u003e para definir el nombre y tipo de las columnas, mediante\u003c/li\u003e\n  \u003cli\u003eLos tipos de datos que utiliza Spark están definidos en:\n    \u003cul\u003e\n      \u003cli\u003ePara PySpark: \u003ca href\u003d\"http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#module-pyspark.sql.types\"\u003ehttp://spark.apache.org/docs/latest/api/python/pyspark.sql.html#module-pyspark.sql.types\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003ePara Scala: \u003ca href\u003d\"https://spark.apache.org/docs/latest/api/scala/#org.apache.spark.sql.types.package\"\u003ehttps://spark.apache.org/docs/latest/api/scala/#org.apache.spark.sql.types.package\u003c/a\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eCreando DataFrames con esquema\u003c/h2\u003e\n\u003cp\u003eA la hora de crear un DataFrame, es conveniente especificar el esquema del mismo:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eEl esquema define los nombres y tipos de datos de las columnas\u003c/li\u003e\n  \u003cli\u003eSe usa un objeto de tipo \u003ccode\u003eStructType\u003c/code\u003e para definir el nombre y tipo de las columnas, mediante\u003c/li\u003e\n  \u003cli\u003eLos tipos de datos que utiliza Spark están definidos en:\n    \u003cul\u003e\n      \u003cli\u003ePara PySpark: \u003ca href\u003d\"https://spark.apache.org/docs/2.4.5/api/python/pyspark.sql.html#module-pyspark.sql.types\"\u003ehttps://spark.apache.org/docs/2.4.5/api/python/pyspark.sql.html#module-pyspark.sql.types\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003ePara Scala: \u003ca href\u003d\"https://spark.apache.org/docs/latest/api/scala/org/apache/spark/sql/types/index.html\"\u003ehttps://spark.apache.org/docs/latest/api/scala/org/apache/spark/sql/types/index.html\u003c/a\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
           }
         ]
       },
@@ -407,15 +407,15 @@
       "jobName": "paragraph_1539259411223_-1718648454",
       "id": "20181011-120331_51198615",
       "dateCreated": "2018-10-11 12:03:31.000",
-      "dateStarted": "2021-10-11 14:44:00.396",
-      "dateFinished": "2021-10-11 14:44:00.410",
+      "dateStarted": "2021-10-28 15:54:58.948",
+      "dateFinished": "2021-10-28 15:54:58.973",
       "status": "FINISHED"
     },
     {
       "text": "%pyspark\nfrom pyspark.sql.types import StructField, StructType, FloatType, StringType\nfrom pyspark.sql import Row\n# Definimos el esquema del DataFrame\nesquemaNotas \u003d StructType([\n    StructField(\"Nombre\", StringType(), False),\n    StructField(\"nota\", FloatType(), True),\n    StructField(\"cal\", StringType(), True)\n    ])\n    \n# Creamos el DataFrame a partir de una lista de objetos Row\nfilas \u003d [Row(\"Pepe\", 5.1, \"Aprobado\"),\\\n         Row(\"Juan\", 4.0, \"Suspenso\"),\\\n         Row(\"Manuel\", None, None)]\n\ndfNotas \u003d spark.createDataFrame(filas, schema\u003desquemaNotas)\ndfNotas.show()\ndfNotas.printSchema()",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:37.022",
-      "progress": 0,
+      "dateUpdated": "2021-10-28 15:56:09.364",
+      "progress": 100,
       "config": {
         "colWidth": 6.0,
         "fontSize": 9.0,
@@ -451,13 +451,13 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d114"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d80"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d115"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d81"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d116"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d82"
             }
           ],
           "interpreterSettingId": "spark"
@@ -467,8 +467,8 @@
       "jobName": "paragraph_1539259452855_-1355635725",
       "id": "20181011-120412_1494192530",
       "dateCreated": "2018-10-11 12:04:12.000",
-      "dateStarted": "2021-10-11 14:42:37.028",
-      "dateFinished": "2021-10-11 14:42:37.494",
+      "dateStarted": "2021-10-28 15:56:09.372",
+      "dateFinished": "2021-10-28 15:56:09.899",
       "status": "FINISHED"
     },
     {
@@ -758,7 +758,7 @@
     {
       "text": "%pyspark\n\ndfSEInfered \u003d spark.read.format(\"csv\")\\\n                    .option(\"mode\", \"FAILFAST\")\\\n                    .option(\"sep\", \"~\")\\\n                    .option(\"inferSchema\", \"true\")\\\n                    .option(\"header\", \"false\")\\\n                    .option(\"nullValue\", \"null\")\\\n                    .option(\"compression\", \"bzip2\")\\\n                    .load(\"/datos/italianPosts.csv.bz2\")",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:38.469",
+      "dateUpdated": "2021-10-28 15:57:26.172",
       "progress": 0,
       "config": {
         "colWidth": 6.0,
@@ -790,10 +790,10 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d121"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d83"
             },
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d122"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d84"
             }
           ],
           "interpreterSettingId": "spark"
@@ -803,8 +803,8 @@
       "jobName": "paragraph_1539018533419_-2055475548",
       "id": "20181008-170853_1181066191",
       "dateCreated": "2018-10-08 17:08:53.000",
-      "dateStarted": "2021-10-11 14:42:38.476",
-      "dateFinished": "2021-10-11 14:42:39.196",
+      "dateStarted": "2021-10-28 15:57:26.180",
+      "dateFinished": "2021-10-28 15:57:27.104",
       "status": "FINISHED"
     },
     {
@@ -1184,7 +1184,7 @@
     {
       "text": "%pyspark\nfrom pyspark.sql.types import *\n# Creo una lista con las cabeceras de cada columna\n# Nota: evitar espacios y caracteres no ascii en nombres de columnas\ncabecera \u003d ([\"nComs\", \"ultimaActividad\", \"userId\", \n            \"cuerpo\", \"puntos\", \"fechaCreacion\", \"numVistas\", \"titulo\", \n            \"tags\", \"nRespuestas\", \"respAceptadaId\", \"tipoPost\", \"id\"])\n            \n# Defino el esquema para los elementos de la tabla\n# StructType -\u003e Permite definir un esquema para el DF a partir de una lista de StructFields\n# StructField -\u003e Definen el nombre y tipo de cada columna, así como si es nullable o no (campo True)\ndfSE_Schema \u003d StructType([\n  StructField(cabecera[0], IntegerType(), True),\n  StructField(cabecera[1], TimestampType(), True),\n  StructField(cabecera[2], LongType(), True),\n  StructField(cabecera[3], StringType(), True),\n  StructField(cabecera[4], IntegerType(), True),\n  StructField(cabecera[5], TimestampType(), True),\n  StructField(cabecera[6], IntegerType(), True),\n  StructField(cabecera[7], StringType(), True),\n  StructField(cabecera[8], StringType(), True),\n  StructField(cabecera[9], IntegerType(), True),\n  StructField(cabecera[10], LongType(), True),\n  StructField(cabecera[11], ByteType(), True),\n  StructField(cabecera[12], LongType(), True)\n  ])\n  \ndfSE \u003d spark.read.format(\"csv\")\\\n                    .option(\"mode\", \"FAILFAST\")\\\n                    .option(\"sep\", \"~\")\\\n                    .option(\"inferSchema\", \"false\")\\\n                    .option(\"header\", \"false\")\\\n                    .option(\"nullValue\", \"null\")\\\n                    .option(\"compression\", \"bzip2\")\\\n                    .schema(dfSE_Schema)\\\n                    .load(\"/datos/italianPosts.csv.bz2\")\ndfSE.cache()                    ",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:41.948",
+      "dateUpdated": "2021-10-28 15:58:17.341",
       "progress": 0,
       "config": {
         "colWidth": 6.0,
@@ -1218,8 +1218,8 @@
       "jobName": "paragraph_1539018762147_422461790",
       "id": "20181008-171242_1657070683",
       "dateCreated": "2018-10-08 17:12:42.000",
-      "dateStarted": "2021-10-11 14:42:41.955",
-      "dateFinished": "2021-10-11 14:42:42.278",
+      "dateStarted": "2021-10-28 15:58:17.348",
+      "dateFinished": "2021-10-28 15:58:17.671",
       "status": "FINISHED"
     },
     {
@@ -1266,7 +1266,7 @@
     {
       "text": "%pyspark\ndfSE.sort(\"id\").show()",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:42.663",
+      "dateUpdated": "2021-10-28 15:58:31.977",
       "progress": 0,
       "config": {
         "colWidth": 12.0,
@@ -1303,7 +1303,7 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d127"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d85"
             }
           ],
           "interpreterSettingId": "spark"
@@ -1313,14 +1313,14 @@
       "jobName": "paragraph_1539019982438_-1323575232",
       "id": "20181008-173302_1923324821",
       "dateCreated": "2018-10-08 17:33:02.000",
-      "dateStarted": "2021-10-11 14:42:42.668",
-      "dateFinished": "2021-10-11 14:42:42.987",
+      "dateStarted": "2021-10-28 15:58:31.985",
+      "dateFinished": "2021-10-28 15:58:32.767",
       "status": "FINISHED"
     },
     {
       "text": "%pyspark\ndfSE.printSchema()",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:43.068",
+      "dateUpdated": "2021-10-28 15:58:46.992",
       "progress": 0,
       "config": {
         "colWidth": 12.0,
@@ -1354,8 +1354,8 @@
       "jobName": "paragraph_1539019994903_1720994412",
       "id": "20181008-173314_1166146545",
       "dateCreated": "2018-10-08 17:33:14.000",
-      "dateStarted": "2021-10-11 14:42:43.072",
-      "dateFinished": "2021-10-11 14:42:43.291",
+      "dateStarted": "2021-10-28 15:58:47.000",
+      "dateFinished": "2021-10-28 15:58:47.226",
       "status": "FINISHED"
     },
     {
@@ -2887,8 +2887,8 @@
     {
       "text": "%pyspark\n# Guardo el DataFrame dfSE en formato JSON\ndfSE.write.format(\"json\")\\\n    .mode(\"overwrite\")\\\n    .save(\"/datos/dfSE.json\")",
       "user": "anonymous",
-      "dateUpdated": "2021-10-11 14:42:53.573",
-      "progress": 0,
+      "dateUpdated": "2021-10-28 16:07:10.402",
+      "progress": 100,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -2919,7 +2919,7 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://25d8b56bc38e:4040/jobs/job?id\u003d156"
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d86"
             }
           ],
           "interpreterSettingId": "spark"
@@ -2929,8 +2929,8 @@
       "jobName": "paragraph_1539193143585_1460095200",
       "id": "20181010-173903_1191418314",
       "dateCreated": "2018-10-10 17:39:03.000",
-      "dateStarted": "2021-10-11 14:42:53.580",
-      "dateFinished": "2021-10-11 14:42:54.048",
+      "dateStarted": "2021-10-28 16:07:10.411",
+      "dateFinished": "2021-10-28 16:07:10.984",
       "status": "FINISHED"
     },
     {
@@ -2981,8 +2981,8 @@
     {
       "text": "%pyspark\n# Guardo el DataFrame  usando Parquet\ndfSE.write.format(\"parquet\")\\\n    .mode(\"overwrite\")\\\n    .save(\"/datos/dfSE.parquet\")",
       "user": "anonymous",
-      "dateUpdated": "2020-11-18 15:26:55.490",
-      "progress": 0,
+      "dateUpdated": "2021-10-28 16:07:17.526",
+      "progress": 100,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -3005,19 +3005,32 @@
         "msg": []
       },
       "apps": [],
-      "runtimeInfos": {},
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://6f233cc57716:4040/jobs/job?id\u003d87"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
       "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541579158874_-2091049375",
       "id": "20181107-082558_880282400",
       "dateCreated": "2018-11-07 08:25:58.000",
-      "dateStarted": "2020-11-18 15:26:55.551",
-      "dateFinished": "2020-11-18 15:26:56.217",
+      "dateStarted": "2021-10-28 16:07:17.534",
+      "dateFinished": "2021-10-28 16:07:18.055",
       "status": "FINISHED"
     },
     {
       "text": "%pyspark\nprint(dfSE.rdd.getNumPartitions())",
       "user": "anonymous",
-      "dateUpdated": "2020-11-18 15:28:31.595",
+      "dateUpdated": "2021-10-28 16:07:23.221",
       "progress": 0,
       "config": {
         "colWidth": 12.0,
@@ -3051,8 +3064,8 @@
       "jobName": "paragraph_1605713293666_-18294125",
       "id": "20201118-152813_622541168",
       "dateCreated": "2020-11-18 15:28:13.666",
-      "dateStarted": "2020-11-18 15:28:31.646",
-      "dateFinished": "2020-11-18 15:28:31.740",
+      "dateStarted": "2021-10-28 16:07:23.231",
+      "dateFinished": "2021-10-28 16:07:23.456",
       "status": "FINISHED"
     },
     {
@@ -3396,7 +3409,5 @@
   "config": {
     "isZeppelinNotebookCronEnable": false
   },
-  "info": {
-    "isRunning": false
-  }
+  "info": {}
 }
