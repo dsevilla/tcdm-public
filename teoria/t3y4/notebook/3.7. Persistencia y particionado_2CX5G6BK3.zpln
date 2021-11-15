@@ -3,47 +3,8 @@
     {
       "text": "%md\n## Persistencia y particionado\nEn este tema trataremos dos aspectos de Apache Spark\n\n- `Persistencia`: como guardar DataFrames y RDDs de forma que no tengan que ser recalculados\n- `Particionado`: como especificar y cambiar las particiones de un DataFrame o RDD",
       "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:33:21.615",
-      "config": {
-        "tableHide": false,
-        "editorSetting": {
-          "language": "markdown",
-          "editOnDblClick": true,
-          "completionSupport": false
-        },
-        "colWidth": 12.0,
-        "editorMode": "ace/mode/markdown",
-        "editorHide": true,
-        "results": {},
-        "enabled": false,
-        "fontSize": 9.0
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003ePersistencia y particionado\u003c/h2\u003e\n\u003cp\u003eEn este tema trataremos dos aspectos de Apache Spark\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e\u003ccode\u003ePersistencia\u003c/code\u003e: como guardar DataFrames y RDDs de forma que no tengan que ser recalculados\u003c/li\u003e\n  \u003cli\u003e\u003ccode\u003eParticionado\u003c/code\u003e: como especificar y cambiar las particiones de un DataFrame o RDD\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1508256427160_-1824511290",
-      "id": "20170331-175709_320035584",
-      "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2018-11-09 13:02:59.000",
-      "dateFinished": "2018-11-09 13:02:59.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%md\n## Persistencia\n\nProblema al usar un DataFrame o un RDD varias veces:\n\n-   Spark recomputa el RDD y sus dependencias cada vez que se ejecuta una acción\n-   Muy costoso (especialmente en problemas iterativos)\n\nSolución\n\n-   Conservar el DataFrame o RDD en memoria y/o disco\n-   Métodos `cache()` o `persist()`\n\n#### Niveles de persistencia (definidos en [`pyspark.StorageLevel`](http://spark.apache.org/docs/latest/api/python/pyspark.html#pyspark.StorageLevel) y [`org.apache.spark.storage.StorageLevel`](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.storage.StorageLevel))\n Nivel                | Espacio  | CPU     | Memoria/Disco   | Descripción\n :------------------: | :------: | :-----: | :-------------: | ------------------\n MEMORY_ONLY          |   Alto   |   Bajo  |     Memoria     | Guarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, algunas particiones no se *cachearán* y serán recomputadas \"al vuelo\" cada vez que se necesiten. \n MEMORY_ONLY_SER      |   Bajo   |   Alto  |     Memoria     | Guarda el RDD como un objeto Java serializado (un *byte array* por partición). \n MEMORY_AND_DISK      |   Alto   |   Medio |     Ambos       | Guarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, las particiones que no quepan se guardan en disco y se leen del mismo cada vez que se necesiten.\n MEMORY_AND_DISK_SER  |   Bajo   |   Alto  |     Ambos       | Similar a MEMORY_AND_DISK pero usando objetos serializados.\n DISK_ONLY            |   Bajo   |   Alto  |     Disco       | Guarda las particiones del RDD solo en disco.\n OFF_HEAP             |   Bajo   |   Alto  |   Memoria       | Guarda el RDD serializado usando memoria *off-heap* (fuera del heap de la JVM) lo que puede reducir el overhead del recolector de basura\n   \n\n\n    \n#### Nivel de persistencia\n\n-   El nivel por defecto es para DataFrames es MEMORY\\_AND_DISK\n    -   Para los RDDs es MEMORY_ONLY en Scala o Java y MEMORY_ONLY_SER en Python\n\n-   En Python, los datos siempre se guardan en memoria serializados (usando *pickled*), aunque no se llame a cache() o persist()\n\n    - Es posible especificar serialización [`marshal`](https://docs.python.org/2/library/marshal.html#module-marshal) al crear el SparkContext\n    \n```python\nsc \u003d SparkContext(master\u003d\"local\", appName\u003d\"Mi app\", serializer\u003dpyspark.MarshalSerializer())\n```\n    \n#### Recuperación de fallos\n\n-   Si falla un nodo con datos almacenados, el DataFrame o RDD se recomputa\n\n    -   Añadiendo `_2` al nivel de persistencia, se guardan 2 copias del RDD\n        \n#### Gestión de la cache\n\n-   Algoritmo LRU para gestionar la cache\n\n    -   Para niveles *solo memoria*, los RDDs viejos se eliminan y se recalculan\n    -   Para niveles *memoria y disco*, las particiones que no caben se escriben a disco\n    \n#### Importante:\n\n- La persistencia debe usarse solo cuando sea necesaria, puesto que puede implicar un coste importante\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:33:21.615",
+      "dateUpdated": "2021-11-14 17:02:59.173",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -67,23 +28,67 @@
         "msg": [
           {
             "type": "HTML",
-            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003ePersistencia\u003c/h2\u003e\n\u003cp\u003eProblema al usar un DataFrame o un RDD varias veces:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eSpark recomputa el RDD y sus dependencias cada vez que se ejecuta una acción\u003c/li\u003e\n  \u003cli\u003eMuy costoso (especialmente en problemas iterativos)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eSolución\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eConservar el DataFrame o RDD en memoria y/o disco\u003c/li\u003e\n  \u003cli\u003eMétodos \u003ccode\u003ecache()\u003c/code\u003e o \u003ccode\u003epersist()\u003c/code\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eNiveles de persistencia (definidos en \u003ca href\u003d\"http://spark.apache.org/docs/latest/api/python/pyspark.html#pyspark.StorageLevel\"\u003e\u003ccode\u003epyspark.StorageLevel\u003c/code\u003e\u003c/a\u003e y \u003ca href\u003d\"https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.storage.StorageLevel\"\u003e\u003ccode\u003eorg.apache.spark.storage.StorageLevel\u003c/code\u003e\u003c/a\u003e)\u003c/h4\u003e\n\u003ctable\u003e\n  \u003cthead\u003e\n    \u003ctr\u003e\n      \u003cth align\u003d\"center\"\u003eNivel \u003c/th\u003e\n      \u003cth align\u003d\"center\"\u003eEspacio \u003c/th\u003e\n      \u003cth align\u003d\"center\"\u003eCPU \u003c/th\u003e\n      \u003cth align\u003d\"center\"\u003eMemoria/Disco \u003c/th\u003e\n      \u003cth\u003eDescripción\u003c/th\u003e\n    \u003c/tr\u003e\n  \u003c/thead\u003e\n  \u003ctbody\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_ONLY \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMemoria \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, algunas particiones no se \u003cem\u003ecachearán\u003c/em\u003e y serán recomputadas \u0026ldquo;al vuelo\u0026rdquo; cada vez que se necesiten.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_ONLY_SER \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMemoria \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD como un objeto Java serializado (un \u003cem\u003ebyte array\u003c/em\u003e por partición).\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_AND_DISK \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMedio \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAmbos \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, las particiones que no quepan se guardan en disco y se leen del mismo cada vez que se necesiten.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_AND_DISK_SER \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAmbos \u003c/td\u003e\n      \u003ctd\u003eSimilar a MEMORY_AND_DISK pero usando objetos serializados.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eDISK_ONLY \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eDisco \u003c/td\u003e\n      \u003ctd\u003eGuarda las particiones del RDD solo en disco.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eOFF_HEAP \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMemoria \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD serializado usando memoria \u003cem\u003eoff-heap\u003c/em\u003e (fuera del heap de la JVM) lo que puede reducir el overhead del recolector de basura\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\n\u003c/table\u003e\n\u003ch4\u003eNivel de persistencia\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003e\n    \u003cp\u003eEl nivel por defecto es para DataFrames es MEMORY_AND_DISK\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli\u003ePara los RDDs es MEMORY_ONLY en Scala o Java y MEMORY_ONLY_SER en Python\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003e\n    \u003cp\u003eEn Python, los datos siempre se guardan en memoria serializados (usando \u003cem\u003epickled\u003c/em\u003e), aunque no se llame a cache() o persist()\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli\u003e\n      \u003cp\u003eEs posible especificar serialización \u003ca href\u003d\"https://docs.python.org/2/library/marshal.html#module-marshal\"\u003e\u003ccode\u003emarshal\u003c/code\u003e\u003c/a\u003e al crear el SparkContext\u003c/p\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003cpre\u003e\u003ccode class\u003d\"python\"\u003esc \u003d SparkContext(master\u003d\u0026quot;local\u0026quot;, appName\u003d\u0026quot;Mi app\u0026quot;, serializer\u003dpyspark.MarshalSerializer())\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch4\u003eRecuperación de fallos\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003eSi falla un nodo con datos almacenados, el DataFrame o RDD se recomputa\n    \u003cul\u003e\n      \u003cli\u003e\n      \u003cp\u003eAñadiendo \u003ccode\u003e_2\u003c/code\u003e al nivel de persistencia, se guardan 2 copias del RDD\u003c/p\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eGestión de la cache\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003eAlgoritmo LRU para gestionar la cache\n    \u003cul\u003e\n      \u003cli\u003ePara niveles \u003cem\u003esolo memoria\u003c/em\u003e, los RDDs viejos se eliminan y se recalculan\u003c/li\u003e\n      \u003cli\u003ePara niveles \u003cem\u003ememoria y disco\u003c/em\u003e, las particiones que no caben se escriben a disco\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eImportante:\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003eLa persistencia debe usarse solo cuando sea necesaria, puesto que puede implicar un coste importante\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003ePersistencia y particionado\u003c/h2\u003e\n\u003cp\u003eEn este tema trataremos dos aspectos de Apache Spark\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e\u003ccode\u003ePersistencia\u003c/code\u003e: como guardar DataFrames y RDDs de forma que no tengan que ser recalculados\u003c/li\u003e\n  \u003cli\u003e\u003ccode\u003eParticionado\u003c/code\u003e: como especificar y cambiar las particiones de un DataFrame o RDD\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1508256427160_-1824511290",
+      "id": "20170331-175709_320035584",
+      "dateCreated": "2017-10-17 16:07:07.000",
+      "dateStarted": "2021-11-14 17:02:59.174",
+      "dateFinished": "2021-11-14 17:02:59.182",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%md\n## Persistencia\n\nProblema al usar un DataFrame o un RDD varias veces:\n\n-   Spark recomputa el RDD y sus dependencias cada vez que se ejecuta una acción\n-   Muy costoso (especialmente en problemas iterativos)\n\nSolución\n\n-   Conservar el DataFrame o RDD en memoria y/o disco\n-   Métodos `cache()` o `persist()`\n\n#### Niveles de persistencia (definidos en [`pyspark.StorageLevel`](http://spark.apache.org/docs/latest/api/python/pyspark.html#pyspark.StorageLevel) y [`org.apache.spark.storage.StorageLevel`](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.storage.StorageLevel))\n Nivel                | Espacio  | CPU     | Memoria/Disco   | Descripción\n :------------------: | :------: | :-----: | :-------------: | ------------------\n MEMORY_ONLY          |   Alto   |   Bajo  |     Memoria     | Guarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, algunas particiones no se *cachearán* y serán recomputadas \"al vuelo\" cada vez que se necesiten. \n MEMORY_ONLY_SER      |   Bajo   |   Alto  |     Memoria     | Guarda el RDD como un objeto Java serializado (un *byte array* por partición). \n MEMORY_AND_DISK      |   Alto   |   Medio |     Ambos       | Guarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, las particiones que no quepan se guardan en disco y se leen del mismo cada vez que se necesiten.\n MEMORY_AND_DISK_SER  |   Bajo   |   Alto  |     Ambos       | Similar a MEMORY_AND_DISK pero usando objetos serializados.\n DISK_ONLY            |   Bajo   |   Alto  |     Disco       | Guarda las particiones del RDD solo en disco.\n OFF_HEAP             |   Bajo   |   Alto  |   Memoria       | Similar a MEMORY_ONLY_SER pero guarda el RDD serializado usando memoria *off-heap* (fuera del heap de la JVM) lo que puede reducir el overhead del recolector de basura\n   \n\n\n    \n#### Nivel de persistencia\n\n-   El nivel por defecto para DataFrames es MEMORY\\_AND_DISK\n    -   Para los RDDs es MEMORY_ONLY en Scala o Java y MEMORY_ONLY_SER en Python\n\n-   En Python, los datos siempre se guardan en memoria serializados (usando *pickled*)\n\n    - Es posible especificar serialización [`marshal`](https://docs.python.org/2/library/marshal.html#module-marshal) al crear el SparkContext\n    \n```python\nsc \u003d SparkContext(master\u003d\"local\", appName\u003d\"Mi app\", serializer\u003dpyspark.MarshalSerializer())\n```\n    \n#### Recuperación de fallos\n\n-   Si falla un nodo con datos almacenados, el DataFrame o RDD se recomputa\n\n    -   Añadiendo `_2` al nivel de persistencia (por ejemplo, MEMORY_ONLY_2), se guardan 2 copias del RDD\n        \n#### Gestión de la cache\n\n-   Algoritmo LRU (Least Recently Used) para gestionar la cache\n\n    -   Para niveles *solo memoria*, los RDDs viejos se eliminan y se recalculan\n    -   Para niveles *memoria y disco*, las particiones que no caben se escriben a disco\n    \n#### Importante:\n\n- La persistencia debe usarse solo cuando sea necesaria, puesto que puede implicar un coste importante\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-11-15 07:22:25.596",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionSupport": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "results": {},
+        "enabled": true,
+        "fontSize": 9.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003ePersistencia\u003c/h2\u003e\n\u003cp\u003eProblema al usar un DataFrame o un RDD varias veces:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eSpark recomputa el RDD y sus dependencias cada vez que se ejecuta una acción\u003c/li\u003e\n  \u003cli\u003eMuy costoso (especialmente en problemas iterativos)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eSolución\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eConservar el DataFrame o RDD en memoria y/o disco\u003c/li\u003e\n  \u003cli\u003eMétodos \u003ccode\u003ecache()\u003c/code\u003e o \u003ccode\u003epersist()\u003c/code\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eNiveles de persistencia (definidos en \u003ca href\u003d\"http://spark.apache.org/docs/latest/api/python/pyspark.html#pyspark.StorageLevel\"\u003e\u003ccode\u003epyspark.StorageLevel\u003c/code\u003e\u003c/a\u003e y \u003ca href\u003d\"https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.storage.StorageLevel\"\u003e\u003ccode\u003eorg.apache.spark.storage.StorageLevel\u003c/code\u003e\u003c/a\u003e)\u003c/h4\u003e\n\u003ctable\u003e\n  \u003cthead\u003e\n    \u003ctr\u003e\n      \u003cth align\u003d\"center\"\u003eNivel \u003c/th\u003e\n      \u003cth align\u003d\"center\"\u003eEspacio \u003c/th\u003e\n      \u003cth align\u003d\"center\"\u003eCPU \u003c/th\u003e\n      \u003cth align\u003d\"center\"\u003eMemoria/Disco \u003c/th\u003e\n      \u003cth\u003eDescripción\u003c/th\u003e\n    \u003c/tr\u003e\n  \u003c/thead\u003e\n  \u003ctbody\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_ONLY \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMemoria \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, algunas particiones no se \u003cem\u003ecachearán\u003c/em\u003e y serán recomputadas \u0026ldquo;al vuelo\u0026rdquo; cada vez que se necesiten.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_ONLY_SER \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMemoria \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD como un objeto Java serializado (un \u003cem\u003ebyte array\u003c/em\u003e por partición).\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_AND_DISK \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMedio \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAmbos \u003c/td\u003e\n      \u003ctd\u003eGuarda el RDD como un objeto Java no serializado en la JVM. Si el RDD no cabe en memoria, las particiones que no quepan se guardan en disco y se leen del mismo cada vez que se necesiten.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eMEMORY_AND_DISK_SER \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAmbos \u003c/td\u003e\n      \u003ctd\u003eSimilar a MEMORY_AND_DISK pero usando objetos serializados.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eDISK_ONLY \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eDisco \u003c/td\u003e\n      \u003ctd\u003eGuarda las particiones del RDD solo en disco.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr\u003e\n      \u003ctd align\u003d\"center\"\u003eOFF_HEAP \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eBajo \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eAlto \u003c/td\u003e\n      \u003ctd align\u003d\"center\"\u003eMemoria \u003c/td\u003e\n      \u003ctd\u003eSimilar a MEMORY_ONLY_SER pero guarda el RDD serializado usando memoria \u003cem\u003eoff-heap\u003c/em\u003e (fuera del heap de la JVM) lo que puede reducir el overhead del recolector de basura\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\n\u003c/table\u003e\n\u003ch4\u003eNivel de persistencia\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003e\n    \u003cp\u003eEl nivel por defecto para DataFrames es MEMORY_AND_DISK\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli\u003ePara los RDDs es MEMORY_ONLY en Scala o Java y MEMORY_ONLY_SER en Python\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n  \u003cli\u003e\n    \u003cp\u003eEn Python, los datos siempre se guardan en memoria serializados (usando \u003cem\u003epickled\u003c/em\u003e)\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli\u003e\n      \u003cp\u003eEs posible especificar serialización \u003ca href\u003d\"https://docs.python.org/2/library/marshal.html#module-marshal\"\u003e\u003ccode\u003emarshal\u003c/code\u003e\u003c/a\u003e al crear el SparkContext\u003c/p\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003cpre\u003e\u003ccode class\u003d\"python\"\u003esc \u003d SparkContext(master\u003d\u0026quot;local\u0026quot;, appName\u003d\u0026quot;Mi app\u0026quot;, serializer\u003dpyspark.MarshalSerializer())\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch4\u003eRecuperación de fallos\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003eSi falla un nodo con datos almacenados, el DataFrame o RDD se recomputa\n    \u003cul\u003e\n      \u003cli\u003e\n      \u003cp\u003eAñadiendo \u003ccode\u003e_2\u003c/code\u003e al nivel de persistencia (por ejemplo, MEMORY_ONLY_2), se guardan 2 copias del RDD\u003c/p\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eGestión de la cache\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003eAlgoritmo LRU (Least Recently Used) para gestionar la cache\n    \u003cul\u003e\n      \u003cli\u003ePara niveles \u003cem\u003esolo memoria\u003c/em\u003e, los RDDs viejos se eliminan y se recalculan\u003c/li\u003e\n      \u003cli\u003ePara niveles \u003cem\u003ememoria y disco\u003c/em\u003e, las particiones que no caben se escriben a disco\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch4\u003eImportante:\u003c/h4\u003e\n\u003cul\u003e\n  \u003cli\u003eLa persistencia debe usarse solo cuando sea necesaria, puesto que puede implicar un coste importante\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427161_-1824896039",
       "id": "20170713-093945_1948393361",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-06-07 10:33:22.316",
-      "dateFinished": "2020-06-07 10:33:25.209",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-15 07:22:25.597",
+      "dateFinished": "2021-11-15 07:22:25.636",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Persistencia con DataFrames",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:33:25.216",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -113,30 +118,32 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541437478101_-1393457161",
       "id": "20181105-170438_295764070",
       "dateCreated": "2018-11-05 17:04:38.000",
       "dateStarted": "2018-11-05 17:16:59.000",
       "dateFinished": "2018-11-05 17:16:59.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
-      "text": "%pyspark\ndfDatosVuelos \u003d (spark\n    .read\n    .option(\"inferSchema\", \"true\")\n    .option(\"header\", \"true\")\n    .csv(\"/datos/2015-summary.csv\"))\nprint(\"Cacheado: {0}\".format(dfDatosVuelos.is_cached))\nprint(\"Nivel sin persistencia: {0}\".format(dfDatosVuelos.storageLevel))",
+      "text": "%pyspark\nimport numpy as np\nfrom pyspark.sql import Row\nnp_array \u003d np.random.random_sample(100000) # generates an array of M random values\nrow_type \u003d Row(\"n\", \"x\")\nlist \u003d [row_type(i, float(np_array[i])) for i in range(np_array.size)]\nDF1 \u003d spark.createDataFrame(list)\n\nDF1.printSchema()\nprint(\"Cacheado: {0}\".format(DF1.is_cached))\nprint(\"Nivel sin persistencia: {0}\".format(DF1.storageLevel))\n",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:17:16.890",
+      "dateUpdated": "2021-11-14 18:09:41.410",
+      "progress": 100,
       "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
         "editorSetting": {
           "language": "python",
           "editOnDblClick": false,
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/python"
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9.0,
+        "results": {},
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -147,74 +154,37 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "Cacheado: False\nNivel sin persistencia: Serialized 1x Replicated\n"
+            "data": "root\n |-- n: long (nullable \u003d true)\n |-- x: double (nullable \u003d true)\n\nCacheado: False\nNivel sin persistencia: Serialized 1x Replicated\n"
           }
         ]
       },
       "apps": [],
-      "jobName": "paragraph_1541423861476_911486851",
-      "id": "20181105-131741_1647560783",
-      "dateCreated": "2018-11-05 13:17:41.000",
-      "dateStarted": "2020-12-02 15:17:17.232",
-      "dateFinished": "2020-12-02 15:17:37.291",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1636912694630_952769650",
+      "id": "paragraph_1636912694630_952769650",
+      "dateCreated": "2021-11-14 17:58:14.630",
+      "dateStarted": "2021-11-14 18:09:41.414",
+      "dateFinished": "2021-11-14 18:09:44.242",
+      "status": "FINISHED"
     },
     {
-      "text": "%spark\n\nval dfDatosVuelos \u003d spark.\n        read.\n        option(\"inferSchema\", \"true\").\n        option(\"header\", \"true\").\n        csv(\"/datos/2015-summary.csv\")\nprintf(\"Cacheado: %s\\n\", dfDatosVuelos.storageLevel.useMemory)\nprintf(\"Nivel sin persistencia: %s\", dfDatosVuelos.storageLevel)",
+      "text": "%pyspark\nDF1.cache()\nprint(\"Cacheado: {0}\".format(DF1.is_cached))\nprint(\"Nivel de persistencia por defecto: {0}\".format(DF1.storageLevel))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:17:32.889",
+      "dateUpdated": "2021-11-14 18:09:57.915",
+      "progress": 0,
       "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Cacheado: false\nNivel sin persistencia: StorageLevel(1 replicas)dfDatosVuelos: org.apache.spark.sql.DataFrame \u003d [DEST_COUNTRY_NAME: string, ORIGIN_COUNTRY_NAME: string ... 1 more field]\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541423098325_-234746612",
-      "id": "20181105-130458_627346102",
-      "dateCreated": "2018-11-05 13:04:58.000",
-      "dateStarted": "2020-12-02 15:17:33.088",
-      "dateFinished": "2020-12-02 15:17:37.291",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\ndfDatosVuelos.cache()\nprint(\"Cacheado: {0}\".format(dfDatosVuelos.is_cached))\nprint(\"Nivel de persistencia por defecto: {0}\".format(dfDatosVuelos.storageLevel))",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:18:09.041",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
         "editorSetting": {
           "language": "python",
           "editOnDblClick": false,
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/python"
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9.0,
+        "results": {},
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -230,147 +200,32 @@
         ]
       },
       "apps": [],
-      "jobName": "paragraph_1541424561657_788093737",
-      "id": "20181105-132921_2049268037",
-      "dateCreated": "2018-11-05 13:29:21.000",
-      "dateStarted": "2020-12-02 15:18:09.159",
-      "dateFinished": "2020-12-02 15:18:09.270",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1636912708276_1004196714",
+      "id": "paragraph_1636912708276_1004196714",
+      "dateCreated": "2021-11-14 17:58:28.276",
+      "dateStarted": "2021-11-14 18:09:57.919",
+      "dateFinished": "2021-11-14 18:09:58.140",
+      "status": "FINISHED"
     },
     {
-      "text": "%spark\n// Lo cacheamos por defecto\ndfDatosVuelos.cache()\nprintf(\"Cacheado: %s\\n\", dfDatosVuelos.storageLevel.useMemory)\nprintf(\"Nivel de persistencia por defecto: %s\", dfDatosVuelos.storageLevel)\n",
+      "text": "%pyspark\n# La persistencia no se hereda en las transformaciones\nDF2 \u003d DF1.groupBy(\"x\").count()\nprint(\"Cacheado: {0}\".format(DF2.is_cached))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:18:30.011",
+      "dateUpdated": "2021-11-14 18:09:59.171",
+      "progress": 0,
       "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Cacheado: true\nNivel de persistencia por defecto: StorageLevel(disk, memory, deserialized, 1 replicas)"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541423508268_1163918363",
-      "id": "20181105-131148_1309336840",
-      "dateCreated": "2018-11-05 13:11:48.000",
-      "dateStarted": "2020-12-02 15:18:30.103",
-      "dateFinished": "2020-12-02 15:18:30.509",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\n# Para cambiar el nivel de persistencia, primero tenemos que quitarlo de la cache\ndfDatosVuelos.unpersist()\n\nfrom pyspark import StorageLevel\ndfDatosVuelos.persist(StorageLevel.MEMORY_ONLY_SER_2)\nprint(\"Cacheado: {0}\".format(dfDatosVuelos.is_cached))\nprint(\"Nuevo nivel de persistencia: {0}\".format(dfDatosVuelos.storageLevel))",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:19:18.434",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
         "editorSetting": {
           "language": "python",
           "editOnDblClick": false,
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/python"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Cacheado: True\nNuevo nivel de persistencia: Memory Serialized 2x Replicated\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541424858490_-2004828708",
-      "id": "20181105-133418_1109892954",
-      "dateCreated": "2018-11-05 13:34:18.000",
-      "dateStarted": "2020-12-02 15:19:18.528",
-      "dateFinished": "2020-12-02 15:19:18.639",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%spark\n// Para cambiar el nivel de persistencia, primero tenemos que quitarlo de la cache\ndfDatosVuelos.unpersist\n\nimport org.apache.spark.storage.StorageLevel\ndfDatosVuelos.persist(StorageLevel.MEMORY_ONLY_SER_2)\nprintf(\"Cacheado: %s\\n\", dfDatosVuelos.storageLevel.useMemory)\nprintf(\"Nuevo nivel de persistencia: %s\", dfDatosVuelos.storageLevel)",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:19:28.305",
-      "config": {
-        "colWidth": 6.0,
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
         "fontSize": 9.0,
-        "enabled": true,
         "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Cacheado: true\nNuevo nivel de persistencia: StorageLevel(memory, 2 replicas)import org.apache.spark.storage.StorageLevel\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541423592020_2103412148",
-      "id": "20181105-131312_1866523301",
-      "dateCreated": "2018-11-05 13:13:12.000",
-      "dateStarted": "2020-12-02 15:19:28.391",
-      "dateFinished": "2020-12-02 15:19:28.715",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\n# La persistencia no se hereda en las transformaciones\ndfDatos2 \u003d dfDatosVuelos.select(\"DEST_COUNTRY_NAME\")\nprint(\"Cacheado: {0}\".format(dfDatos2.is_cached))\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:19:42.761",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "python",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/python"
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -386,49 +241,61 @@
         ]
       },
       "apps": [],
-      "jobName": "paragraph_1541438844129_795131904",
-      "id": "20181105-172724_901149163",
-      "dateCreated": "2018-11-05 17:27:24.000",
-      "dateStarted": "2020-12-02 15:19:42.837",
-      "dateFinished": "2020-12-02 15:19:42.906",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1636912717094_365733734",
+      "id": "paragraph_1636912717094_365733734",
+      "dateCreated": "2021-11-14 17:58:37.094",
+      "dateStarted": "2021-11-14 18:09:59.175",
+      "dateFinished": "2021-11-14 18:09:59.447",
+      "status": "FINISHED"
     },
     {
-      "text": "%spark\n// La persistencia no se hereda en las transformaciones\nval dfDatos2 \u003d dfDatosVuelos.select(\"DEST_COUNTRY_NAME\")\nprintf(\"Cacheado: %s\\n\", dfDatos2.storageLevel.useMemory)",
+      "text": "%pyspark\n# Para cambiar el nivel de persistencia, primero tenemos que quitarlo de la cache\nDF1.unpersist()\n\nfrom pyspark import StorageLevel\nDF1.persist(StorageLevel.MEMORY_ONLY_SER_2)\nprint(\"Cacheado: {0}\".format(DF1.is_cached))\nprint(\"Nuevo nivel de persistencia: {0}\".format(DF1.storageLevel))\n",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 11:45:31.416",
+      "dateUpdated": "2021-11-14 18:10:04.848",
+      "progress": 0,
       "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
         "editorSetting": {
-          "language": "scala",
+          "language": "python",
           "editOnDblClick": false,
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/scala"
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9.0,
+        "results": {},
+        "enabled": true
       },
       "settings": {
         "params": {},
         "forms": {}
       },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Cacheado: True\nNuevo nivel de persistencia: Memory Serialized 2x Replicated\n"
+          }
+        ]
+      },
       "apps": [],
-      "jobName": "paragraph_1541438670307_-1799325274",
-      "id": "20181105-172430_1525051688",
-      "dateCreated": "2018-11-05 17:24:30.000",
-      "dateStarted": "2020-12-02 11:45:31.506",
-      "dateFinished": "2020-12-02 11:45:31.707",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1636912723342_1468247393",
+      "id": "paragraph_1636912723342_1468247393",
+      "dateCreated": "2021-11-14 17:58:43.342",
+      "dateStarted": "2021-11-14 18:10:04.852",
+      "dateFinished": "2021-11-14 18:10:05.074",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Persistencia con RDDs",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:33:56.820",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -458,18 +325,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541437764314_2095848682",
       "id": "20181105-170924_1318776723",
       "dateCreated": "2018-11-05 17:09:24.000",
       "dateStarted": "2018-11-05 17:09:36.000",
       "dateFinished": "2018-11-05 17:09:37.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nrdd \u003d sc.parallelize(range(1000), 10)\nprint(\"Cacheado: {0}\".format(rdd.is_cached))\nprint(\"Nivel sin persistencia: {0}\".format(rdd.getStorageLevel()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:20:10.825",
+      "dateUpdated": "2021-11-14 17:53:45.272",
+      "progress": 0,
       "config": {
         "colWidth": 6.0,
         "fontSize": 9.0,
@@ -497,69 +366,32 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541421394414_-443691214",
       "id": "20181105-123634_2088651731",
       "dateCreated": "2018-11-05 12:36:34.000",
-      "dateStarted": "2020-12-02 15:20:10.893",
-      "dateFinished": "2020-12-02 15:20:10.991",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 17:53:45.277",
+      "dateFinished": "2021-11-14 17:53:45.497",
+      "status": "FINISHED"
     },
     {
-      "text": "%spark\nval rdd \u003d sc.parallelize(1 to 1000, 10)\nprintf(\"Cacheado: %s\\n\", rdd.getStorageLevel.useMemory)\nprintf(\"Nivel sin persistencia: %s\", rdd.getStorageLevel)",
+      "text": "%pyspark\nrdd.cache()\n\nprint(\"Cacheado: {0}\".format(rdd.is_cached))\nprint(\"Nivel de persistencia por defecto: {0}\".format(rdd.getStorageLevel()))\n",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:20:23.009",
+      "dateUpdated": "2021-11-14 17:53:46.958",
+      "progress": 0,
       "config": {
         "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
+        "editorMode": "ace/mode/python",
         "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Cacheado: false\nNivel sin persistencia: StorageLevel(1 replicas)rdd: org.apache.spark.rdd.RDD[Int] \u003d ParallelCollectionRDD[26] at parallelize at \u003cconsole\u003e:26\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541437893470_-55693577",
-      "id": "20181105-171133_11511793",
-      "dateCreated": "2018-11-05 17:11:33.000",
-      "dateStarted": "2020-12-02 15:20:23.081",
-      "dateFinished": "2020-12-02 15:20:23.693",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\nrdd.cache()\nprint(\"Cacheado: {0}\".format(rdd.is_cached))\nprint(\"Nivel de persistencia por defecto: {0}\".format(rdd.getStorageLevel()))",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:20:31.184",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
         "enabled": true,
-        "results": {},
         "editorSetting": {
           "language": "python",
           "editOnDblClick": false,
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/python"
+        "fontSize": 9.0
       },
       "settings": {
         "params": {},
@@ -575,433 +407,20 @@
         ]
       },
       "apps": [],
-      "jobName": "paragraph_1541438135792_1505806909",
-      "id": "20181105-171535_1779969354",
-      "dateCreated": "2018-11-05 17:15:35.000",
-      "dateStarted": "2020-12-02 15:20:31.255",
-      "dateFinished": "2020-12-02 15:20:31.320",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%spark\nrdd.cache()\nprintf(\"Cacheado: %s\\n\", rdd.getStorageLevel.useMemory)\nprintf(\"Nivel de persistencia por defecto: %s\", rdd.getStorageLevel)",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 11:46:41.922",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1541438235062_857727185",
-      "id": "20181105-171715_889533915",
-      "dateCreated": "2018-11-05 17:17:15.000",
-      "dateStarted": "2020-12-02 11:46:41.972",
-      "dateFinished": "2020-12-02 11:46:42.140",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\nrdd.unpersist()\n\nfrom pyspark import StorageLevel\nrdd.persist(StorageLevel.MEMORY_AND_DISK_2)\nprint(\"Cacheado: {0}\".format(rdd.is_cached))\nprint(\"Nuevo nivel de persistencia: {0}\".format(rdd.getStorageLevel()))",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:34:00.056",
-      "config": {
-        "colWidth": 6.0,
-        "editorMode": "ace/mode/python",
-        "results": {},
-        "enabled": true,
-        "editorSetting": {
-          "language": "python",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "fontSize": 9.0
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427161_-1824896039",
       "id": "20170713-094304_942363426",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-06-07 10:34:00.300",
-      "dateFinished": "2020-06-07 10:34:00.428",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%spark\nrdd.unpersist()\n\nimport org.apache.spark.storage.StorageLevel\nrdd.persist(StorageLevel.MEMORY_AND_DISK_2)\nprintf(\"Cacheado: %s\\n\", rdd.getStorageLevel.useMemory)\nprintf(\"Nuevo nivel de persistencia: %s\", rdd.getStorageLevel)",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:34:00.494",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1541438497049_361789898",
-      "id": "20181105-172137_1407980156",
-      "dateCreated": "2018-11-05 17:21:37.000",
-      "dateStarted": "2020-06-07 10:34:00.746",
-      "dateFinished": "2020-06-07 10:34:01.379",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\n# La persistencia no se hereda en las transformaciones\nrdd2 \u003d rdd.map(lambda x: x*x)\nprint(\"Cacheado: {0}\".format(rdd2.is_cached))",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:34:01.455",
-      "config": {
-        "colWidth": 6.0,
-        "editorMode": "ace/mode/python",
-        "results": {},
-        "enabled": true,
-        "editorSetting": {
-          "language": "python",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "fontSize": 9.0
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1508256427161_-1824896039",
-      "id": "20170713-094509_1439062241",
-      "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-06-07 10:34:01.729",
-      "dateFinished": "2020-06-07 10:34:01.875",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%spark\n// La persistencia no se hereda en las transformaciones\nval rdd2 \u003d rdd.map(x \u003d\u003e x*x)\nprintf(\"Cacheado: %s\\n\", rdd2.getStorageLevel.useMemory)",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:34:01.899",
-      "config": {
-        "colWidth": 6.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1541439241385_-1710841792",
-      "id": "20181105-173401_474770910",
-      "dateCreated": "2018-11-05 17:34:01.000",
-      "dateStarted": "2020-06-07 10:34:02.211",
-      "dateFinished": "2020-06-07 10:34:03.133",
-      "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%md\n### Checkpointing con RDDs\nPueden realizarse checkpoints de los RDDs, forzando a que se guarden en disco\n\n- La operación es *lazy*: los datos no van a disco hasta que se lance una acción\n- Futuras referencias a esos RDDs los recuperan de disco en vez de recomputarlos\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-07 10:34:03.204",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": false,
-        "results": {},
-        "editorSetting": {
-          "language": "markdown",
-          "editOnDblClick": true,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/markdown",
-        "editorHide": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eCheckpointing con RDDs\u003c/h3\u003e\n\u003cp\u003ePueden realizarse checkpoints de los RDDs, forzando a que se guarden en disco\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003eLa operación es \u003cem\u003elazy\u003c/em\u003e: los datos no van a disco hasta que se lance una acción\u003c/li\u003e\n  \u003cli\u003eFuturas referencias a esos RDDs los recuperan de disco en vez de recomputarlos\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541500552925_176864038",
-      "id": "20181106-103552_358218658",
-      "dateCreated": "2018-11-06 10:35:52.000",
-      "dateStarted": "2018-11-06 10:48:09.000",
-      "dateFinished": "2018-11-06 10:48:10.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%sh\nmkdir -p /datos/CP\nrm -rf /datos/CP/*",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:22:49.937",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "sh",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/sh"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": []
-      },
-      "apps": [],
-      "jobName": "paragraph_1541501292991_-1085376188",
-      "id": "20181106-104812_678977609",
-      "dateCreated": "2018-11-06 10:48:12.000",
-      "dateStarted": "2020-12-02 15:22:50.010",
-      "dateFinished": "2020-12-02 15:22:52.147",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\nrdd \u003d sc.parallelize(range(100000))\nspark.sparkContext.setCheckpointDir(\"/datos/CP\")\nrdd.checkpoint()",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:23:23.777",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "python",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/python"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": []
-      },
-      "apps": [],
-      "jobName": "paragraph_1541500673065_-140304981",
-      "id": "20181106-103753_943907107",
-      "dateCreated": "2018-11-06 10:37:53.000",
-      "dateStarted": "2020-12-02 15:23:23.831",
-      "dateFinished": "2020-12-02 15:23:23.899",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%sh\nls -lR /datos/CP",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:23:28.905",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "sh",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/sh"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "/datos/CP:\ntotal 4\ndrwxr-xr-x 2 root root 4096 Dec  2 15:23 2f26530b-b727-4258-9264-050a03bb046d\n\n/datos/CP/2f26530b-b727-4258-9264-050a03bb046d:\ntotal 0\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541500736638_1456180176",
-      "id": "20181106-103856_331309277",
-      "dateCreated": "2018-11-06 10:38:56.000",
-      "dateStarted": "2020-12-02 15:23:28.965",
-      "dateFinished": "2020-12-02 15:23:28.993",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%pyspark\nprint(\"Numero de datos {0}, Número de particiones {1}\".format(rdd.count(), rdd.getNumPartitions()))\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:24:08.330",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "python",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/python"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Numero de datos 100000, Número de particiones 12\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541501209741_-714978171",
-      "id": "20181106-104649_1557985594",
-      "dateCreated": "2018-11-06 10:46:49.000",
-      "dateStarted": "2020-12-02 15:24:08.386",
-      "dateFinished": "2020-12-02 15:24:09.129",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%sh\nls -lR /datos/CP\n",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:24:16.089",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "sh",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/sh"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "/datos/CP:\ntotal 4\ndrwxr-xr-x 3 root root 4096 Dec  2 15:24 2f26530b-b727-4258-9264-050a03bb046d\n\n/datos/CP/2f26530b-b727-4258-9264-050a03bb046d:\ntotal 4\ndrwxr-xr-x 2 root root 4096 Dec  2 15:24 rdd-27\n\n/datos/CP/2f26530b-b727-4258-9264-050a03bb046d/rdd-27:\ntotal 396\n-rw-r--r-- 1 root root 24497 Dec  2 15:24 part-00000\n-rw-r--r-- 1 root root 24753 Dec  2 15:24 part-00001\n-rw-r--r-- 1 root root 24753 Dec  2 15:24 part-00002\n-rw-r--r-- 1 root root 24753 Dec  2 15:24 part-00003\n-rw-r--r-- 1 root root 24753 Dec  2 15:24 part-00004\n-rw-r--r-- 1 root root 27845 Dec  2 15:24 part-00005\n-rw-r--r-- 1 root root 24753 Dec  2 15:24 part-00006\n-rw-r--r-- 1 root root 26801 Dec  2 15:24 part-00007\n-rw-r--r-- 1 root root 41137 Dec  2 15:24 part-00008\n-rw-r--r-- 1 root root 41137 Dec  2 15:24 part-00009\n-rw-r--r-- 1 root root 41137 Dec  2 15:24 part-00010\n-rw-r--r-- 1 root root 44515 Dec  2 15:24 part-00011\n"
-          }
-        ]
-      },
-      "apps": [],
-      "jobName": "paragraph_1541501420660_-134701691",
-      "id": "20181106-105020_839312608",
-      "dateCreated": "2018-11-06 10:50:20.000",
-      "dateStarted": "2020-12-02 15:24:16.160",
-      "dateFinished": "2020-12-02 15:24:16.188",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%sh\nrm -rf /datos/CP",
-      "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:24:41.588",
-      "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "sh",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/sh"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {
-        "code": "SUCCESS",
-        "msg": []
-      },
-      "apps": [],
-      "jobName": "paragraph_1544618465216_863895326",
-      "id": "20181212-124105_1678102771",
-      "dateCreated": "2018-12-12 12:41:05.000",
-      "dateStarted": "2020-12-02 15:24:41.648",
-      "dateFinished": "2020-12-02 15:24:41.661",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 17:53:46.962",
+      "dateFinished": "2021-11-14 17:53:47.182",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n## Particionado\n\nEl número de particiones es función del tamaño del cluster o el número de bloques del fichero en HDFS\n\n-   Es posible ajustarlo al crear u operar sobre un RDD\n    - Los RDDs ofrecen un mayor control sobre el particionado   \n-   En DataFrames es posible modificarlo una vez creados\n-   El paralelismo de RDDs que derivan de otros depende del de sus RDDs padre\n-   Propiedades útiles:\n    -    `spark.default.parallelism` Para RDDs, número de particiones por defecto devueltos por transformaciones como parallelize, join y reduceByKey\n        - Fijado para un SparkContext\n        - La propiedad `sc.defaultParallelism` indica su valor\n    -    `spark.sql.shuffle.partitions` Para DataFrames, número de particiones a usar al barajar datos en transformaciones *wide*\n        - Puede cambiarse usando `spark.conf.set`\n-   Funciones útiles:\n\n    -   `rdd.getNumPartitions()` devuelve el número de particiones del RDD\n    -   `rdd.glom()` devuelve un nuevo RDD juntando los elementos de cada partición en una lista\n    -   `repartition(n)` devuelve un nuevo DataFrame o RDD que tiene exactamente `n` particiones\n    -   `coalesce(n)` más eficiente que `repartition`, minimiza el movimiento de datos\n        - Solo permite reducir el número de particiones\n    - `partitionBy(n,[partitionFunc])` Particiona por clave, usando una función de particionado (por defecto, un hash de la clave)\n        - Solo para RDDs clave/valor\n        - Asegura que los pares con la misma clave vayan a la misma partición\n",
       "user": "anonymous",
       "dateUpdated": "2020-12-28 13:18:45.078",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -1030,18 +449,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427162_-1823741793",
       "id": "20170713-095425_1079236707",
       "dateCreated": "2017-10-17 16:07:07.000",
       "dateStarted": "2020-12-28 13:18:45.081",
       "dateFinished": "2020-12-28 13:18:47.193",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Particiones y RDDs",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:34:08.396",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1071,18 +492,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541497958364_1729280908",
       "id": "20181106-095238_358678553",
       "dateCreated": "2018-11-06 09:52:38.000",
       "dateStarted": "2018-11-06 10:16:40.000",
       "dateFinished": "2018-11-06 10:16:40.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nprint(\"Número de particiones por defecto para RDDs: {0}\"\n       .format(sc.defaultParallelism))\nrdd \u003d sc.parallelize([1, 2, 3, 4, 2, 4, 1], 2)\npairs \u003d rdd.map(lambda x: (x, x*x))\n\nprint(\"RDD pairs \u003d {0}\".format(pairs.collect()))\nprint(\"Particionado de pairs: {0}\".format(pairs.glom().collect()))\nprint(\"Número de particiones de pairs \u003d {0}\".format(pairs.getNumPartitions()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:25:26.869",
+      "dateUpdated": "2021-11-14 18:10:48.284",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -1110,18 +533,36 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d488"
+            },
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d489"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427162_-1823741793",
       "id": "20170713-121134_1597290566",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-12-02 15:25:26.926",
-      "dateFinished": "2020-12-02 15:25:27.101",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:10:48.288",
+      "dateFinished": "2021-11-14 18:10:48.659",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Reducción manteniendo el número de particiones\nfrom operator import add\nprint(\"Reducción manteniendo particiones: {0}\".format(\n        pairs.reduceByKey(add).glom().collect()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:32:08.236",
+      "dateUpdated": "2021-11-14 18:13:48.363",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -1149,18 +590,33 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d490"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427163_-1824126542",
       "id": "20170713-121329_1233955601",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-12-02 15:32:08.302",
-      "dateFinished": "2020-12-02 15:32:08.773",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:13:48.367",
+      "dateFinished": "2021-11-14 18:13:48.787",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Reducción modificando el número de particiones\nprint(\"Reducción con 3 particiones: {0}\".format(\n       pairs.reduceByKey(add, 3).glom().collect()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:32:58.052",
+      "dateUpdated": "2021-11-14 18:13:50.437",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -1188,18 +644,33 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d491"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427163_-1824126542",
       "id": "20170713-121532_944908234",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-12-02 15:32:58.102",
-      "dateFinished": "2020-12-02 15:32:58.326",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:13:50.441",
+      "dateFinished": "2021-11-14 18:13:50.810",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Ejemplo de reparitición\npairs4 \u003d pairs.repartition(4)\nprint(\"pairs4 con {0} particiones: {1}\".format(\n        pairs4.getNumPartitions(),\n        pairs4.glom().collect()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:33:30.924",
+      "dateUpdated": "2021-11-14 18:13:54.731",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -1222,23 +693,38 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "pairs4 con 4 particiones: [[], [], [], [(1, 1), (2, 4), (3, 9), (4, 16), (2, 4), (4, 16), (1, 1)]]\n"
+            "data": "pairs4 con 4 particiones: [[], [(4, 16), (2, 4), (4, 16), (1, 1)], [], [(1, 1), (2, 4), (3, 9)]]\n"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d492"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427163_-1824126542",
       "id": "20170713-121710_1067916706",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-12-02 15:33:30.968",
-      "dateFinished": "2020-12-02 15:33:31.171",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:13:54.735",
+      "dateFinished": "2021-11-14 18:13:55.105",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Ejemplo de coalesce\npairs2 \u003d pairs4.coalesce(2)\nprint(\"pairs2 con {0} particiones: {1}\".format(\n        pairs2.getNumPartitions(),\n        pairs2.glom().collect()))\n",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:34:10.301",
+      "dateUpdated": "2021-11-14 18:14:25.065",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -1261,23 +747,38 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "pairs2 con 2 particiones: [[(1, 1), (2, 4), (3, 9), (4, 16), (2, 4), (4, 16), (1, 1)], []]\n"
+            "data": "pairs2 con 2 particiones: [[(4, 16), (2, 4), (4, 16), (1, 1)], [(1, 1), (2, 4), (3, 9)]]\n"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d493"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427163_-1824126542",
       "id": "20170713-121842_1672703622",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-12-02 15:34:10.347",
-      "dateFinished": "2020-12-02 15:34:10.462",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:14:25.069",
+      "dateFinished": "2021-11-14 18:14:25.343",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Particionando por clave\npairs_clave \u003d pairs2.partitionBy(3)\nprint(\"Particionado por clave ({0} particiones): {1}\".format(\n        pairs_clave.getNumPartitions(),\n        pairs_clave.glom().collect())) ",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:34:42.911",
+      "dateUpdated": "2021-11-14 18:14:28.249",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "editorMode": "ace/mode/python",
@@ -1300,23 +801,38 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "Particionado por clave (3 particiones): [[(3, 9)], [(1, 1), (4, 16), (4, 16), (1, 1)], [(2, 4), (2, 4)]]\n"
+            "data": "Particionado por clave (3 particiones): [[(3, 9)], [(4, 16), (4, 16), (1, 1), (1, 1)], [(2, 4), (2, 4)]]\n"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d494"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1508256427164_-1826050286",
       "id": "20170713-122127_970392255",
       "dateCreated": "2017-10-17 16:07:07.000",
-      "dateStarted": "2020-12-02 15:34:42.958",
-      "dateFinished": "2020-12-02 15:34:43.182",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:14:28.253",
+      "dateFinished": "2021-11-14 18:14:28.623",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Usando una función de particionado\ndef particionadoParImpar(clave):\n    if clave%2:\n        return 0  # Las claves impares van a la partición 0\n    else:\n        return 1  # Las claves pares van a la partición 1\n        \npairs_parimpar \u003d pairs2.partitionBy(2, particionadoParImpar)\nprint(\"Particionado por clave ({0} particiones): {1}\".format(\n        pairs_parimpar.getNumPartitions(),\n        pairs_parimpar.glom().collect()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:35:00.247",
+      "dateUpdated": "2021-11-14 18:14:36.966",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1339,23 +855,38 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "Particionado por clave (2 particiones): [[(1, 1), (3, 9), (1, 1)], [(2, 4), (4, 16), (2, 4), (4, 16)]]\n"
+            "data": "Particionado por clave (2 particiones): [[(1, 1), (1, 1), (3, 9)], [(4, 16), (2, 4), (4, 16), (2, 4)]]\n"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d495"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541767723986_-1053900431",
       "id": "20181109-124843_2084012354",
       "dateCreated": "2018-11-09 12:48:43.000",
-      "dateStarted": "2020-12-02 15:35:00.297",
-      "dateFinished": "2020-12-02 15:35:00.505",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:14:36.970",
+      "dateFinished": "2021-11-14 18:14:37.341",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Particiones y DataFrames",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:34:13.174",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1385,18 +916,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541497953341_560763352",
       "id": "20181106-095233_805601411",
       "dateCreated": "2018-11-06 09:52:33.000",
       "dateStarted": "2018-11-06 10:16:47.000",
       "dateFinished": "2018-11-06 10:16:47.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Convertimos el RDD en un DataFrame\ndfPairs \u003d pairs.toDF()\ndfPairs.show()",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:35:45.376",
+      "dateUpdated": "2021-11-14 18:14:49.030",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1424,18 +957,39 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d496"
+            },
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d497"
+            },
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d498"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541497700347_2122206328",
       "id": "20181106-094820_407717674",
       "dateCreated": "2018-11-06 09:48:20.000",
-      "dateStarted": "2020-12-02 15:35:45.429",
-      "dateFinished": "2020-12-02 15:35:46.051",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:14:49.034",
+      "dateFinished": "2021-11-14 18:14:49.507",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# El DataFrame hereda el número de particiones del RDD\nprint(\"Número de particiones del DataFrame: {0}\"\n      .format(dfPairs.rdd.getNumPartitions()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:36:00.383",
+      "dateUpdated": "2021-11-14 18:14:55.180",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1463,18 +1017,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541498016334_-317129766",
       "id": "20181106-095336_980090902",
       "dateCreated": "2018-11-06 09:53:36.000",
-      "dateStarted": "2020-12-02 15:36:00.435",
-      "dateFinished": "2020-12-02 15:36:00.513",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:14:55.184",
+      "dateFinished": "2021-11-14 18:14:55.405",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Una transformación narrow mantiene el número de particiones\nprint(\"Número de particiones tras transformacion narrow: {0}\"\n      .format(dfPairs.replace(1, 2).rdd.getNumPartitions()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:36:27.593",
+      "dateUpdated": "2021-11-14 18:15:03.710",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1502,18 +1058,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541498783075_-879450870",
       "id": "20181106-100623_1044217740",
       "dateCreated": "2018-11-06 10:06:23.000",
-      "dateStarted": "2020-12-02 15:36:27.638",
-      "dateFinished": "2020-12-02 15:36:27.756",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:03.714",
+      "dateFinished": "2021-11-14 18:15:03.987",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Una transformación wide no mantiene el número de particiones\nprint(\"Número de particiones tras transformacion wide: {0}\"\n      .format(dfPairs.sort(\"_1\").rdd.getNumPartitions()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:36:38.925",
+      "dateUpdated": "2021-11-14 18:15:09.125",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1541,18 +1099,33 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d499"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541498051438_-1907396020",
       "id": "20181106-095411_981071546",
       "dateCreated": "2018-11-06 09:54:11.000",
-      "dateStarted": "2020-12-02 15:36:39.216",
-      "dateFinished": "2020-12-02 15:36:39.377",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:09.131",
+      "dateFinished": "2021-11-14 18:15:09.452",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Es posible especificar el número de particiones a usar en la transformación wide\nspark.conf.set(\"spark.sql.shuffle.partitions\", 2)\nprint(\"Número de particiones tras transformacion wide: {0}\"\n      .format(dfPairs.sort(\"_1\").rdd.getNumPartitions()))",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:37:15.910",
+      "dateUpdated": "2021-11-14 18:15:25.224",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1580,18 +1153,33 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d500"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541498089534_-14554959",
       "id": "20181106-095449_148079279",
       "dateCreated": "2018-11-06 09:54:49.000",
-      "dateStarted": "2020-12-02 15:37:15.951",
-      "dateFinished": "2020-12-02 15:37:16.087",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:25.228",
+      "dateFinished": "2021-11-14 18:15:25.549",
+      "status": "FINISHED"
     },
     {
       "text": "%md\n### Trabajando a nivel de partición\n\nUna operación `map` se hace para cada elemento de un RDD (o una `foreach` para cada fila del DataFrame)\n\n-   Puede implicar operaciones redundantes (p.e. abrir una conexión a una BD)\n\n-   Puede ser poco eficiente\n\nSe pueden hacer `map` y `foreach` una vez por partición:\n\n-   Métodos `mapPartitions()`, `mapPartitionsWithIndex()` y `foreachPartition()`\n\n",
       "user": "anonymous",
       "dateUpdated": "2020-06-07 10:34:16.954",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1621,18 +1209,20 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541532867856_1371762458",
       "id": "20181106-193427_1313185048",
       "dateCreated": "2018-11-06 19:34:27.000",
       "dateStarted": "2018-11-06 19:35:14.000",
       "dateFinished": "2018-11-06 19:35:14.000",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Ejemplo de mapPartitions\nnums \u003d sc.parallelize([1,2,3,4,5,6,7,8,9], 4)\nprint(nums.glom().collect())\n\ndef sumayCuenta(iterador):\n    sumaCuenta \u003d [0,0]\n    for i in iterador:\n        sumaCuenta[0] +\u003d i\n        sumaCuenta[1] +\u003d 1\n    return sumaCuenta\n\n# Llama a la función sumayCuenta una vez por cada partición\n# El iterador incluye los valores de la partición\nprint(nums.mapPartitions(sumayCuenta).glom().collect())",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:39:04.734",
+      "dateUpdated": "2021-11-14 18:15:44.454",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1660,18 +1250,36 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d501"
+            },
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d502"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541498171935_-1860889307",
       "id": "20181106-095611_544454563",
       "dateCreated": "2018-11-06 09:56:11.000",
-      "dateStarted": "2020-12-02 15:39:04.778",
-      "dateFinished": "2020-12-02 15:39:04.938",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:44.458",
+      "dateFinished": "2021-11-14 18:15:44.830",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n# Ejemplo de mapPartitionsWithIndex\ndef sumayCuentaIndex(index, iterador):\n    return \"Particion \"+str(index), sumayCuenta(iterador)\n\n# index es el número de partición\nprint(nums.mapPartitionsWithIndex(sumayCuentaIndex).glom().collect())",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:41:17.118",
+      "dateUpdated": "2021-11-14 18:15:47.654",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1699,18 +1307,33 @@
         ]
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d503"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541532942372_1896110687",
       "id": "20181106-193542_34637982",
       "dateCreated": "2018-11-06 19:35:42.000",
-      "dateStarted": "2020-12-02 15:41:17.162",
-      "dateFinished": "2020-12-02 15:41:17.250",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:47.658",
+      "dateFinished": "2021-11-14 18:15:47.928",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\nimport os\nimport tempfile\n\n# Ejemplo de foreachPartition\ndef f(iterator):\n    _, tempname \u003d tempfile.mkstemp(dir\u003dtempdir, text\u003dTrue)\n    with open(tempname, \u0027w\u0027) as fich:\n        for x in iterator: \n            fich.write(str(x)+\"\\t\")\n        \ntempdir \u003d \"/tmp/foreachPartition\"\n\nif not os.path.exists(tempdir):\n    os.mkdir(tempdir)\n    # Para cada partición del RDD se crea un fichero temporal\n    # y se escribe en ese fichero los valores de la partición\n    # foreachPartitions permite efectos colaterales (que no permite mapPartition)\n    # y no devuelve nada\n    nums.foreachPartition(f)",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:42:53.669",
+      "dateUpdated": "2021-11-14 18:15:50.602",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1733,18 +1356,33 @@
         "msg": []
       },
       "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://617a8c972619:4040/jobs/job?id\u003d504"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541533128616_-929126566",
       "id": "20181106-193848_409394680",
       "dateCreated": "2018-11-06 19:38:48.000",
-      "dateStarted": "2020-12-02 15:42:53.716",
-      "dateFinished": "2020-12-02 15:42:53.829",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:50.607",
+      "dateFinished": "2021-11-14 18:15:50.924",
+      "status": "FINISHED"
     },
     {
       "text": "%sh\nTEMP\u003d/tmp/foreachPartition\necho \"Ficheros creados\"\nls -l $TEMP\necho\necho \"Contenido de los ficheros\"\nfor f in $TEMP/*;do cat $f; echo; echo \"\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\"; done\nrm -rf $TEMP",
       "user": "anonymous",
-      "dateUpdated": "2020-12-02 15:42:59.589",
+      "dateUpdated": "2021-11-14 18:15:52.970",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1767,23 +1405,25 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "Ficheros creados\ntotal 16\n-rw------- 1 root root 4 Dec  2 15:42 tmp0rpaNQ\n-rw------- 1 root root 4 Dec  2 15:42 tmpIMqZmh\n-rw------- 1 root root 6 Dec  2 15:42 tmpUmHVRY\n-rw------- 1 root root 4 Dec  2 15:42 tmpZbQius\n\nContenido de los ficheros\n3\t4\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n5\t6\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n7\t8\t9\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n1\t2\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n"
+            "data": "Ficheros creados\ntotal 16\n-rw------- 1 root root 4 Nov 14 18:15 tmp2j668z6m\n-rw------- 1 root root 4 Nov 14 18:15 tmp91yc_ud6\n-rw------- 1 root root 4 Nov 14 18:15 tmpvqmscnkw\n-rw------- 1 root root 6 Nov 14 18:15 tmpz1m2kc19\n\nContenido de los ficheros\n3\t4\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n1\t2\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n5\t6\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n7\t8\t9\t\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n"
           }
         ]
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1541534077301_420434326",
       "id": "20181106-195437_514119462",
       "dateCreated": "2018-11-06 19:54:37.000",
-      "dateStarted": "2020-12-02 15:42:59.639",
-      "dateFinished": "2020-12-02 15:42:59.670",
-      "status": "FINISHED",
-      "progressUpdateIntervalMs": 500
+      "dateStarted": "2021-11-14 18:15:52.975",
+      "dateFinished": "2021-11-14 18:15:54.555",
+      "status": "FINISHED"
     },
     {
       "text": "%pyspark\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:30:56.559",
+      "progress": 0,
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -1802,39 +1442,41 @@
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1544619137642_1652557082",
       "id": "20181212-125217_1885831415",
       "dateCreated": "2018-12-12 12:52:17.000",
       "dateStarted": "2020-11-05 17:30:44.216",
       "dateFinished": "2020-11-05 17:30:44.248",
       "status": "FINISHED",
-      "errorMessage": "",
-      "progressUpdateIntervalMs": 500
+      "errorMessage": ""
     },
     {
       "text": "%pyspark\n",
       "user": "anonymous",
       "dateUpdated": "2020-11-05 17:30:44.186",
+      "progress": 0,
       "config": {},
       "settings": {
         "params": {},
         "forms": {}
       },
       "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
       "jobName": "paragraph_1604597444185_-1088177079",
       "id": "20201105-173044_1377777043",
       "dateCreated": "2020-11-05 17:30:44.185",
-      "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "status": "READY"
     }
   ],
-  "name": "Apache Spark/07 - Persistencia y particionado",
+  "name": "3.7. Persistencia y particionado",
   "id": "2CX5G6BK3",
+  "defaultInterpreterGroup": "spark",
   "noteParams": {},
   "noteForms": {},
-  "angularObjects": {
-    "md:shared_process": []
-  },
+  "angularObjects": {},
   "config": {
     "isZeppelinNotebookCronEnable": false
   },
