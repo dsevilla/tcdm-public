@@ -1,9 +1,8 @@
-FROM apache/zeppelin:0.10.0
+FROM apache/zeppelin:0.11.2
 MAINTAINER dsevilla@um.es
 USER root
 ENV LANG=es_ES.UTF-8 \ 
-    JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-ENV ZEPPELIN_ADDR=0.0.0.0
+    ZEPPELIN_ADDR=0.0.0.0
 RUN echo "Instalando locales" && \
     apt-get -y update && \
     apt-get install -y locales 
