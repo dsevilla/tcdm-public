@@ -7,7 +7,7 @@ from citingpatents1 import MRCitingPatents
 
 # Esta clase define un protocolo de salida que separa clave y valor por comas
 class CSVOutputProtocol(TextProtocol):
-    def write(self, key, value) -> bytes:
+    def write(self, key: str, value: str) -> bytes:
         return f"{key},{value}".encode('utf-8')
 
 class MRCitationNumberByPatentChained(MRJob):
@@ -21,6 +21,7 @@ class MRCitationNumberByPatentChained(MRJob):
     # El protocolo de salida por defecto separa clave y valor por tabulador
     OUTPUT_PROTOCOL = CSVOutputProtocol
 
+    # Define los distintos pasos del trabajo, con varios mappers y reducers encadenados
     def steps(self) -> list[MRStep]:
 
         # Trabajo que se utilizará como primer paso
@@ -32,7 +33,7 @@ class MRCitationNumberByPatentChained(MRJob):
             MRStep(mapper=self.mapper)
         ]
 
-    def mapper(self, key, value) -> Generator[tuple]:
+    def mapper(self, key: str, value: str) -> Generator[tuple]:
         # Line format: cited \t citing1,citing2,citing3,...
         # yield key, ...
         ...
