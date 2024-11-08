@@ -1,6 +1,6 @@
 from mrjob.job import MRJob
 from mrjob.protocol import TextProtocol
-from typing import Generator
+from typing import Generator, Any
 
 class MRSortSecundario(MRJob):
 
@@ -15,7 +15,7 @@ class MRSortSecundario(MRJob):
     # El protocolo de salida por defecto separa clave y valor por tabulador
     OUTPUT_PROTOCOL = TextProtocol
 
-    def mapper(self, key, value) -> Generator[tuple]:
+    def mapper(self, key, value) -> Generator[tuple, Any, None]:
         # Line format: country \t patent,year
         # yield ...,...
         ...

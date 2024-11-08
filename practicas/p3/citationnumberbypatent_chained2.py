@@ -1,7 +1,7 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
 from mrjob.protocol import TextProtocol, TextValueProtocol
-from typing import Generator
+from typing import Generator, Any
 
 from citingpatents1 import MRCitingPatents
 
@@ -33,7 +33,7 @@ class MRCitationNumberByPatentChained(MRJob):
             MRStep(mapper=self.mapper)
         ]
 
-    def mapper(self, key: str, value: str) -> Generator[tuple]:
+    def mapper(self, key: str, value: str) -> Generator[tuple, Any, None]:
         # Line format: cited \t citing1,citing2,citing3,...
         # yield key, ...
         ...
