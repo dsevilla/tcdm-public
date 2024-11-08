@@ -1,6 +1,6 @@
 from mrjob.job import MRJob
 from mrjob.protocol import TextProtocol, TextValueProtocol
-from typing import Generator
+from typing import Generator, Any
 
 class MRCountryPatents(MRJob):
 
@@ -15,7 +15,7 @@ class MRCountryPatents(MRJob):
     # Mapa de códigos de país a nombres de país
     country_map: dict[str,str] = {}
 
-    def mapper(self, key: str, value: str) -> Generator[tuple]:
+    def mapper(self, key: str, value: str) -> Generator[tuple, Any, None]:
         # Line format: "PATENT","GYEAR","GDATE","APPYEAR","COUNTRY","POSTATE","ASSIGNEE","ASSCODE","CLAIMS","NCLASS","CAT","SUBCAT","CMADE","CRECEIVE","RATIOCIT","GENERAL","ORIGINAL","FWDAPLAG","BCKGTLAG","SELFCTUB","SELFCTLB","SECDUPBD","SECDLWBD"
         # Se puede acceder al mapa de países MRCountryPatents.country_map
         ...
