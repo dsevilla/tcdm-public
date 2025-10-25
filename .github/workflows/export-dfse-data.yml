@@ -1,0 +1,31 @@
+name: Update SQLite Backup
+
+on:
+  schedule:
+    # Run on the first day of every month at 3:00 AM UTC
+    - cron: '0 3 1 * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  update-sqlite-backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow the workflow to write to the repository
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate dfSE tar
+        run: |
+          cd datos
+          # Generate tar for dfse parquet
+          tar zcvf dfSE.parquet.tar.gz dfSE.parquet
+
+      - name: Upload as release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dfse-parquet-tar-gz
+          files: datos/dfSE.parquet.tar.gz
