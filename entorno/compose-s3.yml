@@ -1,0 +1,91 @@
+name: tcdm-26-27-s3
+
+# Este Compose contiene solamente el almacenamiento de objetos y las tareas
+# auxiliares de la sesión 3. Hadoop, Trino, Hive e Iceberg se arrancan en
+# otros Compose y comparten la red externa hadoop-cluster.
+services:
+  rustfs-s3:
+    image: rustfs/rustfs:${RUSTFS_VERSION:-1.0.0-beta.12}
+    container_name: tcdm-rustfs-s3
+    hostname: rustfs
+    ports:
+      - "127.0.0.1:9000:9000" # API compatible con S3
+      - "127.0.0.1:9001:9001" # consola de RustFS
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:-tcdm_student}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:-tcdm_student_secret}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_OBS_LOGGER_LEVEL: warn
+    volumes:
+      - rustfs-s3-data:/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl --fail http://127.0.0.1:9000/health && curl --fail http://127.0.0.1:9001/rustfs/console/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      hadoop-cluster:
+        aliases:
+          - rustfs
+
+  bucket-setup-s3:
+    image: amazon/aws-cli:latest
+    container_name: tcdm-s3-bucket-setup
+    depends_on:
+      rustfs-s3:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-tcdm_student}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-tcdm_student_secret}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: http://rustfs:9000
+      AWS_S3_ADDRESSING_STYLE: path
+      AWS_EC2_METADATA_DISABLED: "true"
+      S3_BUCKET: ${S3_BUCKET:-tcdm-datalake}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        set -eu;
+        if aws s3api head-bucket --bucket "$${S3_BUCKET}" >/dev/null 2>&1; then
+          echo "Bucket $${S3_BUCKET} ya existe";
+        else
+          aws s3api create-bucket --bucket "$${S3_BUCKET}";
+        fi;
+        aws s3api list-buckets --query 'Buckets[].Name' --output text;
+    networks:
+      hadoop-cluster:
+
+  s3-client:
+    image: amazon/aws-cli:latest
+    container_name: tcdm-s3-client
+    depends_on:
+      bucket-setup-s3:
+        condition: service_completed_successfully
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-tcdm_student}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-tcdm_student_secret}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: http://rustfs:9000
+      AWS_S3_ADDRESSING_STYLE: path
+      AWS_EC2_METADATA_DISABLED: "true"
+      S3_BUCKET: ${S3_BUCKET:-tcdm-datalake}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        while :; do sleep 3600; done
+    networks:
+      hadoop-cluster:
+
+volumes:
+  rustfs-s3-data:
+    name: tcdm-26-27-rustfs-s3-data
+
+networks:
+  hadoop-cluster:
+    external: true
+    name: hadoop-cluster

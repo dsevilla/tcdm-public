@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <!-- En apache/hive:4.2.1 bastaba con pasar esta propiedad como -D en
+         SERVICE_OPTS (ver el servicio hive-metastore del Compose). El
+         inicializador de metastore de apache/hive:3.1.3 no la toma de ahí:
+         sin este fichero, usa el valor por defecto de la imagen
+         (file:///opt/hive/data/warehouse) y HiveMetaStore intenta crear ese
+         directorio bajo la raíz de HDFS, donde luser no tiene permiso de
+         escritura. Declararla aquí, en el mismo hive-site.xml que carga
+         HIVE_CUSTOM_CONF_DIR, la deja disponible para cualquier versión de
+         la imagen sin depender del mecanismo de -D. -->
+    <name>hive.metastore.warehouse.dir</name>
+    <value>hdfs://namenode:9000/warehouse</value>
+  </property>
+</configuration>

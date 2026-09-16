@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Sesión 8 — Ingesta continua con Spark Structured
+Streaming</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#sesión-8--ingesta-continua-con-spark-structured-streaming"
+id="toc-sesión-8--ingesta-continua-con-spark-structured-streaming">Sesión
+8 — Ingesta continua con Spark Structured Streaming</a>
+<ul>
+<li><a href="#punto-de-la-asignatura"
+id="toc-punto-de-la-asignatura">Punto de la asignatura</a></li>
+<li><a href="#recorrido-del-curso"
+id="toc-recorrido-del-curso">Recorrido del curso</a></li>
+<li><a href="#qué-significa-streaming-aquí-y-qué-no"
+id="toc-qué-significa-streaming-aquí-y-qué-no">Qué significa "streaming"
+aquí, y qué no</a></li>
+<li><a href="#objetivos-docentes" id="toc-objetivos-docentes">Objetivos
+docentes</a></li>
+<li><a href="#arquitectura-de-la-sesión"
+id="toc-arquitectura-de-la-sesión">Arquitectura de la sesión</a>
+<ul>
+<li><a href="#el-generador-simulado" id="toc-el-generador-simulado">El
+generador simulado</a></li>
+<li><a href="#la-consulta-de-streaming"
+id="toc-la-consulta-de-streaming">La consulta de streaming</a></li>
+<li><a href="#merge-into-hacia-silver"
+id="toc-merge-into-hacia-silver"><code>MERGE INTO</code> hacia
+<em>silver</em></a></li>
+<li><a href="#de-silver-a-gold-de-forma-incremental"
+id="toc-de-silver-a-gold-de-forma-incremental">De <em>silver</em> a
+<em>gold</em>, de forma incremental</a></li>
+</ul></li>
+<li><a href="#copy-on-write-frente-a-merge-on-read"
+id="toc-copy-on-write-frente-a-merge-on-read"><em>Copy-on-write</em>
+frente a <em>merge-on-read</em></a></li>
+<li><a href="#observar-la-consulta-en-marcha"
+id="toc-observar-la-consulta-en-marcha">Observar la consulta en
+marcha</a></li>
+<li><a href="#cerrar-la-consulta-correctamente"
+id="toc-cerrar-la-consulta-correctamente">Cerrar la consulta
+correctamente</a></li>
+<li><a href="#comprobar-la-coherencia-con-el-recorrido-por-lotes"
+id="toc-comprobar-la-coherencia-con-el-recorrido-por-lotes">Comprobar la
+coherencia con el recorrido por lotes</a></li>
+<li><a href="#qué-no-se-ve-todavía" id="toc-qué-no-se-ve-todavía">Qué no
+se ve todavía</a></li>
+<li><a href="#evidencias-de-la-sesión"
+id="toc-evidencias-de-la-sesión">Evidencias de la sesión</a></li>
+<li><a href="#siguiente-paso" id="toc-siguiente-paso">Siguiente
+paso</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1
+id="sesión-8--ingesta-continua-con-spark-structured-streaming">Sesión 8
+— Ingesta continua con Spark Structured Streaming</h1>
+<h2 id="punto-de-la-asignatura">Punto de la asignatura</h2>
+<p>Esta sesión cierra el recorrido iniciado en S2. El alumnado ya sabe
+leer y escribir Parquet con Spark, organizar un data lake en zonas
+<em>raw</em>/<em>silver</em>/ <em>gold</em>, registrar tablas en un
+Metastore y gestionar una tabla Iceberg con snapshots, evolución y
+optimización medida. Todo ese trabajo, hasta ahora, ha sido por lotes:
+se materializa TPC-DS SF1 una vez y se procesa.</p>
+<p>La pregunta central es:</p>
+<blockquote>
+<p>¿Qué cambia cuando los datos no llegan de una vez, sino en tandas
+sucesivas que hay que ir incorporando sin volver a procesar todo lo
+anterior?</p>
+</blockquote>
+<p>Esta sesión no introduce Kafka ni ningún otro sistema de mensajería:
+sería una pieza de infraestructura nueva y compleja para un beneficio
+docente pequeño en este punto del curso. En su lugar, un proceso simple
+simula la llegada periódica de pedidos nuevos escribiendo ficheros en la
+zona <em>raw</em>, y Spark Structured Streaming los recoge desde ahí con
+su propia fuente de ficheros: exactamente el mismo mecanismo de
+vigilancia de directorio que ya se ha usado en HDFS durante todo el
+curso, aplicado ahora de forma continua en vez de una sola vez.</p>
+<h2 id="recorrido-del-curso">Recorrido del curso</h2>
+<pre class="text"><code>S2: Parquet como ficheros
+  → S4: Spark procesa por lotes
+  → S5: zonas raw/silver/gold y particionado físico
+  → S6: catálogo Hive y Trino
+  → S7: tabla Iceberg, evolución y optimización medida
+  → S8: la misma tabla Iceberg, alimentada de forma continua</code></pre>
+<p>S8 no sustituye el recorrido por lotes: lo completa. La tabla Iceberg
+de S7 sigue siendo la tabla de referencia; esta sesión añade una segunda
+vía de escritura, incremental, que debe producir resultados de negocio
+coherentes con la vía por lotes.</p>
+<h2 id="qué-significa-streaming-aquí-y-qué-no">Qué significa "streaming"
+aquí, y qué no</h2>
+<p>Conviene fijar el vocabulario antes de escribir código:</p>
+<table>
+<thead>
+<tr>
+<th>Concepto</th>
+<th>Significado en esta sesión</th>
+<th>Lo que no es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generador simulado</td>
+<td>Proceso simple que escribe nuevos ficheros Parquet en una ruta
+<em>raw</em> de aterrizaje</td>
+<td>Un sistema de colas o mensajería</td>
+</tr>
+<tr>
+<td>Fuente de streaming</td>
+<td><code>spark.readStream</code> vigilando esa ruta y detectando
+ficheros nuevos</td>
+<td>Una conexión a un <em>broker</em></td>
+</tr>
+<tr>
+<td>Micro-lote (<em>micro-batch</em>)</td>
+<td>Conjunto de filas nuevas que Structured Streaming procesa en una
+ejecución del disparador</td>
+<td>Un evento individual procesado uno a uno</td>
+</tr>
+<tr>
+<td>Disparador (<em>trigger</em>)</td>
+<td>Cada cuánto tiempo, o con qué condición, se procesa un
+micro-lote</td>
+<td>Un <code>cron</code> del sistema operativo</td>
+</tr>
+<tr>
+<td><em>Sink</em> con <code>foreachBatch</code></td>
+<td>Función que recibe el DataFrame de cada micro-lote y decide qué
+hacer con él</td>
+<td>Una escritura directa fila a fila</td>
+</tr>
+<tr>
+<td><em>Merge</em> (Iceberg)</td>
+<td>Operación <code>MERGE INTO</code> que inserta, actualiza o ignora
+filas según coincidan con la tabla destino</td>
+<td>Sobrescribir toda la tabla</td>
+</tr>
+</tbody>
+</table>
+<p>Spark Structured Streaming procesa datos no acotados como una
+sucesión de lotes pequeños, no evento a evento. Eso es exactamente lo
+que se necesita para ilustrar cómo pasar de <em>raw</em> a
+<em>silver</em> y de <em>silver</em> a <em>gold</em> sin volver a leer
+todo lo anterior en cada ejecución.</p>
+<h2 id="objetivos-docentes">Objetivos docentes</h2>
+<p>Al terminar el bloque, el alumnado debería poder:</p>
+<ul>
+<li>explicar la diferencia entre procesamiento por lotes y por
+micro-lotes;</li>
+<li>crear un <code>readStream</code> sobre una ruta HDFS con la fuente
+de ficheros;</li>
+<li>distinguir el esquema declarado explícitamente (obligatorio en
+streaming) de la inferencia de esquema usada en las sesiones por
+lotes;</li>
+<li>usar <code>foreachBatch</code> para aplicar una operación arbitraria
+(un <code>MERGE INTO</code>) a cada micro-lote;</li>
+<li>escribir un <code>MERGE INTO</code> de Spark SQL sobre una tabla
+Iceberg que inserte pedidos nuevos y actualice pedidos existentes;</li>
+<li>distinguir los modos de escritura de Iceberg <em>copy-on-write</em>
+y <em>merge-on-read</em>, y observar su efecto físico (ficheros
+reescritos frente a ficheros de borrado);</li>
+<li>encadenar una actualización de <em>silver</em> con una actualización
+incremental de un agregado <em>gold</em>, sin recalcular todo el
+histórico;</li>
+<li>consultar el progreso de una consulta de streaming
+(<code>lastProgress</code>, número de filas por micro-lote, tiempo de
+procesamiento);</li>
+<li>detener una consulta de streaming de forma ordenada y explicar qué
+garantiza (y qué no) el <em>checkpoint</em>;</li>
+<li>comprobar que el resultado de negocio tras varias tandas
+incrementales coincide con el que daría un recálculo completo por
+lotes.</li>
+</ul>
+<h2 id="arquitectura-de-la-sesión">Arquitectura de la sesión</h2>
+<pre class="text"><code>Generador simulado (Python, se ejecuta varias veces)
+        │  escribe ficheros Parquet nuevos
+        ▼
+/datalake/raw/streaming/web_sales_incremental/batch-&lt;n&gt;/
+        │  spark.readStream.format(&quot;parquet&quot;)
+        ▼
+Micro-lote de Structured Streaming
+        │  foreachBatch: MERGE INTO
+        ▼
+Tabla Iceberg silver.web_sales   (ya creada y poblada en S7)
+        │  foreachBatch, en el mismo lote: MERGE INTO incremental
+        ▼
+Tabla Iceberg gold.web_sales_by_year   (ya creada en S7)</code></pre>
+<p>El generador y la consulta de streaming son procesos independientes
+que se coordinan únicamente a través de la ruta de aterrizaje en HDFS,
+igual que coordinaría un productor externo real: ninguno de los dos
+necesita conocer al otro más que por esa ruta compartida.</p>
+<h3 id="el-generador-simulado">El generador simulado</h3>
+<p>Un programa Python pequeño construye, cada vez que se ejecuta, un
+lote de líneas de venta web sintéticas con el mismo esquema relevante
+que <code>web_sales</code> (<code>ws_order_number</code>,
+<code>ws_item_sk</code>, <code>ws_bill_customer_sk</code>,
+<code>ws_sold_date_sk</code>, cantidades e importes) y lo escribe como
+un fichero Parquet nuevo bajo la ruta de aterrizaje, con un nombre que
+no se repite entre ejecuciones. <code>web_sales</code> es una tabla a
+nivel de <strong>línea</strong>, no de pedido: su clave real es el par
+<code>(ws_order_number, ws_item_sk)</code>, no
+<code>ws_order_number</code> en solitario, porque un mismo pedido puede
+tener varias líneas con productos distintos. Los valores de clave
+surrogada deben ser coherentes con los rangos ya materializados en S2
+para que los <code>JOIN</code> con <code>customer</code> y
+<code>date_dim</code> sigan funcionando; algunas líneas deben usar un
+<code>(ws_order_number, ws_item_sk)</code> nuevo (alta) y otras deben
+reutilizar deliberadamente un par ya conocido con un importe distinto
+(corrección de una línea existente), para poder demostrar la parte
+"update" del <code>MERGE</code> y no sólo la de "insert".</p>
+<p>Para simular la periodicidad sin añadir infraestructura, el generador
+se ejecuta varias veces seguidas desde el propio notebook, con una pausa
+corta entre ejecuciones. En un entorno real este mismo programa se
+lanzaría desde <code>cron</code>, un <code>systemd timer</code> o un
+<em>job</em> programado; aquí basta con dejar clara esa equivalencia sin
+construirla.</p>
+<h3 id="la-consulta-de-streaming">La consulta de streaming</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>raw_stream <span class="op">=</span> (</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    spark.readStream.<span class="bu">format</span>(<span class="st">&quot;parquet&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    .schema(web_sales_incremental_schema)  <span class="co"># obligatorio: streaming no infiere esquema</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    .load(<span class="st">&quot;/datalake/raw/streaming/web_sales_incremental&quot;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> (</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    raw_stream.writeStream</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    .foreachBatch(merge_into_silver_and_gold)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    .trigger(processingTime<span class="op">=</span><span class="st">&quot;10 seconds&quot;</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    .option(<span class="st">&quot;checkpointLocation&quot;</span>, <span class="st">&quot;/user/luser/s8/checkpoints/web_sales_incremental&quot;</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    .start()</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p><code>foreachBatch</code> recibe, en cada micro-lote, un DataFrame
+batch normal (no un DataFrame de streaming): dentro de la función se
+puede usar cualquier API de DataFrames o SQL que ya se conozca, incluido
+<code>MERGE INTO</code>. El <em>checkpoint</em> guarda qué ficheros de
+la fuente ya se han procesado, para que reiniciar la consulta no vuelva
+a aplicar el mismo micro-lote dos veces.</p>
+<h3 id="merge-into-hacia-silver"><code>MERGE INTO</code> hacia
+<em>silver</em></h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">MERGE</span> <span class="kw">INTO</span> silver.web_sales <span class="kw">AS</span> target</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">USING</span> micro_batch_view <span class="kw">AS</span> <span class="kw">source</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> target.ws_order_number <span class="op">=</span> <span class="kw">source</span>.ws_order_number</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>   <span class="kw">AND</span> target.ws_item_sk <span class="op">=</span> <span class="kw">source</span>.ws_item_sk</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="cf">WHEN</span> MATCHED <span class="cf">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> <span class="op">*</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="cf">WHEN</span> <span class="kw">NOT</span> MATCHED <span class="cf">THEN</span> <span class="kw">INSERT</span> <span class="op">*</span></span></code></pre></div>
+<p>Esta es la operación que da nombre a la sesión: un mismo micro-lote
+puede contener líneas nuevas (se insertan) y correcciones de líneas ya
+conocidas (se actualizan), sin que el programa tenga que distinguir de
+antemano cuáles son cuáles. La condición de unión usa la clave compuesta
+real de la tabla, no sólo <code>ws_order_number</code>: unir por un
+campo que no identifica una fila de forma única duplicaría o pisaría
+líneas de un mismo pedido sin darse cuenta.</p>
+<h3 id="de-silver-a-gold-de-forma-incremental">De <em>silver</em> a
+<em>gold</em>, de forma incremental</h3>
+<p>Después del <code>MERGE</code> a <em>silver</em>, el mismo
+<code>foreachBatch</code> calcula qué años (<code>d_year</code>) han
+cambiado en este micro-lote concreto y aplica un segundo
+<code>MERGE INTO</code> que sólo recalcula el agregado <em>gold</em> de
+esos años, no de toda la tabla:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">MERGE</span> <span class="kw">INTO</span> gold.web_sales_by_year <span class="kw">AS</span> target</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">USING</span> (</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> d_year, <span class="fu">count</span>(<span class="kw">DISTINCT</span> ws_order_number) <span class="kw">AS</span> pedidos,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>           <span class="fu">sum</span>(ws_net_profit) <span class="kw">AS</span> beneficio_neto</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> silver.web_sales</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> d_year <span class="kw">IN</span> (<span class="co">/* años tocados por este micro-lote */</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">GROUP</span> <span class="kw">BY</span> d_year</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>) <span class="kw">AS</span> <span class="kw">source</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> target.d_year <span class="op">=</span> <span class="kw">source</span>.d_year</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="cf">WHEN</span> MATCHED <span class="cf">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> <span class="op">*</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="cf">WHEN</span> <span class="kw">NOT</span> MATCHED <span class="cf">THEN</span> <span class="kw">INSERT</span> <span class="op">*</span></span></code></pre></div>
+<p>Esta es la diferencia práctica entre mantener un agregado de forma
+incremental y recalcularlo por completo en cada micro-lote: el coste de
+la actualización depende de cuántos años ha tocado el micro-lote, no del
+tamaño total de <em>silver</em>.</p>
+<h2 id="copy-on-write-frente-a-merge-on-read"><em>Copy-on-write</em>
+frente a <em>merge-on-read</em></h2>
+<p>Iceberg permite configurar, por tabla, cómo se materializan las filas
+afectadas por un <code>UPDATE</code>, <code>DELETE</code> o
+<code>MERGE</code>:</p>
+<ul>
+<li><strong>copy-on-write</strong>
+(<code>write.merge.mode = 'copy-on-write'</code>): Iceberg reescribe por
+completo los ficheros de datos afectados. Las lecturas posteriores no
+necesitan ningún trabajo adicional, pero cada <code>MERGE</code> que
+toque un fichero grande obliga a reescribirlo entero.</li>
+<li><strong>merge-on-read</strong>
+(<code>write.merge.mode = 'merge-on-read'</code>): Iceberg escribe
+únicamente los cambios (ficheros de borrado y, cuando aplica, ficheros
+de datos nuevos) y dele­ga en el lector la tarea de aplicar esos cambios
+al leer. Las escrituras son más baratas, pero las lecturas hacen más
+trabajo y los ficheros de borrado se acumulan hasta que se
+compactan.</li>
+</ul>
+<p>La sesión debe crear (o duplicar) la tabla <em>silver</em> con ambos
+modos, aplicar la misma secuencia de micro-lotes a cada una, y observar
+en HDFS la diferencia física: en <em>copy-on-write</em> aparecen nuevos
+ficheros de datos que sustituyen a los anteriores; en
+<em>merge-on-read</em> aparecen ficheros de borrado (<em>delete
+files</em>) junto a los datos originales. Esta comparación conecta
+directamente con la compactación que ya se vio en S7: una tabla
+<em>merge-on-read</em> sometida a muchos micro-lotes es exactamente el
+escenario que justifica compactar periódicamente. <a
+href="https://iceberg.apache.org/docs/latest/spark-configuration/#write-options">Escritura
+de Iceberg en Spark: modos de <code>copy-on-write</code> y
+<code>merge-on-read</code></a></p>
+<h2 id="observar-la-consulta-en-marcha">Observar la consulta en
+marcha</h2>
+<p>Antes de detener la consulta, se debe inspeccionar su progreso:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>query.lastProgress          <span class="co"># métricas del último micro-lote procesado</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>query.status                <span class="co"># si está esperando datos nuevos o procesando</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>query.recentProgress        <span class="co"># historial de micro-lotes de esta ejecución</span></span></code></pre></div>
+<p><code>lastProgress</code> incluye el número de filas de entrada, la
+duración del micro-lote y las filas por segundo. Sirve para responder a
+una pregunta muy concreta: ¿cuánto tarda en incorporarse un lote nuevo,
+desde que el generador lo escribe hasta que aparece en el agregado
+<em>gold</em>?</p>
+<h2 id="cerrar-la-consulta-correctamente">Cerrar la consulta
+correctamente</h2>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>query.stop()</span></code></pre></div>
+<p>Detener la consulta no borra el <em>checkpoint</em>: si se reinicia
+la misma consulta con la misma ruta de <em>checkpoint</em>, Structured
+Streaming retoma desde el último micro-lote confirmado y no reprocesa lo
+ya aplicado. Borrar el <em>checkpoint</em> obliga a reprocesar desde el
+principio, lo cual es útil para repetir el ejercicio desde cero, pero
+debe hacerse de forma explícita, nunca como efecto colateral de otra
+limpieza.</p>
+<h2 id="comprobar-la-coherencia-con-el-recorrido-por-lotes">Comprobar la
+coherencia con el recorrido por lotes</h2>
+<p>Al final de la sesión, el agregado <em>gold</em> mantenido de forma
+incremental debe coincidir, año a año, con el que se obtendría
+recalculándolo por lotes desde <em>silver</em> con las consultas de
+S5/S7. Esta comprobación es la evidencia de que el <em>streaming</em> no
+ha introducido un motor de cálculo distinto: sigue siendo Spark SQL
+sobre la misma tabla, ejecutado con más frecuencia y sobre menos datos
+por ejecución.</p>
+<h2 id="qué-no-se-ve-todavía">Qué no se ve todavía</h2>
+<p>Esta sesión no introduce:</p>
+<ul>
+<li>Kafka ni ningún otro sistema de mensajería;</li>
+<li>procesamiento evento a evento ni garantías de latencia de
+segundos;</li>
+<li><em>watermarking</em> ni agregaciones con ventanas de tiempo sobre
+datos desordenados (quedan como ampliación si el tiempo del curso lo
+permite);</li>
+<li>un panel de control que visualice los resultados: eso se aborda en
+una fase posterior explícita, construida sobre esta misma tabla
+<em>gold</em>, con Metabase como añadido al Compose del clúster y un
+mecanismo para declarar paneles "como código" mediante su API REST.</li>
+</ul>
+<h2 id="evidencias-de-la-sesión">Evidencias de la sesión</h2>
+<p>La sesión debe producir:</p>
+<ul>
+<li>varias ejecuciones del generador, cada una con ficheros nuevos
+visibles en la ruta de aterrizaje;</li>
+<li>la consulta de streaming en marcha, con al menos tres micro-lotes
+procesados y sus métricas (<code>lastProgress</code>);</li>
+<li>filas insertadas y filas actualizadas en
+<code>silver.web_sales</code> por el mismo <code>MERGE</code>,
+distinguibles en el resultado;</li>
+<li>el agregado <code>gold.web_sales_by_year</code> actualizado de forma
+incremental, coincidente con un recálculo por lotes de control;</li>
+<li>la diferencia física observable entre una tabla
+<em>copy-on-write</em> y una <em>merge-on-read</em> sometidas a la misma
+secuencia de micro-lotes;</li>
+<li>una consulta de streaming detenida de forma ordenada y reiniciada
+desde su <em>checkpoint</em> sin reprocesar datos ya aplicados.</li>
+</ul>
+<h2 id="siguiente-paso">Siguiente paso</h2>
+<p>El itinerario docente completo (S1-S8) enseña a levantar el clúster,
+conocer los datos como ficheros, moverlos a un almacenamiento de
+objetos, procesarlos con Spark, organizarlos en zonas, catalogarlos,
+gestionarlos como una tabla lakehouse y, finalmente, alimentarlos de
+forma continua. La fase siguiente, ya fuera de esta numeración, añade un
+panel de control (Metabase) como servicio adicional del Compose, con una
+conexión a Trino y un mecanismo para declarar nuevos paneles mediante
+ficheros de configuración y la API REST de Metabase, consultando la
+misma tabla <em>gold</em> que esta sesión mantiene al día.</p>
+</body>
+</html>

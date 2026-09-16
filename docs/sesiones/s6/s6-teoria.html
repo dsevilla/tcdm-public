@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Sesión 6 — Hive Metastore, tablas Hive y Trino</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#sesión-6--hive-metastore-tablas-hive-y-trino"
+id="toc-sesión-6--hive-metastore-tablas-hive-y-trino">Sesión 6 — Hive
+Metastore, tablas Hive y Trino</a>
+<ul>
+<li><a href="#punto-de-la-asignatura"
+id="toc-punto-de-la-asignatura">Punto de la asignatura</a></li>
+<li><a href="#recorrido-del-curso"
+id="toc-recorrido-del-curso">Recorrido del curso</a></li>
+<li><a href="#capas-que-se-deben-distinguir"
+id="toc-capas-que-se-deben-distinguir">Capas que se deben
+distinguir</a></li>
+<li><a href="#objetivos-docentes" id="toc-objetivos-docentes">Objetivos
+docentes</a></li>
+<li><a href="#tabla-externa-frente-a-tabla-administrada"
+id="toc-tabla-externa-frente-a-tabla-administrada">Tabla externa frente
+a tabla administrada</a>
+<ul>
+<li><a href="#tabla-externa-sobre-el-data-lake"
+id="toc-tabla-externa-sobre-el-data-lake">Tabla externa sobre el data
+lake</a></li>
+<li><a href="#tabla-administrada-en-el-warehouse"
+id="toc-tabla-administrada-en-el-warehouse">Tabla administrada en el
+warehouse</a></li>
+</ul></li>
+<li><a href="#secuencia-de-la-sesión"
+id="toc-secuencia-de-la-sesión">Secuencia de la sesión</a>
+<ul>
+<li><a href="#registrar-los-parquet-originales"
+id="toc-registrar-los-parquet-originales">Registrar los Parquet
+originales</a></li>
+<li><a href="#registrar-la-versión-particionada"
+id="toc-registrar-la-versión-particionada">Registrar la versión
+particionada</a></li>
+<li><a href="#consultar-con-trino"
+id="toc-consultar-con-trino">Consultar con Trino</a></li>
+<li><a href="#consultar-la-misma-tabla-con-spark"
+id="toc-consultar-la-misma-tabla-con-spark">Consultar la misma tabla con
+Spark</a></li>
+</ul></li>
+<li><a href="#buenas-prácticas-de-catálogo-y-data-lake"
+id="toc-buenas-prácticas-de-catálogo-y-data-lake">Buenas prácticas de
+catálogo y data lake</a></li>
+<li><a href="#evidencias-de-la-sesión"
+id="toc-evidencias-de-la-sesión">Evidencias de la sesión</a></li>
+<li><a href="#siguiente-paso" id="toc-siguiente-paso">Siguiente
+paso</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="sesión-6--hive-metastore-tablas-hive-y-trino">Sesión 6 — Hive
+Metastore, tablas Hive y Trino</h1>
+<h2 id="punto-de-la-asignatura">Punto de la asignatura</h2>
+<p>Esta sesión viene después de S5. El alumnado ya ha visto que una
+colección de Parquet puede organizarse en directorios particionados y
+que Spark puede leerlos directamente. Ahora se introduce la capa que
+proporciona nombres y metadatos compartidos a los motores.</p>
+<p>La pregunta central es:</p>
+<blockquote>
+<p>¿Cómo pasamos de conocer una ruta física a disponer de una tabla
+lógica que puedan consultar Spark y Trino?</p>
+</blockquote>
+<p>El Hive Metastore no es un motor de procesamiento y Trino no es el
+catálogo. El metastore conserva metadatos; Trino consulta y procesa;
+Spark puede utilizar la misma definición si se configura como cliente
+del catálogo.</p>
+<h2 id="recorrido-del-curso">Recorrido del curso</h2>
+<pre class="text"><code>S2: Parquet sin tabla permanente
+  → S3: Parquet en HDFS y S3-compatible
+  → S4: Spark como motor
+  → S5: organización refinada y particionada
+  → S6: Hive Metastore y Trino comparten la tabla
+  → S7: Iceberg añade gestión de tablas y snapshots</code></pre>
+<p>La infraestructura definida en
+<code>entorno/compose-warehouse-hdfs.yml</code> separa PostgreSQL, Hive
+Metastore, Trino y el clúster Hadoop. PostgreSQL almacena el repositorio
+del metastore; Hive Metastore expone la información por Thrift; Trino
+utiliza esa información para planificar consultas. Ninguno de esos
+servicios se convierte por ello en DataNode o NodeManager.</p>
+<h2 id="capas-que-se-deben-distinguir">Capas que se deben
+distinguir</h2>
+<table>
+<thead>
+<tr>
+<th>Capa</th>
+<th>Responsabilidad</th>
+<th>Ejemplo del laboratorio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Almacenamiento</td>
+<td>Conserva bytes y rutas</td>
+<td>HDFS bajo <code>/datalake</code> o <code>/warehouse</code></td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Describe cómo leer cada fichero</td>
+<td>Parquet</td>
+</tr>
+<tr>
+<td>Metastore</td>
+<td>Guarda nombres, esquemas, ubicaciones y particiones</td>
+<td>Hive Metastore + PostgreSQL</td>
+</tr>
+<tr>
+<td>Motor SQL</td>
+<td>Planifica y ejecuta consultas</td>
+<td>Trino</td>
+</tr>
+<tr>
+<td>Motor de transformación</td>
+<td>Produce o consume DataFrames</td>
+<td>Spark</td>
+</tr>
+<tr>
+<td>Formato de tabla</td>
+<td>Gestiona metadatos de tabla y cambios</td>
+<td>Iceberg en S7</td>
+</tr>
+</tbody>
+</table>
+<p>Una ruta Parquet puede existir sin metastore. Una entrada del
+metastore no contiene todos los bytes de la tabla. Una tabla Hive
+externa puede apuntar a datos existentes y no debe borrar esos datos
+automáticamente al eliminar sólo su definición.</p>
+<h2 id="objetivos-docentes">Objetivos docentes</h2>
+<p>Al terminar el bloque, el alumnado debería poder:</p>
+<ul>
+<li>explicar qué problema resuelve un catálogo frente a una ruta
+física;</li>
+<li>distinguir Hive Metastore, Trino, Spark y PostgreSQL;</li>
+<li>registrar Parquet existente como tabla externa;</li>
+<li>distinguir una tabla externa de una tabla administrada;</li>
+<li>consultar ubicación, esquema y propiedades de una tabla;</li>
+<li>inspeccionar las particiones conocidas por el metastore;</li>
+<li>ejecutar consultas equivalentes desde Trino y Spark;</li>
+<li>entender que una partición Hive combina una organización física con
+metadatos de catálogo;</li>
+<li>observar selección de columnas, <em>predicate pushdown</em> y
+eliminación de particiones cuando el motor lo permite;</li>
+<li>calcular estadísticas y explicar para qué sirven;</li>
+<li>documentar el ciclo de vida y el riesgo de borrar datos
+gestionados;</li>
+<li>identificar las limitaciones que justifican introducir Iceberg.</li>
+</ul>
+<h2 id="tabla-externa-frente-a-tabla-administrada">Tabla externa frente
+a tabla administrada</h2>
+<p>Se explicarán dos modelos distintos:</p>
+<h3 id="tabla-externa-sobre-el-data-lake">Tabla externa sobre el data
+lake</h3>
+<p>Una tabla externa registra la ubicación de Parquet que ya existe en
+<code>/datalake</code>. El catálogo añade nombre, esquema, formato y
+particiones, pero la fuente de datos continúa siendo externa al ciclo de
+vida de la tabla.</p>
+<p>Este modelo es adecuado para los datos fuente y refinados de S2 y
+S5:</p>
+<pre class="text"><code>/datalake/raw/tpcds/date_dim
+    → tabla Hive externa
+
+/datalake/silver/tpcds/web_sales
+    → tabla Hive externa particionada
+
+/datalake/gold/tpcds/web_sales_by_year
+    → tabla Hive externa orientada al consumo</code></pre>
+<p>Eliminar la definición de la tabla no debe interpretarse como permiso
+para borrar el data lake. Las operaciones destructivas sobre HDFS deben
+ser explícitas y documentarse.</p>
+<h3 id="tabla-administrada-en-el-warehouse">Tabla administrada en el
+warehouse</h3>
+<p>Una tabla administrada deja que el catálogo y el motor elijan o
+gestionen una ubicación bajo <code>/warehouse</code>. En el laboratorio
+se utilizará esta zona para tablas de trabajo del catálogo y para las
+tablas Iceberg de S7.</p>
+<p>El alumnado debe comprobar siempre la ubicación efectiva. El nombre
+lógico de una tabla y el directorio físico no tienen por qué coincidir
+exactamente.</p>
+<h2 id="secuencia-de-la-sesión">Secuencia de la sesión</h2>
+<h3 id="registrar-los-parquet-originales">Registrar los Parquet
+originales</h3>
+<p>Primero se registrará una tabla Hive externa sobre una tabla pequeña,
+como <code>date_dim</code>, y después sobre una tabla de hechos. Se
+comprobará:</p>
+<ul>
+<li><code>SHOW CREATE TABLE</code>;</li>
+<li><code>DESCRIBE</code>;</li>
+<li>la ubicación externa;</li>
+<li>el esquema expuesto;</li>
+<li>el número de filas;</li>
+<li>la correspondencia entre los datos consultados y los Parquet de
+S2.</li>
+</ul>
+<p>La primera consulta debe dejar claro que registrar una tabla no
+transforma automáticamente los datos ni los copia al warehouse.</p>
+<h3 id="registrar-la-versión-particionada">Registrar la versión
+particionada</h3>
+<p>Después se registrará la salida de S5 con <code>sold_year</code> y
+<code>sold_month</code>. Se comparará una consulta sin filtro con otra
+que restrinja esas columnas. El alumnado debe observar qué directorios
+representan las particiones y qué información adicional conserva ahora
+el metastore.</p>
+<p>El filtro debe utilizar las columnas de partición. Una consulta que
+transforma la columna de una manera que el planificador no pueda
+reconocer puede impedir la eliminación de particiones. La mejora no se
+debe deducir sólo del tiempo de pared: también se observarán el plan, el
+número de ficheros y las métricas disponibles.</p>
+<h3 id="consultar-con-trino">Consultar con Trino</h3>
+<p>Trino se introducirá como motor SQL distribuido que utiliza el
+catálogo Hive. Se ejecutarán desde Trino:</p>
+<ul>
+<li><code>SHOW SCHEMAS</code> y <code>SHOW TABLES</code>;</li>
+<li><code>SHOW CREATE TABLE</code>;</li>
+<li><code>DESCRIBE</code>;</li>
+<li>consultas sobre Parquet externos;</li>
+<li>consultas sobre la versión particionada;</li>
+<li>inspección de las particiones;</li>
+<li><code>ANALYZE</code> y consulta de estadísticas;</li>
+<li><code>EXPLAIN</code> o <code>EXPLAIN ANALYZE</code> cuando
+proceda.</li>
+</ul>
+<p>Trino ofrece una tabla de metadatos <code>$partitions</code> para
+examinar las particiones de una tabla Hive y permite declarar tablas
+externas y propiedades de particionado. <a
+href="https://trino.io/docs/current/connector/hive.html">Conector Hive
+de Trino</a></p>
+<h3 id="consultar-la-misma-tabla-con-spark">Consultar la misma tabla con
+Spark</h3>
+<p>Una vez que Trino haya demostrado que la tabla está registrada, Spark
+se configurará como otro cliente del mismo metastore. Se leerá la misma
+tabla desde PySpark y se compararán:</p>
+<ul>
+<li>nombre y esquema;</li>
+<li>ubicación;</li>
+<li>resultado de negocio;</li>
+<li>columnas de partición;</li>
+<li>plan de lectura;</li>
+<li>comportamiento después de actualizar o añadir datos, considerando
+las cachés de metadatos.</li>
+</ul>
+<p>No se debe presentar Spark y Trino como dos catálogos diferentes. Son
+dos clientes o motores que leen una definición compartida.</p>
+<h2 id="buenas-prácticas-de-catálogo-y-data-lake">Buenas prácticas de
+catálogo y data lake</h2>
+<p>El metastore permite formalizar las decisiones de S5:</p>
+<ul>
+<li>cada tabla tiene un propietario y una descripción;</li>
+<li>la ubicación física está documentada;</li>
+<li>el esquema y las claves tienen un contrato;</li>
+<li>las columnas de partición se justifican por las consultas;</li>
+<li>los ficheros auxiliares no se confunden con datos;</li>
+<li>las estadísticas se generan y se revisan cuando son necesarias;</li>
+<li>las tablas fuente y las tablas derivadas tienen ciclos de vida
+distintos;</li>
+<li>una regeneración no borra datos ajenos;</li>
+<li>las operaciones de limpieza están separadas de las consultas
+normales.</li>
+</ul>
+<p>El metastore mejora la localización y reutilización, pero no
+proporciona por sí solo transacciones completas, historial de versiones
+ni una política de calidad de datos. Esas limitaciones preparan la
+comparación con Iceberg.</p>
+<h2 id="evidencias-de-la-sesión">Evidencias de la sesión</h2>
+<p>La sesión debe demostrar comportamiento observable:</p>
+<ul>
+<li>la tabla externa apunta a la ubicación esperada;</li>
+<li>la tabla administrada utiliza <code>/warehouse</code>;</li>
+<li>Trino devuelve el esquema y las filas esperadas;</li>
+<li>las particiones se pueden enumerar;</li>
+<li>una consulta filtrada reduce el trabajo cuando la organización y el
+predicado lo permiten;</li>
+<li>las estadísticas cambian después de <code>ANALYZE</code>;</li>
+<li>Spark y Trino consultan la misma definición;</li>
+<li>eliminar metadatos externos no borra accidentalmente el data
+lake;</li>
+<li>los permisos de <code>luser</code> son suficientes para los
+ejercicios.</li>
+</ul>
+<h2 id="siguiente-paso">Siguiente paso</h2>
+<p>S6 muestra que el metastore da nombres y metadatos compartidos a una
+organización de Parquet. S7 introducirá Iceberg como formato de tabla
+para gestionar cambios, snapshots y particionado evolutivo, sin
+presentar esa transición como un simple cambio de nombre en el
+catálogo.</p>
+</body>
+</html>

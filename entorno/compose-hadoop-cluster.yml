@@ -1,0 +1,66 @@
+name: tcdm-26-27-hadoop
+
+services:
+  namenode:
+    image: ${NAMENODE_IMAGE:-dsevilla/namenode-image:26-27}
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "127.0.0.1:9870:9870" # HDFS NameNode
+      - "127.0.0.1:8088:8088" # YARN ResourceManager
+      - "127.0.0.1:8188:8188" # YARN Timeline Server
+      - "127.0.0.1:8888:8888" # Reservado para Jupyter en sesiones posteriores
+      - "127.0.0.1:4040:4040" # Reservado para Spark en sesiones posteriores
+    # Límite de CPU del contenedor NameNode/ResourceManager. Es un límite,
+    # no una reserva permanente de dos núcleos del equipo anfitrión.
+    cpus: 2.0
+    # El contenedor alojará también Jupyter y el driver de Spark en sesiones
+    # posteriores, además de NameNode, ResourceManager y Timeline Server.
+    mem_limit: 4096m
+    networks:
+      hadoop-cluster:
+        aliases:
+          - resourcemanager
+          # El Timeline Server corre en namenode, sin añadir otro contenedor.
+          - timelineserver
+
+  datanode1:
+    image: ${DATANODE_IMAGE:-dsevilla/datanode-image:26-27}
+    container_name: datanode1
+    hostname: datanode1
+    # Cada DataNode necesita dos vCPU para que YARN pueda ejecutar un
+    # executor Spark y, en uno de los nodos, el ApplicationMaster a la vez.
+    # El mismo valor está anunciado en yarn-site.xml de la imagen.
+    cpus: 2.0
+    # YARN anuncia 2560 MiB y deja 512 MiB para DataNode, NodeManager y el
+    # resto de procesos del contenedor.
+    mem_limit: 3072m
+    networks:
+      hadoop-cluster:
+
+  datanode2:
+    image: ${DATANODE_IMAGE:-dsevilla/datanode-image:26-27}
+    container_name: datanode2
+    hostname: datanode2
+    # Mantener este límite sincronizado con la configuración YARN de la
+    # imagen: yarn.nodemanager.resource.cpu-vcores=2.
+    cpus: 2.0
+    mem_limit: 3072m
+    networks:
+      hadoop-cluster:
+
+  datanode3:
+    image: ${DATANODE_IMAGE:-dsevilla/datanode-image:26-27}
+    container_name: datanode3
+    hostname: datanode3
+    # Mantener este límite sincronizado con la configuración YARN de la
+    # imagen: yarn.nodemanager.resource.cpu-vcores=2.
+    cpus: 2.0
+    mem_limit: 3072m
+    networks:
+      hadoop-cluster:
+
+networks:
+  hadoop-cluster:
+    external: true
+    name: hadoop-cluster
