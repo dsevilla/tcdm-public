@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="es">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Notebook</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Sesión 1 — Entorno Hadoop con contenedores</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7925,7 +7925,7 @@ ejecución.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/agronholm/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
 El alias <code>%%diapositiva</code> permite mantener en español los tipos usados en la sesión y produce la misma salida HTML en Jupyter, Colab y la referencia HTML publicada.</p>
-<p>En cada sesión encontrarás varias tipos de diapositivas que te ayudarán a:</p>
+<p>En cada sesión encontrarás varios tipos de diapositivas que te ayudarán a:</p>
 <ul>
 <li><strong>Orientación:</strong> Mostrar dónde estamos en el programa y qué vamos a ver en esta sesión.</li>
 <li><strong>Resumen:</strong> Condensar partes complejas en puntos clave para recordar y revisar después.</li>
@@ -8406,7 +8406,7 @@ nodo deja de responder.</p>
 <li>Tiempo medio entre fallos (MTBF) para 1 nodo: ~3 años</li>
 <li>Tiempo medio entre fallos para 1.000 nodos: ~1 día</li>
 </ul>
-<p>Con 10.000 nodos, algo está fallando prácticamente cada hora. Sin tolerancia a fallos automática, el trabajo nunca terminaría.</p>
+<p>Con 10.000 nodos, el modelo proporcional sugiere que algo falla aproximadamente cada 2,6 horas. Sin tolerancia a fallos automática, el trabajo nunca terminaría.</p>
 <p><strong>Cómo lo resuelve Hadoop:</strong></p>
 <ul>
 <li>HDFS replica cada bloque en varios nodos (típicamente 3). Cuando un nodo falla, los datos siguen disponibles en otros.</li>
@@ -10160,7 +10160,9 @@ se usa dentro de la red Docker, y su interfaz HTTP se publica en el host
 como <code>http://localhost:8188</code>. La propiedad que permite que el
 ResourceManager publique información de aplicaciones es
 <code>yarn.system-metrics-publisher.enabled</code> (en Hadoop 3.5.0 la variante con el
-prefijo <code>resourcemanager.</code> está deprecada). La agregación de logs
+prefijo <code>resourcemanager.</code> está deprecada). Esta es la clave que se usa en
+el laboratorio; no se debe sustituir por una advertencia de otra versión.
+La agregación de logs
 (<code>yarn.log-aggregation-enable</code>) copia a <code>/tmp/logs</code> de HDFS los logs de los
 contenedores, comprimidos como TFile con <code>gz</code>: no se puede leer ese
 resultado con un <code>cat</code> directo, hace falta
@@ -10273,8 +10275,10 @@ tareas <code>reduce</code>.</p>
 <p><code>mapreduce.framework.name=yarn</code> evita la ejecución local del trabajo: los
 recursos siempre se piden al clúster. El ApplicationMaster reserva 1 vcore
 y 512 MiB; cada tarea <code>map</code> y <code>reduce</code> solicita 1 vcore y un contenedor de
-768 MiB, pero limita el <em>heap</em> de su JVM a 512 MiB (<code>-Xmx512M</code>) — la
-diferencia deja memoria para la propia JVM, bibliotecas nativas y otros
+768 MiB, pero limita el <em>heap</em> de su JVM a 512 MiB (<code>-Xmx512M</code>). El ratio
+<code>mapreduce.job.heap.memory-mb.ratio=0.8</code> sería una regla de inferencia si
+faltaran estos valores explícitos; aquí no se usa para obtener los 614,4
+MiB hipotéticos. La diferencia deja memoria para la propia JVM, bibliotecas nativas y otros
 costes fuera del <em>heap</em>. <code>HADOOP_MAPRED_HOME</code> se propaga a los procesos
 remotos (<code>*.env</code>) para que cualquier DataNode localice las bibliotecas de
 MapReduce.</p>
