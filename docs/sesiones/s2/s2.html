@@ -7891,9 +7891,9 @@ son relevantes para el examen final.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/agronholm/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
+<h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/dsevilla/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
 El alias <code>%%diapositiva</code> permite mantener en español los tipos usados en la sesión y produce la misma salida HTML en Jupyter, Colab y la referencia HTML publicada.</p>
-<p>En cada sesión encontrarás varias tipos de diapositivas que te ayudarán a:</p>
+<p>En cada sesión encontrarás varios tipos de diapositivas que te ayudarán a:</p>
 <ul>
 <li><strong>Orientación:</strong> Mostrar dónde estamos en el programa y qué vamos a ver en esta sesión.</li>
 <li><strong>Resumen:</strong> Condensar partes complejas en puntos clave para recordar y revisar después.</li>
@@ -8271,10 +8271,24 @@ para escribir en HDFS el resultado de cruzar <code>tpcds</code> con el CSV del I
 <span class="na">connector.name</span><span class="o">=</span><span class="s">hive</span>
 <span class="na">hive.metastore</span><span class="o">=</span><span class="s">thrift</span>
 <span class="na">hive.metastore.uri</span><span class="o">=</span><span class="s">thrift://hive-metastore:9083</span>
+<span class="na">hive.metastore.authentication.type</span><span class="o">=</span><span class="s">NONE</span>
+<span class="na">hive.metastore.thrift.impersonation.enabled</span><span class="o">=</span><span class="s">false</span>
+<span class="na">hive.hdfs.authentication.type</span><span class="o">=</span><span class="s">NONE</span>
+<span class="na">hive.hdfs.impersonation.enabled</span><span class="o">=</span><span class="s">false</span>
+<span class="na">hive.non-managed-table-creates-enabled</span><span class="o">=</span><span class="s">true</span>
+<span class="na">hive.non-managed-table-writes-enabled</span><span class="o">=</span><span class="s">true</span>
 <span class="na">hive.storage-format</span><span class="o">=</span><span class="s">PARQUET</span>
 <span class="na">hive.compression-codec</span><span class="o">=</span><span class="s">ZSTD</span>
 <span class="na">fs.hadoop.enabled</span><span class="o">=</span><span class="s">true</span>
 </pre></div>
+<p>Las propiedades <code>*.authentication.type=NONE</code> y <code>*.impersonation.enabled=false</code>
+desactivan Kerberos y la suplantación de usuario: todos los accesos —desde
+Trino, y más adelante desde Spark— usan la identidad <code>luser</code> directamente,
+sin un usuario intermedio que autentique en su nombre. Las dos propiedades
+<code>hive.non-managed-table-*-enabled=true</code> son las que permiten crear y escribir
+tablas externas (no administradas por Hive) con <code>CREATE TABLE ... AS SELECT</code>;
+sin ellas, el <code>CREATE TABLE ... WITH (external_location = ...)</code> que usa esta
+sesión fallaría.</p>
 <p>Trino se despliega como un servicio Docker más, definido en
 <code>entorno/compose-warehouse-hdfs.yml</code>:</p>
 <div class="highlight"><pre><span></span><span class="nt">trino-hdfs</span><span class="p">:</span>
@@ -8567,7 +8581,7 @@ comprimido —el tamaño lógico que muestra HDFS— y 783 MiB contando tres
 réplicas. Aunque ocupa poco en disco, reúne unas 19,6 millones de
 filas entre las 24 tablas.</p>
 <p>El esquema completo de columnas, tipos y claves de estas 24 tablas se
-reproduce íntegro en el <a href="#Ap%C3%A9ndice:-esquema-completo-de-TPC-DS-SF1">apéndice final</a>
+reproduce íntegro en el <a href="#apendice-tpcds-sf1">apéndice final</a>
 de esta sesión.</p>
 </div>
 </div>
@@ -8800,9 +8814,9 @@ el cliente Trino.</li>
 <code>raw/ine/municipios</code>.</li>
 <li><strong>Conectar con Trino</strong>: abrir la conexión y esperar a que el servicio
 responda.</li>
-<li><strong>Dar estructura temporal al CSV</strong>: registrar el CSV del INE como
-tabla externa Hive y crear una vista con una posición estable por
-municipio.</li>
+<li><strong>Almacenar temporalmente el CSV en Hive Metastore</strong>: registrar el CSV
+del INE como tabla externa Hive y crear una vista con una posición
+estable por municipio.</li>
 <li><strong>Construir las consultas de localización</strong>: generar, para las cinco
 dimensiones geográficas, el <code>SELECT</code> que sustituye ciudad, condado,
 estado y país por el municipio español correspondiente.</li>
@@ -8814,6 +8828,9 @@ través del conector <code>hive</code>.</li>
 marcadores <code>_SUCCESS</code> y eliminar la vista, la tabla CSV y el esquema
 temporal de Hive Metastore; los Parquet permanecen en HDFS.</li>
 </ol>
+<p>Todo este proceso también está automatizado como <code>make tpcds-init</code> desde
+<code>entorno/</code> (misma lógica, por línea de órdenes); aquí se hace paso a paso,
+con cada consulta visible, para explicar qué construye cada una.</p>
 <p>La tabla técnica <code>dbgen_version</code> se excluye: describe el generador y no es
 parte del modelo de negocio. La generación puede tardar varios minutos. Los
 marcadores <code>_SUCCESS</code> permiten volver a ejecutar el notebook sin reescribir
@@ -8931,8 +8948,8 @@ Python descomprimen el flujo antes de pasarlo a Polars.</p>
 notebook no recalcula la relación: descarga la instantánea comprimida que
 ya está versionada en <code>entorno/data/ine</code>. El contenedor <code>namenode</code>, donde
 se ejecuta este notebook, no monta ese directorio, así que la celda la
-obtiene del repositorio en lugar de leer una ruta local. El proceso de
-actualización de la instantánea se explica en la celda siguiente.</p>
+obtiene del repositorio en lugar de leer una ruta local. El proceso de mantenimiento de esa instantánea se explica más adelante en
+esta misma sección, después del flujo ejecutable, como referencia.</p>
 <p>Una celda posterior comprueba esa instantánea y la copia comprimida a
 <code>/datalake/raw/ine/municipios</code>. Trino la registra como tabla externa
 temporal: el dato continúa siendo un fichero CSV gzip en HDFS y la
@@ -8940,28 +8957,118 @@ definición desaparece al terminar.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Descargar,-limpiar-y-convertir-la-fuente-(referencia)">Descargar, limpiar y convertir la fuente (referencia)<a class="anchor-link" href="#Descargar,-limpiar-y-convertir-la-fuente-(referencia)">¶</a></h3><p>El alumnado recibe la instantánea ya preparada en <code>entorno/data/ine</code>. Las
-celdas Markdown que siguen muestran cómo se descargaría una nueva edición,
-cómo se leerían y limpiarían sus hojas y cómo se convertiría a CSV gzip.
-<strong>No se ejecutan en este notebook</strong> y no se comparan con una descarga
-posterior: la lista puede cambiar cuando el INE publique otra edición.</p>
-<p>La instantánea que utiliza esta sesión está versionada en
-<code>entorno/data/ine/municipios-2026.csv.gz</code>. La celda ejecutable
-siguiente la descarga del repositorio <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>),
-comprueba que se puede abrir y después la publica directamente en HDFS
-sin crear una copia descomprimida.</p>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
+
+<span class="c1"># El notebook se ejecuta dentro del contenedor namenode, que no monta el</span>
+<span class="c1"># directorio entorno/ de la distribución del alumnado: la instantánea se</span>
+<span class="c1"># descarga del repositorio en vez de asumir una ruta local.</span>
+<span class="n">ine_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/"</span>
+    <span class="s2">"entorno/data/ine/municipios-2026.csv.gz"</span>
+<span class="p">)</span>
+<span class="n">compressed_csv</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/tmp/ine/municipios-2026.csv.gz"</span><span class="p">)</span>
+<span class="n">compressed_csv</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">request</span><span class="p">:</span> <span class="n">Request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">ine_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="s2">"Mozilla/5.0"</span><span class="p">})</span>
+<span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+    <span class="n">compressed_csv</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<span class="n">expected_header</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"municipio_id;provincia_id;codigo_municipio;"</span> <span class="s2">"digito_control;municipio;provincia"</span>
+<span class="p">)</span>
+
+<span class="c1"># gzip.open descomprime mientras leemos; el CSV no se materializa en disco.</span>
+<span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">compressed_csv</span><span class="p">,</span> <span class="s2">"rt"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+    <span class="n">header</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">municipality_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">source</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">header</span> <span class="o">==</span> <span class="n">expected_header</span>
+<span class="k">assert</span> <span class="n">municipality_count</span> <span class="o">==</span> <span class="mi">8_132</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Instantánea gzip descargada en </span><span class="si">{</span><span class="n">compressed_csv</span><span class="si">}</span><span class="s2">: "</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">municipality_count</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> municipios"</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Publicar-la-fuente-del-INE-en-HDFS">Publicar la fuente del INE en HDFS<a class="anchor-link" href="#Publicar-la-fuente-del-INE-en-HDFS">¶</a></h3><p>La celda anterior ha descargado la instantánea comprimida desde el
+repositorio <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>,
+<code>entorno/data/ine/municipios-2026.csv.gz</code>) a <code>/tmp/ine</code> dentro del
+contenedor <code>namenode</code>: el notebook se ejecuta ahí y ese contenedor no
+monta el directorio <code>entorno</code> de la distribución del alumnado. Después ha
+leído la cabecera y ha recorrido el flujo para detectar una compresión
+truncada y confirmar los 8.132 registros. No ha creado un CSV
+descomprimido.</p>
+<p>La orden siguiente conserva los bytes gzip en HDFS. Primero, <code>-mkdir -p</code>
+crea la carpeta <code>raw</code> si aún no existe; después elimina sólo el nombre
+<code>.csv</code> antiguo por si se repite S2 sobre un entorno creado con una versión
+anterior. Así la tabla no lee dos copias y no se toca ningún dato de TPC-DS.
+Por último, <code>-put -f</code> copia el fichero y permite repetir la celda
+sobrescribiendo la misma instantánea; <code>-ls -h</code> muestra el
+nombre y el tamaño almacenado. La extensión <code>.gz</code> permite que Hadoop y
+Trino descompriman el contenido al leerlo, de modo que no hace falta una
+segunda copia sin comprimir. Este fichero es pequeño (8.132 filas), así
+que el hecho de que gzip no sea divisible en varios bloques de lectura no
+supone un problema; para grandes volúmenes conviene usar Parquet u otro
+formato/codec que permita dividir el trabajo.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=21">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span>
+<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span><span class="o">/</span><span class="n">municipios</span><span class="o">-</span><span class="mf">2026.</span><span class="n">csv</span>
+<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">put</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span><span class="o">-</span><span class="mf">2026.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span><span class="o">/</span><span class="n">municipios</span><span class="o">-</span><span class="mf">2026.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span>
+<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">h</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Descargar,-limpiar-y-convertir-la-fuente-(referencia)">Descargar, limpiar y convertir la fuente (referencia)<a class="anchor-link" href="#Descargar,-limpiar-y-convertir-la-fuente-(referencia)">¶</a></h3><p>Las celdas anteriores ya han descargado la instantánea versionada en
+<code>entorno/data/ine/municipios-2026.csv.gz</code> desde <code>dsevilla/tcdm-public</code>
+(rama <code>26-27</code>) y la han publicado en HDFS. El alumnado siempre recibe esa
+instantánea ya preparada: nunca hace falta regenerarla para seguir esta
+sesión.</p>
+<p>Las celdas Markdown que siguen muestran, solo como referencia de
+mantenimiento, cómo se descargaría una nueva edición del Excel del INE,
+cómo se leerían y limpiarían sus hojas y cómo se convertiría a CSV gzip.
+<strong>No se ejecutan en este notebook</strong> y no se comparan con la instantánea ya
+descargada: la lista puede cambiar cuando el INE publique otra edición.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9001,7 +9108,7 @@ instantánea que ya proporciona <code>entorno/data/ine</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9034,7 +9141,7 @@ instantánea que ya proporciona <code>entorno/data/ine</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9083,7 +9190,7 @@ instantánea que ya proporciona <code>entorno/data/ine</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9117,7 +9224,7 @@ instantánea que ya proporciona <code>entorno/data/ine</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9171,96 +9278,6 @@ para documentar el mantenimiento, pero no se ejecuta como parte de S2.</p>
 </pre></div>
 <p>Este bloque es ilustrativo: no se ejecuta al trabajar con la
 instantánea que ya proporciona <code>entorno/data/ine</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
-
-<span class="c1"># El notebook se ejecuta dentro del contenedor namenode, que no monta el</span>
-<span class="c1"># directorio entorno/ de la distribución del alumnado: la instantánea se</span>
-<span class="c1"># descarga del repositorio en vez de asumir una ruta local.</span>
-<span class="n">ine_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/"</span>
-    <span class="s2">"entorno/data/ine/municipios-2026.csv.gz"</span>
-<span class="p">)</span>
-<span class="n">compressed_csv</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/tmp/ine/municipios-2026.csv.gz"</span><span class="p">)</span>
-<span class="n">compressed_csv</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">request</span><span class="p">:</span> <span class="n">Request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">ine_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="s2">"Mozilla/5.0"</span><span class="p">})</span>
-<span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
-    <span class="n">compressed_csv</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-
-<span class="n">expected_header</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"municipio_id;provincia_id;codigo_municipio;"</span> <span class="s2">"digito_control;municipio;provincia"</span>
-<span class="p">)</span>
-
-<span class="c1"># gzip.open descomprime mientras leemos; el CSV no se materializa en disco.</span>
-<span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">compressed_csv</span><span class="p">,</span> <span class="s2">"rt"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
-    <span class="n">header</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">municipality_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">source</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">header</span> <span class="o">==</span> <span class="n">expected_header</span>
-<span class="k">assert</span> <span class="n">municipality_count</span> <span class="o">==</span> <span class="mi">8_132</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Instantánea gzip descargada en </span><span class="si">{</span><span class="n">compressed_csv</span><span class="si">}</span><span class="s2">: "</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">municipality_count</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> municipios"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Publicar-la-fuente-del-INE-en-HDFS">Publicar la fuente del INE en HDFS<a class="anchor-link" href="#Publicar-la-fuente-del-INE-en-HDFS">¶</a></h3><p>La celda anterior ha descargado la instantánea comprimida desde el
-repositorio <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>,
-<code>entorno/data/ine/municipios-2026.csv.gz</code>) a <code>/tmp/ine</code> dentro del
-contenedor <code>namenode</code>: el notebook se ejecuta ahí y ese contenedor no
-monta el directorio <code>entorno</code> de la distribución del alumnado. Después ha
-leído la cabecera y ha recorrido el flujo para detectar una compresión
-truncada y confirmar los 8.132 registros. No ha creado un CSV
-descomprimido.</p>
-<p>La orden siguiente conserva los bytes gzip en HDFS. Primero, <code>-mkdir -p</code>
-crea la carpeta <code>raw</code> si aún no existe; después elimina sólo el nombre
-<code>.csv</code> antiguo por si se repite S2 sobre un entorno creado con una versión
-anterior. Así la tabla no lee dos copias y no se toca ningún dato de TPC-DS.
-Por último, <code>-put -f</code> copia el fichero y permite repetir la celda
-sobrescribiendo la misma instantánea; <code>-ls -h</code> muestra el
-nombre y el tamaño almacenado. La extensión <code>.gz</code> permite que Hadoop y
-Trino descompriman el contenido al leerlo, de modo que no hace falta una
-segunda copia sin comprimir. Este fichero es pequeño (8.132 filas), así
-que el hecho de que gzip no sea divisible en varios bloques de lectura no
-supone un problema; para grandes volúmenes conviene usar Parquet u otro
-formato/codec que permita dividir el trabajo.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span>
-<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span><span class="o">/</span><span class="n">municipios</span><span class="o">-</span><span class="mf">2026.</span><span class="n">csv</span>
-<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">put</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span><span class="o">-</span><span class="mf">2026.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span><span class="o">/</span><span class="n">municipios</span><span class="o">-</span><span class="mf">2026.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span>
-<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">h</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">ine</span><span class="o">/</span><span class="n">municipios</span>
-</pre></div>
-</div>
 </div>
 </div>
 </div>
@@ -9417,15 +9434,53 @@ el entorno.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Unir-las-dos-fuentes-de-forma-determinista">Unir las dos fuentes de forma determinista<a class="anchor-link" href="#Unir-las-dos-fuentes-de-forma-determinista">¶</a></h3><p>Los 8.132 municipios se ordenan por <code>municipio_id</code> y reciben una posición
+estable. Para cada pareja original ciudad–estado de TPC-DS se calcula
+<code>crc32(...)</code>; el resto de dividir por 8.132 selecciona siempre la misma fila:</p>
+<div class="highlight"><pre><span></span><span class="k">JOIN</span><span class="w"> </span><span class="n">ine_municipios_ordenados</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">m</span>
+<span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">posicion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">mod</span><span class="p">(</span>
+<span class="w">      </span><span class="n">crc32</span><span class="p">(</span><span class="n">to_utf8</span><span class="p">(</span><span class="n">concat</span><span class="p">(</span>
+<span class="w">          </span><span class="k">coalesce</span><span class="p">(</span><span class="k">CAST</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">ca_city</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">varchar</span><span class="p">),</span><span class="w"> </span><span class="s1">''</span><span class="p">),</span>
+<span class="w">          </span><span class="s1">'|'</span><span class="p">,</span>
+<span class="w">          </span><span class="k">coalesce</span><span class="p">(</span><span class="k">CAST</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">ca_state</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">varchar</span><span class="p">),</span><span class="w"> </span><span class="s1">''</span><span class="p">)</span>
+<span class="w">      </span><span class="p">))),</span>
+<span class="w">      </span><span class="n">m</span><span class="p">.</span><span class="n">total_municipios</span>
+<span class="w">  </span><span class="p">)</span>
+</pre></div>
+<p>El <code>coalesce(..., '')</code> importa: algunas localizaciones de TPC-DS traen
+<code>ca_city</code> o <code>ca_state</code> vacíos, y <code>concat</code> con un valor <code>NULL</code> de por medio
+devuelve <code>NULL</code> en vez de una cadena parcial. Sin el <code>coalesce</code>, esas filas
+perderían el <code>JOIN</code> con el INE y su municipio quedaría sin asignar.</p>
+<p>No se utiliza <code>random()</code>. La misma localización TPC-DS recibe el mismo
+municipio aunque cambien el orden de lectura o los fragmentos Parquet. Las
+claves <code>ca_address_sk</code> tampoco cambian, por lo que las ventas siguen
+enlazando con la misma dirección.</p>
+<p>En <code>customer_address</code>, <code>store</code>, <code>warehouse</code>, <code>call_center</code> y <code>web_site</code> se
+asignan <code>*_city</code> al municipio, <code>*_county</code> a la provincia, <code>*_state</code> al código
+provincial de dos dígitos y <code>*_country</code> a <code>España</code>.</p>
+<p>El catálogo utilizado no aporta calles, códigos postales ni husos horarios.
+Esas columnas conservan valores sintéticos de TPC-DS y no describen una
+dirección postal española real. Al integrar fuentes sólo se pueden atribuir
+al dato externo los campos que realmente suministra.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Construir-las-consultas-de-localizaci%C3%B3n">Construir las consultas de localización<a class="anchor-link" href="#Construir-las-consultas-de-localizaci%C3%B3n">¶</a></h3><p>Sólo cinco dimensiones contienen direcciones. Para no reescribir a mano
 más de cien columnas, pedimos su esquema a Trino y sustituimos ciudad,
 provincia, código provincial y país en la lista <code>SELECT</code>. Las demás
 columnas conservan su nombre, tipo y orden originales. La unión utiliza
-el mismo CRC32 estable explicado abajo.</p>
+el mismo CRC32 estable explicado arriba.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9433,9 +9488,7 @@ el mismo CRC32 estable explicado abajo.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiteralString</span>
-
-<span class="n">TPCDS_SCALE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sf1"</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">TPCDS_SCALE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sf1"</span>
 <span class="n">TPCDS_ROOT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds"</span>
 <span class="n">LOCALIZED_COLUMNS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"customer_address"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"ca_city"</span><span class="p">,</span> <span class="s2">"ca_county"</span><span class="p">,</span> <span class="s2">"ca_state"</span><span class="p">,</span> <span class="s2">"ca_country"</span><span class="p">),</span>
@@ -9458,7 +9511,7 @@ el mismo CRC32 estable explicado abajo.</p>
         <span class="n">state</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"CAST(m.provincia_id AS </span><span class="si">{</span><span class="n">column_types</span><span class="p">[</span><span class="n">state</span><span class="p">]</span><span class="si">}</span><span class="s2">) AS </span><span class="si">{</span><span class="n">state</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="n">country</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"CAST('España' AS </span><span class="si">{</span><span class="n">column_types</span><span class="p">[</span><span class="n">country</span><span class="p">]</span><span class="si">}</span><span class="s2">) AS </span><span class="si">{</span><span class="n">country</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">projection</span><span class="p">:</span> <span class="n">LiteralString</span> <span class="o">=</span> <span class="s2">",</span><span class="se">\n</span><span class="s2">    "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">projection</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">",</span><span class="se">\n</span><span class="s2">    "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="n">replacements</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"a.</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="ow">in</span> <span class="n">described</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"""</span>
@@ -9484,25 +9537,103 @@ el mismo CRC32 estable explicado abajo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Materializar-las-24-tablas">Materializar las 24 tablas<a class="anchor-link" href="#Materializar-las-24-tablas">¶</a></h3><p>La celda siguiente obtiene de Trino la lista de tablas, excluye
-<code>dbgen_version</code> y ejecuta un CTAS externo por tabla. Todo el SQL y toda la
+<h3 id="Materializar-las-24-tablas">Materializar las 24 tablas<a class="anchor-link" href="#Materializar-las-24-tablas">¶</a></h3><p>Las celdas siguientes obtienen de Trino la lista de tablas, excluyen
+<code>dbgen_version</code> y ejecutan un CTAS externo por tabla. Todo el SQL y toda la
 decisión permanecen visibles aquí; el propio <code>CREATE TABLE ... AS SELECT</code>
 hace que Trino lea, cruce y escriba los Parquet en HDFS.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><code>hdfs</code> es un envoltorio mínimo sobre <code>subprocess.run</code> que invoca el
 cliente nativo <code>hdfs dfs</code> ya instalado en el contenedor. No es la vía que
 se usará más adelante para leer datos (WebHDFS + <code>fsspec</code>, PyArrow,
 Polars, DuckDB): aquí sólo hace falta consultar y escribir un fichero
 diminuto —el marcador <code>_SUCCESS</code>—, así que basta con la CLI en vez de
 montar un cliente HTTP para tan poco.</p>
-<p>El bucle usa ese marcador para poder repetirse sin rehacer trabajo ni
-perder el cruce con el INE. Por ejemplo, para <code>customer_address</code> (una de
-las cinco dimensiones localizadas):</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEVNULL</span><span class="p">,</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">CompletedProcess</span><span class="p">,</span> <span class="n">run</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">hdfs</span><span class="p">(</span><span class="o">*</span><span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">capture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompletedProcess</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">run</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="o">*</span><span class="n">arguments</span><span class="p">],</span>
+        <span class="n">check</span><span class="o">=</span><span class="n">check</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span> <span class="k">if</span> <span class="n">capture</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">stderr</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">check</span> <span class="k">else</span> <span class="n">DEVNULL</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Trino conoce las 24 tablas de negocio de <code>tpcds.sf1</code>; excluimos
+<code>dbgen_version</code> porque describe el generador, no el modelo de negocio.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=39">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="c1"># trino_sql() devuelve list[list[object]]; aquí se sabe que la primera</span>
+<span class="c1"># columna es un nombre de tabla y se convierte explícitamente con str()</span>
+<span class="c1"># en lugar de dejar un valor de tipo object.</span>
+<span class="n">table_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+    <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">trino_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SHOW TABLES FROM tpcds.</span><span class="si">{</span><span class="n">TPCDS_SCALE</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"dbgen_version"</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span><span class="p">,</span> <span class="n">table_names</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>El bucle usa el marcador <code>_SUCCESS</code> para poder repetirse sin rehacer
+trabajo ni perder el cruce con el INE. Por ejemplo, para <code>customer_address</code>
+(una de las cinco dimensiones localizadas):</p>
 <ul>
 <li><code>hdfs dfs -test -e /datalake/raw/tpcds/customer_address/_SUCCESS</code>
 comprueba si ya hay un marcador. <code>-test -e</code> no imprime nada: el
@@ -9527,10 +9658,15 @@ distingue una tabla ya cruzada con el INE de una generada sin esa
 localización: la prueba 007 de integración continua comprueba lo mismo
 para confirmar que esas cinco dimensiones quedaron con la geografía
 española.</p>
+<p>Por cada tabla verás una línea <code>[=] tabla: ya está materializada</code> o
+<code>[*] tabla: generando Parquet</code>, según si reutiliza o reescribe. Al final
+de la generación completa se imprime <code>Materializadas ahora: 24; reutilizadas: 0</code>; si vuelves a ejecutar esta celda sin haber borrado
+nada, debería salir <code>Materializadas ahora: 0; reutilizadas: 24</code>, porque
+todos los marcadores ya coinciden con lo esperado.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9538,40 +9674,14 @@ española.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEVNULL</span><span class="p">,</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">CompletedProcess</span><span class="p">,</span> <span class="n">run</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">hdfs</span><span class="p">(</span><span class="o">*</span><span class="n">arguments</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">capture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompletedProcess</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="k">return</span> <span class="n">run</span><span class="p">(</span>
-        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="o">*</span><span class="n">arguments</span><span class="p">],</span>
-        <span class="n">check</span><span class="o">=</span><span class="n">check</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span> <span class="k">if</span> <span class="n">capture</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">stderr</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">check</span> <span class="k">else</span> <span class="n">DEVNULL</span><span class="p">,</span>
-    <span class="p">)</span>
-
-
-<span class="c1"># trino_sql() devuelve list[list[object]]; aquí se sabe que la primera</span>
-<span class="c1"># columna es un nombre de tabla y se convierte explícitamente con str()</span>
-<span class="c1"># en lugar de dejar un valor de tipo object.</span>
-<span class="n">table_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">trino_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SHOW TABLES FROM tpcds.</span><span class="si">{</span><span class="n">TPCDS_SCALE</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"dbgen_version"</span>
-<span class="p">)</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span><span class="p">,</span> <span class="n">table_names</span>
-
-<span class="n">materialized</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">materialized</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">already_available</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">success_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/tmp/tpcds-success-marker"</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
     <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">marker_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/_SUCCESS"</span>
-    <span class="n">expected_marker</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">'INE-2026'</span><span class="p">]</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">''</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">"INE-2026"</span> <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">LOCALIZED_COLUMNS</span> <span class="k">else</span> <span class="s2">""</span>
-    <span class="p">)</span>
+    <span class="n">expected_marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"INE-2026"</span> <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">LOCALIZED_COLUMNS</span> <span class="k">else</span> <span class="s2">""</span>
     <span class="n">marker_exists</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">hdfs</span><span class="p">(</span><span class="s2">"-test"</span><span class="p">,</span> <span class="s2">"-e"</span><span class="p">,</span> <span class="n">marker_path</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="k">if</span> <span class="n">marker_exists</span><span class="p">:</span>
         <span class="n">marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">hdfs</span><span class="p">(</span><span class="s2">"-cat"</span><span class="p">,</span> <span class="n">marker_path</span><span class="p">,</span> <span class="n">capture</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
@@ -9614,7 +9724,24 @@ española.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Punto de comprobación.</strong> En una primera ejecución completa deberías ver
+24 líneas <code>[*] tabla: generando Parquet</code> y <code>Materializadas ahora: 24; reutilizadas: 0</code>. Si repites esta celda sin haber borrado
+<code>/datalake/raw/tpcds</code> ni cambiado la fuente geográfica, debería salir
+<code>Materializadas ahora: 0; reutilizadas: 24</code>: es la señal de que el marcador
+<code>_SUCCESS</code> de las 24 tablas ya coincide con lo esperado y el bucle no ha
+vuelto a escribir nada. Un valor intermedio (por ejemplo, <code>reutilizadas: 19</code>)
+indica una ejecución previa interrumpida a medias.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9623,11 +9750,11 @@ española.</p>
 <h3 id="Validar-y-retirar-s%C3%B3lo-los-metadatos-temporales">Validar y retirar sólo los metadatos temporales<a class="anchor-link" href="#Validar-y-retirar-s%C3%B3lo-los-metadatos-temporales">¶</a></h3><p>Comprobamos que las 24 tablas tienen marcador y que las cinco dimensiones
 geográficas indican <code>INE-2026</code>. Después eliminamos la vista, la tabla CSV y
 el esquema temporal. Al ser tablas externas, sus ficheros permanecen en
-HDFS para éste y los siguientes boletines.</p>
+HDFS para ésta y las siguientes sesiones.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9652,7 +9779,7 @@ HDFS para éste y los siguientes boletines.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9668,37 +9795,7 @@ HDFS para éste y los siguientes boletines.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Unir-las-dos-fuentes-de-forma-determinista">Unir las dos fuentes de forma determinista<a class="anchor-link" href="#Unir-las-dos-fuentes-de-forma-determinista">¶</a></h2><p>Los 8.132 municipios se ordenan por <code>municipio_id</code> y reciben una posición
-estable. Para cada pareja original ciudad–estado de TPC-DS se calcula
-<code>crc32(...)</code>; el resto de dividir por 8.132 selecciona siempre la misma fila:</p>
-<div class="highlight"><pre><span></span><span class="k">JOIN</span><span class="w"> </span><span class="n">ine_municipios_ordenados</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">m</span>
-<span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">posicion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">mod</span><span class="p">(</span>
-<span class="w">      </span><span class="n">crc32</span><span class="p">(</span><span class="n">to_utf8</span><span class="p">(</span><span class="n">concat</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">ca_city</span><span class="p">),</span><span class="w"> </span><span class="s1">'|'</span><span class="p">,</span><span class="w"> </span><span class="k">trim</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">ca_state</span><span class="p">)))),</span>
-<span class="w">      </span><span class="n">m</span><span class="p">.</span><span class="n">total_municipios</span>
-<span class="w">  </span><span class="p">)</span>
-</pre></div>
-<p>No se utiliza <code>random()</code>. La misma localización TPC-DS recibe el mismo
-municipio aunque cambien el orden de lectura o los fragmentos Parquet. Las
-claves <code>ca_address_sk</code> tampoco cambian, por lo que las ventas siguen
-enlazando con la misma dirección.</p>
-<p>En <code>customer_address</code>, <code>store</code>, <code>warehouse</code>, <code>call_center</code> y <code>web_site</code> se
-asignan <code>*_city</code> al municipio, <code>*_county</code> a la provincia, <code>*_state</code> al código
-provincial de dos dígitos y <code>*_country</code> a <code>España</code>.</p>
-<p>El catálogo utilizado no aporta calles, códigos postales ni husos horarios.
-Esas columnas conservan valores sintéticos de TPC-DS y no describen una
-dirección postal española real. Al integrar fuentes sólo se pueden atribuir
-al dato externo los campos que realmente suministra.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9711,7 +9808,7 @@ fuentes de la capa <code>raw</code>:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9726,7 +9823,7 @@ fuentes de la capa <code>raw</code>:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9739,7 +9836,7 @@ marcador <code>_SUCCESS</code>. En las dimensiones localizadas contiene la versi
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9753,7 +9850,7 @@ marcador <code>_SUCCESS</code>. En las dimensiones localizadas contiene la versi
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9768,7 +9865,7 @@ marcador <code>_SUCCESS</code>. En las dimensiones localizadas contiene la versi
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9777,14 +9874,14 @@ marcador <code>_SUCCESS</code>. En las dimensiones localizadas contiene la versi
 <p>Los ficheros de datos pueden no terminar en <code>.parquet</code>, porque Trino no
 necesita esa extensión al escribir una tabla externa. El formato se
 reconoce por la firma binaria <code>PAR1</code> al principio y al final del fichero,
-no por su nombre. Comprobémoslo sin descargar el fichero al host: pedimos
+no por su nombre. Puedes comprobarlo sin descargar el fichero al host: se pide
 primero el nombre de un fragmento real con <code>hdfs dfs -ls</code> (evitando
 <code>_SUCCESS</code>, que es un marcador de finalización y no contiene filas Parquet) y
 después inspeccionamos sus primeros bytes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9801,7 +9898,7 @@ después inspeccionamos sus primeros bytes:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9814,11 +9911,12 @@ directorio de tabla y un resumen del dataset completo con
 lógico de los datos y el segundo es el espacio consumido en HDFS después de
 aplicar las réplicas — con el factor de replicación tres, un fichero
 lógico de 1 MB puede ocupar aproximadamente 3 MB de espacio HDFS. También
-podemos pedir el detalle de todas las tablas de <code>sf1</code> y el total agregado:</p>
+podemos pedir el detalle de todas las tablas materializadas en
+<code>/datalake/raw/tpcds</code> y el total agregado:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9832,7 +9930,7 @@ podemos pedir el detalle de todas las tablas de <code>sf1</code> y el total agre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9847,14 +9945,14 @@ podemos pedir el detalle de todas las tablas de <code>sf1</code> y el total agre
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>La primera orden permite comparar el tamaño de las tablas y la segunda
-resume todo <code>sf1</code>. Estas cifras son una estimación útil del espacio que
+resume todo el contenido de <code>/datalake/raw/tpcds</code>. Estas cifras son una estimación útil del espacio que
 ocupará el dataset en el clúster de cada alumno; pueden variar ligeramente
 si la escritura genera un número distinto de ficheros, pero no cambia el
 volumen lógico esperado del dataset.</p>
@@ -9863,7 +9961,7 @@ volumen lógico esperado del dataset.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9878,7 +9976,7 @@ volumen lógico esperado del dataset.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9891,7 +9989,7 @@ parte de la distribución física y de la replicación.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9933,7 +10031,7 @@ parte de la distribución física y de la replicación.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9975,7 +10073,7 @@ parte de la distribución física y de la replicación.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10003,13 +10101,13 @@ que se consulta de verdad: <code>date_dim</code>, <code>time_dim</code>, <code>i
 <code>customer_address</code>, <code>web_sales</code> y <code>store_sales</code>. El catálogo completo de las
 24 tablas, organizado igual que la especificación (dimensiones y tablas de
 hechos), está reproducido íntegro en el
-<a href="#Ap%C3%A9ndice:-esquema-completo-de-TPC-DS-SF1">apéndice final</a> para consulta,
+<a href="#apendice-tpcds-sf1">apéndice final</a> para consulta,
 sin que interrumpa el hilo práctico.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10022,7 +10120,7 @@ mismos Parquet.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10039,7 +10137,7 @@ WebHDFS. Comprobamos que todo se importa correctamente:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10062,7 +10160,7 @@ WebHDFS. Comprobamos que todo se importa correctamente:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10104,7 +10202,7 @@ WebHDFS. Comprobamos que todo se importa correctamente:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10123,7 +10221,7 @@ que habla el mismo protocolo RPC que la API Java en vez de HTTP; necesita
 las bibliotecas de Hadoop disponibles en el classpath del proceso;</li>
 <li><strong>WebHDFS</strong> (y su variante de sólo lectura, <strong>HttpFS</strong>) exponen HDFS como
 una API REST sobre HTTP. No requieren esas bibliotecas nativas, lo que las
-hace sesiones para clientes ligeros o para lenguajes sin un cliente
+hace más adecuadas para clientes ligeros o para lenguajes sin un cliente
 Hadoop propio.</li>
 </ul>
 <p>Elegir WebHDFS en esta sesión es una decisión pedagógica, no la única
@@ -10132,7 +10230,7 @@ dependencias nativas de Hadoop en el entorno donde se ejecuta este notebook.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10173,7 +10271,7 @@ dependencias nativas de Hadoop en el entorno donde se ejecuta este notebook.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10192,7 +10290,7 @@ DuckDB:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10224,7 +10322,7 @@ DuckDB:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10239,7 +10337,7 @@ Parquet:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10258,7 +10356,7 @@ Parquet:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10321,7 +10419,7 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 <tr>
 <td><code>d_year</code></td>
 <td><code>integer</code></td>
-<td>Atributo año de el calendario.</td>
+<td>Año del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -10351,19 +10449,19 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 <tr>
 <td><code>d_fy_year</code></td>
 <td><code>integer</code></td>
-<td>Atributo fiscal año de el calendario.</td>
+<td>Año fiscal del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>d_fy_quarter_seq</code></td>
 <td><code>integer</code></td>
-<td>Atributo fiscal trimestre seq de el calendario.</td>
+<td>Número secuencial del trimestre fiscal dentro del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>d_fy_week_seq</code></td>
 <td><code>integer</code></td>
-<td>Atributo fiscal semana seq de el calendario.</td>
+<td>Número secuencial de la semana fiscal dentro del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -10456,7 +10554,7 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10473,7 +10571,7 @@ suma:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10490,20 +10588,22 @@ suma:</p>
 
 <span class="n">key_values</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">ChunkedArray</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="p">[</span><span class="s2">"d_date_sk"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">arrow_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">arrow_table</span><span class="o">.</span><span class="n">num_rows</span><span class="p">,</span>
     <span class="n">pc</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
     <span class="n">pc</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
     <span class="n">pc</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
     <span class="n">pc</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
 <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">pyarrow</span><span class="se">\t</span><span class="s2">date_dim</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">summary</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10518,7 +10618,7 @@ resultantes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10533,20 +10633,22 @@ resultantes:</p>
 
 <span class="n">key_values</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">polars_table</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">"d_date_sk"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">polars_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">polars_table</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
     <span class="n">key_values</span><span class="o">.</span><span class="n">len</span><span class="p">()</span> <span class="o">-</span> <span class="n">key_values</span><span class="o">.</span><span class="n">null_count</span><span class="p">(),</span>
     <span class="n">key_values</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
     <span class="n">key_values</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
     <span class="n">key_values</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
 <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">polars</span><span class="se">\t</span><span class="s2">date_dim</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">summary</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10560,7 +10662,7 @@ se calcula aquí como una agregación SQL, no con una función de Python:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10587,13 +10689,14 @@ se calcula aquí como una agregación SQL, no con una función de Python:</p>
     <span class="p">[</span><span class="n">urls</span><span class="p">],</span>
 <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">duckdb</span><span class="se">\t</span><span class="s2">date_dim</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">summary</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10609,7 +10712,7 @@ mismos Parquet, aunque cada una presente el resultado a su manera.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10651,7 +10754,7 @@ mismos Parquet, aunque cada una presente el resultado a su manera.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10664,7 +10767,7 @@ esquema físico:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10673,14 +10776,13 @@ esquema físico:</p>
 <p>Aunque ahora seleccionemos solo tres columnas, el número de filas debe
 seguir siendo el mismo que leímos antes para toda la tabla: 73.049.
 Comprobarlo así es una forma sencilla de detectar si se ha apuntado a otra
-escala o a una generación incompleta.</p>
-<p>PyArrow tiene un lector Parquet muy completo, pero su API espera un sistema
-de ficheros compatible con Arrow. <code>fsspec</code> y PyArrow se conectan mediante
-<code>FSSpecHandler</code>:</p>
+escala o a una generación incompleta. Reutilizamos el mismo <code>arrow_fs</code>
+(<code>PyFileSystem</code> + <code>FSSpecHandler</code>) de antes, ahora pidiendo solo tres
+columnas con <code>columns=[...]</code>:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10708,7 +10810,7 @@ de ficheros compatible con Arrow. <code>fsspec</code> y PyArrow se conectan medi
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10721,7 +10823,7 @@ Para consultar solo los años recientes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10742,7 +10844,7 @@ Para consultar solo los años recientes:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10756,7 +10858,7 @@ Para inspeccionar el esquema inferido por el lector:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10771,7 +10873,7 @@ Para inspeccionar el esquema inferido por el lector:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10780,12 +10882,22 @@ Para inspeccionar el esquema inferido por el lector:</p>
 <p>Se deben reconocer una columna de fecha, dos enteros o cadenas de un
 carácter. Los nombres y tipos vienen de los metadatos de los Parquet; no se
 han inventado en el código Python.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Explorar-con-Polars">Explorar con Polars<a class="anchor-link" href="#Explorar-con-Polars">¶</a></h2><p>Leemos ahora los mismos ficheros y con la misma selección de columnas, pero
 con Polars:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10809,7 +10921,7 @@ con Polars:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10826,7 +10938,7 @@ tengamos en memoria, sin volver a pedir los bytes a WebHDFS:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10845,7 +10957,7 @@ tengamos en memoria, sin volver a pedir los bytes a WebHDFS:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10855,7 +10967,7 @@ tengamos en memoria, sin volver a pedir los bytes a WebHDFS:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10873,7 +10985,7 @@ tengamos en memoria, sin volver a pedir los bytes a WebHDFS:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10884,7 +10996,7 @@ abierto por <code>fsspec</code>, sin pasar por Arrow:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10905,7 +11017,7 @@ abierto por <code>fsspec</code>, sin pasar por Arrow:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10919,7 +11031,7 @@ el trabajo sin acumularlo todo en memoria:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10940,7 +11052,7 @@ el trabajo sin acumularlo todo en memoria:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10949,6 +11061,16 @@ el trabajo sin acumularlo todo en memoria:</p>
 <p>La lista <code>fragments</code> es didáctica. En tablas como <code>inventory</code> no conviene
 mantener todos los DataFrames intermedios en memoria si el ordenador está
 ajustado de recursos.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Explorar-con-DuckDB">Explorar con DuckDB<a class="anchor-link" href="#Explorar-con-DuckDB">¶</a></h2><p>Por último, consultamos los mismos ficheros con SQL a través de DuckDB. La
 ruta de lectura es WebHDFS → fsspec → DuckDB: PyArrow y Polars llegan al
 mismo filesystem mediante sus propios adaptadores, pero DuckDB lo hace
@@ -10957,7 +11079,7 @@ registrándolo bajo un esquema de URL.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10970,7 +11092,7 @@ como una tabla virtual dentro de cualquier consulta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11001,7 +11123,7 @@ como una tabla virtual dentro de cualquier consulta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11015,7 +11137,7 @@ algunas columnas y filtra por año:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11041,7 +11163,7 @@ algunas columnas y filtra por año:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11052,7 +11174,7 @@ tabla Arrow que Polars puede convertir directamente en un DataFrame:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11071,7 +11193,7 @@ tabla Arrow que Polars puede convertir directamente en un DataFrame:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11101,19 +11223,19 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>ws_sold_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>ws_sold_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -11125,79 +11247,79 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>ws_bill_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>ws_bill_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_bill_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_bill_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>ws_web_page_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → web_page.wp_web_page_sk</td>
 </tr>
 <tr>
 <td><code>ws_web_site_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → web_site.web_site_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_mode_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → ship_mode.sm_ship_mode_sk</td>
 </tr>
 <tr>
 <td><code>ws_warehouse_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → warehouse.w_warehouse_sk</td>
 </tr>
 <tr>
 <td><code>ws_promo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → promotion.p_promo_sk</td>
 </tr>
 <tr>
@@ -11209,7 +11331,7 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>ws_quantity</code></td>
 <td><code>integer</code></td>
-<td>Cantidad de unidades de cantidad.</td>
+<td>Cantidad de unidades vendidas.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -11332,31 +11454,31 @@ benchmark.</p>
 <tr>
 <td><code>c_current_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>c_current_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>c_current_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>c_first_shipto_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>c_first_sales_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -11422,7 +11544,7 @@ benchmark.</p>
 <tr>
 <td><code>c_last_review_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 </tbody>
@@ -11433,7 +11555,7 @@ muestra del resultado.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11461,7 +11583,7 @@ muestra del resultado.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11480,7 +11602,7 @@ muestra del resultado.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11503,7 +11625,7 @@ muestra del resultado.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11523,7 +11645,7 @@ hace visibles.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11559,7 +11681,7 @@ hace visibles.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11578,7 +11700,7 @@ solo afecta a estas copias temporales: no modifica los ficheros de HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11608,7 +11730,7 @@ solo afecta a estas copias temporales: no modifica los ficheros de HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11631,6 +11753,7 @@ solo afecta a estas copias temporales: no modifica los ficheros de HDFS.</p>
 <span class="sd">    INSERT INTO demo_web_sales</span>
 <span class="sd">    SELECT ws_item_sk, ws_order_number, ws_bill_customer_sk</span>
 <span class="sd">    FROM read_parquet(?)</span>
+<span class="sd">    WHERE ws_bill_customer_sk IS NOT NULL</span>
 <span class="sd">    LIMIT 1000</span>
 <span class="sd">    """</span><span class="p">,</span>
     <span class="p">[</span><span class="n">duckdb_web_sales_urls</span><span class="p">],</span>
@@ -11640,7 +11763,7 @@ solo afecta a estas copias temporales: no modifica los ficheros de HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11662,7 +11785,7 @@ solo afecta a estas copias temporales: no modifica los ficheros de HDFS.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11680,7 +11803,7 @@ anti-<code>JOIN</code> anterior durante la ingesta y las pruebas de calidad.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11721,7 +11844,7 @@ anti-<code>JOIN</code> anterior durante la ingesta y las pruebas de calidad.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=111">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11763,7 +11886,7 @@ anti-<code>JOIN</code> anterior durante la ingesta y las pruebas de calidad.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11778,8 +11901,8 @@ aparecen en el esquema.</p>
 <p>En estos ejemplos trabajaremos con <code>web_sales</code>, porque contiene las ventas
 realizadas a través de la web. Usaremos también dos dimensiones nuevas en
 esta sesión, <code>customer_address</code> y <code>time_dim</code>:</p>
-<p>Contiene domicilios sintéticos cuyas localidades se han enriquecido con el INE.
-desplazamiento horario y tipo de ubicación.</p>
+<p>Contiene domicilios sintéticos cuyas localidades se han enriquecido con el INE,
+e incluye también el desplazamiento horario y el tipo de ubicación.</p>
 <table>
 <thead>
 <tr>
@@ -11994,7 +12117,7 @@ exclusión de <code>_SUCCESS</code> sigue siendo obligatoria:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12034,7 +12157,7 @@ exclusión de <code>_SUCCESS</code> sigue siendo obligatoria:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12051,7 +12174,7 @@ necesarias de <code>web_sales</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12083,7 +12206,7 @@ necesarias de <code>web_sales</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12103,7 +12226,7 @@ puede estar formada por varios ficheros físicos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=117">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12161,7 +12284,7 @@ puede estar formada por varios ficheros físicos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12175,7 +12298,7 @@ en <code>customer_address</code> existen en la fuente pública.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=119">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12221,7 +12344,7 @@ en <code>customer_address</code> existen en la fuente pública.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12239,7 +12362,7 @@ día.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12275,7 +12398,7 @@ día.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12294,7 +12417,7 @@ la pregunta de negocio "¿qué cliente ha realizado más pedidos?":</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12326,7 +12449,7 @@ la pregunta de negocio "¿qué cliente ha realizado más pedidos?":</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12358,7 +12481,7 @@ que se transporta y evita leer datos que la pregunta no utiliza.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12399,7 +12522,7 @@ que se transporta y evita leer datos que la pregunta no utiliza.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=126">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12441,7 +12564,7 @@ que se transporta y evita leer datos que la pregunta no utiliza.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12467,13 +12590,13 @@ beneficio.</p>
 <tr>
 <td><code>ss_sold_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>ss_sold_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
@@ -12485,37 +12608,37 @@ beneficio.</p>
 <tr>
 <td><code>ss_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>ss_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ss_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ss_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>ss_store_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → store.s_store_sk</td>
 </tr>
 <tr>
 <td><code>ss_promo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → promotion.p_promo_sk</td>
 </tr>
 <tr>
@@ -12527,7 +12650,7 @@ beneficio.</p>
 <tr>
 <td><code>ss_quantity</code></td>
 <td><code>integer</code></td>
-<td>Cantidad de unidades de cantidad.</td>
+<td>Cantidad de unidades vendidas.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -12667,7 +12790,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_brand</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo marca de el producto.</td>
+<td>Marca del producto.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -12679,7 +12802,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_class</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo clase de el producto.</td>
+<td>Clase del producto dentro de su categoría.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -12691,7 +12814,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_category</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo categoría de el producto.</td>
+<td>Categoría del producto.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -12703,37 +12826,37 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_manufact</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo manufact de el producto.</td>
+<td>Identificador del fabricante del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_size</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo tamaño de el producto.</td>
+<td>Tamaño del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_formulation</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo formulación de el producto.</td>
+<td>Código de formulación del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_color</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo color de el producto.</td>
+<td>Color del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_units</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo unidades de el producto.</td>
+<td>Unidad de medida del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_container</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo envase de el producto.</td>
+<td>Tipo de envase del producto.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -12757,7 +12880,7 @@ consulta permanece visible:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12778,7 +12901,7 @@ consulta permanece visible:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12812,7 +12935,7 @@ consulta permanece visible:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12834,7 +12957,7 @@ que selecciona pocas columnas con otra que utiliza <code>SELECT *</code>:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12858,7 +12981,7 @@ que selecciona pocas columnas con otra que utiliza <code>SELECT *</code>:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12872,7 +12995,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=133">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12913,7 +13036,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=142">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12955,7 +13078,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12983,7 +13106,7 @@ metadatos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13019,7 +13142,7 @@ de entrada y explica el mensaje de error.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13042,7 +13165,7 @@ al ejecutarse este kernel dentro del propio contenedor:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=146">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13057,7 +13180,7 @@ al ejecutarse este kernel dentro del propio contenedor:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13079,7 +13202,7 @@ descomprimido en memoria.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=140">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=148">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13123,7 +13246,7 @@ descomprimido en memoria.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=141">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13133,35 +13256,46 @@ descomprimido en memoria.</p>
 datos de las siguientes sesiones, así que se muestran como texto para
 ejecutarlas <strong>en una terminal de tu equipo</strong> — nunca como celdas de este
 notebook, para que un "ejecutar todo" no pueda borrar nada por accidente.</p>
-<p>Para detener los servicios conservando sus volúmenes:</p>
+<p>Para detener los servicios conservando sus datos:</p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
 make<span class="w"> </span>stop
 </pre></div>
 <p>Para arrancar de nuevo el laboratorio:</p>
 <div class="highlight"><pre><span></span>make<span class="w"> </span>warehouse-up
 </pre></div>
-<p>Los Parquet permanecen en el ciclo de vida del clúster Hadoop: si se han
-detenido los contenedores sin eliminarlos, se pueden volver a consultar.
-Para eliminar los contenedores y el volumen de PostgreSQL:</p>
+<p><code>compose-hadoop-cluster.yml</code> declara un volumen Docker con nombre para
+<code>dfs.namenode.name.dir</code> y otro por cada <code>dfs.datanode.data.dir</code> (ver la
+Sesión 1). Por eso los Parquet y el resto del HDFS sobreviven a <code>make stop</code>
+<strong>y también</strong> a <code>make clean</code>: ambas órdenes eliminan los contenedores
+(<code>docker compose down</code>), pero un volumen con nombre no desaparece con ellos.
+Para eliminar los contenedores y el volumen de metadatos de PostgreSQL:</p>
 <div class="highlight"><pre><span></span>make<span class="w"> </span>clean
 </pre></div>
-<p>Esta operación elimina también el volumen de metadatos de PostgreSQL, pero
-la eliminación de los datos de HDFS debe hacerse de forma explícita. Si se
-desea regenerar únicamente TPC-DS, desde una sesión como <code>luser</code> se puede
-quitar la ruta (<strong>orden destructiva para todos los Parquet de SF1</strong>):</p>
+<p>Esta operación elimina el volumen de metadatos de PostgreSQL (Hive
+Metastore) y el de S3, pero <strong>no</strong> toca los volúmenes HDFS: el dataset
+TPC-DS/INE de esta sesión sigue disponible después de un <code>make clean</code> +
+<code>make warehouse-up</code>. Si además quieres borrar el propio HDFS —namenode y
+los tres datanode, es decir, empezar de cero también en la Sesión 1—, hazlo
+de forma explícita y por separado:</p>
+<div class="highlight"><pre><span></span>make<span class="w"> </span>clean-hdfs
+</pre></div>
+<p>Si sólo quieres regenerar TPC-DS sin perder el resto del HDFS (por ejemplo,
+<code>/user</code> o los datos de otras sesiones), con el clúster arrancado y desde una
+sesión como <code>luser</code> puedes quitar solo esa ruta (<strong>orden destructiva para
+todos los Parquet de SF1</strong>):</p>
 <div class="highlight"><pre><span></span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-rm<span class="w"> </span>-r<span class="w"> </span>-skipTrash<span class="w"> </span>/datalake/raw/tpcds
 </pre></div>
 <p>Después se vuelve a ejecutar desde la comprobación de la instantánea gzip hasta
 la validación de la materialización. No hace falta descargar otra edición ni
 salir del notebook.</p>
 <p>No es necesario borrar el clúster para repetir una consulta ni para volver
-a leer los ficheros. Se debe reservar <code>make clean</code> y el borrado de
+a leer los ficheros. Se debe reservar <code>make clean-hdfs</code> y el borrado de
 <code>/datalake/raw/tpcds</code> para una regeneración intencionada.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=142">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13196,7 +13330,7 @@ de <code>d_date_sk</code>.</li>
 <li>El resultado del anti-<code>JOIN</code> de <code>web_sales</code> contra <code>customer</code> (debería
 ser cero filas huérfanas).</li>
 <li>La primera fila de cada una de las tres preguntas de negocio: cliente
-con más pedidos, estado con más compras y hora con más pedidos.</li>
+con más pedidos, provincia con más compras y hora con más pedidos.</li>
 <li>El plan de <code>EXPLAIN</code> de la consulta filtrada por año sobre <code>date_dim</code>.</li>
 <li>Que sabes explicar qué se observa al leer Parquet por su ruta física y
 qué información aportará después un catálogo de tablas.</li>
@@ -13241,12 +13375,13 @@ un catálogo y cómo la utilizan el metastore e Iceberg.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=151">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><a id="apendice-tpcds-sf1"></a></p>
 <h2 id="Ap%C3%A9ndice:-esquema-completo-de-TPC-DS-SF1">Apéndice: esquema completo de TPC-DS SF1<a class="anchor-link" href="#Ap%C3%A9ndice:-esquema-completo-de-TPC-DS-SF1">¶</a></h2><p><em>Lectura de referencia, sin celdas ejecutables.</em> Este apéndice reproduce el
 esquema de columnas de las 24 tablas de negocio de TPC-DS SF1, organizado
 igual que la especificación: primero las dimensiones y tablas auxiliares,
@@ -13268,7 +13403,7 @@ declarará una copia relacional con restricciones en DuckDB. Fuente:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13299,7 +13434,7 @@ porque cada fila enlaza con casi todas las dimensiones del modelo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=153">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13310,7 +13445,7 @@ porque cada fila enlaza con casi todas las dimensiones del modelo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=146">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13367,7 +13502,7 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 <tr>
 <td><code>d_year</code></td>
 <td><code>integer</code></td>
-<td>Atributo año de el calendario.</td>
+<td>Año del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -13397,19 +13532,19 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 <tr>
 <td><code>d_fy_year</code></td>
 <td><code>integer</code></td>
-<td>Atributo fiscal año de el calendario.</td>
+<td>Año fiscal del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>d_fy_quarter_seq</code></td>
 <td><code>integer</code></td>
-<td>Atributo fiscal trimestre seq de el calendario.</td>
+<td>Número secuencial del trimestre fiscal dentro del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>d_fy_week_seq</code></td>
 <td><code>integer</code></td>
-<td>Atributo fiscal semana seq de el calendario.</td>
+<td>Número secuencial de la semana fiscal dentro del calendario.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -13502,7 +13637,7 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13586,7 +13721,7 @@ comida. Se utiliza junto con <code>date_dim</code> para analizar ventas por mome
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=148">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=156">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13655,7 +13790,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_brand</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo marca de el producto.</td>
+<td>Marca del producto.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -13667,7 +13802,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_class</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo clase de el producto.</td>
+<td>Clase del producto dentro de su categoría.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -13679,7 +13814,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_category</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo categoría de el producto.</td>
+<td>Categoría del producto.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -13691,37 +13826,37 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 <tr>
 <td><code>i_manufact</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo manufact de el producto.</td>
+<td>Identificador del fabricante del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_size</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo tamaño de el producto.</td>
+<td>Tamaño del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_formulation</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo formulación de el producto.</td>
+<td>Código de formulación del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_color</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo color de el producto.</td>
+<td>Color del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_units</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo unidades de el producto.</td>
+<td>Unidad de medida del producto.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>i_container</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo envase de el producto.</td>
+<td>Tipo de envase del producto.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -13742,7 +13877,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13776,31 +13911,31 @@ benchmark.</p>
 <tr>
 <td><code>c_current_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>c_current_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>c_current_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>c_first_shipto_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>c_first_sales_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -13866,7 +14001,7 @@ benchmark.</p>
 <tr>
 <td><code>c_last_review_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el cliente con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 </tbody>
@@ -13875,14 +14010,14 @@ benchmark.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h4 id="customer_address"><code>customer_address</code><a class="anchor-link" href="#customer_address">¶</a></h4><p>Contiene domicilios sintéticos cuyas localidades se han enriquecido con el INE.
-desplazamiento horario y tipo de ubicación.</p>
+<h4 id="customer_address"><code>customer_address</code><a class="anchor-link" href="#customer_address">¶</a></h4><p>Contiene domicilios sintéticos cuyas localidades se han enriquecido con el INE,
+e incluye también el desplazamiento horario y el tipo de ubicación.</p>
 <table>
 <thead>
 <tr>
@@ -13977,7 +14112,7 @@ desplazamiento horario y tipo de ubicación.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=151">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=159">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14056,7 +14191,7 @@ dependientes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=160">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14083,7 +14218,7 @@ compra, número de dependientes y vehículos.</p>
 <tr>
 <td><code>hd_income_band_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la demografía del hogar con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → income_band.ib_income_band_sk</td>
 </tr>
 <tr>
@@ -14110,7 +14245,7 @@ compra, número de dependientes y vehículos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=153">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14151,7 +14286,7 @@ compra, número de dependientes y vehículos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=162">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14196,7 +14331,7 @@ horario, mercado y empresa.</p>
 <tr>
 <td><code>s_closed_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -14352,7 +14487,7 @@ porcentaje de impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=163">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14390,7 +14525,7 @@ porcentaje de impuestos.</p>
 <tr>
 <td><code>w_warehouse_sq_ft</code></td>
 <td><code>integer</code></td>
-<td>Atributo almacén superficie pies cuadrados de el almacén.</td>
+<td>Superficie del almacén en pies cuadrados.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14408,7 +14543,7 @@ porcentaje de impuestos.</p>
 <tr>
 <td><code>w_street_type</code></td>
 <td><code>char(15)</code></td>
-<td>Atributo calle tipo de el almacén.</td>
+<td>Tipo de vía de la dirección del almacén.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14438,7 +14573,7 @@ porcentaje de impuestos.</p>
 <tr>
 <td><code>w_zip</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo código postal de el almacén.</td>
+<td>Código postal del almacén.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14450,7 +14585,7 @@ porcentaje de impuestos.</p>
 <tr>
 <td><code>w_gmt_offset</code></td>
 <td><code>decimal(5,2)</code></td>
-<td>Atributo gmt offset de el almacén.</td>
+<td>Desplazamiento horario del almacén respecto de GMT.</td>
 <td>—</td>
 </tr>
 </tbody>
@@ -14459,7 +14594,7 @@ porcentaje de impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=156">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14504,13 +14639,13 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_closed_date_sk</code></td>
 <td><code>integer</code></td>
-<td>Clave que enlaza el centro de llamadas con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>cc_open_date_sk</code></td>
 <td><code>integer</code></td>
-<td>Clave que enlaza el centro de llamadas con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -14522,31 +14657,31 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_class</code></td>
 <td><code>varchar(50)</code></td>
-<td>Atributo clase de el centro de llamadas.</td>
+<td>Clase del centro de atención telefónica.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>cc_employees</code></td>
 <td><code>integer</code></td>
-<td>Atributo employees de el centro de llamadas.</td>
+<td>Número de empleados del centro.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>cc_sq_ft</code></td>
 <td><code>integer</code></td>
-<td>Atributo superficie pies cuadrados de el centro de llamadas.</td>
+<td>Superficie del centro en pies cuadrados.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>cc_hours</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo horario de el centro de llamadas.</td>
+<td>Horario de apertura del centro.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>cc_manager</code></td>
 <td><code>varchar(40)</code></td>
-<td>Atributo responsable de el centro de llamadas.</td>
+<td>Nombre del responsable del centro.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14558,7 +14693,7 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_mkt_class</code></td>
 <td><code>char(50)</code></td>
-<td>Atributo mkt clase de el centro de llamadas.</td>
+<td>Descripción de la clase de mercado del centro.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14570,13 +14705,13 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_market_manager</code></td>
 <td><code>varchar(40)</code></td>
-<td>Atributo mercado responsable de el centro de llamadas.</td>
+<td>Nombre del responsable de mercado del centro.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>cc_division</code></td>
 <td><code>integer</code></td>
-<td>Atributo división de el centro de llamadas.</td>
+<td>División de la empresa a la que pertenece el centro.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14588,7 +14723,7 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_company</code></td>
 <td><code>integer</code></td>
-<td>Atributo empresa de el centro de llamadas.</td>
+<td>Identificador de la empresa que opera el centro.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14612,7 +14747,7 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_street_type</code></td>
 <td><code>char(15)</code></td>
-<td>Atributo calle tipo de el centro de llamadas.</td>
+<td>Tipo de vía de la dirección del centro.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14642,7 +14777,7 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_zip</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo código postal de el centro de llamadas.</td>
+<td>Código postal del centro.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -14654,13 +14789,13 @@ superficie, dirección, mercado, división y empresa.</p>
 <tr>
 <td><code>cc_gmt_offset</code></td>
 <td><code>decimal(5,2)</code></td>
-<td>Atributo gmt offset de el centro de llamadas.</td>
+<td>Desplazamiento horario del centro respecto de GMT.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>cc_tax_percentage</code></td>
 <td><code>decimal(5,2)</code></td>
-<td>Atributo impuesto porcentaje de el centro de llamadas.</td>
+<td>Porcentaje de impuesto aplicado por el centro.</td>
 <td>—</td>
 </tr>
 </tbody>
@@ -14669,7 +14804,7 @@ superficie, dirección, mercado, división y empresa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=165">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14702,13 +14837,13 @@ número de catálogo, página, descripción y tipo.</p>
 <tr>
 <td><code>cp_start_date_sk</code></td>
 <td><code>integer</code></td>
-<td>Clave que enlaza la página del catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>cp_end_date_sk</code></td>
 <td><code>integer</code></td>
-<td>Clave que enlaza la página del catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -14747,7 +14882,7 @@ número de catálogo, página, descripción y tipo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14780,19 +14915,19 @@ publicitarios, propósito y si el descuento está activo.</p>
 <tr>
 <td><code>p_start_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la promoción con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>p_end_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la promoción con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>p_item_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la promoción con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → item.i_item_sk</td>
 </tr>
 <tr>
@@ -14887,7 +15022,7 @@ conservarse al escribir SQL contra esta tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=159">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14929,7 +15064,7 @@ devoluciones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=160">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=168">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14961,25 +15096,25 @@ devoluciones.</p>
 <tr>
 <td><code>sm_type</code></td>
 <td><code>char(30)</code></td>
-<td>Atributo tipo de el modo de envío.</td>
+<td>Tipo de modo de envío.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>sm_code</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo code de el modo de envío.</td>
+<td>Código del modo de envío.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>sm_carrier</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo transportista de el modo de envío.</td>
+<td>Transportista responsable del modo de envío.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>sm_contract</code></td>
 <td><code>char(20)</code></td>
-<td>Atributo contract de el modo de envío.</td>
+<td>Contrato asociado al modo de envío.</td>
 <td>—</td>
 </tr>
 </tbody>
@@ -14988,7 +15123,7 @@ devoluciones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15033,13 +15168,13 @@ contenido y publicidad.</p>
 <tr>
 <td><code>wp_creation_date_sk</code></td>
 <td><code>integer</code></td>
-<td>Clave que enlaza la página web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>wp_access_date_sk</code></td>
 <td><code>integer</code></td>
-<td>Clave que enlaza la página web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -15051,7 +15186,7 @@ contenido y publicidad.</p>
 <tr>
 <td><code>wp_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la página web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
@@ -15096,7 +15231,7 @@ contenido y publicidad.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=162">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=170">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15147,25 +15282,25 @@ apertura y cierre.</p>
 <tr>
 <td><code>web_open_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el sitio web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>web_close_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza el sitio web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>web_class</code></td>
 <td><code>varchar(50)</code></td>
-<td>Atributo clase de el sitio web.</td>
+<td>Clase del sitio web.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>web_manager</code></td>
 <td><code>varchar(40)</code></td>
-<td>Atributo responsable de el sitio web.</td>
+<td>Nombre del responsable del sitio web.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15177,7 +15312,7 @@ apertura y cierre.</p>
 <tr>
 <td><code>web_mkt_class</code></td>
 <td><code>varchar(50)</code></td>
-<td>Atributo mkt clase de el sitio web.</td>
+<td>Descripción de la clase de mercado del sitio web.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15189,7 +15324,7 @@ apertura y cierre.</p>
 <tr>
 <td><code>web_market_manager</code></td>
 <td><code>varchar(40)</code></td>
-<td>Atributo mercado responsable de el sitio web.</td>
+<td>Nombre del responsable de mercado del sitio web.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15219,7 +15354,7 @@ apertura y cierre.</p>
 <tr>
 <td><code>web_street_type</code></td>
 <td><code>char(15)</code></td>
-<td>Atributo calle tipo de el sitio web.</td>
+<td>Tipo de vía de la dirección del sitio web.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15249,7 +15384,7 @@ apertura y cierre.</p>
 <tr>
 <td><code>web_zip</code></td>
 <td><code>char(10)</code></td>
-<td>Atributo código postal de el sitio web.</td>
+<td>Código postal del sitio web.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15261,13 +15396,13 @@ apertura y cierre.</p>
 <tr>
 <td><code>web_gmt_offset</code></td>
 <td><code>decimal(5,2)</code></td>
-<td>Atributo gmt offset de el sitio web.</td>
+<td>Desplazamiento horario del sitio respecto de GMT.</td>
 <td>—</td>
 </tr>
 <tr>
 <td><code>web_tax_percentage</code></td>
 <td><code>decimal(5,2)</code></td>
-<td>Atributo impuesto porcentaje de el sitio web.</td>
+<td>Porcentaje de impuesto aplicado por el sitio web.</td>
 <td>—</td>
 </tr>
 </tbody>
@@ -15276,7 +15411,7 @@ apertura y cierre.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=163">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=171">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15290,7 +15425,7 @@ para agregaciones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=172">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15312,13 +15447,13 @@ beneficio.</p>
 <tr>
 <td><code>ss_sold_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>ss_sold_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
@@ -15330,37 +15465,37 @@ beneficio.</p>
 <tr>
 <td><code>ss_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>ss_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ss_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ss_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>ss_store_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → store.s_store_sk</td>
 </tr>
 <tr>
 <td><code>ss_promo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → promotion.p_promo_sk</td>
 </tr>
 <tr>
@@ -15372,7 +15507,7 @@ beneficio.</p>
 <tr>
 <td><code>ss_quantity</code></td>
 <td><code>integer</code></td>
-<td>Cantidad de unidades de cantidad.</td>
+<td>Cantidad de unidades vendidas.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15453,7 +15588,7 @@ beneficio.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=165">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=173">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15475,91 +15610,91 @@ modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>cs_sold_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>cs_sold_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
 <td><code>cs_ship_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>cs_bill_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>cs_bill_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cs_bill_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cs_bill_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>cs_ship_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>cs_ship_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cs_ship_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cs_ship_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>cs_call_center_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → call_center.cc_call_center_sk</td>
 </tr>
 <tr>
 <td><code>cs_catalog_page_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → catalog_page.cp_catalog_page_sk</td>
 </tr>
 <tr>
 <td><code>cs_ship_mode_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → ship_mode.sm_ship_mode_sk</td>
 </tr>
 <tr>
 <td><code>cs_warehouse_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → warehouse.w_warehouse_sk</td>
 </tr>
 <tr>
@@ -15571,7 +15706,7 @@ modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>cs_promo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta por catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → promotion.p_promo_sk</td>
 </tr>
 <tr>
@@ -15583,7 +15718,7 @@ modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>cs_quantity</code></td>
 <td><code>integer</code></td>
-<td>Cantidad de unidades de cantidad.</td>
+<td>Cantidad de unidades vendidas.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15682,7 +15817,7 @@ modo de envío, almacén, producto y promoción.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=174">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15703,19 +15838,19 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>ws_sold_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>ws_sold_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -15727,79 +15862,79 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>ws_bill_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>ws_bill_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_bill_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_bill_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>ws_web_page_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → web_page.wp_web_page_sk</td>
 </tr>
 <tr>
 <td><code>ws_web_site_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → web_site.web_site_sk</td>
 </tr>
 <tr>
 <td><code>ws_ship_mode_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → ship_mode.sm_ship_mode_sk</td>
 </tr>
 <tr>
 <td><code>ws_warehouse_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → warehouse.w_warehouse_sk</td>
 </tr>
 <tr>
 <td><code>ws_promo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la venta web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → promotion.p_promo_sk</td>
 </tr>
 <tr>
@@ -15811,7 +15946,7 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 <tr>
 <td><code>ws_quantity</code></td>
 <td><code>integer</code></td>
-<td>Cantidad de unidades de cantidad.</td>
+<td>Cantidad de unidades vendidas.</td>
 <td>—</td>
 </tr>
 <tr>
@@ -15910,7 +16045,7 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15931,13 +16066,13 @@ impuestos, comisiones, gastos de envío y pérdida neta.</p>
 <tr>
 <td><code>sr_returned_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>sr_return_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
@@ -15949,37 +16084,37 @@ impuestos, comisiones, gastos de envío y pérdida neta.</p>
 <tr>
 <td><code>sr_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>sr_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>sr_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>sr_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>sr_store_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → store.s_store_sk</td>
 </tr>
 <tr>
 <td><code>sr_reason_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución en tienda con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → reason.r_reason_sk</td>
 </tr>
 <tr>
@@ -16054,7 +16189,7 @@ impuestos, comisiones, gastos de envío y pérdida neta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=168">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=176">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16075,13 +16210,13 @@ devuelve como al centro de llamadas, página, transporte, almacén y motivo.</p>
 <tr>
 <td><code>cr_returned_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
 <td><code>cr_returned_time_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → time_dim.t_time_sk</td>
 </tr>
 <tr>
@@ -16093,79 +16228,79 @@ devuelve como al centro de llamadas, página, transporte, almacén y motivo.</p>
 <tr>
 <td><code>cr_refunded_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>cr_refunded_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cr_refunded_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cr_refunded_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>cr_returning_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>cr_returning_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cr_returning_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>cr_returning_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>cr_call_center_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → call_center.cc_call_center_sk</td>
 </tr>
 <tr>
 <td><code>cr_catalog_page_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → catalog_page.cp_catalog_page_sk</td>
 </tr>
 <tr>
 <td><code>cr_ship_mode_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → ship_mode.sm_ship_mode_sk</td>
 </tr>
 <tr>
 <td><code>cr_warehouse_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → warehouse.w_warehouse_sk</td>
 </tr>
 <tr>
 <td><code>cr_reason_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución de catálogo con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → reason.r_reason_sk</td>
 </tr>
 <tr>
@@ -16240,7 +16375,7 @@ devuelve como al centro de llamadas, página, transporte, almacén y motivo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16261,7 +16396,7 @@ relaciones de cliente, domicilio, producto y pedido.</p>
 <tr>
 <td><code>wr_returned_date_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → date_dim.d_date_sk</td>
 </tr>
 <tr>
@@ -16279,61 +16414,61 @@ relaciones de cliente, domicilio, producto y pedido.</p>
 <tr>
 <td><code>wr_refunded_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>wr_refunded_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>wr_refunded_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>wr_refunded_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>wr_returning_customer_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer.c_customer_sk</td>
 </tr>
 <tr>
 <td><code>wr_returning_cdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_demographics.cd_demo_sk</td>
 </tr>
 <tr>
 <td><code>wr_returning_hdemo_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → household_demographics.hd_demo_sk</td>
 </tr>
 <tr>
 <td><code>wr_returning_addr_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → customer_address.ca_address_sk</td>
 </tr>
 <tr>
 <td><code>wr_web_page_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → web_page.wp_web_page_sk</td>
 </tr>
 <tr>
 <td><code>wr_reason_sk</code></td>
 <td><code>bigint</code></td>
-<td>Clave que enlaza la devolución web con la tabla indicada en la relación.</td>
+<td>Clave foránea; ver la columna «Clave / relación».</td>
 <td>FK → reason.r_reason_sk</td>
 </tr>
 <tr>
@@ -16408,7 +16543,7 @@ relaciones de cliente, domicilio, producto y pedido.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=170">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=178">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

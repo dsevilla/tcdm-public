@@ -8500,8 +8500,9 @@ y por categoría de producto.</p>
     <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">,</span> <span class="s2">"ws_net_profit"</span><span class="p">)</span>
 <span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en item: </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">item</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">18_000</span>
+<span class="n">n_item</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en item: </span><span class="si">{</span><span class="n">n_item</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">n_item</span> <span class="o">==</span> <span class="mi">18_000</span>
 </pre></div>
 </div>
 </div>
@@ -8522,7 +8523,7 @@ y por categoría de producto.</p>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">))</span>
     <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="n">rollup_year_category</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">rollup_year_category</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8558,7 +8559,7 @@ cualquier año" de forma aislada.</p>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">))</span>
     <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="n">cube_year_category</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">cube_year_category</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8602,18 +8603,23 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 <span class="n">customer</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/customer"</span><span class="p">)</span>
 <span class="n">customer_address</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/customer_address"</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en customer: </span><span class="si">{</span><span class="n">customer</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en customer_address: </span><span class="si">{</span><span class="n">customer_address</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">customer</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">100_000</span>
-<span class="k">assert</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">50_000</span>
+<span class="n">n_customer</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">customer</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">n_customer_address</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en customer: </span><span class="si">{</span><span class="n">n_customer</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en customer_address: </span><span class="si">{</span><span class="n">n_customer_address</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">n_customer</span> <span class="o">==</span> <span class="mi">100_000</span>
+<span class="k">assert</span> <span class="n">n_customer_address</span> <span class="o">==</span> <span class="mi">50_000</span>
 
+<span class="c1"># Mismo filtro que usó S2 para reconocer las direcciones ya cruzadas con el</span>
+<span class="c1"># INE: país fijado a España, municipio y provincia no nulos, y código de</span>
+<span class="c1"># provincia de dos dígitos.</span>
 <span class="n">localized_addresses</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
     <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_country"</span><span class="p">))</span> <span class="o">==</span> <span class="s2">"España"</span><span class="p">)</span>
     <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_city"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">()</span>
     <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_county"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">()</span>
     <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_state"</span><span class="p">))</span><span class="o">.</span><span class="n">rlike</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[0-9]</span><span class="si">{2}</span><span class="s2">$"</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="k">assert</span> <span class="n">localized_addresses</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">50_000</span>
+<span class="k">assert</span> <span class="n">localized_addresses</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="n">n_customer_address</span>
 
 <span class="n">web_sales_slim</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
     <span class="s2">"ws_order_number"</span><span class="p">,</span> <span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span> <span class="s2">"ws_bill_addr_sk"</span><span class="p">,</span> <span class="s2">"ws_net_profit"</span>
@@ -8695,9 +8701,10 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">left_semi</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales_slim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">customer_address</span><span class="p">,</span> <span class="n">join_expr</span><span class="p">,</span> <span class="s2">"left_semi"</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">left_semi</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales_slim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">localized_addresses</span><span class="p">,</span> <span class="n">join_expr</span><span class="p">,</span> <span class="s2">"left_semi"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span>
-    <span class="sa">f</span><span class="s2">"LEFT SEMI JOIN: </span><span class="si">{</span><span class="n">left_semi</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2"> filas de web_sales cuyo domicilio existe en customer_address."</span>
+    <span class="sa">f</span><span class="s2">"LEFT SEMI JOIN: </span><span class="si">{</span><span class="n">left_semi</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2"> filas de web_sales cuyo domicilio existe"</span>
+    <span class="s2">" y está localizado (municipio del INE) en customer_address."</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -9069,7 +9076,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Regla sesión: usa una UDF sólo cuando no exista una combinación de
+<p>Regla de la sesión: usa una UDF sólo cuando no exista una combinación de
 funciones integradas que exprese la misma lógica.</p>
 </div>
 </div>
@@ -9293,10 +9300,12 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 <div class="highlight hl-python"><pre><span></span><span class="n">web_sales</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"web_sales"</span><span class="p">)</span>
 <span class="n">customer</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"customer"</span><span class="p">)</span>
 <span class="n">customer_address</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"customer_address"</span><span class="p">)</span>
+<span class="n">date_dim</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"date_dim"</span><span class="p">)</span>
 
 <span class="n">time_dim</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/time_dim"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en time_dim: </span><span class="si">{</span><span class="n">time_dim</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">time_dim</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">86_400</span>
+<span class="n">n_time_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">time_dim</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en time_dim: </span><span class="si">{</span><span class="n">n_time_dim</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">n_time_dim</span> <span class="o">==</span> <span class="mi">86_400</span>
 <span class="n">time_dim</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"time_dim"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -9437,14 +9446,56 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Guardar-resultados">Guardar resultados<a class="anchor-link" href="#Guardar-resultados">¶</a></h2><p>Escribimos la agregación de beneficio por año y categoría (<code>rollup_year_category</code>
-ya construida, sin las filas de subtotal) en HDFS, bajo una ruta de trabajo
-separada de <code>/datalake</code>. Primero preparamos el espacio de trabajo de esta
-sesión.</p>
+<h3 id="Beneficio-neto-por-a%C3%B1o">Beneficio neto por año<a class="anchor-link" href="#Beneficio-neto-por-a%C3%B1o">¶</a></h3><p>Esta consulta no viene de S2: es la misma agregación que ejecutará más
+adelante el trabajo que se envía a YARN (<code>spark_sum(ws_net_profit)</code>,
+<code>count(DISTINCT ws_order_number)</code> y <code>count(*)</code>, agrupando por <code>d_year</code>).
+Guardamos el resultado en local para compararlo con el que produzca YARN
+sobre los mismos datos.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">sales_by_year_local</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT</span>
+<span class="s2">        d.d_year,</span>
+<span class="s2">        sum(s.ws_net_profit) AS beneficio_neto_total,</span>
+<span class="s2">        count(DISTINCT s.ws_order_number) AS pedidos_distintos,</span>
+<span class="s2">        count(*) AS lineas_de_venta</span>
+<span class="s2">    FROM web_sales AS s</span>
+<span class="s2">    JOIN date_dim AS d</span>
+<span class="s2">        ON s.ws_sold_date_sk = d.d_date_sk</span>
+<span class="s2">    GROUP BY d.d_year</span>
+<span class="s2">    ORDER BY d.d_year</span>
+<span class="s2">"""</span><span class="p">)</span>
+<span class="n">sales_by_year_local</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Guardar-resultados">Guardar resultados<a class="anchor-link" href="#Guardar-resultados">¶</a></h2><p>Escribimos la agregación de beneficio por año y categoría en HDFS, bajo una
+ruta de trabajo separada de <code>/datalake</code>. Es un <code>groupBy</code> normal sobre
+<code>web_sales_dated_categorized</code>, no el <code>rollup</code> de la sección anterior: aquí
+no hace falta ninguna fila de subtotal, sólo el detalle por año y
+categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9458,7 +9509,7 @@ sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9476,20 +9527,21 @@ sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="El-problema-de-los-ficheros-peque%C3%B1os">El problema de los ficheros pequeños<a class="anchor-link" href="#El-problema-de-los-ficheros-peque%C3%B1os">¶</a></h3><p>Si repartimos el resultado en muchas particiones antes de escribir, Spark
-crea un fichero Parquet por partición, aunque la mayoría queden casi
-vacíos: es el problema de los "ficheros pequeños" que tanto penaliza a
-HDFS y a los motores que después lean esa tabla.</p>
+crea hasta un fichero Parquet por partición (las particiones vacías no
+llegan a escribir fichero), y la mayoría de las que sí escriben quedan
+casi vacías: es el problema de los "ficheros pequeños" que tanto penaliza
+a HDFS y a los motores que después lean esa tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9504,7 +9556,7 @@ HDFS y a los motores que después lean esa tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9519,7 +9571,7 @@ HDFS y a los motores que después lean esa tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9532,7 +9584,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9547,7 +9599,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9562,7 +9614,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9575,7 +9627,7 @@ valores de columna.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9595,7 +9647,7 @@ haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=95">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9618,7 +9670,7 @@ haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9641,7 +9693,7 @@ haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9656,7 +9708,7 @@ en lugar de suponer el efecto sólo por el nombre de la función.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9665,11 +9717,16 @@ en lugar de suponer el efecto sólo por el nombre de la función.</p>
 <h2 id="Configuraci%C3%B3n-del-shuffle">Configuración del shuffle<a class="anchor-link" href="#Configuraci%C3%B3n-del-shuffle">¶</a></h2><p><code>spark.sql.shuffle.partitions</code> fija cuántas particiones produce cualquier
 operación <em>wide</em>. Lo comprobamos con una agregación de <code>store_sales</code>
 —2.880.404 filas, la mayor tabla de hechos que usaremos en esta
-sesión— por año de venta.</p>
+sesión— por año de venta. Desactivamos primero Adaptive Query Execution
+(activo por defecto en Spark 4): si no, AQE podría fusionar particiones de
+<em>shuffle</em> pequeñas él mismo y el número de particiones que se imprime a
+continuación dejaría de depender solo de <code>shuffle.partitions</code>. La
+reactivamos al terminar esta demostración, antes de la sección dedicada a
+AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9677,9 +9734,12 @@ sesión— por año de venta.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">store_sales</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/store_sales"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en store_sales: </span><span class="si">{</span><span class="n">store_sales</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2_880_404</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.adaptive.enabled"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">)</span>
+
+<span class="n">store_sales</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/store_sales"</span><span class="p">)</span>
+<span class="n">n_store_sales</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en store_sales: </span><span class="si">{</span><span class="n">n_store_sales</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">n_store_sales</span> <span class="o">==</span> <span class="mi">2_880_404</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"spark.sql.shuffle.partitions actual: </span><span class="si">{</span><span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'spark.sql.shuffle.partitions'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
@@ -9687,7 +9747,7 @@ sesión— por año de venta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9708,7 +9768,7 @@ sesión— por año de venta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9727,15 +9787,16 @@ sesión— por año de venta.</p>
     <span class="sa">f</span><span class="s2">"Particiones tras el groupBy (shuffle.partitions=3): </span><span class="si">{</span><span class="n">store_sales_by_year_3</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
 
-<span class="c1"># Volvemos al valor usado en el resto del notebook</span>
+<span class="c1"># Volvemos a los valores usados en el resto del notebook</span>
 <span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.shuffle.partitions"</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.adaptive.enabled"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9749,7 +9810,7 @@ en el siguiente paso del pipeline.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9764,7 +9825,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9786,7 +9847,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9810,7 +9871,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9838,22 +9899,25 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El filtro <code>d_year == sample_year</code> deja muy pocas filas de las 2.880.404
-originales; sin AQE, esas pocas filas quedarían repartidas en 200
-particiones de <em>shuffle</em> casi vacías. Con <code>coalescePartitions</code> habilitado,
-Spark las fusiona en menos particiones <strong>después</strong> de ver cuántas filas
-sobrevivieron al filtro, no antes.</p>
+<p>El filtro <code>d_year == sample_year</code> selecciona un único año de los varios
+que hay en <code>date_dim</code>; el <code>groupBy("d_year")</code> posterior agrupa todas esas
+filas bajo una sola clave, así que el <em>shuffle</em> concentra casi todo en una
+partición y deja las otras 199 vacías. Sin AQE, esas 200 particiones de
+<em>shuffle</em> casi vacías se mantienen tal cual. Con <code>coalescePartitions</code>
+habilitado, Spark las fusiona en menos particiones <strong>después</strong> de ver
+cuántas filas sobrevivieron al filtro y a cuántas claves de agrupación se
+redujeron, no antes.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=108">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9867,7 +9931,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9887,7 +9951,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9903,7 +9967,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9916,7 +9980,7 @@ transformación, no queda cacheado automáticamente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9931,7 +9995,7 @@ transformación, no queda cacheado automáticamente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9954,7 +10018,7 @@ transformación, no queda cacheado automáticamente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9968,7 +10032,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9983,7 +10047,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9997,7 +10061,7 @@ mediante <code>spark-submit</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10025,7 +10089,7 @@ nuevo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10049,7 +10113,7 @@ que ejecuta ese código ya distribuido.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=119">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10063,7 +10127,7 @@ que ejecuta ese código ya distribuido.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10071,14 +10135,14 @@ que ejecuta ese código ya distribuido.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">luser</span><span class="o">/.</span><span class="n">venv</span><span class="o">-</span><span class="n">tcdm</span><span class="o">-</span><span class="n">s4</span><span class="o">-</span><span class="n">yarn</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">quiet</span> <span class="s1">'pyspark&gt;4,&lt;4.2'</span>
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">luser</span><span class="o">/.</span><span class="n">venv</span><span class="o">-</span><span class="n">tcdm</span><span class="o">-</span><span class="n">s4</span><span class="o">-</span><span class="n">yarn</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">quiet</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10094,7 +10158,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10146,15 +10210,11 @@ varios DataNodes.</p>
 <span class="s1">    web_sales.select("ws_order_number").rdd.mapPartitionsWithIndex(describe_partition).collect()</span>
 <span class="s1">)</span>
 
-<span class="s1">registered_executors = spark.sparkContext._jsc.sc().getExecutorMemoryStatus().size() - 1</span>
-<span class="s1">reports = [(*report, registered_executors) for report in reports]</span>
-
 <span class="s1">report_schema = StructType(</span>
 <span class="s1">    [</span>
 <span class="s1">        StructField("partition", IntegerType(), False),</span>
 <span class="s1">        StructField("executor_host", StringType(), False),</span>
 <span class="s1">        StructField("records", LongType(), False),</span>
-<span class="s1">        StructField("registered_executors", IntegerType(), False),</span>
 <span class="s1">    ]</span>
 <span class="s1">)</span>
 <span class="s1">(</span>
@@ -10165,7 +10225,8 @@ varios DataNodes.</p>
 <span class="s1">    .csv(EXECUTOR_REPORT_OUTPUT, header=True)</span>
 <span class="s1">)</span>
 
-<span class="s1">print(f"Ejecutores remotos registrados: </span><span class="si">{registered_executors}</span><span class="s1">")</span>
+<span class="s1">distinct_hosts = {report[1] for report in reports}</span>
+<span class="s1">print(f"Hosts remotos que procesaron alguna partición: {sorted(distinct_hosts)}")</span>
 <span class="s1">spark.stop()</span>
 <span class="s1">'''</span>
 
@@ -10177,7 +10238,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10189,7 +10250,7 @@ que YARN anuncia como
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10218,7 +10279,7 @@ que YARN anuncia como
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10236,7 +10297,7 @@ que YARN anuncia como
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10269,7 +10330,7 @@ acabamos de instalar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10299,7 +10360,7 @@ acabamos de instalar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10314,7 +10375,7 @@ acabamos de instalar.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10326,7 +10387,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10340,7 +10401,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10354,7 +10415,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10369,7 +10430,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10381,7 +10442,7 @@ DataNodes remotos participan cuando los recursos lo permiten.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10401,6 +10462,7 @@ DataNodes remotos participan cuando los recursos lo permiten.</p>
 <span class="n">executor_hosts</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">report_lines</span><span class="p">}</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Hosts que procesaron al menos una partición: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">executor_hosts</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ejecutores remotos que trabajaron: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">executor_hosts</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">executor_hosts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"Se esperan al menos dos hosts remotos distintos"</span>
 </pre></div>
 </div>
@@ -10408,7 +10470,7 @@ DataNodes remotos participan cuando los recursos lo permiten.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10423,7 +10485,7 @@ coordinados por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10456,7 +10518,7 @@ ser la misma consultando el mismo dataset inmutable.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10483,14 +10545,14 @@ cuántos ejecutores pedir a YARN)?</li>
 <li>¿Por qué la sección de YARN no pudo reutilizar la <code>SparkSession</code> local
 del resto del notebook? ¿Qué tuvo que crearse aparte y por qué?</li>
 <li>En la sección de UDFs, ¿qué información concreta pierde Spark al no
-poder "mirar dentro" de una función Python, y qué consecuencia sesión
-tiene eso sobre el rendimiento?</li>
+poder "mirar dentro" de una función Python, y qué consecuencia tiene
+eso sobre el rendimiento?</li>
 </ul>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10504,9 +10566,9 @@ tiene eso sobre el rendimiento?</li>
 (por ejemplo, el <em>broadcast join</em> con <code>customer_address</code>).</li>
 <li>El número de particiones de un DataFrame antes y después de un
 <code>repartition</code> o un <code>coalesce</code>.</li>
-<li>La aplicación YARN completada (<code>yarn application -list -appStates ALL</code>),
-el número de ejecutores remotos registrados y la lista de al menos dos
-hosts distintos que procesaron alguna partición.</li>
+<li>La aplicación YARN completada (<code>yarn application -list -appStates ALL</code>)
+y la lista de al menos dos hosts distintos que procesaron alguna
+partición (de ahí se deduce cuántos ejecutores remotos trabajaron).</li>
 <li>El resultado de negocio (beneficio neto por año de <code>web_sales</code>) obtenido
 en local con Spark SQL y el mismo resultado obtenido sobre YARN,
 comprobando que coinciden.</li>
@@ -10517,7 +10579,7 @@ partición de ejecución de Spark, una partición Hive y un bloque HDFS.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

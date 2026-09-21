@@ -7870,9 +7870,10 @@ el kernel de este notebook no tiene el socket de Docker.</p>
 <div class="highlight"><pre><span></span>s3://tcdm-datalake/raw/tpcds/date_dim/part-...
 </pre></div>
 <p>Se conserva así la misma arquitectura <em>medallion</em>: <code>raw</code> identifica la
-capa, <code>tpcds</code> la fuente y <code>date_dim</code> la tabla. Los prefijos <code>silver/</code> y
-<code>gold/</code> aparecerán cuando se escriban objetos en esas capas; no hace falta
-crear directorios vacíos ni objetos marcadores.</p>
+capa, <code>tpcds</code> la fuente y <code>date_dim</code> la tabla. Esta sesión solo escribe en
+<code>raw/</code>: las sesiones 5 a 7 añaden las capas <code>silver/</code> y <code>gold/</code>, pero lo
+hacen sobre HDFS, no sobre este bucket. Aquí se observa el patrón de
+prefijos por capa, no un data lake S3 con las tres capas completas.</p>
 <p>La apariencia de directorios es una convención: S3 no necesita crear un
 directorio <code>date_dim</code>, el texto separado por <code>/</code> forma parte de la clave del
 objeto. Esto tiene consecuencias prácticas:</p>
@@ -7888,8 +7889,9 @@ deben suponerse idénticas a las de HDFS.</li>
 </ul>
 <p>Los ficheros Parquet no cambian al copiarlos: siguen teniendo su esquema,
 metadatos y firma <code>PAR1</code>, pero ahora el lector los obtiene mediante la API de
-objetos. El prefijo agrupa físicamente la colección de objetos Parquet que
-corresponde a <code>date_dim</code>.</p>
+objetos. El prefijo agrupa <em>lógicamente</em> la colección de objetos Parquet que
+corresponde a <code>date_dim</code>: no hay ningún directorio físico, solo objetos cuya
+clave comparte ese mismo texto de prefijo.</p>
 <h2 id="El-servicio-local-RustFS">El servicio local RustFS<a class="anchor-link" href="#El-servicio-local-RustFS">¶</a></h2><p>Se usa RustFS como almacenamiento S3-compatible local: permite trabajar con
 clientes estándar de AWS mediante un servicio aislado conectado a la red del
 laboratorio. El Compose de esta sesión está en
@@ -8024,13 +8026,62 @@ anterior. HDFS permanece intacto: sigue siendo la fuente <code>raw</code> creada
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Traer-los-programas-de-la-sesi%C3%B3n-al-kernel">Traer los programas de la sesión al kernel<a class="anchor-link" href="#Traer-los-programas-de-la-sesi%C3%B3n-al-kernel">¶</a></h2><p>Este notebook se ejecuta dentro de <code>namenode</code>, igual que en S2, y ese
+contenedor no monta el directorio <code>entorno/sesiones/s3</code> de tu distribución
+local: los cuatro programas de la sesión (<code>check_s3_api.py</code>,
+<code>read_s3_pyarrow.py</code>, <code>read_s3_polars.py</code>, <code>read_s3_duckdb.py</code>) y
+<code>requirements.txt</code> todavía no existen en el directorio de trabajo del
+kernel. La siguiente celda los descarga del repositorio público
+<code>dsevilla/tcdm-public</code> (rama <code>26-27</code>), igual que S2 descarga la instantánea
+del INE.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
+
+<span class="n">SESSION_FILES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"requirements.txt"</span><span class="p">,</span>
+    <span class="s2">"check_s3_api.py"</span><span class="p">,</span>
+    <span class="s2">"read_s3_pyarrow.py"</span><span class="p">,</span>
+    <span class="s2">"read_s3_polars.py"</span><span class="p">,</span>
+    <span class="s2">"read_s3_duckdb.py"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/s3"</span>
+
+<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">SESSION_FILES</span><span class="p">:</span>
+    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="s2">"Mozilla/5.0"</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Descargados </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">SESSION_FILES</span><span class="p">)</span><span class="si">}</span><span class="s2"> ficheros de la sesión al directorio de trabajo del kernel"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">Instalar las dependencias de la sesión en este kernel<a class="anchor-link" href="#Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">¶</a></h2><p>A partir de aquí todo se ejecuta desde este mismo notebook. Se instalan las
 dependencias de <a href="requirements.txt"><code>requirements.txt</code></a> en el entorno del
 kernel actual.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8045,7 +8096,7 @@ kernel actual.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8060,7 +8111,7 @@ programas de esta sesión como subprocesos):</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8079,7 +8130,7 @@ programas de esta sesión como subprocesos):</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8094,7 +8145,7 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=12">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8176,7 +8227,7 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8191,7 +8242,7 @@ contenedor.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=12">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8206,15 +8257,16 @@ contenedor.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La última respuesta impresa debe ser <code>b'PAR1'</code>: confirma que el objeto
-remoto comienza con la firma de Parquet y que el acceso por rangos HTTP
-funciona, sin haber descargado el objeto completo.</p>
+<p>El programa termina imprimiendo <code>TCDM_S3_API_OK</code> después de comprobar que
+la respuesta de <code>get_object(Range=...)</code> es exactamente <code>b'PAR1'</code>: confirma
+que el objeto remoto comienza con la firma de Parquet y que el acceso por
+rangos HTTP funciona, sin haber descargado el objeto completo.</p>
 <h2 id="Explorar-con-PyArrow">Explorar con PyArrow<a class="anchor-link" href="#Explorar-con-PyArrow">¶</a></h2><p><a href="read_s3_pyarrow.py"><code>read_s3_pyarrow.py</code></a> utiliza <code>s3fs</code> (que implementa el
 acceso S3 mediante el SDK de AWS) y adapta ese filesystem a PyArrow mediante
 <code>FSSpecHandler</code>:</p>
@@ -8233,7 +8285,7 @@ los objetos del prefijo y excluye explícitamente <code>_SUCCESS</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8249,7 +8301,7 @@ los objetos del prefijo y excluye explícitamente <code>_SUCCESS</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8269,7 +8321,7 @@ mayores (sesión 4).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8285,7 +8337,7 @@ mayores (sesión 4).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8300,7 +8352,7 @@ endpoint puede ser RustFS local o Amazon S3.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=20">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8316,7 +8368,7 @@ endpoint puede ser RustFS local o Amazon S3.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8343,7 +8395,7 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=20">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8351,11 +8403,13 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">s3fs</span>
 
 <span class="n">filesystem</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">(</span>
-    <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"endpoint_url"</span><span class="p">:</span> <span class="s2">"http://rustfs:9000"</span><span class="p">}</span>
+    <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"endpoint_url"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">]}</span>
 <span class="p">)</span>
 <span class="n">date_fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">filesystem</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"tcdm-datalake/raw/tpcds/date_dim/*"</span><span class="p">))</span>
 <span class="k">assert</span> <span class="n">date_fragments</span><span class="p">,</span> <span class="s2">"No hay fragmentos de date_dim en S3"</span>
@@ -8368,7 +8422,7 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8421,15 +8475,23 @@ variables estándar del SDK de AWS, no mediante nada propio de RustFS:</p>
 </tr>
 </tbody>
 </table>
+<p><code>AWS_S3_ADDRESSING_STYLE</code> no es una variable que boto3 o el CLI de AWS lean
+de forma nativa: son los cuatro programas de esta sesión los que la leen
+con <code>os.environ.get(...)</code> y la pasan explícitamente a
+<code>Config(s3={'addressing_style': ...})</code>. Aquí hace falta <code>path</code> porque
+<code>tcdm-datalake</code> no es un nombre resoluble por DNS fuera del laboratorio; en
+Amazon S3 real, <code>virtual</code> —el estilo recomendado hoy por AWS— sí resolvería
+correctamente <code>tcdm-datalake.s3.&lt;región&gt;.amazonaws.com</code>, siempre que el
+bucket exista en esa región.</p>
 <p>Migrar a AWS real consiste en cambiar los valores de <code>%env</code> de más arriba
 (eliminando <code>AWS_ENDPOINT_URL</code>, usando credenciales IAM reales y
-opcionalmente <code>AWS_S3_ADDRESSING_STYLE=virtual</code>) y el nombre del bucket; el
-código de los cuatro programas no cambia.</p>
+<code>AWS_S3_ADDRESSING_STYLE=virtual</code>) y el nombre del bucket; el código de los
+cuatro programas no cambia.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8459,13 +8521,18 @@ notebook tampoco puede borrarte los datos por accidente):</p>
 </tr>
 </tbody>
 </table>
-<p>No confundas este <code>down -v</code> con el de la sesión 1: aquí sólo afecta al
-Compose de S3, no al clúster Hadoop ni a <code>/datalake</code> en HDFS.</p>
+<p>Este <code>down -v</code> sólo afecta al Compose de S3 (RustFS): no toca el clúster
+Hadoop ni el HDFS de la sesión 1, que desde la Sesión 1 vive en volúmenes
+Docker con nombre propios y solo se borra de forma explícita con
+<code>make -C entorno clean-hdfs</code>.</p>
+<p>Si en vez de las órdenes anteriores usas <code>make -C entorno clean</code>, también se
+borra el volumen de RustFS de esta sesión (<code>clean</code> hace <code>down -v</code> sobre el
+Compose de S3), aunque conserva el HDFS por el motivo anterior.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8489,10 +8556,11 @@ mismo resultado numérico usando dos caminos de acceso distintos?</li>
 </ul>
 <h2 id="Continuaci%C3%B3n-del-curso">Continuación del curso<a class="anchor-link" href="#Continuaci%C3%B3n-del-curso">¶</a></h2><p>Con HDFS y S3 sirviendo el mismo dataset TPC-DS SF1 en el mismo formato
 Parquet, la sesión 4 introduce Spark como motor de cómputo distribuido
-sobre ambos. Las sesiones 5 a 8 añadirán particionado físico, un catálogo
-(Hive Metastore y Trino) y finalmente Iceberg, momento en el que S3 dejará
-de ser sólo almacenamiento de objetos y pasará a alojar también un
-<em>lakehouse</em>.</p>
+sobre ambos. Las sesiones 5 a 8 añadirán particionado físico y un catálogo
+(Hive Metastore y Trino) sobre HDFS, y finalmente Iceberg sobre un
+almacenamiento S3-compatible propio (un bucket <code>tcdm-iceberg</code> distinto de
+<code>tcdm-datalake</code>), momento en el que ese almacenamiento de objetos dejará de
+ser solo almacenamiento y pasará a alojar también un <em>lakehouse</em>.</p>
 </div>
 </div>
 </div>

@@ -10017,6 +10017,13 @@ hay una copia de los metadatos.</p>
 PyArrow y Polars en una sesión posterior para leer datos sin pasar por el
 cliente <code>hdfs</code>. <code>dfs.namenode.http-address</code> es la dirección que publica esa
 interfaz de administración, la misma que se abre en <a href="http://localhost:9870">http://localhost:9870</a>.</p>
+<p><code>compose-hadoop-cluster.yml</code> monta cada una de estas dos rutas sobre un
+volumen Docker con nombre (<code>namenode-data</code>, <code>datanode1-data</code>,
+<code>datanode2-data</code>, <code>datanode3-data</code>), no sobre la capa de escritura del
+contenedor. Por eso el espacio de nombres y los bloques sobreviven a
+<code>docker compose down</code> y a la recreación de los contenedores: solo
+desaparecen si se borra explícitamente el volumen (ver «Detener, limpiar y
+recuperar el entorno», más adelante en esta sesión).</p>
 </div>
 </div>
 </div>
@@ -11507,14 +11514,19 @@ destruya tu propio trabajo.</p>
 <td>Borra el área <code>/user/luser/s1</code> para repetir la sesión desde cero sin regenerar el clúster. No borra <code>/warehouse</code>, <code>/tmp</code>, <code>/user</code> ni los directorios de otros usuarios, ni detiene contenedores ni borra <code>/tmp</code> local.</td>
 </tr>
 <tr>
-<td>Eliminar los contenedores (destructivo)</td>
+<td>Eliminar los contenedores</td>
 <td><code>docker compose -f ../entorno/compose-hadoop-cluster.yml down</code></td>
-<td>Este laboratorio guarda el estado HDFS en las capas de escritura de los contenedores, sin volúmenes persistentes: <code>down</code> <strong>elimina también los datos HDFS</strong>. No es equivalente a <code>stop</code>. También borra el almacén local del Timeline Server. La red externa <code>hadoop-cluster</code> no se elimina.</td>
+<td>Elimina los contenedores, pero <strong>conserva los datos HDFS</strong>: viven en los volúmenes con nombre <code>namenode-data</code>/<code>datanodeN-data</code>, no en la capa de escritura de los contenedores. Sí borra el almacén local (no persistido) del Timeline Server. La red externa <code>hadoop-cluster</code> no se elimina.</td>
 </tr>
 <tr>
-<td>Regenerar un clúster limpio</td>
+<td>Recrear los contenedores</td>
 <td><code>down</code> seguido de <code>up -d</code></td>
-<td>Vuelven a existir <code>/user/luser</code>, las tres capas de <code>/datalake</code> y <code>/warehouse</code>, pero no los datos de <code>/user/luser/s1</code> ni un TPC-DS que se hubiera materializado. No hace falta reconstruir las imágenes.</td>
+<td>Los mismos volúmenes HDFS se vuelven a montar: <code>/user/luser</code>, <code>/datalake</code>, <code>/warehouse</code>, los datos de <code>/user/luser/s1</code> y un TPC-DS ya materializado siguen ahí. No hace falta reconstruir las imágenes.</td>
+</tr>
+<tr>
+<td>Borrar también el HDFS (destructivo)</td>
+<td><code>docker volume rm tcdm-26-27-namenode-data tcdm-26-27-datanode1-data tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data</code> (con los contenedores ya eliminados)</td>
+<td>Vacía el espacio de nombres y los bloques: el próximo <code>up -d</code> arranca con un HDFS recién formateado, como la primera vez. Es la única orden de esta tabla que borra <code>/datalake/raw/tpcds</code> y cualquier otro dato ya materializado en sesiones posteriores. A partir de la Sesión 2, <code>entorno/Makefile</code> envuelve esta misma orden como <code>make clean-hdfs</code>.</td>
 </tr>
 </tbody>
 </table>

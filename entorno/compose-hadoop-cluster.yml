@@ -17,6 +17,13 @@ services:
     # El contenedor alojará también Jupyter y el driver de Spark en sesiones
     # posteriores, además de NameNode, ResourceManager y Timeline Server.
     mem_limit: 4096m
+    # dfs.namenode.name.dir (ver namenode.sh) vive en /var/data/hdfs/namenode.
+    # Sin este volumen, los metadatos HDFS quedan en la capa de escritura del
+    # contenedor y cualquier `docker compose down` —incluidos `make stop` y
+    # `make clean`— los destruye. El volumen es nuevo la primera vez que se
+    # usa: Docker lo rellena con el contenido ya formateado de la imagen.
+    volumes:
+      - namenode-data:/var/data/hdfs/namenode
     networks:
       hadoop-cluster:
         aliases:
@@ -35,6 +42,10 @@ services:
     # YARN anuncia 2560 MiB y deja 512 MiB para DataNode, NodeManager y el
     # resto de procesos del contenedor.
     mem_limit: 3072m
+    # dfs.datanode.data.dir (ver datanode.sh) vive en /var/data/hdfs/datanode.
+    # Cada DataNode necesita su propio volumen: no comparten bloques entre sí.
+    volumes:
+      - datanode1-data:/var/data/hdfs/datanode
     networks:
       hadoop-cluster:
 
@@ -46,6 +57,8 @@ services:
     # imagen: yarn.nodemanager.resource.cpu-vcores=2.
     cpus: 2.0
     mem_limit: 3072m
+    volumes:
+      - datanode2-data:/var/data/hdfs/datanode
     networks:
       hadoop-cluster:
 
@@ -57,6 +70,8 @@ services:
     # imagen: yarn.nodemanager.resource.cpu-vcores=2.
     cpus: 2.0
     mem_limit: 3072m
+    volumes:
+      - datanode3-data:/var/data/hdfs/datanode
     networks:
       hadoop-cluster:
 
@@ -64,3 +79,16 @@ networks:
   hadoop-cluster:
     external: true
     name: hadoop-cluster
+
+# Volúmenes con nombre explícito para poder referenciarlos desde `make
+# clean-hdfs` (ver Makefile) sin depender del prefijo que añadiría Compose
+# por defecto.
+volumes:
+  namenode-data:
+    name: tcdm-26-27-namenode-data
+  datanode1-data:
+    name: tcdm-26-27-datanode1-data
+  datanode2-data:
+    name: tcdm-26-27-datanode2-data
+  datanode3-data:
+    name: tcdm-26-27-datanode3-data
