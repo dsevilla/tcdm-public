@@ -3,7 +3,8 @@
 
 Este script no forma parte del flujo de la sesión que sigue el alumnado: es
 una herramienta de mantenimiento para quien edite el apéndice de esquema del
-notebook. Produce tres imágenes PNG en `img/`:
+notebook. Produce tres imágenes PNG en `26-27/teoria/figs/`, el directorio común
+de figuras del curso:
 
 - `tpcds_er_overview.png`: diagrama entidad-relación de las 24 tablas (clave
   primaria de cada una y aristas FK -> PK entre tablas).
@@ -32,7 +33,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Rectangle
 
-IMG_DIR = Path(__file__).parent / "img"
+IMG_DIR = Path(__file__).resolve().parents[2] / "teoria" / "figs"
 
 # category: "dim" | "fact"
 # pk: columnas de la clave primaria (compuesta en las tablas de hechos)
