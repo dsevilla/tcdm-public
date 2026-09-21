@@ -7862,6 +7862,115 @@ a una pregunta de negocio en <code>gold</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/dsevilla/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
+El alias <code>%%diapositiva</code> permite mantener en español los tipos usados en la sesión y produce la misma salida HTML en Jupyter, Colab y la referencia HTML publicada.</p>
+<p>En cada sesión encontrarás varios tipos de diapositivas que te ayudarán a:</p>
+<ul>
+<li><strong>Orientación:</strong> Mostrar dónde estamos en el programa y qué vamos a ver en esta sesión.</li>
+<li><strong>Resumen:</strong> Condensar partes complejas en puntos clave para recordar y revisar después.</li>
+<li><strong>Vista previa:</strong> Presentar de forma resumida el contenido que vas a desarrollar en detalle en las celdas siguientes.</li>
+</ul>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=2">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="s2">"jupyter-notebook-slide @ git+https://github.com/dsevilla/jupyter-notebook-slide.git"</span>
+<span class="o">%</span><span class="n">load_ext</span> <span class="n">notebook_slide</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">notebook_slide</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnbs</span>
+
+<span class="c1"># Colores de 26-27/teoria/tcdm.css, adaptados al tema de las sesiones.</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+    <span class="n">background</span><span class="o">=</span><span class="s2">"#eaf2f8"</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="s2">"#1f2933"</span><span class="p">,</span>
+    <span class="n">border</span><span class="o">=</span><span class="s2">"#c9d6e1"</span><span class="p">,</span>
+    <span class="n">heading</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">subheading</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">link</span><span class="o">=</span><span class="s2">"#174f7a"</span><span class="p">,</span>
+    <span class="n">code_background</span><span class="o">=</span><span class="s2">"#eaf2f8"</span><span class="p">,</span>
+    <span class="n">code_foreground</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">quote_background</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">font_family</span><span class="o">=</span><span class="s2">"Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif"</span><span class="p">,</span>
+    <span class="n">font_url</span><span class="o">=</span><span class="s2">"https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"avance"</span><span class="p">,</span> <span class="s2">"A continuación"</span><span class="p">,</span> <span class="s2">"#174f7a"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"resumen"</span><span class="p">,</span> <span class="s2">"Recapitulación"</span><span class="p">,</span> <span class="s2">"#a54467"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"pregunta"</span><span class="p">,</span> <span class="s2">"Pregunta guía"</span><span class="p">,</span> <span class="s2">"#0c304d"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"evaluacion"</span><span class="p">,</span> <span class="s2">"Evaluación de la sesión"</span><span class="p">,</span> <span class="s2">"#b3701a"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span>
+    <span class="s2">"titulo"</span><span class="p">,</span>
+    <span class="s2">"Sección"</span><span class="p">,</span>
+    <span class="s2">"#174f7a"</span><span class="p">,</span>
+    <span class="n">layout</span><span class="o">=</span><span class="s2">"title"</span><span class="p">,</span>
+    <span class="n">background</span><span class="o">=</span><span class="s2">"linear-gradient(135deg, #0c304d, #174f7a 62%, #a54467)"</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">border</span><span class="o">=</span><span class="s2">"transparent"</span><span class="p">,</span>
+    <span class="n">heading</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">subheading</span><span class="o">=</span><span class="s2">"#dceaf4"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_alias</span><span class="p">(</span><span class="s2">"diapositiva"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">titulo</span>
+<span class="c1"># Sesión 5: buenas prácticas de data lake y particionado físico</span>
+<span class="c1">## Cómo vamos a recorrer la sesión</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">mismo</span> <span class="n">TPC</span><span class="o">-</span><span class="n">DS</span> <span class="n">SF1</span> <span class="n">en</span> <span class="n">tres</span> <span class="n">versiones</span><span class="p">:</span> <span class="err">`</span><span class="n">raw</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">silver</span><span class="err">`</span> <span class="n">y</span> <span class="err">`</span><span class="n">gold</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Contratos</span><span class="p">,</span> <span class="n">calidad</span> <span class="n">y</span> <span class="n">mantenimiento</span><span class="p">:</span> <span class="n">un</span> <span class="n">data</span> <span class="n">lake</span> <span class="n">no</span> <span class="n">es</span> <span class="n">un</span> <span class="n">directorio</span>
+  <span class="n">lleno</span> <span class="n">de</span> <span class="n">ficheros</span>
+<span class="o">-</span> <span class="n">Spark</span> <span class="n">escribe</span> <span class="n">una</span> <span class="n">tabla</span> <span class="err">`</span><span class="n">silver</span><span class="err">`</span> <span class="n">particionada</span> <span class="n">y</span> <span class="n">un</span> <span class="n">producto</span> <span class="err">`</span><span class="n">gold</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">La</span> <span class="n">evidencia</span> <span class="n">de</span> <span class="n">que</span> <span class="n">particionar</span> <span class="n">ayuda</span> <span class="n">se</span> <span class="n">lee</span> <span class="n">en</span> <span class="n">el</span> <span class="n">plan</span><span class="p">,</span> <span class="n">no</span> <span class="n">en</span> <span class="n">el</span> <span class="n">reloj</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:linear-gradient(135deg, #0c304d, #174f7a 62%, #a54467);color:#ffffff;
+     border:1px solid transparent;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     display:flex;flex-direction:column;justify-content:center;
+     text-align:left;overflow:hidden">
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 5: buenas prácticas de data lake y particionado físico</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:25px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El mismo TPC-DS SF1 en tres versiones: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0">Contratos, calidad y mantenimiento: un data lake no es un directorio</li></ul><p style="margin:10px 0">lleno de ficheros</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Spark escribe una tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> particionada y un producto <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0">La evidencia de que particionar ayuda se lee en el plan, no en el reloj</li></ul></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Objetivos-de-la-sesi%C3%B3n">Objetivos de la sesión<a class="anchor-link" href="#Objetivos-de-la-sesi%C3%B3n">¶</a></h2><p>Al terminar esta sesión deberías poder:</p>
 <ul>
 <li>explicar la arquitectura medallion (<code>raw</code>/<code>silver</code>/<code>gold</code>) y qué papel
@@ -7893,8 +8002,54 @@ particionada sin catálogo, como preparación para S6.</li>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">evaluacion</span>
+<span class="c1"># Cómo se evalúa esta sesión</span>
+<span class="o">-</span> <span class="n">Reunión</span> <span class="n">individual</span> <span class="n">de</span> <span class="n">unos</span> <span class="mi">5</span> <span class="n">minutos</span> <span class="n">con</span> <span class="n">el</span> <span class="n">profesor</span>
+<span class="o">-</span> <span class="n">Se</span> <span class="n">muestra</span> <span class="n">en</span> <span class="n">vivo</span><span class="p">,</span> <span class="n">en</span> <span class="n">tu</span> <span class="n">ordenador</span><span class="p">:</span> <span class="n">el</span> <span class="n">árbol</span> <span class="n">de</span> <span class="n">directorios</span>
+  <span class="err">`</span><span class="n">sold_year</span><span class="o">=/</span><span class="n">sold_month</span><span class="o">=</span><span class="err">`</span> <span class="n">de</span> <span class="n">la</span> <span class="n">tabla</span> <span class="err">`</span><span class="n">silver</span><span class="err">`</span><span class="p">,</span> <span class="n">los</span> <span class="err">`</span><span class="k">assert</span><span class="err">`</span> <span class="n">de</span> <span class="n">filas</span> <span class="n">y</span>
+  <span class="n">claves</span> <span class="n">superados</span> <span class="n">y</span> <span class="n">la</span> <span class="n">comparación</span> <span class="n">de</span> <span class="n">ficheros</span> <span class="n">leídos</span> <span class="n">entre</span> <span class="n">la</span> <span class="n">consulta</span>
+  <span class="n">completa</span> <span class="n">y</span> <span class="n">la</span> <span class="n">filtrada</span>
+<span class="o">-</span> <span class="n">Se</span> <span class="n">entrega</span> <span class="n">también</span> <span class="n">una</span> <span class="n">memoria</span> <span class="n">breve</span> <span class="p">(</span><span class="n">una</span> <span class="n">o</span> <span class="n">dos</span> <span class="n">páginas</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">No</span> <span class="n">hace</span> <span class="n">falta</span> <span class="n">memorizar</span> <span class="n">órdenes</span><span class="p">:</span> <span class="n">sí</span> <span class="n">explicar</span> <span class="n">qué</span> <span class="n">garantiza</span> <span class="n">cada</span> <span class="n">zona</span> <span class="k">del</span>
+  <span class="n">data</span> <span class="n">lake</span> <span class="n">y</span> <span class="n">qué</span> <span class="n">demuestra</span> <span class="n">cada</span> <span class="n">comprobación</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #b3701a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#b3701a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Evaluación de la sesión</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Cómo se evalúa esta sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Reunión individual de unos 5 minutos con el profesor</li><li style="margin:10px 0">Se muestra en vivo, en tu ordenador: el árbol de directorios</li></ul><p style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year=/sold_month=</code> de la tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code>, los <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> de filas y</p><p style="margin:10px 0">claves superados y la comparación de ficheros leídos entre la consulta</p><p style="margin:10px 0">completa y la filtrada</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Se entrega también una memoria breve (una o dos páginas)</li><li style="margin:10px 0">No hace falta memorizar órdenes: sí explicar qué garantiza cada zona del</li></ul><p style="margin:10px 0">data lake y qué demuestra cada comprobación</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7909,9 +8064,9 @@ host —arrancar o detener contenedores, <code>make</code>— se muestran como t
 para ejecutarlas en una terminal de tu equipo, nunca como celdas de este
 notebook.</p>
 </blockquote>
-<p>Esta sesión asume que el clúster de S1 ya está en marcha y que S2 y S4
-dejaron materializado TPC-DS SF1 en <code>/datalake/raw/tpcds</code>. S5 no vuelve a
-generar esos datos ni los modifica: se limita a leerlos. Si el clúster no
+<p>Esta sesión asume que el clúster de S1 ya está en marcha y que S2 dejó
+materializado TPC-DS SF1 en <code>/datalake/raw/tpcds</code> (S4 sólo lo leyó). S5 no
+vuelve a generar esos datos ni los modifica: se limita a leerlos. Si el clúster no
 está arriba, desde una terminal de tu equipo situada en la raíz de la
 distribución de sesiones:</p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
@@ -7922,7 +8077,7 @@ la utilizó:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7937,7 +8092,7 @@ la utilizó:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7951,7 +8106,7 @@ la ruta de trabajo <code>/user/luser/s5</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7965,7 +8120,7 @@ de ejecución sino la organización física de la salida.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7979,7 +8134,7 @@ de ejecución sino la organización física de la salida.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7998,7 +8153,7 @@ de ejecución sino la organización física de la salida.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=12">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8013,7 +8168,7 @@ los volúmenes de SF1 que vamos a leer y escribir no hace falta más.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=13">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8039,8 +8194,49 @@ los volúmenes de SF1 que vamos a leer y escribir no hace falta más.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=14">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: las convenciones antes del código</span>
+<span class="o">-</span> <span class="n">Zona</span> <span class="n">fuente</span> <span class="n">inmutable</span><span class="p">:</span> <span class="n">por</span> <span class="n">qué</span> <span class="err">`</span><span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="err">`</span> <span class="n">no</span> <span class="n">se</span> <span class="n">toca</span>
+<span class="o">-</span> <span class="n">Contratos</span><span class="p">:</span> <span class="n">ruta</span><span class="p">,</span> <span class="n">columnas</span><span class="p">,</span> <span class="n">claves</span><span class="p">,</span> <span class="n">métricas</span><span class="p">,</span> <span class="n">formato</span> <span class="n">y</span> <span class="n">regeneración</span>
+<span class="o">-</span> <span class="n">Esquema</span> <span class="n">y</span> <span class="n">calidad</span><span class="p">:</span> <span class="n">qué</span> <span class="n">se</span> <span class="n">comprueba</span> <span class="n">antes</span> <span class="n">de</span> <span class="n">dar</span> <span class="n">una</span> <span class="n">salida</span> <span class="n">por</span> <span class="n">buena</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: las convenciones antes del código</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Zona fuente inmutable: por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code> no se toca</li><li style="margin:10px 0">Contratos: ruta, columnas, claves, métricas, formato y regeneración</li><li style="margin:10px 0">Esquema y calidad: qué se comprueba antes de dar una salida por buena</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8056,7 +8252,7 @@ Hive Metastore en lugar de dejarlas como simples directorios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8114,7 +8310,7 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=12">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8133,13 +8329,18 @@ venta más <code>ws_sold_date</code> (derivada) y las particiones <code>sold_yea
 <code>date_dim</code>;</li>
 <li>qué significa cada métrica del producto <code>gold</code>: pedidos distintos,
 líneas de venta y beneficio neto, sin confundir unas con otras;</li>
+<li>dónde vive el producto <code>gold</code> y qué columnas tiene: una fila por
+<code>sold_year</code> en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con esas tres
+métricas;</li>
 <li>qué formato y compresión emplea: Parquet con la compresión por defecto
 de Spark;</li>
 <li>qué columnas se utilizan para particionar: <code>sold_year</code> y <code>sold_month</code>,
 en ese orden;</li>
-<li>cómo se regenera la salida: volviendo a ejecutar las celdas de la
-sección "Ejercicio de transformación con Spark" de este notebook, que
-escriben siempre en modo <code>overwrite</code>;</li>
+<li>cómo se regenera cada salida: <code>silver</code> y <code>gold</code> se reconstruyen
+volviendo a ejecutar las celdas de la sección "Ejercicio de
+transformación con Spark" de este notebook, que escriben siempre en modo
+<code>overwrite</code> (primero <code>silver</code>, y <code>gold</code> a partir de <code>silver</code>, no de
+<code>raw</code>);</li>
 <li>qué ficheros auxiliares no deben leerse como datos: en particular,
 <code>_SUCCESS</code> es un marcador de generación, no un fragmento Parquet, y no
 debe incluirse en los patrones de lectura.</li>
@@ -8148,7 +8349,7 @@ debe incluirse en los patrones de lectura.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8178,8 +8379,52 @@ detienen el notebook si no se cumplen.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=19">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: un data lake sin catálogo también tiene reglas</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">raw</span><span class="err">`</span> <span class="n">inmutable</span> <span class="n">es</span> <span class="n">la</span> <span class="n">referencia</span> <span class="n">estable</span> <span class="n">frente</span> <span class="n">a</span> <span class="n">la</span> <span class="n">que</span> <span class="n">se</span> <span class="n">valida</span> <span class="n">todo</span>
+  <span class="n">lo</span> <span class="n">derivado</span>
+<span class="o">-</span> <span class="n">Un</span> <span class="n">contrato</span> <span class="n">documentado</span> <span class="n">dice</span> <span class="n">rutas</span><span class="p">,</span> <span class="n">claves</span> <span class="n">de</span> <span class="n">unión</span><span class="p">,</span> <span class="n">métricas</span> <span class="n">y</span> <span class="n">regla</span> <span class="n">de</span>
+  <span class="n">regeneración</span><span class="p">;</span> <span class="err">`</span><span class="n">_SUCCESS</span><span class="err">`</span> <span class="n">no</span> <span class="n">es</span> <span class="n">un</span> <span class="n">dato</span>
+<span class="o">-</span> <span class="n">Escribir</span> <span class="n">Parquet</span> <span class="n">correctamente</span> <span class="n">no</span> <span class="n">basta</span><span class="p">:</span> <span class="n">la</span> <span class="n">fiabilidad</span> <span class="n">son</span> <span class="n">las</span>
+  <span class="n">comprobaciones</span><span class="p">,</span> <span class="n">y</span> <span class="n">aquí</span> <span class="n">serán</span> <span class="err">`</span><span class="k">assert</span><span class="err">`</span><span class="p">,</span> <span class="n">no</span> <span class="n">comentarios</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: un data lake sin catálogo también tiene reglas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> inmutable es la referencia estable frente a la que se valida todo</li></ul><p style="margin:10px 0">lo derivado</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un contrato documentado dice rutas, claves de unión, métricas y regla de</li></ul><p style="margin:10px 0">regeneración; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> no es un dato</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Escribir Parquet correctamente no basta: la fiabilidad son las</li></ul><p style="margin:10px 0">comprobaciones, y aquí serán <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code>, no comentarios</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8258,8 +8503,92 @@ vamos a construir aquí.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=21">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">pregunta</span>
+<span class="c1"># Pregunta guía</span>
+<span class="o">-</span> <span class="err">¿</span><span class="n">Puedes</span> <span class="n">tener</span> <span class="n">muchas</span> <span class="n">particiones</span> <span class="n">de</span> <span class="n">ejecución</span> <span class="n">de</span> <span class="n">Spark</span> <span class="n">sobre</span> <span class="n">una</span> <span class="n">tabla</span>
+  <span class="n">con</span> <span class="n">una</span> <span class="n">única</span> <span class="n">partición</span> <span class="n">Hive</span><span class="p">,</span> <span class="n">o</span> <span class="n">al</span> <span class="n">revés</span><span class="err">?</span>
+<span class="o">-</span> <span class="n">Nombra</span> <span class="n">algo</span> <span class="n">que</span> <span class="n">hayas</span> <span class="n">medido</span> <span class="n">en</span> <span class="n">S4</span> <span class="n">o</span> <span class="n">medirás</span> <span class="n">hoy</span> <span class="n">en</span> <span class="n">S5</span> <span class="n">que</span> <span class="n">demuestra</span> <span class="n">que</span>
+  <span class="n">son</span> <span class="n">unidades</span> <span class="n">distintas</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #0c304d;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#0c304d;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Pregunta guía</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Pregunta guía</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">¿Puedes tener muchas particiones de ejecución de Spark sobre una tabla</li></ul><p style="margin:10px 0">con una única partición Hive, o al revés?</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Nombra algo que hayas medido en S4 o medirás hoy en S5 que demuestra que</li></ul><p style="margin:10px 0">son unidades distintas</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: elegir bien la columna de partición</span>
+<span class="o">-</span> <span class="n">Criterios</span><span class="p">:</span> <span class="n">filtros</span> <span class="n">frecuentes</span><span class="p">,</span> <span class="n">cardinalidad</span> <span class="n">moderada</span><span class="p">,</span> <span class="n">ficheros</span> <span class="n">útiles</span>
+<span class="o">-</span> <span class="n">Cardinalidades</span> <span class="n">reales</span> <span class="n">de</span> <span class="n">SF1</span><span class="p">:</span> <span class="n">pedidos</span><span class="p">,</span> <span class="n">artículos</span> <span class="n">y</span> <span class="n">clientes</span> <span class="n">frente</span> <span class="n">a</span>
+  <span class="n">años</span> <span class="n">y</span> <span class="n">meses</span>
+<span class="o">-</span> <span class="n">Por</span> <span class="n">qué</span> <span class="err">`</span><span class="n">ws_sold_date_sk</span><span class="err">`</span> <span class="n">no</span> <span class="n">vale</span> <span class="n">y</span> <span class="err">`</span><span class="n">sold_year</span><span class="err">`</span><span class="o">/</span><span class="err">`</span><span class="n">sold_month</span><span class="err">`</span> <span class="n">sí</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Criterios: filtros frecuentes, cardinalidad moderada, ficheros útiles</li><li style="margin:10px 0">Cardinalidades reales de SF1: pedidos, artículos y clientes frente a</li></ul><p style="margin:10px 0">años y meses</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date_sk</code> no vale y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> sí</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8308,7 +8637,7 @@ fragmentos razonables, así que es la que usaremos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8331,7 +8660,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8341,7 +8670,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8366,7 +8695,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8385,7 +8714,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8397,7 +8726,7 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=21">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8417,7 +8746,7 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8433,7 +8762,7 @@ la razón por la que no las usamos como partición principal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8447,7 +8776,7 @@ calcula con <code>month(d_date)</code>, equivalente a usar <code>d_moy</code> de
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8482,7 +8811,7 @@ calcula con <code>month(d_date)</code>, equivalente a usar <code>d_moy</code> de
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8501,7 +8830,7 @@ ni una más ni una menos:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8528,7 +8857,7 @@ ni una más ni una menos:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8540,7 +8869,7 @@ que un <code>inner</code> bien planteado no debería dejar pasar:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8564,7 +8893,7 @@ que un <code>inner</code> bien planteado no debería dejar pasar:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8576,7 +8905,7 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8598,13 +8927,105 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 <span class="k">assert</span> <span class="p">(</span>
     <span class="n">year_month_bounds</span><span class="p">[</span><span class="s2">"min_month"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">year_month_bounds</span><span class="p">[</span><span class="s2">"max_month"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">12</span>
 <span class="p">),</span> <span class="sa">f</span><span class="s2">"sold_month debe estar en el rango 1-12: </span><span class="si">{</span><span class="n">year_month_bounds</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Las cifras que la sección anterior prometía comparar con las</span>
+<span class="c1"># cardinalidades descartadas como partición principal.</span>
+<span class="n">year_month_combinations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"sold_month"</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Combinaciones distintas de sold_year/sold_month: </span><span class="si">{</span><span class="n">year_month_combinations</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: el join validado, no supuesto</span>
+<span class="o">-</span> <span class="n">La</span> <span class="n">única</span> <span class="n">pérdida</span> <span class="k">del</span> <span class="err">`</span><span class="n">join</span><span class="err">`</span> <span class="n">son</span> <span class="n">las</span> <span class="n">líneas</span> <span class="n">sin</span> <span class="err">`</span><span class="n">ws_sold_date_sk</span><span class="err">`</span><span class="p">:</span> <span class="n">ni</span> <span class="n">una</span>
+  <span class="n">más</span><span class="p">,</span> <span class="n">comprobado</span> <span class="n">con</span> <span class="err">`</span><span class="k">assert</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Clave</span> <span class="n">de</span> <span class="n">unión</span> <span class="n">y</span> <span class="n">fecha</span> <span class="n">derivada</span> <span class="n">sin</span> <span class="n">nulos</span> <span class="n">tras</span> <span class="n">el</span> <span class="err">`</span><span class="n">join</span><span class="err">`</span> <span class="n">interno</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">sold_month</span><span class="err">`</span> <span class="n">entre</span> <span class="mi">1</span> <span class="n">y</span> <span class="mi">12</span><span class="p">:</span> <span class="n">los</span> <span class="n">rangos</span> <span class="n">de</span> <span class="n">las</span> <span class="n">columnas</span> <span class="n">de</span> <span class="n">partición</span>
+  <span class="n">también</span> <span class="n">se</span> <span class="n">comprueban</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: el join validado, no supuesto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La única pérdida del <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">join</code> son las líneas sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date_sk</code>: ni una</li></ul><p style="margin:10px 0">más, comprobado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Clave de unión y fecha derivada sin nulos tras el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">join</code> interno</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12: los rangos de las columnas de partición</li></ul><p style="margin:10px 0">también se comprueban</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: escribir las tres salidas</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">repartition</span><span class="err">`</span> <span class="n">por</span> <span class="n">las</span> <span class="n">columnas</span> <span class="n">de</span> <span class="n">partición</span> <span class="n">antes</span> <span class="n">de</span> <span class="n">escribir</span><span class="p">:</span> <span class="n">menos</span>
+  <span class="n">ficheros</span> <span class="n">por</span> <span class="n">directorio</span>
+<span class="o">-</span> <span class="n">Una</span> <span class="n">salida</span> <span class="n">de</span> <span class="n">control</span> <span class="n">idéntica</span> <span class="n">sin</span> <span class="n">particionar</span><span class="p">,</span> <span class="n">en</span> <span class="err">`</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s5</span><span class="err">`</span><span class="p">:</span> <span class="n">la</span>
+  <span class="n">comparación</span> <span class="n">será</span> <span class="n">honesta</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">producto</span> <span class="err">`</span><span class="n">gold</span><span class="err">`</span><span class="p">:</span> <span class="n">pedidos</span><span class="p">,</span> <span class="n">líneas</span> <span class="n">y</span> <span class="n">beneficio</span> <span class="n">por</span> <span class="n">año</span> <span class="n">en</span> <span class="n">un</span> <span class="n">único</span>
+  <span class="n">fichero</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: escribir las tres salidas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">repartition</code> por las columnas de partición antes de escribir: menos</li></ul><p style="margin:10px 0">ficheros por directorio</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Una salida de control idéntica sin particionar, en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s5</code>: la</li></ul><p style="margin:10px 0">comparación será honesta</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El producto <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos, líneas y beneficio por año en un único</li></ul><p style="margin:10px 0">fichero</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8621,7 +9042,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8645,7 +9066,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8661,7 +9082,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8675,7 +9096,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8694,7 +9115,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8709,7 +9130,7 @@ se confundan.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8736,7 +9157,7 @@ se confundan.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8749,7 +9170,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8767,8 +9188,96 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: tres rutas para el mismo dato</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">silver</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales</span><span class="err">`</span><span class="p">:</span> <span class="n">detalle</span> <span class="n">enriquecido</span><span class="p">,</span> <span class="n">particionado</span>
+  <span class="n">por</span> <span class="err">`</span><span class="n">sold_year</span><span class="err">`</span><span class="o">/</span><span class="err">`</span><span class="n">sold_month</span><span class="err">`</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s5</span><span class="o">/...</span><span class="err">`</span><span class="p">:</span> <span class="n">control</span> <span class="n">de</span> <span class="n">laboratorio</span><span class="p">,</span> <span class="n">fuera</span> <span class="k">del</span> <span class="n">contrato</span> <span class="n">porque</span>
+  <span class="n">sólo</span> <span class="n">sirve</span> <span class="n">para</span> <span class="n">esta</span> <span class="n">comparación</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">gold</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales_by_year</span><span class="err">`</span><span class="p">:</span> <span class="n">una</span> <span class="n">fila</span> <span class="n">por</span> <span class="n">año</span><span class="p">,</span> <span class="n">sin</span>
+  <span class="n">particionado</span><span class="p">:</span> <span class="err">`</span><span class="n">gold</span><span class="err">`</span> <span class="n">responde</span><span class="p">,</span> <span class="n">no</span> <span class="n">se</span> <span class="n">organiza</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: tres rutas para el mismo dato</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/silver/tpcds/web_sales</code>: detalle enriquecido, particionado</li></ul><p style="margin:10px 0">por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s5/...</code>: control de laboratorio, fuera del contrato porque</li></ul><p style="margin:10px 0">sólo sirve para esta comparación</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/gold/tpcds/web_sales_by_year</code>: una fila por año, sin</li></ul><p style="margin:10px 0">particionado: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> responde, no se organiza</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=51">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: la evidencia de que la poda funciona</span>
+<span class="o">-</span> <span class="n">Releer</span> <span class="n">por</span> <span class="n">la</span> <span class="n">ruta</span> <span class="n">raíz</span><span class="p">:</span> <span class="err">`</span><span class="n">sold_year</span><span class="err">`</span> <span class="n">y</span> <span class="err">`</span><span class="n">sold_month</span><span class="err">`</span> <span class="n">aparecen</span> <span class="n">sin</span>
+  <span class="n">metastore</span> <span class="n">de</span> <span class="n">por</span> <span class="n">medio</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">PartitionFilters</span><span class="err">`</span> <span class="n">en</span> <span class="n">el</span> <span class="n">plan</span> <span class="n">y</span> <span class="n">el</span> <span class="n">recuento</span> <span class="n">de</span> <span class="n">ficheros</span> <span class="n">en</span> <span class="n">HDFS</span><span class="p">:</span> <span class="n">qué</span>
+  <span class="n">abre</span> <span class="n">Spark</span> <span class="n">de</span> <span class="n">verdad</span><span class="p">,</span> <span class="n">no</span> <span class="n">lo</span> <span class="n">que</span> <span class="n">devuelve</span> <span class="err">`</span><span class="n">inputFiles</span><span class="p">()</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">tiempo</span> <span class="n">de</span> <span class="n">un</span> <span class="n">portátil</span> <span class="n">no</span> <span class="n">es</span> <span class="n">evidencia</span><span class="p">:</span> <span class="n">caches</span><span class="p">,</span> <span class="n">carga</span> <span class="n">y</span> <span class="n">Docker</span> <span class="n">lo</span>
+  <span class="n">dominan</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: la evidencia de que la poda funciona</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Releer por la ruta raíz: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> aparecen sin</li></ul><p style="margin:10px 0">metastore de por medio</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code> en el plan y el recuento de ficheros en HDFS: qué</li></ul><p style="margin:10px 0">abre Spark de verdad, no lo que devuelve <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">inputFiles()</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El tiempo de un portátil no es evidencia: caches, carga y Docker lo</li></ul><p style="margin:10px 0">dominan</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8780,7 +9289,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8797,7 +9306,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8816,7 +9325,7 @@ la ruta por su cuenta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8834,7 +9343,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8843,7 +9352,9 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">year_counts</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"count"</span><span class="p">)</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>
+    <span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"count"</span><span class="p">)</span><span class="o">.</span><span class="n">desc</span><span class="p">(),</span> <span class="n">col</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">))</span>
 <span class="p">)</span>
 <span class="n">year_counts</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -8854,7 +9365,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8870,7 +9381,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8880,7 +9391,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8895,7 +9406,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8908,7 +9419,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8923,19 +9434,23 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Ficheros-efectivamente-le%C3%ADdos">Ficheros efectivamente leídos<a class="anchor-link" href="#Ficheros-efectivamente-le%C3%ADdos">¶</a></h3><p>El plan formateado ya es una evidencia, pero <code>inputFiles()</code> la hace todavía
-más concreta: devuelve la lista real de ficheros que Spark abriría para
-materializar cada DataFrame.</p>
+<h3 id="Ficheros-efectivamente-le%C3%ADdos">Ficheros efectivamente leídos<a class="anchor-link" href="#Ficheros-efectivamente-le%C3%ADdos">¶</a></h3><p>El plan formateado ya es una evidencia de qué <em>decide</em> Spark, pero conviene
+comprobar también qué ficheros existen <em>de verdad</em> para cada consulta.
+<code>DataFrame.inputFiles()</code> podría parecer el camino directo, pero para una
+relación basada en ruta (sin catálogo) devuelve siempre la lista completa
+de ficheros de la tabla, sin aplicar ningún filtro: no sirve para medir la
+poda. Contamos en su lugar los ficheros que existen en HDFS bajo cada
+ruta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8943,38 +9458,85 @@ materializar cada DataFrame.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">full_scan_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">full_scan</span><span class="o">.</span><span class="n">inputFiles</span><span class="p">())</span>
-<span class="n">filtered_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered</span><span class="o">.</span><span class="n">inputFiles</span><span class="p">())</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros leídos por la consulta completa: </span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros leídos por la consulta filtrada (sold_year=</span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">filtered_files</span> <span class="o">&lt;=</span> <span class="n">full_scan_files</span><span class="p">,</span> <span class="p">(</span>
-    <span class="s2">"La consulta filtrada no debería necesitar más ficheros que la consulta completa: "</span>
-    <span class="sa">f</span><span class="s2">"completa=</span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2"> filtrada=</span><span class="si">{</span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hdfs_file_count</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-count"</span><span class="p">,</span> <span class="n">path</span><span class="p">],</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<span class="c1"># inputFiles() no sirve aquí: para esta relación basada en ruta, devuelve</span>
+<span class="c1"># siempre la lista completa de ficheros de la tabla, aunque el plan ya</span>
+<span class="c1"># aplique PartitionFilters (lo comprobamos en la celda anterior). Por eso</span>
+<span class="c1"># contamos los ficheros realmente presentes en cada ruta de HDFS.</span>
+<span class="n">full_scan_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hdfs_file_count</span><span class="p">(</span><span class="n">silver_path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># descarta _SUCCESS</span>
+<span class="n">filtered_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hdfs_file_count</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">silver_path</span><span class="si">}</span><span class="s2">/sold_year=</span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros bajo la ruta completa: </span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros bajo sold_year=</span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">filtered_files</span> <span class="o">&lt;</span> <span class="n">full_scan_files</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"La partición de un solo año debería tener estrictamente menos ficheros que "</span>
+    <span class="sa">f</span><span class="s2">"la tabla completa: completa=</span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2"> filtrada=</span><span class="si">{</span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros descartados por la poda de particiones: </span><span class="si">{</span><span class="n">full_scan_files</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Si <code>filtered_files</code> es menor que <code>full_scan_files</code>, la poda de particiones
-ha funcionado: Spark ha descartado directorios enteros de otros años sin
-llegar a abrirlos. Esa diferencia de ficheros —no el tiempo que ha tardado
-la celda— es la evidencia que vamos a citar en la tabla comparativa de más
-abajo.</p>
+<p>El plan formateado de la celda anterior ya mostraba <code>PartitionFilters</code> para
+<code>sold_year = {sample_year}</code>, pero <code>DataFrame.inputFiles()</code> no refleja esa
+poda en una relación basada en ruta: devuelve siempre la lista completa de
+ficheros de la tabla, filtro aparte. Por eso el recuento real se hace
+contando ficheros en HDFS bajo cada ruta. <code>sample_year</code> es el año con más
+líneas de los que hay en SF1 (unos pocos años en total), así que la
+partición de ese año tiene garantizado ser sólo una fracción del total:
+<code>filtered_files</code> debe ser estrictamente menor que <code>full_scan_files</code>. Esa
+diferencia de ficheros —no el tiempo que ha tardado la celda— es la
+evidencia que vamos a citar en la tabla comparativa de más abajo.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>No volveremos a usar la <code>SparkSession</code>: el resto de la sesión sólo
+mira la estructura de directorios con <code>hdfs dfs</code>. La cerramos aquí, como
+hace S4 antes de cambiar de sección.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8986,7 +9548,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9001,7 +9563,36 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>hdfs dfs -ls</code> sólo enumera un nivel de directorios. Para contar de
+verdad cuántos ficheros ha escrito Spark en total bajo todas las
+combinaciones <code>sold_year</code>/<code>sold_month</code>, <code>hdfs dfs -count</code> recorre el árbol
+completo y devuelve, en este orden, el número de directorios, el número de
+ficheros y el tamaño lógico total:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">count</span> <span class="o">-</span><span class="n">h</span> <span class="p">{</span><span class="n">silver_path</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9013,7 +9604,7 @@ antes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9028,7 +9619,7 @@ antes:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9040,7 +9631,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9055,7 +9646,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9066,7 +9657,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9081,7 +9672,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9134,8 +9725,52 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: la misma fila, tres organizaciones</span>
+<span class="o">-</span> <span class="n">La</span> <span class="n">poda</span> <span class="n">se</span> <span class="n">ve</span> <span class="n">dos</span> <span class="n">veces</span><span class="p">:</span> <span class="n">en</span> <span class="err">`</span><span class="n">PartitionFilters</span><span class="err">`</span> <span class="k">del</span> <span class="n">plan</span> <span class="n">y</span> <span class="n">en</span> <span class="n">menos</span>
+  <span class="n">ficheros</span> <span class="n">contados</span> <span class="n">en</span> <span class="n">HDFS</span> <span class="p">(</span><span class="n">no</span> <span class="n">en</span> <span class="err">`</span><span class="n">inputFiles</span><span class="p">()</span><span class="err">`</span><span class="p">,</span> <span class="n">que</span> <span class="n">no</span> <span class="n">la</span> <span class="n">refleja</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">Las</span> <span class="n">cifras</span> <span class="n">de</span> <span class="n">la</span> <span class="n">tabla</span> <span class="n">comparativa</span> <span class="n">son</span> <span class="n">las</span> <span class="n">de</span> <span class="n">esta</span> <span class="n">ejecución</span><span class="p">:</span>
+  <span class="err">`</span><span class="n">raw_count</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">silver_count</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">full_scan_files</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">filtered_files</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Un</span> <span class="n">directorio</span> <span class="err">`</span><span class="n">columna</span><span class="o">=</span><span class="n">valor</span><span class="err">`</span> <span class="n">bien</span> <span class="n">organizado</span> <span class="n">sigue</span> <span class="n">sin</span> <span class="n">ser</span> <span class="n">una</span> <span class="n">tabla</span>
+  <span class="n">gestionada</span><span class="p">:</span> <span class="n">sin</span> <span class="n">catálogo</span><span class="p">,</span> <span class="n">nombre</span><span class="p">,</span> <span class="n">historial</span> <span class="n">ni</span> <span class="n">transacciones</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: la misma fila, tres organizaciones</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La poda se ve dos veces: en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code> del plan y en menos</li></ul><p style="margin:10px 0">ficheros contados en HDFS (no en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">inputFiles()</code>, que no la refleja)</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Las cifras de la tabla comparativa son las de esta ejecución:</li></ul><p style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw_count</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver_count</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">full_scan_files</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">filtered_files</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un directorio <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">columna=valor</code> bien organizado sigue sin ser una tabla</li></ul><p style="margin:10px 0">gestionada: sin catálogo, nombre, historial ni transacciones</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9154,8 +9789,10 @@ servicio al que preguntar "¿dónde está la tabla <code>web_sales</code> de
 <code>silver</code>?";</li>
 <li>una partición nueva —por ejemplo, si llegaran ventas de un año
 posterior— puede escribirse en el directorio correcto y, aun así, no
-estar "registrada" para otros clientes que ya habían listado la tabla
-antes;</li>
+estar "registrada" para un cliente que dependa de una lista de
+particiones cacheada o de un catálogo (como el Hive Metastore de S6):
+quien descubre la tabla por rutas, como hace este mismo notebook al leer
+desde la raíz, sí vería la partición nueva de inmediato;</li>
 <li>no hay un historial de cambios de la tabla: si alguien vuelve a ejecutar
 esta sesión con otra lógica de transformación, la versión anterior
 simplemente desaparece con el <code>overwrite</code>, sin dejar rastro de qué había
@@ -9179,7 +9816,7 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9208,7 +9845,7 @@ no en dónde viven los bytes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9227,7 +9864,8 @@ principal para <code>web_sales</code>, aunque aparezca muy a menudo en los filtr
 de negocio (por ejemplo, "ventas de un cliente concreto")?</li>
 <li>En la comparación de planes, ¿qué diferencia concreta viste entre el plan
 de la lectura completa y el de la lectura filtrada? ¿Coincidió con la
-diferencia en <code>inputFiles()</code>?</li>
+diferencia de ficheros contados en HDFS? ¿Por qué <code>inputFiles()</code> no sirve
+para medir esto?</li>
 <li>¿Por qué el enunciado insiste en que el tiempo de ejecución de una
 celda en un portátil no demuestra, por sí solo, que el particionado
 ayuda? ¿Qué evidencia usaste en su lugar?</li>
@@ -9244,7 +9882,7 @@ un ejemplo concreto de esta sesión en qué momento lo has notado.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9265,8 +9903,8 @@ sesión, junto con los valores que compararon (<code>raw_count</code>,
 <li>El listado <code>hdfs dfs -ls</code> de al menos un nivel de directorios
 <code>columna=valor</code> de la tabla particionada.</li>
 <li>La comparación entre la consulta completa y la consulta filtrada: los
-dos planes de <code>.explain("formatted")</code> y los dos valores de
-<code>inputFiles()</code>.</li>
+dos planes de <code>.explain("formatted")</code> (con sus <code>PartitionFilters</code>) y los
+dos recuentos de ficheros en HDFS (<code>full_scan_files</code>, <code>filtered_files</code>).</li>
 <li>Una explicación, con tus propias palabras, de por qué <code>sold_year</code>/
 <code>sold_month</code> es una partición útil para <code>web_sales</code> y por qué
 <code>ws_order_number</code>, <code>ws_item_sk</code> o <code>ws_bill_customer_sk</code> no lo serían.</li>
@@ -9274,8 +9912,53 @@ dos planes de <code>.explain("formatted")</code> y los dos valores de
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación de la sesión 5</span>
+<span class="o">-</span> <span class="n">Medallion</span> <span class="n">aplicado</span><span class="p">:</span> <span class="err">`</span><span class="n">raw</span><span class="err">`</span> <span class="n">intacto</span><span class="p">,</span> <span class="err">`</span><span class="n">silver</span><span class="err">`</span> <span class="n">validado</span> <span class="n">y</span> <span class="n">particionado</span><span class="p">,</span>
+  <span class="err">`</span><span class="n">gold</span><span class="err">`</span> <span class="n">orientado</span> <span class="n">a</span> <span class="n">una</span> <span class="n">pregunta</span> <span class="n">de</span> <span class="n">negocio</span>
+<span class="o">-</span> <span class="n">Las</span> <span class="n">particiones</span> <span class="n">Hive</span> <span class="n">son</span> <span class="n">directorios</span> <span class="err">`</span><span class="n">columna</span><span class="o">=</span><span class="n">valor</span><span class="err">`</span><span class="p">:</span> <span class="n">ni</span> <span class="n">particiones</span> <span class="n">de</span>
+  <span class="n">ejecución</span><span class="p">,</span> <span class="n">ni</span> <span class="n">bloques</span> <span class="n">HDFS</span><span class="p">,</span> <span class="n">ni</span> <span class="n">transformaciones</span> <span class="n">Iceberg</span>
+<span class="o">-</span> <span class="n">Sin</span> <span class="n">catálogo</span><span class="p">:</span> <span class="n">cada</span> <span class="n">motor</span> <span class="n">conoce</span> <span class="n">la</span> <span class="n">ruta</span> <span class="n">física</span> <span class="n">y</span> <span class="n">la</span> <span class="n">descubre</span> <span class="n">a</span> <span class="n">mano</span>
+<span class="o">&gt;</span> <span class="n">Siguiente</span> <span class="n">bloque</span><span class="p">:</span> <span class="n">el</span> <span class="n">Hive</span> <span class="n">Metastore</span> <span class="n">registra</span> <span class="n">esta</span> <span class="n">organización</span> <span class="n">como</span>
+  <span class="n">tabla</span> <span class="n">Hive</span> <span class="p">(</span><span class="n">S6</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación de la sesión 5</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Medallion aplicado: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> intacto, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> validado y particionado,</li></ul><p style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> orientado a una pregunta de negocio</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Las particiones Hive son directorios <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">columna=valor</code>: ni particiones de</li></ul><p style="margin:10px 0">ejecución, ni bloques HDFS, ni transformaciones Iceberg</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Sin catálogo: cada motor conoce la ruta física y la descubre a mano</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px">Siguiente bloque: el Hive Metastore registra esta organización como</div><p style="margin:10px 0">tabla Hive (S6)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
