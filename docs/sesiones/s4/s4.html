@@ -7854,6 +7854,114 @@ salidas en rutas de trabajo separadas, bajo <code>/user/luser/s4</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/dsevilla/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
+El alias <code>%%diapositiva</code> permite mantener en español los tipos usados en la sesión y produce la misma salida HTML en Jupyter, Colab y la referencia HTML publicada.</p>
+<p>En cada sesión encontrarás varios tipos de diapositivas que te ayudarán a:</p>
+<ul>
+<li><strong>Orientación:</strong> Mostrar dónde estamos en el programa y qué vamos a ver en esta sesión.</li>
+<li><strong>Resumen:</strong> Condensar partes complejas en puntos clave para recordar y revisar después.</li>
+<li><strong>Vista previa:</strong> Presentar de forma resumida el contenido que vas a desarrollar en detalle en las celdas siguientes.</li>
+</ul>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=2">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="s2">"jupyter-notebook-slide @ git+https://github.com/dsevilla/jupyter-notebook-slide.git"</span>
+<span class="o">%</span><span class="n">load_ext</span> <span class="n">notebook_slide</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">notebook_slide</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnbs</span>
+
+<span class="c1"># Colores de 26-27/teoria/tcdm.css, adaptados al tema de las sesiones.</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+    <span class="n">background</span><span class="o">=</span><span class="s2">"#eaf2f8"</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="s2">"#1f2933"</span><span class="p">,</span>
+    <span class="n">border</span><span class="o">=</span><span class="s2">"#c9d6e1"</span><span class="p">,</span>
+    <span class="n">heading</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">subheading</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">link</span><span class="o">=</span><span class="s2">"#174f7a"</span><span class="p">,</span>
+    <span class="n">code_background</span><span class="o">=</span><span class="s2">"#eaf2f8"</span><span class="p">,</span>
+    <span class="n">code_foreground</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">quote_background</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">font_family</span><span class="o">=</span><span class="s2">"Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif"</span><span class="p">,</span>
+    <span class="n">font_url</span><span class="o">=</span><span class="s2">"https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"avance"</span><span class="p">,</span> <span class="s2">"A continuación"</span><span class="p">,</span> <span class="s2">"#174f7a"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"resumen"</span><span class="p">,</span> <span class="s2">"Recapitulación"</span><span class="p">,</span> <span class="s2">"#a54467"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"pregunta"</span><span class="p">,</span> <span class="s2">"Pregunta guía"</span><span class="p">,</span> <span class="s2">"#0c304d"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"evaluacion"</span><span class="p">,</span> <span class="s2">"Evaluación de la sesión"</span><span class="p">,</span> <span class="s2">"#b3701a"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span>
+    <span class="s2">"titulo"</span><span class="p">,</span>
+    <span class="s2">"Sección"</span><span class="p">,</span>
+    <span class="s2">"#174f7a"</span><span class="p">,</span>
+    <span class="n">layout</span><span class="o">=</span><span class="s2">"title"</span><span class="p">,</span>
+    <span class="n">background</span><span class="o">=</span><span class="s2">"linear-gradient(135deg, #0c304d, #174f7a 62%, #a54467)"</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">border</span><span class="o">=</span><span class="s2">"transparent"</span><span class="p">,</span>
+    <span class="n">heading</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">subheading</span><span class="o">=</span><span class="s2">"#dceaf4"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_alias</span><span class="p">(</span><span class="s2">"diapositiva"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">titulo</span>
+<span class="c1"># Sesión 4: Spark como motor de procesamiento distribuido</span>
+<span class="c1">## Cómo vamos a recorrer la sesión</span>
+<span class="o">-</span> <span class="n">Un</span> <span class="n">motor</span> <span class="n">nuevo</span> <span class="n">sobre</span> <span class="n">los</span> <span class="n">mismos</span> <span class="n">datos</span><span class="p">:</span> <span class="n">los</span> <span class="n">Parquet</span> <span class="n">de</span> <span class="n">TPC</span><span class="o">-</span><span class="n">DS</span> <span class="n">SF1</span>
+<span class="o">-</span> <span class="n">DataFrames</span><span class="p">:</span> <span class="n">transformaciones</span> <span class="n">perezosas</span><span class="p">,</span> <span class="n">acciones</span> <span class="n">y</span> <span class="n">planes</span> <span class="n">de</span> <span class="n">ejecución</span>
+<span class="o">-</span> <span class="n">Primero</span> <span class="n">en</span> <span class="err">`</span><span class="n">local</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="err">`</span><span class="p">;</span> <span class="n">al</span> <span class="n">final</span><span class="p">,</span> <span class="n">de</span> <span class="n">verdad</span> <span class="n">sobre</span> <span class="n">YARN</span> <span class="n">con</span> <span class="err">`</span><span class="n">spark</span><span class="o">-</span><span class="n">submit</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Las</span> <span class="n">mismas</span> <span class="n">preguntas</span> <span class="n">de</span> <span class="n">negocio</span> <span class="n">de</span> <span class="n">S2</span><span class="p">,</span> <span class="n">ahora</span> <span class="n">con</span> <span class="n">otro</span> <span class="n">motor</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:linear-gradient(135deg, #0c304d, #174f7a 62%, #a54467);color:#ffffff;
+     border:1px solid transparent;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     display:flex;flex-direction:column;justify-content:center;
+     text-align:left;overflow:hidden">
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 4: Spark como motor de procesamiento distribuido</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:25px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un motor nuevo sobre los mismos datos: los Parquet de TPC-DS SF1</li><li style="margin:10px 0">DataFrames: transformaciones perezosas, acciones y planes de ejecución</li><li style="margin:10px 0">Primero en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">local[2]</code>; al final, de verdad sobre YARN con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark-submit</code></li><li style="margin:10px 0">Las mismas preguntas de negocio de S2, ahora con otro motor</li></ul></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Capas-que-se-deben-distinguir">Capas que se deben distinguir<a class="anchor-link" href="#Capas-que-se-deben-distinguir">¶</a></h2><p>En esta sesión aparecen varias palabras que se reutilizarán más adelante y
 que conviene separar desde el principio:</p>
 <table>
@@ -7902,7 +8010,7 @@ insistirá varias veces en esa distinción.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7931,8 +8039,52 @@ ejemplo (líneas de venta frente a pedidos distintos, por ejemplo).</li>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">evaluacion</span>
+<span class="c1"># Cómo se evalúa esta sesión</span>
+<span class="o">-</span> <span class="n">Reunión</span> <span class="n">individual</span> <span class="n">de</span> <span class="n">unos</span> <span class="mi">5</span> <span class="n">minutos</span> <span class="n">con</span> <span class="n">el</span> <span class="n">profesor</span>
+<span class="o">-</span> <span class="n">Se</span> <span class="n">muestra</span> <span class="n">en</span> <span class="n">vivo</span><span class="p">,</span> <span class="n">en</span> <span class="n">tu</span> <span class="n">ordenador</span><span class="p">:</span> <span class="n">la</span> <span class="n">aplicación</span> <span class="n">en</span> <span class="n">YARN</span><span class="p">,</span> <span class="n">el</span> <span class="n">informe</span> <span class="n">de</span>
+  <span class="n">hosts</span> <span class="n">que</span> <span class="n">procesaron</span> <span class="n">particiones</span> <span class="n">y</span> <span class="n">el</span> <span class="n">resultado</span> <span class="n">de</span> <span class="n">negocio</span> <span class="n">idéntico</span> <span class="n">en</span>
+  <span class="n">local</span> <span class="n">y</span> <span class="n">sobre</span> <span class="n">YARN</span>
+<span class="o">-</span> <span class="n">Se</span> <span class="n">entrega</span> <span class="n">también</span> <span class="n">una</span> <span class="n">memoria</span> <span class="n">breve</span> <span class="p">(</span><span class="n">una</span> <span class="n">o</span> <span class="n">dos</span> <span class="n">páginas</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">No</span> <span class="n">hace</span> <span class="n">falta</span> <span class="n">memorizar</span> <span class="n">órdenes</span><span class="p">:</span> <span class="n">sí</span> <span class="n">explicar</span> <span class="n">qué</span> <span class="n">papel</span> <span class="n">juega</span> <span class="n">cada</span> <span class="n">pieza</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #b3701a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#b3701a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Evaluación de la sesión</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Cómo se evalúa esta sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Reunión individual de unos 5 minutos con el profesor</li><li style="margin:10px 0">Se muestra en vivo, en tu ordenador: la aplicación en YARN, el informe de</li></ul><p style="margin:10px 0">hosts que procesaron particiones y el resultado de negocio idéntico en</p><p style="margin:10px 0">local y sobre YARN</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Se entrega también una memoria breve (una o dos páginas)</li><li style="margin:10px 0">No hace falta memorizar órdenes: sí explicar qué papel juega cada pieza</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7958,7 +8110,7 @@ los dejó:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=4">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7973,7 +8125,7 @@ los dejó:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7989,7 +8141,7 @@ mirar el estado de las aplicaciones YARN en el navegador.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8006,7 +8158,7 @@ propia sección.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8020,7 +8172,7 @@ propia sección.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=12">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8038,8 +8190,49 @@ propia sección.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: el motor Spark</span>
+<span class="o">-</span> <span class="n">Por</span> <span class="n">qué</span> <span class="n">Spark</span> <span class="n">aparece</span> <span class="n">como</span> <span class="n">respuesta</span> <span class="n">a</span> <span class="n">los</span> <span class="n">encadenamientos</span> <span class="n">MapReduce</span>
+<span class="o">-</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">ejecutores</span> <span class="n">y</span> <span class="n">gestor</span> <span class="n">de</span> <span class="n">recursos</span><span class="p">:</span> <span class="n">tres</span> <span class="n">papeles</span> <span class="n">en</span> <span class="n">cualquier</span> <span class="n">modo</span>
+<span class="o">-</span> <span class="n">Job</span><span class="p">,</span> <span class="n">stage</span><span class="p">,</span> <span class="n">task</span> <span class="n">y</span> <span class="n">partición</span><span class="p">:</span> <span class="n">las</span> <span class="n">unidades</span> <span class="n">que</span> <span class="n">verás</span> <span class="n">en</span> <span class="n">los</span> <span class="n">planes</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: el motor Spark</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué Spark aparece como respuesta a los encadenamientos MapReduce</li><li style="margin:10px 0">Driver, ejecutores y gestor de recursos: tres papeles en cualquier modo</li><li style="margin:10px 0">Job, stage, task y partición: las unidades que verás en los planes</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8106,7 +8299,7 @@ particiones de entrada, lo que obliga a un <em>shuffle</em> (<code>groupBy</code
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8125,7 +8318,7 @@ falta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=11">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8152,7 +8345,7 @@ falta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=12">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8168,7 +8361,7 @@ adelante, en la sección dedicada a la configuración del <em>shuffle</em>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8181,7 +8374,7 @@ clúster (igual que en S1 y S2), así que no hace falta ningún prefijo
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8202,7 +8395,7 @@ clúster (igual que en S1 y S2), así que no hace falta ningún prefijo
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8215,7 +8408,7 @@ acciones: obligan a Spark a ejecutar el plan sobre los datos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=21">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8236,7 +8429,7 @@ acciones: obligan a Spark a ejecutar el plan sobre los datos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8251,7 +8444,7 @@ no copiando uno a uno los ficheros físicos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8269,7 +8462,7 @@ no copiando uno a uno los ficheros físicos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8290,7 +8483,7 @@ no copiando uno a uno los ficheros físicos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8305,8 +8498,50 @@ tabla entera, sólo coordina el trabajo sobre sus particiones.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: Spark también lee los Parquet de S2</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="err">`</span> <span class="n">sólo</span> <span class="n">abre</span> <span class="n">metadatos</span><span class="p">:</span> <span class="n">el</span> <span class="n">esquema</span> <span class="n">no</span> <span class="n">es</span> <span class="n">una</span> <span class="n">acción</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">show</span><span class="p">()</span><span class="err">`</span> <span class="n">y</span> <span class="err">`</span><span class="n">count</span><span class="p">()</span><span class="err">`</span> <span class="n">son</span> <span class="n">acciones</span><span class="p">:</span> <span class="n">ahí</span> <span class="n">se</span> <span class="n">ejecuta</span> <span class="n">el</span> <span class="n">plan</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">número</span> <span class="n">de</span> <span class="n">particiones</span> <span class="n">de</span> <span class="n">ejecución</span> <span class="n">no</span> <span class="n">coincide</span> <span class="n">con</span> <span class="n">el</span> <span class="n">de</span> <span class="n">ficheros</span><span class="p">:</span>
+  <span class="n">Spark</span> <span class="n">lo</span> <span class="n">decide</span> <span class="n">por</span> <span class="n">tamaño</span><span class="p">,</span> <span class="n">no</span> <span class="n">por</span> <span class="n">directorio</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: Spark también lee los Parquet de S2</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark.read.parquet(...)</code> sólo abre metadatos: el esquema no es una acción</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">show()</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">count()</code> son acciones: ahí se ejecuta el plan</li><li style="margin:10px 0">El número de particiones de ejecución no coincide con el de ficheros:</li></ul><p style="margin:10px 0">Spark lo decide por tamaño, no por directorio</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8317,7 +8552,7 @@ tabla entera, sólo coordina el trabajo sobre sus particiones.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8345,7 +8580,7 @@ tabla entera, sólo coordina el trabajo sobre sus particiones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8357,7 +8592,7 @@ en el que Spark realmente lee, filtra y calcula.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8372,7 +8607,7 @@ en el que Spark realmente lee, filtra y calcula.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8385,7 +8620,7 @@ lee todas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8405,7 +8640,7 @@ lee todas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8421,7 +8656,7 @@ lee todas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8437,8 +8672,50 @@ darlo por hecho sólo porque la función se llame <code>filter</code>.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=35">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">pregunta</span>
+<span class="c1"># Pregunta guía</span>
+<span class="o">-</span> <span class="n">Las</span> <span class="n">dos</span> <span class="n">consultas</span> <span class="n">devuelven</span> <span class="n">las</span> <span class="n">mismas</span> <span class="n">filas</span> <span class="n">filtradas</span><span class="p">:</span> <span class="err">¿</span><span class="n">qué</span> <span class="n">cambia</span>
+  <span class="n">entonces</span> <span class="n">entre</span> <span class="n">el</span> <span class="n">plan</span> <span class="err">«</span><span class="n">estrecho</span><span class="err">»</span> <span class="n">y</span> <span class="n">el</span> <span class="n">de</span> <span class="err">`</span><span class="n">select</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span><span class="err">`?</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">filtro</span> <span class="n">aparece</span> <span class="n">en</span> <span class="err">`</span><span class="n">PushedFilters</span><span class="err">`</span><span class="p">:</span> <span class="err">¿</span><span class="n">por</span> <span class="n">qué</span> <span class="n">hay</span> <span class="n">que</span> <span class="n">comprobarlo</span> <span class="n">en</span> <span class="n">el</span>
+  <span class="n">plan</span> <span class="n">en</span> <span class="n">lugar</span> <span class="n">de</span> <span class="n">darlo</span> <span class="n">por</span> <span class="n">supuesto</span> <span class="n">porque</span> <span class="n">la</span> <span class="n">función</span> <span class="n">se</span> <span class="n">llame</span> <span class="err">`</span><span class="nb">filter</span><span class="err">`?</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #0c304d;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#0c304d;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Pregunta guía</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Pregunta guía</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Las dos consultas devuelven las mismas filas filtradas: ¿qué cambia</li></ul><p style="margin:10px 0">entonces entre el plan «estrecho» y el de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">select("*")</code>?</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El filtro aparece en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PushedFilters</code>: ¿por qué hay que comprobarlo en el</li></ul><p style="margin:10px 0">plan en lugar de darlo por supuesto porque la función se llame <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">filter</code>?</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8451,7 +8728,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8472,7 +8749,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8484,7 +8761,7 @@ y por categoría de producto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8508,7 +8785,7 @@ y por categoría de producto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8530,7 +8807,7 @@ y por categoría de producto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8546,7 +8823,7 @@ cualquier año" de forma aislada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8566,7 +8843,7 @@ cualquier año" de forma aislada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8578,8 +8855,50 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=44">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: el API de DataFrames en acción</span>
+<span class="o">-</span> <span class="n">Joins</span> <span class="n">con</span> <span class="n">las</span> <span class="n">dimensiones</span><span class="p">:</span> <span class="n">tipos</span><span class="p">,</span> <span class="n">huérfanos</span> <span class="n">y</span> <span class="n">broadcast</span> <span class="n">join</span>
+<span class="o">-</span> <span class="n">Tipos</span> <span class="n">complejos</span><span class="p">:</span> <span class="n">un</span> <span class="n">historial</span> <span class="n">de</span> <span class="n">pedidos</span> <span class="n">como</span> <span class="n">array</span> <span class="n">de</span> <span class="n">structs</span>
+<span class="o">-</span> <span class="n">UDFs</span> <span class="n">frente</span> <span class="n">a</span> <span class="n">funciones</span> <span class="n">integradas</span><span class="p">:</span> <span class="n">qué</span> <span class="n">ve</span> <span class="n">y</span> <span class="n">qué</span> <span class="n">no</span> <span class="n">ve</span> <span class="n">el</span> <span class="n">optimizador</span>
+<span class="o">-</span> <span class="n">Ventanas</span><span class="p">:</span> <span class="n">máximo</span> <span class="n">por</span> <span class="n">cliente</span><span class="p">,</span> <span class="n">lag</span><span class="o">/</span><span class="n">lead</span><span class="p">,</span> <span class="n">medias</span> <span class="n">móviles</span> <span class="n">y</span> <span class="n">acumulados</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: el API de DataFrames en acción</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Joins con las dimensiones: tipos, huérfanos y broadcast join</li><li style="margin:10px 0">Tipos complejos: un historial de pedidos como array de structs</li><li style="margin:10px 0">UDFs frente a funciones integradas: qué ve y qué no ve el optimizador</li><li style="margin:10px 0">Ventanas: máximo por cliente, lag/lead, medias móviles y acumulados</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8590,7 +8909,7 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8630,7 +8949,7 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8644,7 +8963,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8663,7 +8982,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8678,7 +8997,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8693,7 +9012,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8711,7 +9030,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8729,7 +9048,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8746,7 +9065,7 @@ ejecutor con <code>broadcast()</code>, evitando el <em>shuffle</em> de la tabla 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8766,7 +9085,7 @@ ejecutor con <code>broadcast()</code>, evitando el <em>shuffle</em> de la tabla 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8781,7 +9100,7 @@ persistencia.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8792,7 +9111,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8811,7 +9130,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8826,7 +9145,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8840,7 +9159,7 @@ sospechosos antes de construir una consulta de negocio más elaborada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8855,7 +9174,7 @@ historial.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8873,7 +9192,7 @@ historial.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8898,7 +9217,7 @@ historial.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8912,7 +9231,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8930,7 +9249,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8948,7 +9267,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8960,7 +9279,7 @@ cliente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8982,7 +9301,7 @@ cliente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8994,7 +9313,7 @@ a clasificar cada línea de venta según su beneficio neto en tres etiquetas.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9029,7 +9348,7 @@ a clasificar cada línea de venta según su beneficio neto en tres etiquetas.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9046,7 +9365,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9070,7 +9389,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9082,7 +9401,7 @@ funciones integradas que exprese la misma lógica.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9094,7 +9413,7 @@ de ahí construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9119,7 +9438,7 @@ de ahí construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9130,7 +9449,7 @@ columna calculada a cada fila original, agregada dentro de su partición.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9161,7 +9480,7 @@ columna calculada a cada fila original, agregada dentro de su partición.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9172,7 +9491,7 @@ y la ordenamos por fecha de pedido.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9198,7 +9517,7 @@ y la ordenamos por fecha de pedido.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9209,7 +9528,7 @@ anteriores dentro de la misma partición ordenada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9233,7 +9552,7 @@ anteriores dentro de la misma partición ordenada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9244,7 +9563,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9270,7 +9589,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9289,7 +9608,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9313,7 +9632,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9324,7 +9643,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9350,7 +9669,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9362,7 +9681,7 @@ caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9389,7 +9708,7 @@ caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9401,7 +9720,7 @@ usa <code>web_sales</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9426,7 +9745,7 @@ usa <code>web_sales</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9439,8 +9758,51 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: las preguntas de S2, ahora con Spark SQL</span>
+<span class="o">-</span> <span class="n">Vistas</span> <span class="n">temporales</span><span class="p">:</span> <span class="n">un</span> <span class="n">nombre</span> <span class="n">para</span> <span class="n">la</span> <span class="n">sesión</span><span class="p">,</span> <span class="n">sin</span> <span class="n">catálogo</span> <span class="n">ni</span> <span class="n">tabla</span> <span class="n">Hive</span>
+<span class="o">-</span> <span class="n">Mismo</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">mismas</span> <span class="n">claves</span><span class="p">,</span> <span class="n">mismas</span> <span class="n">métricas</span><span class="p">:</span> <span class="n">cambia</span> <span class="n">el</span> <span class="n">motor</span><span class="p">,</span> <span class="n">no</span> <span class="n">el</span>
+  <span class="n">significado</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">count</span><span class="p">(</span><span class="n">DISTINCT</span> <span class="n">ws_order_number</span><span class="p">)</span><span class="err">`</span> <span class="n">sigue</span> <span class="n">contando</span> <span class="n">pedidos</span><span class="p">;</span> <span class="err">`</span><span class="n">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="err">`</span><span class="p">,</span>
+  <span class="n">líneas</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: las preguntas de S2, ahora con Spark SQL</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Vistas temporales: un nombre para la sesión, sin catálogo ni tabla Hive</li><li style="margin:10px 0">Mismo dataset, mismas claves, mismas métricas: cambia el motor, no el</li></ul><p style="margin:10px 0">significado</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">count(DISTINCT ws_order_number)</code> sigue contando pedidos; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">count(*)</code>,</li></ul><p style="margin:10px 0">líneas</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9454,7 +9816,7 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9480,8 +9842,49 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: escribir y paralelizar con criterio</span>
+<span class="o">-</span> <span class="n">Un</span> <span class="n">fichero</span> <span class="n">por</span> <span class="n">partición</span><span class="p">;</span> <span class="n">las</span> <span class="n">vacías</span> <span class="n">no</span> <span class="n">llegan</span> <span class="n">a</span> <span class="n">escribir</span> <span class="n">ninguno</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">repartition</span><span class="err">`</span> <span class="n">y</span> <span class="err">`</span><span class="n">coalesce</span><span class="err">`</span><span class="p">:</span> <span class="n">mismo</span> <span class="n">verbo</span><span class="p">,</span> <span class="n">costes</span> <span class="n">muy</span> <span class="n">distintos</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">shuffle</span><span class="o">.</span><span class="n">partitions</span><span class="err">`</span> <span class="n">y</span> <span class="n">qué</span> <span class="n">deja</span> <span class="n">decidir</span> <span class="n">a</span> <span class="n">AQE</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: escribir y paralelizar con criterio</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un fichero por partición; las vacías no llegan a escribir ninguno</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">repartition</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">coalesce</code>: mismo verbo, costes muy distintos</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark.sql.shuffle.partitions</code> y qué deja decidir a AQE</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9495,7 +9898,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9509,7 +9912,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9527,7 +9930,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9541,7 +9944,7 @@ a HDFS y a los motores que después lean esa tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9556,7 +9959,7 @@ a HDFS y a los motores que después lean esa tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9571,7 +9974,7 @@ a HDFS y a los motores que después lean esa tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9584,7 +9987,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9599,7 +10002,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9614,7 +10017,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9627,7 +10030,7 @@ valores de columna.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9647,7 +10050,7 @@ haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9670,7 +10073,7 @@ haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9693,7 +10096,7 @@ haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9708,7 +10111,7 @@ en lugar de suponer el efecto sólo por el nombre de la función.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9726,7 +10129,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9747,7 +10150,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9768,7 +10171,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9796,7 +10199,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9810,7 +10213,7 @@ en el siguiente paso del pipeline.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9825,7 +10228,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9847,7 +10250,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9871,7 +10274,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9899,7 +10302,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9916,8 +10319,50 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=120">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: particiones y shuffle</span>
+<span class="o">-</span> <span class="n">Partición</span> <span class="n">de</span> <span class="n">ejecución</span> <span class="err">≠</span> <span class="n">partición</span> <span class="n">Hive</span> <span class="err">≠</span> <span class="n">bloque</span> <span class="n">HDFS</span> <span class="err">≠</span> <span class="n">fichero</span> <span class="n">Parquet</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">shuffle</span><span class="o">.</span><span class="n">partitions</span><span class="err">`</span> <span class="n">fija</span> <span class="n">el</span> <span class="n">paralelismo</span> <span class="n">tras</span> <span class="n">una</span> <span class="n">operación</span> <span class="n">ancha</span>
+<span class="o">-</span> <span class="n">AQE</span> <span class="n">corrige</span> <span class="n">el</span> <span class="n">plan</span> <span class="n">con</span> <span class="n">estadísticas</span> <span class="n">reales</span><span class="p">:</span> <span class="n">fusiona</span> <span class="n">particiones</span> <span class="n">después</span>
+  <span class="k">del</span> <span class="n">filtro</span><span class="p">,</span> <span class="n">no</span> <span class="n">antes</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: particiones y shuffle</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Partición de ejecución ≠ partición Hive ≠ bloque HDFS ≠ fichero Parquet</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">shuffle.partitions</code> fija el paralelismo tras una operación ancha</li><li style="margin:10px 0">AQE corrige el plan con estadísticas reales: fusiona particiones después</li></ul><p style="margin:10px 0">del filtro, no antes</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9931,7 +10376,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9951,7 +10396,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9967,7 +10412,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9980,7 +10425,7 @@ transformación, no queda cacheado automáticamente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9995,7 +10440,7 @@ transformación, no queda cacheado automáticamente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10018,7 +10463,7 @@ transformación, no queda cacheado automáticamente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10032,7 +10477,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=117">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10047,7 +10492,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10060,8 +10505,50 @@ mediante <code>spark-submit</code>.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=130">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: de `local[2]` a los DataNodes</span>
+<span class="o">-</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">ApplicationMaster</span> <span class="n">y</span> <span class="n">ejecutores</span> <span class="n">como</span> <span class="n">procesos</span> <span class="n">reales</span>
+<span class="o">-</span> <span class="n">Un</span> <span class="n">script</span> <span class="n">aparte</span> <span class="n">lanzado</span> <span class="n">con</span> <span class="err">`</span><span class="n">spark</span><span class="o">-</span><span class="n">submit</span> <span class="o">--</span><span class="n">master</span> <span class="n">yarn</span><span class="err">`</span><span class="p">:</span> <span class="n">el</span> <span class="err">`</span><span class="n">master</span><span class="err">`</span>
+  <span class="n">no</span> <span class="n">se</span> <span class="n">puede</span> <span class="n">cambiar</span> <span class="n">en</span> <span class="n">una</span> <span class="n">sesión</span> <span class="n">ya</span> <span class="n">creada</span>
+<span class="o">-</span> <span class="n">Los</span> <span class="n">ejecutores</span> <span class="n">sólo</span> <span class="n">necesitan</span> <span class="n">un</span> <span class="err">`</span><span class="n">python3</span><span class="err">`</span> <span class="n">en</span> <span class="n">cada</span> <span class="n">DataNode</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">A continuación: de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">local[2]</code> a los DataNodes</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Driver, ApplicationMaster y ejecutores como procesos reales</li><li style="margin:10px 0">Un script aparte lanzado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark-submit --master yarn</code>: el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">master</code></li></ul><p style="margin:10px 0">no se puede cambiar en una sesión ya creada</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Los ejecutores sólo necesitan un <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">python3</code> en cada DataNode</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10089,7 +10576,7 @@ nuevo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10113,7 +10600,7 @@ que ejecuta ese código ya distribuido.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10127,7 +10614,7 @@ que ejecuta ese código ya distribuido.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10142,7 +10629,7 @@ que ejecuta ese código ya distribuido.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10158,7 +10645,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10238,7 +10725,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10250,7 +10737,7 @@ que YARN anuncia como
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10279,7 +10766,7 @@ que YARN anuncia como
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10297,7 +10784,7 @@ que YARN anuncia como
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10330,7 +10817,7 @@ acabamos de instalar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10360,7 +10847,7 @@ acabamos de instalar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=142">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10375,7 +10862,7 @@ acabamos de instalar.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10387,7 +10874,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=144">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10401,7 +10888,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=145">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10415,7 +10902,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=146">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10430,7 +10917,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10442,7 +10929,7 @@ DataNodes remotos participan cuando los recursos lo permiten.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=148">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10470,7 +10957,7 @@ DataNodes remotos participan cuando los recursos lo permiten.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10484,8 +10971,52 @@ coordinados por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: el trabajo ocurrió en los DataNodes</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">informe</span> <span class="n">registra</span> <span class="n">qué</span> <span class="n">host</span> <span class="n">procesó</span> <span class="n">cada</span> <span class="n">partición</span><span class="p">:</span> <span class="n">al</span> <span class="n">menos</span> <span class="n">dos</span>
+  <span class="n">DataNodes</span> <span class="n">remotos</span> <span class="n">hicieron</span> <span class="n">trabajo</span> <span class="n">real</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">número</span> <span class="n">de</span> <span class="n">ejecutores</span> <span class="n">se</span> <span class="n">derivó</span> <span class="n">de</span> <span class="n">los</span> <span class="n">NodeManagers</span> <span class="err">`</span><span class="n">RUNNING</span><span class="err">`</span><span class="p">,</span> <span class="n">no</span> <span class="n">de</span>
+  <span class="n">un</span> <span class="n">número</span> <span class="n">elegido</span> <span class="n">a</span> <span class="n">mano</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">resultado</span> <span class="n">de</span> <span class="n">negocio</span> <span class="n">es</span> <span class="n">el</span> <span class="n">mismo</span> <span class="n">que</span> <span class="n">en</span> <span class="n">local</span><span class="p">:</span> <span class="n">el</span> <span class="n">motor</span> <span class="n">cambia</span><span class="p">,</span> <span class="n">la</span>
+  <span class="n">métrica</span> <span class="n">no</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación: el trabajo ocurrió en los DataNodes</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El informe registra qué host procesó cada partición: al menos dos</li></ul><p style="margin:10px 0">DataNodes remotos hicieron trabajo real</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El número de ejecutores se derivó de los NodeManagers <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">RUNNING</code>, no de</li></ul><p style="margin:10px 0">un número elegido a mano</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El resultado de negocio es el mismo que en local: el motor cambia, la</li></ul><p style="margin:10px 0">métrica no</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=151">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10518,7 +11049,7 @@ ser la misma consultando el mismo dataset inmutable.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10552,7 +11083,7 @@ eso sobre el rendimiento?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=153">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10578,8 +11109,54 @@ partición de ejecución de Spark, una partición Hive y un bloque HDFS.</li>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=141">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación de la sesión 4</span>
+<span class="o">-</span> <span class="n">Spark</span> <span class="n">lee</span> <span class="n">y</span> <span class="n">escribe</span> <span class="n">los</span> <span class="n">mismos</span> <span class="n">Parquet</span><span class="p">;</span> <span class="n">el</span> <span class="n">driver</span> <span class="n">nunca</span> <span class="n">materializa</span> <span class="n">la</span>
+  <span class="n">tabla</span> <span class="n">entera</span>
+<span class="o">-</span> <span class="n">Transformaciones</span> <span class="n">perezosas</span><span class="p">,</span> <span class="n">acciones</span> <span class="n">que</span> <span class="n">ejecutan</span><span class="p">,</span> <span class="n">planes</span> <span class="n">que</span> <span class="n">se</span> <span class="n">leen</span>
+  <span class="n">con</span> <span class="err">`</span><span class="n">explain</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Local</span> <span class="n">y</span> <span class="n">YARN</span> <span class="n">son</span> <span class="n">el</span> <span class="n">mismo</span> <span class="n">programa</span><span class="p">:</span> <span class="n">cambian</span> <span class="n">el</span> <span class="n">gestor</span> <span class="n">de</span> <span class="n">recursos</span> <span class="n">y</span>
+  <span class="n">dónde</span> <span class="n">viven</span> <span class="n">los</span> <span class="n">ejecutores</span>
+<span class="o">&gt;</span> <span class="n">Siguiente</span> <span class="n">bloque</span><span class="p">:</span> <span class="n">buenas</span> <span class="n">prácticas</span> <span class="n">de</span> <span class="n">data</span> <span class="n">lake</span> <span class="n">y</span> <span class="n">particionado</span> <span class="n">físico</span>
+  <span class="n">con</span> <span class="n">el</span> <span class="n">mismo</span> <span class="n">motor</span> <span class="p">(</span><span class="n">S5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:22px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:15px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:34px;line-height:1.15;margin:0 0 22px">Recapitulación de la sesión 4</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Spark lee y escribe los mismos Parquet; el driver nunca materializa la</li></ul><p style="margin:10px 0">tabla entera</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Transformaciones perezosas, acciones que ejecutan, planes que se leen</li></ul><p style="margin:10px 0">con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">explain</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Local y YARN son el mismo programa: cambian el gestor de recursos y</li></ul><p style="margin:10px 0">dónde viven los ejecutores</p><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px">Siguiente bloque: buenas prácticas de data lake y particionado físico</div><p style="margin:10px 0">con el mismo motor (S5)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
