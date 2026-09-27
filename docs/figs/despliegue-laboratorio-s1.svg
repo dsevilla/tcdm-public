@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="2090" viewBox="0 0 560 1045" role="img" aria-labelledby="titulo descripcion">
+  <title id="titulo">Despliegue del laboratorio Hadoop de la sesión 1</title>
+  <desc id="descripcion">Cuatro contenedores Docker en la red hadoop-cluster. namenode aloja NameNode de HDFS, ResourceManager y ApplicationHistoryServer de YARN. datanode1, datanode2 y datanode3 alojan cada uno un DataNode y un NodeManager. Las líneas azules verdosas representan HDFS y las naranjas YARN; las conexiones y sus funciones aparecen etiquetadas.</desc>
+  <!-- Procedencia: 26-27/sesiones/s1/s1.ipynb, sección El clúster que se va a utilizar. Contraste: compose-hadoop-cluster.yml y make-images/namenode.sh/datanode.sh. -->
+  <defs>
+    <marker id="punta-hdfs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#087e83"/>
+    </marker>
+    <marker id="punta-yarn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45a20"/>
+    </marker>
+    <style>
+      text { font-family: "Atkinson Hyperlegible", Inter, "Segoe UI", Arial, sans-serif; fill: #17324a; }
+      .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 1.2px; fill: #52687b; }
+      .title { font-size: 24px; font-weight: 700; fill: #102d45; }
+      .subtitle { font-size: 14px; fill: #52687b; }
+      .container { fill: #ffffff; stroke: #9aabba; stroke-width: 1.6; }
+      .container-head { font-size: 19px; font-weight: 700; }
+      .resource { font-size: 12px; font-weight: 700; fill: #40566a; }
+      .tile-hdfs { fill: #e6f4f3; stroke: #087e83; stroke-width: 1.3; }
+      .tile-yarn { fill: #fff1e6; stroke: #b45a20; stroke-width: 1.3; }
+      .service { font-size: 17px; font-weight: 700; }
+      .service-small { font-size: 14px; font-weight: 700; }
+      .detail { font-size: 12.5px; fill: #40566a; }
+      .detail-strong { font-size: 12px; font-weight: 700; fill: #40566a; }
+      .network-title { font-size: 15px; font-weight: 700; }
+      .network-detail { font-size: 12.5px; fill: #40566a; }
+      .legend { font-size: 12.5px; fill: #40566a; }
+      .route-hdfs { fill: none; stroke: #087e83; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+      .route-yarn { fill: none; stroke: #b45a20; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+      .separator { stroke: #d5dfe7; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <rect width="560" height="1045" rx="18" fill="#f5f8fb"/>
+  <text x="28" y="35" class="eyebrow">SESIÓN 1 · ARQUITECTURA REAL</text>
+  <text x="28" y="66" class="title">Despliegue del laboratorio Hadoop</text>
+  <text x="28" y="91" class="subtitle">4 contenedores · 9 demonios · una red Docker compartida</text>
+
+  <!-- Contenedor namenode -->
+  <rect x="28" y="110" width="504" height="218" rx="13" class="container"/>
+  <text x="46" y="140" class="container-head">namenode</text>
+  <rect x="351" y="121" width="164" height="25" rx="12" fill="#edf2f6"/>
+  <text x="433" y="138" text-anchor="middle" class="resource">2 vCPU · 4096 MiB Docker</text>
+
+  <rect x="45" y="157" width="224" height="155" rx="10" class="tile-hdfs"/>
+  <rect x="58" y="169" width="48" height="20" rx="10" fill="#087e83"/>
+  <text x="82" y="183" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">HDFS</text>
+  <text x="58" y="213" class="service">NameNode</text>
+  <text x="58" y="236" class="detail">Espacio de nombres, permisos</text>
+  <text x="58" y="253" class="detail">y ubicación de bloques.</text>
+  <line x1="58" y1="265" x2="255" y2="265" class="separator"/>
+  <text x="58" y="286" class="detail-strong">RPC :9000 · web localhost:9870</text>
+
+  <rect x="281" y="157" width="235" height="155" rx="10" class="tile-yarn"/>
+  <rect x="294" y="169" width="48" height="20" rx="10" fill="#b45a20"/>
+  <text x="318" y="183" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">YARN</text>
+  <rect x="292" y="195" width="213" height="49" rx="7" fill="#ffffff" fill-opacity="0.86"/>
+  <text x="303" y="215" class="service-small">ResourceManager</text>
+  <text x="303" y="234" class="detail">Planifica · web localhost:8088</text>
+  <path d="M 400 244 V 253" class="route-yarn" marker-end="url(#punta-yarn)"/>
+  <rect x="292" y="256" width="213" height="44" rx="7" fill="#ffffff" fill-opacity="0.86"/>
+  <text x="303" y="274" class="service-small">ApplicationHistoryServer</text>
+  <text x="303" y="291" class="detail">Timeline · eventos YARN · web :8188</text>
+  <text x="46" y="322" class="detail-strong">Alias de red: resourcemanager y timelineserver</text>
+
+  <!-- Relación lógica y red compartida -->
+  <rect x="28" y="350" width="504" height="90" rx="11" fill="#ffffff" stroke="#d0dce5" stroke-width="1.2"/>
+  <text x="280" y="372" text-anchor="middle" class="network-title">Red Docker compartida: hadoop-cluster</text>
+  <line x1="47" y1="391" x2="70" y2="391" class="route-hdfs" marker-end="url(#punta-hdfs)"/>
+  <text x="82" y="395" class="network-detail">HDFS · NameNode ↔ DataNodes: ubicación y estado de bloques</text>
+  <line x1="47" y1="417" x2="70" y2="417" class="route-yarn" marker-end="url(#punta-yarn)"/>
+  <text x="82" y="421" class="network-detail">YARN · ResourceManager ↔ NodeManagers: registro, latidos y asignación</text>
+
+  <!-- Rutas HDFS y YARN hacia los tres DataNodes -->
+  <path d="M 45 274 H 15 V 839" class="route-hdfs"/>
+  <path d="M 505 218 H 545 V 839" class="route-yarn"/>
+
+  <!-- Contenedor datanode1 -->
+  <rect x="28" y="456" width="504" height="129" rx="13" class="container"/>
+  <text x="46" y="481" class="container-head">datanode1</text>
+  <text x="514" y="480" text-anchor="end" class="resource">2 vCPU · 3072 MiB Docker</text>
+  <path d="M 15 533 H 45" class="route-hdfs" marker-start="url(#punta-hdfs)" marker-end="url(#punta-hdfs)"/>
+  <path d="M 545 533 H 516" class="route-yarn" marker-start="url(#punta-yarn)" marker-end="url(#punta-yarn)"/>
+  <rect x="45" y="494" width="224" height="76" rx="9" class="tile-hdfs"/>
+  <text x="59" y="520" class="service">DataNode</text>
+  <text x="59" y="543" class="detail">Almacena y sirve bloques HDFS.</text>
+  <text x="59" y="560" class="detail-strong">Volumen propio de datos</text>
+  <rect x="281" y="494" width="235" height="76" rx="9" class="tile-yarn"/>
+  <text x="295" y="520" class="service">NodeManager</text>
+  <text x="295" y="543" class="detail">Gestiona tareas y contenedores YARN.</text>
+  <text x="295" y="560" class="detail-strong">2 vcores · 2560 MiB anunciados</text>
+
+  <!-- Contenedor datanode2 -->
+  <rect x="28" y="610" width="504" height="129" rx="13" class="container"/>
+  <text x="46" y="635" class="container-head">datanode2</text>
+  <text x="514" y="634" text-anchor="end" class="resource">2 vCPU · 3072 MiB Docker</text>
+  <path d="M 15 687 H 45" class="route-hdfs" marker-start="url(#punta-hdfs)" marker-end="url(#punta-hdfs)"/>
+  <path d="M 545 687 H 516" class="route-yarn" marker-start="url(#punta-yarn)" marker-end="url(#punta-yarn)"/>
+  <rect x="45" y="648" width="224" height="76" rx="9" class="tile-hdfs"/>
+  <text x="59" y="674" class="service">DataNode</text>
+  <text x="59" y="697" class="detail">Almacena y sirve bloques HDFS.</text>
+  <text x="59" y="714" class="detail-strong">Volumen propio de datos</text>
+  <rect x="281" y="648" width="235" height="76" rx="9" class="tile-yarn"/>
+  <text x="295" y="674" class="service">NodeManager</text>
+  <text x="295" y="697" class="detail">Gestiona tareas y contenedores YARN.</text>
+  <text x="295" y="714" class="detail-strong">2 vcores · 2560 MiB anunciados</text>
+
+  <!-- Contenedor datanode3 -->
+  <rect x="28" y="764" width="504" height="129" rx="13" class="container"/>
+  <text x="46" y="789" class="container-head">datanode3</text>
+  <text x="514" y="788" text-anchor="end" class="resource">2 vCPU · 3072 MiB Docker</text>
+  <path d="M 15 841 H 45" class="route-hdfs" marker-start="url(#punta-hdfs)" marker-end="url(#punta-hdfs)"/>
+  <path d="M 545 841 H 516" class="route-yarn" marker-start="url(#punta-yarn)" marker-end="url(#punta-yarn)"/>
+  <rect x="45" y="802" width="224" height="76" rx="9" class="tile-hdfs"/>
+  <text x="59" y="828" class="service">DataNode</text>
+  <text x="59" y="851" class="detail">Almacena y sirve bloques HDFS.</text>
+  <text x="59" y="868" class="detail-strong">Volumen propio de datos</text>
+  <rect x="281" y="802" width="235" height="76" rx="9" class="tile-yarn"/>
+  <text x="295" y="828" class="service">NodeManager</text>
+  <text x="295" y="851" class="detail">Gestiona tareas y contenedores YARN.</text>
+  <text x="295" y="868" class="detail-strong">2 vcores · 2560 MiB anunciados</text>
+
+  <!-- Leyenda y nota docente -->
+  <text x="28" y="920" class="detail-strong">Por DataNode quedan 512 MiB sin anunciar a YARN</text>
+  <text x="28" y="938" class="detail">para el DataNode, el NodeManager y otros procesos auxiliares.</text>
+  <rect x="29" y="957" width="15" height="15" rx="4" fill="#087e83"/>
+  <text x="51" y="970" class="legend">HDFS · almacenamiento</text>
+  <rect x="226" y="957" width="15" height="15" rx="4" fill="#b45a20"/>
+  <text x="248" y="970" class="legend">YARN · recursos y ejecución</text>
+  <rect x="29" y="988" width="16" height="14" rx="3" fill="#ffffff" stroke="#9aabba" stroke-width="1.4"/>
+  <text x="52" y="1000" class="legend">El borde agrupa los procesos dentro de cada contenedor Docker.</text>
+  <text x="29" y="1023" class="legend">Un contenedor YARN es una asignación de recursos, no un contenedor Docker.</text>
+</svg>
