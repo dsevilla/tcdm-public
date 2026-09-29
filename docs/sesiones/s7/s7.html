@@ -7860,6 +7860,19 @@ localizar la tabla, pero ya no es él quien define qué es la tabla: eso lo
 hace el formato Iceberg. Y una vez creada esa tabla, es donde mediremos qué
 compensa de verdad: particionado, estadísticas, compactación, ordenación
 física y, sólo como ampliación si resulta reproducible, Z-order.</p>
+<blockquote>
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>.
+No añade ningún paquete respecto a S6. Se instalan en el kernel de <code>namenode</code> en la sección
+«Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
+el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
+<code>s7/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
+paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
+intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
+confirme que están; ejecuta
+esas celdas de todos modos: dejan explícito qué necesita la sesión y
+reparan el entorno si falta algo.</p>
+</blockquote>
 </div>
 </div>
 </div>
@@ -8159,9 +8172,24 @@ sincronizadas) y <code>hive.tcdm.web_sales_by_year_gold</code>.</li>
 </ul>
 <p>Si el clúster de infraestructura no está levantado todavía, desde una
 terminal de tu equipo situada en la raíz de la distribución de sesiones:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>warehouse-up
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
+<p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
+Como en S2, arráncalo desde <strong>otra terminal de tu equipo</strong> y déjala abierta
+mientras trabajes:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash<span class="w">                          </span><span class="c1"># en tu equipo: entra en namenode</span>
+su<span class="w"> </span>-<span class="w"> </span>luser<span class="w">                                             </span><span class="c1"># ya dentro de namenode</span>
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w">      </span><span class="c1"># dentro de namenode, como luser</span>
+</pre></div>
+<p>La primera orden es la única que se ejecuta en tu equipo; las otras dos, ya
+dentro del contenedor, arrancan Jupyter con el Python del curso
+(<code>make -C entorno jupyter</code> hace lo mismo en una sola orden). Copia la
+dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y, en Visual
+Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
+Kernel → Existing Jupyter Server</strong>, eligiendo el kernel <strong>Python 3
+(ipykernel)</strong>. El token cambia cada vez que se arranca el servidor.</p>
 <p>Esta sesión no vuelve a ejecutar S5 ni S6. Si alguna de las tablas Hive
 anteriores no existe todavía, ejecuta antes esos dos notebooks.</p>
 </div>
@@ -8237,7 +8265,7 @@ equipo.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-q<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">pip</span> install -q -r requirements.txt
 </pre></div>
 </div>
 </div>

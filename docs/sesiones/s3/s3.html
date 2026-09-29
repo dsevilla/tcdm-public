@@ -7863,6 +7863,19 @@ la red del laboratorio. Las órdenes que necesitan el Docker del host
 como texto para ejecutarlas en una terminal de tu equipo, no como celdas:
 el kernel de este notebook no tiene el socket de Docker.</p>
 </blockquote>
+<blockquote>
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>boto3</code>, <code>aiobotocore</code>, <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>s3fs</code>.
+Respecto a S2 añade <code>boto3</code>, <code>aiobotocore</code>, <code>s3fs</code>. Se instalan en el kernel de <code>namenode</code> en la sección
+«Instalar las dependencias de la sesión en este kernel»: una celda <code>%%writefile requirements.txt</code> crea
+el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
+<code>s3/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
+paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
+intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
+confirme que están; ejecuta
+esas celdas de todos modos: dejan explícito qué necesita la sesión y
+reparan el entorno si falta algo.</p>
+</blockquote>
 </div>
 </div>
 </div>
@@ -7952,9 +7965,42 @@ el flujo de datos entre HDFS, RustFS y los lectores de la sesión.</p>
 Docker del host, así que se ejecutan <strong>desde la raíz de la distribución de
 sesiones, en una terminal de tu equipo</strong>, no en este notebook (si ya lo
 hiciste en S2 y sigue arrancado, puedes saltar la primera):</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up<span class="w">   </span><span class="c1"># si el clúster de S2 no sigue arrancado</span>
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull<span class="w">                       </span><span class="c1"># trae s3/ y entorno/compose-s3.yml</span>
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up<span class="w">   </span><span class="c1"># si el clúster de S2 no sigue arrancado</span>
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>s3-up
 </pre></div>
+<p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
+Igual que en S2, el servidor se arranca dentro del contenedor.</p>
+<p>Abre <strong>otra terminal de tu equipo</strong> y entra en el contenedor <code>namenode</code>:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash
+</pre></div>
+<p><code>docker exec -it</code> abre una shell interactiva <em>dentro</em> del contenedor: a
+partir de aquí esa terminal ya no está en tu equipo, sino en <code>namenode</code>, y el
+indicador lo muestra (<code>root@namenode</code>). Ahí dentro, cambia al usuario de
+trabajo y arranca Jupyter Lab:</p>
+<div class="highlight"><pre><span></span>su<span class="w"> </span>-<span class="w"> </span>luser
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser
+</pre></div>
+<p><code>su - luser</code> abre una shell de login de <code>luser</code>, que carga
+<code>/etc/profile.d/tcdm-python.sh</code> y pone <code>/opt/tcdm/venv/bin</code> al principio del
+<code>PATH</code>: por eso <code>jupyter</code> es el del entorno Python del curso, que ya trae
+PySpark y las bibliotecas de las sesiones (<code>command -v jupyter</code> lo muestra).
+<code>--ip=0.0.0.0</code> hace que Jupyter escuche en la red del contenedor, y
+<code>compose-hadoop-cluster.yml</code> publica su puerto 8888 en <code>127.0.0.1</code> de tu
+equipo. Jupyter queda en primer plano: <strong>deja esa terminal abierta</strong> mientras
+trabajes. <code>Ctrl+C</code> lo detiene y dos <code>exit</code> te devuelven a tu equipo.</p>
+<p>El servidor, el kernel y todas las celdas del notebook se ejecutan así dentro
+de <code>namenode</code>; en tu equipo sólo quedan Visual Studio Code y el fichero del
+notebook. <code>entorno/Makefile</code> ofrece el atajo <code>make -C entorno jupyter</code>, que
+hace lo mismo en una sola orden
+(<code>docker exec -it namenode su - luser -c 'jupyter lab ...'</code>), pero conviene
+conocer los pasos anteriores para saber dónde se ejecuta cada cosa.</p>
+<p>Copia la dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra
+(la que empieza por <code>127.0.0.1</code>) y, en Visual Studio Code, conecta este
+notebook con <strong>Select Kernel → Select Another Kernel → Existing Jupyter
+Server</strong>, eligiendo el kernel <strong>Python 3 (ipykernel)</strong>. El token cambia cada
+vez que se arranca el servidor.</p>
 <p>La red <code>hadoop-cluster</code> conecta los contenedores, pero RustFS no es un
 DataNode ni un NodeManager: es simplemente otro servicio accesible desde
 <code>namenode</code> por red. Los puertos publicados en el host son:</p>
@@ -8039,9 +8085,9 @@ anterior. HDFS permanece intacto: sigue siendo la fuente <code>raw</code> creada
 <h2 id="Traer-los-programas-de-la-sesi%C3%B3n-al-kernel">Traer los programas de la sesión al kernel<a class="anchor-link" href="#Traer-los-programas-de-la-sesi%C3%B3n-al-kernel">¶</a></h2><p>Este notebook se ejecuta dentro de <code>namenode</code>, igual que en S2, y ese
 contenedor no monta el directorio <code>entorno/sesiones/s3</code> de tu distribución
 local: los cuatro programas de la sesión (<code>check_s3_api.py</code>,
-<code>read_s3_pyarrow.py</code>, <code>read_s3_polars.py</code>, <code>read_s3_duckdb.py</code>) y
-<code>requirements.txt</code> todavía no existen en el directorio de trabajo del
-kernel. La siguiente celda los descarga del repositorio público
+<code>read_s3_pyarrow.py</code>, <code>read_s3_polars.py</code>, <code>read_s3_duckdb.py</code>) todavía no
+existen en el directorio de trabajo del kernel. <code>requirements.txt</code> se crea
+más abajo con <code>%%writefile</code>, como en S2. La siguiente celda los descarga del repositorio público
 <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>), igual que S2 descarga la instantánea
 del INE.</p>
 </div>
@@ -8059,7 +8105,6 @@ del INE.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
 
 <span class="n">SESSION_FILES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"requirements.txt"</span><span class="p">,</span>
     <span class="s2">"check_s3_api.py"</span><span class="p">,</span>
     <span class="s2">"read_s3_pyarrow.py"</span><span class="p">,</span>
     <span class="s2">"read_s3_polars.py"</span><span class="p">,</span>
@@ -8085,9 +8130,39 @@ del INE.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">Instalar las dependencias de la sesión en este kernel<a class="anchor-link" href="#Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">¶</a></h2><p>A partir de aquí todo se ejecuta desde este mismo notebook. Se instalan las
-dependencias de <a href="requirements.txt"><code>requirements.txt</code></a> en el entorno del
-kernel actual.</p>
+<h2 id="Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">Instalar las dependencias de la sesión en este kernel<a class="anchor-link" href="#Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">¶</a></h2><p>A partir de aquí todo se ejecuta desde este mismo notebook. La celda
+siguiente crea <a href="requirements.txt"><code>requirements.txt</code></a> con <code>%%writefile</code>
+dentro de <code>namenode</code>, y la posterior instala sus dependencias con <code>%pip</code> en
+el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
+<code>%pip</code> sólo confirme que están.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s3-requirements">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="c1"># Dependencias de los ejemplos de S3.</span>
+<span class="c1"># Se utilizan únicamente APIs S3 estándar, de modo que el endpoint local se</span>
+<span class="c1"># puede sustituir por un bucket real de Amazon S3 sin cambiar las lecturas.</span>
+<span class="c1"># s3fs se usa en las lecturas de PyArrow y Polars; DuckDB usa httpfs.</span>
+<span class="c1"># boto3 y aiobotocore se fijan en versiones que comparten botocore 1.43.56.</span>
+<span class="n">boto3</span><span class="o">==</span><span class="mf">1.43.56</span>
+<span class="n">aiobotocore</span><span class="o">==</span><span class="mf">3.9.0</span>
+<span class="n">duckdb</span>
+<span class="n">fsspec</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
+<span class="n">polars</span>
+<span class="n">pyarrow</span>
+<span class="c1"># Esta versión de s3fs proporciona la consulta de metadatos `modified` que</span>
+<span class="c1"># utilizan los lectores de la sesión.</span>
+<span class="n">s3fs</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -8099,7 +8174,7 @@ kernel actual.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>

@@ -21,7 +21,7 @@ S3_COMPOSE := docker compose -f compose-s3.yml
 HDFS_VOLUMES := tcdm-26-27-namenode-data tcdm-26-27-datanode1-data \
 	tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data
 
-.PHONY: network hadoop-up warehouse-up tpcds-init tpcds-size s3-up status stop clean clean-hdfs
+.PHONY: network hadoop-up warehouse-up tpcds-init tpcds-size s3-up jupyter status stop clean clean-hdfs
 
 network:
 	docker network inspect hadoop-cluster >/dev/null 2>&1 || docker network create hadoop-cluster
@@ -50,26 +50,35 @@ tpcds-size: hadoop-up
 s3-up: network
 	$(S3_COMPOSE) up -d
 
+# Arranca Jupyter Lab dentro de namenode como luser, con el entorno Python del
+# curso (/opt/tcdm/venv). Queda en primer plano: muestra la dirección con el
+# token que hay que pegar en Visual Studio Code y se detiene con Ctrl+C. La
+# terminal debe quedar abierta mientras se trabaja con el notebook.
+jupyter:
+	docker exec -it namenode su - luser -c 'jupyter lab --ip=0.0.0.0 --port=8888 --no-browser'
+
+# La distribución de cada sesión sólo incluye los Compose que ya se usan. Los
+# de sesiones posteriores se omiten sin error mientras no se hayan publicado.
 status:
 	$(HADOOP_COMPOSE) ps
-	$(WAREHOUSE_COMPOSE) ps -a
-	$(S3_COMPOSE) ps -a
+	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) ps -a; fi
+	if test -e compose-s3.yml; then $(S3_COMPOSE) ps -a; fi
 
 # Elimina los contenedores. Los datos HDFS sobreviven porque viven en los
 # volúmenes con nombre de compose-hadoop-cluster.yml (namenode-data,
 # datanodeN-data), no en la capa de escritura de los contenedores: un
 # `up -d` posterior los reutiliza tal cual. Usa `clean-hdfs` para borrarlos.
 stop:
-	$(S3_COMPOSE) down
-	$(WAREHOUSE_COMPOSE) down
+	if test -e compose-s3.yml; then $(S3_COMPOSE) down; fi
+	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) down; fi
 	$(HADOOP_COMPOSE) down
 
 # Además de parar y eliminar los contenedores, borra el volumen de
 # metadatos de PostgreSQL (Hive Metastore) y el de S3. El HDFS de Hadoop no
 # se toca aquí: usa `clean-hdfs` para eso, de forma explícita y separada.
 clean:
-	$(S3_COMPOSE) down -v
-	$(WAREHOUSE_COMPOSE) down -v
+	if test -e compose-s3.yml; then $(S3_COMPOSE) down -v; fi
+	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) down -v; fi
 	$(HADOOP_COMPOSE) down
 
 # Borra también los datos HDFS (namenode y los tres datanode). Es la única

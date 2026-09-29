@@ -5,6 +5,33 @@ de `s1/`, `s2/`, ..., `s8/`. Los notebooks lo referencian con `../entorno/...`
 porque el directorio de trabajo del kernel de Jupyter es el propio directorio
 del notebook (`sX/`), no la raíz de la distribución.
 
+La distribución publicada incluye sólo las partes de este directorio que
+necesitan las sesiones ya publicadas; la correspondencia está en
+`SESIONES.txt`, que no se publica. Las órdenes de este documento se escriben
+desde la raíz de la distribución con `make -C entorno ...`.
+
+## Jupyter en `namenode`
+
+Desde S2 el kernel de Jupyter se ejecuta dentro de `namenode`. La imagen
+incluye el entorno Python del curso en `/opt/tcdm/venv` (Jupyter Lab,
+PySpark, PyArrow, Polars, DuckDB, `fsspec`, `s3fs`, boto3 y el cliente de
+Trino), pero Jupyter Lab no arranca solo. El alumnado entra en el
+contenedor y lo lanza como `luser`:
+
+```bash
+docker exec -it namenode bash        # en el equipo
+su - luser                           # dentro de namenode
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+```
+
+Jupyter queda en primer plano y muestra la dirección
+`http://127.0.0.1:8888/lab?token=...` que se pega en Visual Studio Code.
+`make -C entorno jupyter` es un atajo que hace lo mismo en una orden. Cada
+notebook recrea su `requirements.txt` con `%%writefile` y lo instala con
+`%pip`; con la imagen al día, `%pip` sólo confirma lo que ya está instalado. Los DataNodes no necesitan este entorno: los ejecutores de
+Spark reciben por YARN el código de PySpark y los `.jar`, y usan el `python3`
+de la imagen base.
+
 Este directorio contiene dos entornos complementarios que comparten la red
 Docker `hadoop-cluster`. El primero es el camino principal del curso y utiliza
 HDFS como almacenamiento:
@@ -91,10 +118,10 @@ El notebook conserva como Markdown el código de descarga y normalización para
 explicar el proceso, pero no lo ejecuta: la relación puede cambiar y la copia
 que recibe el alumnado ya está preparada en `data/ine`.
 
-Desde `26-27/entorno`:
+Desde la raíz de la distribución:
 
 ```bash
-make warehouse-up
+make -C entorno warehouse-up
 ```
 
 El objetivo `make` se ejecuta en el host y delega las operaciones en Docker

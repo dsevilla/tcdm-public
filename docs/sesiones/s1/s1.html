@@ -7908,21 +7908,62 @@ integración, el rendimiento de E/S es mucho mejor.</p>
 <li><p><strong>Selecciona como kernel del notebook un intérprete de Python de WSL2</strong>
 (no uno de Windows), con <code>ipykernel</code> instalado.</p>
 </li>
+<li><p><strong>Instala <code>make</code></strong> en Ubuntu de WSL2, porque a partir de S2 se usa
+<code>make -C entorno ...</code> desde la terminal:</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>make
+</pre></div>
+</li>
 <li><p><strong>Comprueba antes de continuar</strong>, en una terminal de WSL2:</p>
 <div class="highlight"><pre><span></span>docker<span class="w"> </span>--version
 docker<span class="w"> </span>compose<span class="w"> </span>version
 docker<span class="w"> </span>info
+make<span class="w"> </span>--version
 </pre></div>
-<p>Si algún comando falla, revisa los pasos 2–4 antes de seguir: el resto
+<p>Si algún comando falla, revisa los pasos 2–4 (o el 7, si falta <code>make</code>) antes de seguir: el resto
 del notebook asume que estas órdenes ya funcionan desde la propia
 terminal de WSL2.</p>
 </li>
 </ol>
 <blockquote>
-<p><strong>En Linux y macOS</strong> no es necesario nada de lo anterior: basta con tener
-Docker (Docker Engine en Linux, o Docker Desktop en macOS) instalado y en
-ejecución.</p>
+<p><strong>En Linux y macOS</strong> no hacen falta WSL2 ni la integración anterior: basta
+con tener Docker (Docker Engine en Linux, o Docker Desktop en macOS)
+instalado y en ejecución, y <code>make</code> en el equipo (en Linux, paquete
+<code>make</code>; en macOS viene con las herramientas de línea de órdenes de Xcode,
+<code>xcode-select --install</code>). Sí se necesitan, igual que en Windows, Visual
+Studio Code con las extensiones <strong>Python</strong> y <strong>Jupyter</strong> y un Python local
+con <code>ipykernel</code> para el kernel de esta sesión, por ejemplo:</p>
+<div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/.venv-tcdm-s1
+~/.venv-tcdm-s1/bin/pip<span class="w"> </span>install<span class="w"> </span>ipykernel
+</pre></div>
+<p>y elegir ese intérprete como kernel del notebook. Sólo S1 usa este Python
+local: a partir de S2 el kernel y todas las bibliotecas vienen ya
+instalados dentro del contenedor <code>namenode</code>.</p>
 </blockquote>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=s1-obtener-material">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Obtener-el-material-de-las-sesiones">Obtener el material de las sesiones<a class="anchor-link" href="#Obtener-el-material-de-las-sesiones">¶</a></h3><p>El material se distribuye en el repositorio público
+<a href="https://github.com/dsevilla/tcdm-public"><code>dsevilla/tcdm-public</code></a>, rama
+<code>26-27</code>. En una terminal de tu equipo (en Windows, la terminal de Ubuntu de
+WSL2):</p>
+<div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span><span class="m">26</span>-27<span class="w"> </span>https://github.com/dsevilla/tcdm-public.git<span class="w"> </span>~/tcdm
+<span class="nb">cd</span><span class="w"> </span>~/tcdm
+code<span class="w"> </span>.
+</pre></div>
+<p>A este directorio (<code>~/tcdm</code>) lo llamaremos <strong>raíz de la distribución</strong>.
+Contiene un directorio por sesión (<code>s1/</code>, <code>s2/</code>, ...) y <code>entorno/</code>, con los
+ficheros Docker Compose y el <code>Makefile</code> del laboratorio. <code>entorno/</code> crece a
+medida que se publican sesiones: cada una trae sólo lo que necesita. Antes de
+empezar una sesión nueva, actualiza la copia desde la raíz:</p>
+<div class="highlight"><pre><span></span>git<span class="w"> </span>pull
+</pre></div>
 </div>
 </div>
 </div>
@@ -8589,13 +8630,58 @@ en sesiones posteriores con Parquet/Arrow, Spark, Trino y tablas Iceberg.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Antes-de-empezar">Antes de empezar<a class="anchor-link" href="#Antes-de-empezar">¶</a></h2><p>Se necesita Docker Engine o Docker Desktop con Docker Compose v2, iniciado y
-con capacidad para descargar las imágenes publicadas del curso. Se recomienda
-asignar al menos 8 GiB de memoria a Docker y detener otros contenedores que
-no sean necesarios durante la sesión.</p>
+con capacidad para descargar las imágenes publicadas del curso. Para esta
+sesión basta con asignar al menos 8 GiB de memoria a Docker y detener otros
+contenedores que no sean necesarios. Los límites del Compose (4 GiB para
+<code>namenode</code> y 3 GiB por DataNode) son techos, no reservas: el clúster de S1
+usa bastante menos. Las sesiones con Spark, a partir de S4, se acercan más a
+esos límites y conviene subir la memoria de Docker hacia 14 GiB si el equipo
+lo permite.</p>
 <p>Las celdas de este notebook suponen que Jupyter usa como directorio de
 trabajo el propio directorio del notebook (<code>s1/</code>), que es hermano de
 <code>entorno/</code> en la distribución de sesiones. Por eso las rutas del entorno
 se escriben como <code>../entorno/...</code>.</p>
+<h3 id="D%C3%B3nde-se-ejecuta-cada-orden">Dónde se ejecuta cada orden<a class="anchor-link" href="#D%C3%B3nde-se-ejecuta-cada-orden">¶</a></h3><p>En esta sesión el kernel de Jupyter se ejecuta <strong>en tu equipo</strong>, fuera del
+clúster. Casi todas las celdas tienen esta forma:</p>
+<div class="highlight"><pre><span></span>!docker exec namenode su - luser -c 'hdfs dfs -ls /'
+│ │           │        │            └─ orden que se ejecuta en el contenedor
+│ │           │        └─ como el usuario luser, con su entorno de login
+│ │           │           (PATH con hdfs, yarn, java...)
+│ │           └─ dentro del contenedor namenode
+│ └─ el cliente Docker de tu equipo entra en un contenedor
+└─ Jupyter pasa el resto de la línea a una shell de tu equipo
+</pre></div>
+<p>Por tanto hay tres niveles:</p>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>Ejemplo</th>
+<th>Dónde se ejecuta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shell de tu equipo</td>
+<td><code>!docker compose -f ../entorno/compose-hadoop-cluster.yml ps</code></td>
+<td>En tu equipo; sólo necesita el cliente Docker</td>
+</tr>
+<tr>
+<td>Contenedor</td>
+<td><code>!docker exec namenode ...</code></td>
+<td>Dentro de <code>namenode</code> (o del <code>datanodeN</code> que se indique)</td>
+</tr>
+<tr>
+<td>Usuario del contenedor</td>
+<td><code>su - hdadmin -c '...'</code> o <code>su - luser -c '...'</code></td>
+<td><code>hdadmin</code> administra los demonios; <code>luser</code> trabaja con los datos</td>
+</tr>
+</tbody>
+</table>
+<p><code>hdfs</code>, <code>yarn</code> o <code>java</code> no están instalados en tu equipo: sólo existen
+dentro de los contenedores. Por eso <code>!hdfs dfs -ls /</code> a secas falla en esta
+sesión. A partir de S2 el kernel se ejecutará dentro de <code>namenode</code> y la misma
+orden se escribirá sin <code>docker exec</code>.</p>
 <h3 id="Comprobar-el-cliente-Docker">Comprobar el cliente Docker<a class="anchor-link" href="#Comprobar-el-cliente-Docker">¶</a></h3><p>La salida debe identificar una versión de Docker. Esto sólo confirma que
 existe el cliente; todavía no demuestra que el motor de contenedores esté en
 ejecución.</p>
@@ -8912,6 +8998,11 @@ rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*<span c
 <span class="k">RUN</span><span class="w"> </span>sh<span class="w"> </span>/tmp/namenode.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>rm<span class="w"> </span>-f<span class="w"> </span>/tmp/namenode.sh
 
+<span class="c"># Entorno Python del curso (Jupyter, PySpark y bibliotecas de S2-S8).</span>
+<span class="k">COPY</span><span class="w"> </span>requirements-namenode.txt<span class="w"> </span>install-python-environment.sh<span class="w"> </span>/tmp/
+<span class="k">RUN</span><span class="w"> </span>sh<span class="w"> </span>/tmp/install-python-environment.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>rm<span class="w"> </span>-f<span class="w"> </span>/tmp/install-python-environment.sh<span class="w"> </span>/tmp/requirements-namenode.txt
+
 <span class="k">EXPOSE</span><span class="w"> </span><span class="s">9870 9871 8088 8000-10000</span>
 <span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">"/inicio.sh"</span><span class="p">]</span>
 </pre></div>
@@ -8920,8 +9011,32 @@ los DataNodes y del NodeManager y publica sus puertos característicos
 (<code>9864 9865 9866 9867 50000-50200 8000-10000</code>). En ambos casos la
 configuración se escribe <strong>durante la construcción</strong>, no cuando el alumnado
 ejecuta <code>docker compose up</code>; la diferencia entre ambas imágenes está
-principalmente en <code>hdfs-site.xml</code>, en <code>yarn-site.xml</code> y en el contenido de
-<code>/inicio.sh</code>.</p>
+principalmente en <code>hdfs-site.xml</code>, en <code>yarn-site.xml</code>, en el contenido de
+<code>/inicio.sh</code> y en el entorno Python del curso, que sólo lleva el NameNode.</p>
+<h4 id="Entorno-Python-del-curso-(s%C3%B3lo-en-el-NameNode)">Entorno Python del curso (sólo en el NameNode)<a class="anchor-link" href="#Entorno-Python-del-curso-(s%C3%B3lo-en-el-NameNode)">¶</a></h4><p>A partir de S2, Jupyter y el driver de Spark se ejecutan dentro de
+<code>namenode</code>, así que su imagen incluye el entorno Python que usarán las
+sesiones. Ubuntu marca el <code>python3</code> del sistema como <em>gestionado
+externamente</em> (PEP 668): un <code>pip install</code> sobre él falla con el error
+<code>externally-managed-environment</code>. Por eso se crea un entorno virtual aparte,
+<code>/opt/tcdm/venv</code>, y se instalan en él Jupyter Lab, PySpark y las bibliotecas
+de S2-S8:</p>
+<div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>/opt/tcdm/venv
+/opt/tcdm/venv/bin/python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-r<span class="w"> </span>/tmp/requirements-namenode.txt
+chown<span class="w"> </span>-R<span class="w"> </span>luser:hadoop<span class="w"> </span>/opt/tcdm
+cat<span class="w"> </span>&gt;<span class="w"> </span>/etc/profile.d/tcdm-python.sh<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<span class="s">export PATH="/opt/tcdm/venv/bin:$PATH"</span>
+<span class="s">EOF</span>
+</pre></div>
+<p><code>/etc/profile.d/tcdm-python.sh</code> pone <code>/opt/tcdm/venv/bin</code> al principio del
+<code>PATH</code> de los shells de login: tras <code>su - luser</code>, <code>python</code>, <code>python3</code>, <code>pip</code>,
+<code>jupyter</code> y <code>spark-submit</code> son los de este entorno. Será el intérprete del
+kernel de Jupyter desde S2 y, por tanto, el lugar donde acaba todo
+<code>%pip install</code> de un notebook. <code>luser</code> es su propietario, de modo que puede
+instalar paquetes sin privilegios de administrador.</p>
+<p>Los DataNodes no llevan este entorno: cuando Spark envía trabajo a YARN,
+<code>spark-submit</code> distribuye a los ejecutores <code>pyspark.zip</code>, py4j y los <code>.jar</code>
+de Spark, y éstos sólo necesitan el <code>python3</code> de la imagen base.</p>
 <h4 id="Usuarios-y-entorno-de-ejecuci%C3%B3n">Usuarios y entorno de ejecución<a class="anchor-link" href="#Usuarios-y-entorno-de-ejecuci%C3%B3n">¶</a></h4><div class="highlight"><pre><span></span>groupadd<span class="w"> </span>--system<span class="w"> </span>hadoop
 useradd<span class="w"> </span>--system<span class="w"> </span>--create-home<span class="w"> </span>--gid<span class="w"> </span>hadoop<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--home-dir<span class="w"> </span>/opt/bd<span class="w"> </span>--shell<span class="w"> </span>/bin/bash<span class="w"> </span>hdadmin
@@ -9531,7 +9646,10 @@ Jupyter y Spark.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><code>command -v</code> muestra el ejecutable que resolvería el shell a través de
 <code>PATH</code>, sin llegar a ejecutar el programa. La imagen incluye Java 17, y
-Python/Maven para sesiones posteriores.</p>
+Python/Maven para sesiones posteriores. En <code>namenode</code>, <code>python3</code> y <code>pip3</code> se
+resuelven dentro de <code>/opt/tcdm/venv/bin</code>: es el entorno Python del curso
+descrito en «Cómo se construyen las imágenes del curso», que ya trae Jupyter
+Lab y PySpark para las sesiones siguientes.</p>
 </div>
 </div>
 </div>
@@ -9572,6 +9690,20 @@ Python/Maven para sesiones posteriores.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>luser<span class="w"> </span>-c<span class="w"> </span><span class="s1">'command -v pip3'</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s1-jupyter-spark-submit">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>luser<span class="w"> </span>-c<span class="w"> </span><span class="s1">'command -v jupyter spark-submit'</span>
 </pre></div>
 </div>
 </div>
@@ -11367,7 +11499,10 @@ los NodeManagers aportan contenedores y que el resultado se escribe en HDFS.</p>
 <h2 id="Detener,-limpiar-y-recuperar-el-entorno">Detener, limpiar y recuperar el entorno<a class="anchor-link" href="#Detener,-limpiar-y-recuperar-el-entorno">¶</a></h2><p>No ejecutes estas órdenes por accidente mientras trabajas: se presentan como
 texto para copiarlas a una terminal cuando de verdad las necesites, no como
 celdas de código, precisamente para que un «ejecutar todo» del notebook no
-destruya tu propio trabajo.</p>
+destruya tu propio trabajo. Ejecútalas en una terminal de tu
+equipo, situada en la raíz de la distribución (el directorio que contiene
+<code>s1/</code> y <code>entorno/</code>); por eso aquí las rutas empiezan por <code>entorno/</code> y no por
+<code>../entorno/</code> como en las celdas del notebook.</p>
 <table>
 <thead>
 <tr>
@@ -11379,12 +11514,12 @@ destruya tu propio trabajo.</p>
 <tbody>
 <tr>
 <td>Parar temporalmente</td>
-<td><code>docker compose -f ../entorno/compose-hadoop-cluster.yml stop</code></td>
+<td><code>docker compose -f entorno/compose-hadoop-cluster.yml stop</code></td>
 <td>Conserva contenedores y datos HDFS; se reanuda con <code>start</code>. Tras <code>start</code> los demonios tardan unos segundos en registrarse: repite <code>dfsadmin -report</code> y <code>yarn node -list -all</code> antes de continuar.</td>
 </tr>
 <tr>
 <td>Reanudar</td>
-<td><code>docker compose -f ../entorno/compose-hadoop-cluster.yml start</code></td>
+<td><code>docker compose -f entorno/compose-hadoop-cluster.yml start</code></td>
 <td>Vuelve a poner en marcha los mismos contenedores. <code>up -d</code> también sirve: Compose reutiliza los contenedores existentes mientras su configuración no obligue a recrearlos.</td>
 </tr>
 <tr>
@@ -11394,8 +11529,8 @@ destruya tu propio trabajo.</p>
 </tr>
 <tr>
 <td>Eliminar los contenedores</td>
-<td><code>docker compose -f ../entorno/compose-hadoop-cluster.yml down</code></td>
-<td>Elimina los contenedores, pero <strong>conserva los datos HDFS</strong>: viven en los volúmenes con nombre <code>namenode-data</code>/<code>datanodeN-data</code>, no en la capa de escritura de los contenedores. Sí borra el almacén local (no persistido) del Timeline Server. La red externa <code>hadoop-cluster</code> no se elimina.</td>
+<td><code>docker compose -f entorno/compose-hadoop-cluster.yml down</code></td>
+<td>Elimina los contenedores, pero <strong>conserva los datos HDFS</strong>: viven en los volúmenes Docker <code>tcdm-26-27-namenode-data</code> y <code>tcdm-26-27-datanodeN-data</code> (en el Compose aparecen con los nombres cortos <code>namenode-data</code>/<code>datanodeN-data</code>), no en la capa de escritura de los contenedores. Sí borra el almacén local (no persistido) del Timeline Server. La red externa <code>hadoop-cluster</code> no se elimina.</td>
 </tr>
 <tr>
 <td>Recrear los contenedores</td>
@@ -11405,7 +11540,7 @@ destruya tu propio trabajo.</p>
 <tr>
 <td>Borrar también el HDFS (destructivo)</td>
 <td><code>docker volume rm tcdm-26-27-namenode-data tcdm-26-27-datanode1-data tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data</code> (con los contenedores ya eliminados)</td>
-<td>Vacía el espacio de nombres y los bloques: el próximo <code>up -d</code> arranca con un HDFS recién formateado, como la primera vez. Es la única orden de esta tabla que borra <code>/datalake/raw/tpcds</code> y cualquier otro dato ya materializado en sesiones posteriores. A partir de la Sesión 2, <code>entorno/Makefile</code> envuelve esta misma orden como <code>make clean-hdfs</code>.</td>
+<td>Vacía el espacio de nombres y los bloques: el próximo <code>up -d</code> arranca con un HDFS recién formateado, como la primera vez. Es la única orden de esta tabla que borra <code>/datalake/raw/tpcds</code> y cualquier otro dato ya materializado en sesiones posteriores. A partir de la Sesión 2, <code>entorno/Makefile</code> envuelve esta misma orden como <code>make -C entorno clean-hdfs</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -11488,6 +11623,45 @@ una ruta HDFS, y qué ocurre con los datos al usar <code>stop</code> frente a <c
 <p>A partir de ahora conserva este entorno: las siguientes sesiones usarán el
 mismo HDFS para acceder a datos desde Arrow, Spark y las herramientas de
 catálogo.</p>
+<h3 id="Preparaci%C3%B3n-para-la-sesi%C3%B3n-2">Preparación para la sesión 2<a class="anchor-link" href="#Preparaci%C3%B3n-para-la-sesi%C3%B3n-2">¶</a></h3><p>Desde S2 el kernel de Jupyter ya no se ejecuta en tu equipo, sino dentro del
+contenedor <code>namenode</code>, como <code>luser</code>. Antes de abrir <code>s2/s2.ipynb</code>, en una
+terminal de tu equipo situada en la raíz de la distribución:</p>
+<ol>
+<li><p>Actualiza el material; trae <code>s2/</code> y los ficheros de <code>entorno/</code> que añade
+esa sesión (el warehouse con Hive Metastore y Trino):</p>
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull
+</pre></div>
+</li>
+<li><p>Arranca el clúster y los servicios de catálogo. La orden reutiliza los
+contenedores y los volúmenes HDFS de esta sesión —no hace falta borrar
+nada—:</p>
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
+</pre></div>
+</li>
+<li><p>Arranca Jupyter <strong>dentro de <code>namenode</code></strong>. En otra terminal de tu equipo,
+entra en el contenedor:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash
+</pre></div>
+<p>Esa terminal pasa a estar dentro de <code>namenode</code> (el indicador muestra
+<code>root@namenode</code>). Ahí, cambia a <code>luser</code> y arranca Jupyter Lab:</p>
+<div class="highlight"><pre><span></span>su<span class="w"> </span>-<span class="w"> </span>luser
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser
+</pre></div>
+<p><code>su - luser</code> carga el entorno de login de <code>luser</code>, que pone primero en el
+<code>PATH</code> el Python del curso (<code>/opt/tcdm/venv</code>, con Jupyter Lab, PySpark y las
+bibliotecas de las sesiones). Deja esa terminal abierta mientras
+trabajes; <code>Ctrl+C</code> detiene Jupyter y dos <code>exit</code> te devuelven a tu equipo.
+<code>make -C entorno jupyter</code> hace lo mismo en una sola orden.</p>
+</li>
+<li><p>Copia la dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y,
+en Visual Studio Code, abre <code>s2/s2.ipynb</code> y conéctalo con <strong>Select Kernel
+→ Select Another Kernel → Existing Jupyter Server</strong>, eligiendo el kernel
+<strong>Python 3 (ipykernel)</strong>.</p>
+</li>
+</ol>
+<p>El Python local que usaste en esta sesión ya no será necesario. El propio
+notebook de S2 repite estos pasos con más detalle en «Arrancar el entorno».</p>
 </div>
 </div>
 </div>

@@ -7854,6 +7854,19 @@ recorrido completo hasta este punto es:</p>
 materializado original de <code>/datalake/raw/tpcds</code> y se evita modificarlo
 durante los ejercicios: las transformaciones de Spark escribirán sus
 salidas en rutas de trabajo separadas, bajo <code>/user/luser/s4</code>.</p>
+<blockquote>
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>.
+Respecto a S3 añade <code>pyspark</code>. Se instalan en el kernel de <code>namenode</code> en la sección
+«Instalar PySpark en este notebook»: una celda <code>%%writefile requirements.txt</code> crea
+el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
+<code>s4/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
+paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
+intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
+confirme que están; ejecuta
+esas celdas de todos modos: dejan explícito qué necesita la sesión y
+reparan el entorno si falta algo.</p>
+</blockquote>
 </div>
 </div>
 </div>
@@ -8112,9 +8125,24 @@ como celdas de este notebook.</p>
 <p>Esta sesión asume que el clúster de S1 ya está en marcha y que S2 generó
 los Parquet de TPC-DS SF1 en <code>/datalake/raw/tpcds</code>. Si no es así, desde una
 terminal de tu equipo situada en la raíz de la distribución de sesiones:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>warehouse-up
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
+<p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
+Como en S2, arráncalo desde <strong>otra terminal de tu equipo</strong> y déjala abierta
+mientras trabajes:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash<span class="w">                          </span><span class="c1"># en tu equipo: entra en namenode</span>
+su<span class="w"> </span>-<span class="w"> </span>luser<span class="w">                                             </span><span class="c1"># ya dentro de namenode</span>
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w">      </span><span class="c1"># dentro de namenode, como luser</span>
+</pre></div>
+<p>La primera orden es la única que se ejecuta en tu equipo; las otras dos, ya
+dentro del contenedor, arrancan Jupyter con el Python del curso
+(<code>make -C entorno jupyter</code> hace lo mismo en una sola orden). Copia la
+dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y, en Visual
+Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
+Kernel → Existing Jupyter Server</strong>, eligiendo el kernel <strong>Python 3
+(ipykernel)</strong>. El token cambia cada vez que se arranca el servidor.</p>
 <p>Antes de instalar nada, comprueba que los datos de entrada siguen donde S2
 los dejó:</p>
 </div>
@@ -8161,10 +8189,34 @@ mirar el estado de las aplicaciones YARN en el navegador.</p>
 igual que S2 y S3 instalaron PyArrow, Polars o DuckDB. Esta instalación es
 la que usaremos para <strong>todos los ejemplos en modo local</strong> del notebook: una
 única <code>SparkSession</code> construida más abajo y reutilizada en la mayoría de
-las secciones. La sección "Driver, ejecutores y YARN" es la única
-excepción: como no se puede cambiar el <code>master</code> de una sesión ya
-construida, ese envío a YARN usa un entorno virtual distinto, creado en su
-propia sección.</p>
+las secciones. La sección "Driver, ejecutores y YARN" no reutiliza esa
+<code>SparkSession</code>, porque no se puede cambiar el <code>master</code> de una sesión ya
+construida: lanza un proceso aparte con <code>spark-submit</code>, pero con este mismo
+PySpark del entorno <code>/opt/tcdm/venv</code>.</p>
+<p>La celda siguiente crea <code>requirements.txt</code> con <code>%%writefile</code> dentro de
+<code>namenode</code> —el de tu copia de la distribución está en tu equipo y el kernel no
+lo ve— y la posterior lo instala con <code>%pip</code> en el intérprete del kernel. La
+imagen de <code>namenode</code> ya trae PySpark, así que lo normal es que <code>%pip</code> sólo
+confirme que está.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s4-requirements">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="c1"># Dependencias del kernel interactivo de la sesión 4 (Spark en modo local).</span>
+<span class="c1"># La serie de PySpark aceptada por el curso es &gt;4,&lt;4.2.</span>
+<span class="c1"># El envío a YARN de la sección "Driver, ejecutores y YARN" usa este mismo</span>
+<span class="c1"># PySpark (spark-submit de /opt/tcdm/venv).</span>
+<span class="n">pyspark</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">,</span><span class="o">&lt;</span><span class="mf">4.2</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -8176,7 +8228,7 @@ propia sección.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
@@ -10528,7 +10580,8 @@ mediante <code>spark-submit</code>.</p>
 <span class="o">-</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">ApplicationMaster</span> <span class="n">y</span> <span class="n">ejecutores</span> <span class="n">como</span> <span class="n">procesos</span> <span class="n">reales</span>
 <span class="o">-</span> <span class="n">Un</span> <span class="n">script</span> <span class="n">aparte</span> <span class="n">lanzado</span> <span class="n">con</span> <span class="err">`</span><span class="n">spark</span><span class="o">-</span><span class="n">submit</span> <span class="o">--</span><span class="n">master</span> <span class="n">yarn</span><span class="err">`</span><span class="p">:</span> <span class="n">el</span> <span class="err">`</span><span class="n">master</span><span class="err">`</span>
   <span class="n">no</span> <span class="n">se</span> <span class="n">puede</span> <span class="n">cambiar</span> <span class="n">en</span> <span class="n">una</span> <span class="n">sesión</span> <span class="n">ya</span> <span class="n">creada</span>
-<span class="o">-</span> <span class="n">Los</span> <span class="n">ejecutores</span> <span class="n">sólo</span> <span class="n">necesitan</span> <span class="n">un</span> <span class="err">`</span><span class="n">python3</span><span class="err">`</span> <span class="n">en</span> <span class="n">cada</span> <span class="n">DataNode</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">driver</span> <span class="n">usa</span> <span class="n">el</span> <span class="n">PySpark</span> <span class="n">de</span> <span class="err">`</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">tcdm</span><span class="o">/</span><span class="n">venv</span><span class="err">`</span><span class="p">;</span> <span class="n">los</span> <span class="n">ejecutores</span><span class="p">,</span> <span class="n">sólo</span> <span class="n">un</span>
+  <span class="err">`</span><span class="n">python3</span><span class="err">`</span> <span class="n">en</span> <span class="n">cada</span> <span class="n">DataNode</span>
 </pre></div>
 </div>
 </div>
@@ -10551,7 +10604,7 @@ mediante <code>spark-submit</code>.</p>
      font-size:31.2px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:21.6px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:49.2px;line-height:1.15;margin:0 0 22px">A continuación: de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">local[2]</code> a los DataNodes</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Driver, ApplicationMaster y ejecutores como procesos reales</li><li style="margin:10px 0">Un script aparte lanzado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark-submit --master yarn</code>: el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">master</code></li></ul><p style="margin:10px 0">no se puede cambiar en una sesión ya creada</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Los ejecutores sólo necesitan un <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">python3</code> en cada DataNode</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:49.2px;line-height:1.15;margin:0 0 22px">A continuación: de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">local[2]</code> a los DataNodes</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Driver, ApplicationMaster y ejecutores como procesos reales</li><li style="margin:10px 0">Un script aparte lanzado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark-submit --master yarn</code>: el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">master</code></li></ul><p style="margin:10px 0">no se puede cambiar en una sesión ya creada</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El driver usa el PySpark de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/opt/tcdm/venv</code>; los ejecutores, sólo un</li></ul><p style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">python3</code> en cada DataNode</p>
 </div>
 </div>
 </div>
@@ -10592,49 +10645,21 @@ nuevo.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Un-entorno-virtual-dedicado-para-el-env%C3%ADo-a-YARN">Un entorno virtual dedicado para el envío a YARN<a class="anchor-link" href="#Un-entorno-virtual-dedicado-para-el-env%C3%ADo-a-YARN">¶</a></h3><p>El resto del notebook instaló PySpark una sola vez, con
-<code>requirements.txt</code>, directamente sobre el kernel de Jupyter. Para el envío
-a YARN hace falta algo más específico: <code>spark.pyspark.python</code> debe apuntar
-a un intérprete que exista en <strong>todos</strong> los DataNodes, porque ahí es donde
-se ejecutan los ejecutores, y las imágenes de DataNode de S1 sólo traen un
-<code>python3</code> de base (sin PySpark ni ningún paquete instalado por pip). Por
-eso el ejemplo pide <code>spark.pyspark.python=python3</code> a secas: el <code>python3</code>
-del sistema en cada DataNode, no un entorno virtual.</p>
-<p>El <strong>driver</strong>, en cambio, sí necesita el paquete <code>pyspark</code> instalado para
-poder construir la <code>SparkSession</code> y lanzar la aplicación; de ahí el
-entorno virtual dedicado. <code>spark-submit --master yarn</code> se encarga de
-distribuir a los ejecutores los propios ficheros de soporte de PySpark
-(<code>pyspark.zip</code> y <code>py4j.zip</code>) a través de YARN, así que no hace falta que
-cada DataNode tenga instalado el paquete <code>pyspark</code>: sólo el intérprete base
-que ejecuta ese código ya distribuido.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">luser</span><span class="o">/.</span><span class="n">venv</span><span class="o">-</span><span class="n">tcdm</span><span class="o">-</span><span class="n">s4</span><span class="o">-</span><span class="n">yarn</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">luser</span><span class="o">/.</span><span class="n">venv</span><span class="o">-</span><span class="n">tcdm</span><span class="o">-</span><span class="n">s4</span><span class="o">-</span><span class="n">yarn</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">quiet</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
+<h3 id="Qu%C3%A9-Python-usan-el-driver-y-los-ejecutores">Qué Python usan el driver y los ejecutores<a class="anchor-link" href="#Qu%C3%A9-Python-usan-el-driver-y-los-ejecutores">¶</a></h3><p>El envío a YARN usa el mismo entorno Python que el kernel de este notebook,
+<code>/opt/tcdm/venv</code>, instalado en la imagen de <code>namenode</code> y comprobado con
+<code>%pip install -r requirements.txt</code> al principio de la sesión. De él salen
+tanto <code>spark-submit</code> como el intérprete del <strong>driver</strong>, el único proceso que
+necesita el paquete <code>pyspark</code> instalado para construir la <code>SparkSession</code> y
+lanzar la aplicación.</p>
+<p>Los <strong>ejecutores</strong> son otra historia: se ejecutan en los DataNodes, cuyas
+imágenes sólo traen el <code>python3</code> de base (sin PySpark ni ningún paquete
+instalado por pip). <code>spark-submit --master yarn</code> distribuye a través de YARN
+los ficheros de soporte de PySpark (<code>pyspark.zip</code> y <code>py4j.zip</code>) y los <code>.jar</code>
+de Spark, así que a cada DataNode le basta con ese intérprete base para
+ejecutar el código ya distribuido. Por eso el envío pide
+<code>spark.pyspark.python=python3</code> a secas: el <code>python3</code> del sistema en cada
+DataNode, que es la misma versión de Python que la de <code>/opt/tcdm/venv</code>
+porque ambas imágenes parten de la misma base.</p>
 </div>
 </div>
 </div>
@@ -10818,12 +10843,12 @@ repartir tareas, evitando medir la distribución de trabajo con sólo
 parte de los ejecutores ya registrados.</li>
 <li><code>spark.pyspark.python=python3</code> es el intérprete de los ejecutores (el
 <code>python3</code> de base de cada DataNode); <code>spark.pyspark.driver.python</code>
-apunta al entorno virtual que acabamos de crear, el único sitio donde
-hace falta el paquete <code>pyspark</code> instalado.</li>
+apunta al Python de <code>/opt/tcdm/venv</code>, el único sitio donde hace falta el
+paquete <code>pyspark</code> instalado.</li>
 </ul>
-<p>Usamos el <code>spark-submit</code> que ha instalado el propio entorno virtual, no uno
-del sistema, para que coincida exactamente con la versión de PySpark que
-acabamos de instalar.</p>
+<p>Usamos el <code>spark-submit</code> de <code>/opt/tcdm/venv/bin</code>, el mismo entorno que el
+kernel, para que coincida exactamente con la versión de PySpark que usa el
+resto del notebook.</p>
 </div>
 </div>
 </div>
@@ -10835,7 +10860,7 @@ acabamos de instalar.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark_submit_cmd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""/home/luser/.venv-tcdm-s4-yarn/bin/spark-submit </span><span class="se">\</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">spark_submit_cmd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""/opt/tcdm/venv/bin/spark-submit </span><span class="se">\</span>
 <span class="s2">    --master yarn </span><span class="se">\</span>
 <span class="s2">    --deploy-mode client </span><span class="se">\</span>
 <span class="s2">    --num-executors </span><span class="si">{</span><span class="n">requested_executors</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
@@ -10848,7 +10873,7 @@ acabamos de instalar.</p>
 <span class="s2">    --conf spark.scheduler.minRegisteredResourcesRatio=1.0 </span><span class="se">\</span>
 <span class="s2">    --conf spark.scheduler.maxRegisteredResourcesWaitingTime=60s </span><span class="se">\</span>
 <span class="s2">    --conf spark.pyspark.python=python3 </span><span class="se">\</span>
-<span class="s2">    --conf spark.pyspark.driver.python=/home/luser/.venv-tcdm-s4-yarn/bin/python </span><span class="se">\</span>
+<span class="s2">    --conf spark.pyspark.driver.python=/opt/tcdm/venv/bin/python </span><span class="se">\</span>
 <span class="s2">    /tmp/s4_yarn_job.py"""</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">spark_submit_cmd</span><span class="p">)</span>

@@ -7848,6 +7848,19 @@ Spark Structured Streaming los recoge desde ahí con su propia fuente de
 ficheros: exactamente el mismo mecanismo de vigilancia de directorio que ya
 se ha usado en HDFS durante todo el curso, aplicado ahora de forma continua
 en vez de una sola vez.</p>
+<blockquote>
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>, <code>fsspec</code>, <code>pyarrow</code>, <code>requests</code>.
+Respecto a S7 añade <code>fsspec</code>, <code>pyarrow</code>, <code>requests</code>. Se instalan en el kernel de <code>namenode</code> en la sección
+«Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
+el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
+<code>s8/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
+paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
+intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
+confirme que están; ejecuta
+esas celdas de todos modos: dejan explícito qué necesita la sesión y
+reparan el entorno si falta algo.</p>
+</blockquote>
 </div>
 </div>
 </div>
@@ -8146,9 +8159,24 @@ mensaje claro si no existen o si su esquema no es el esperado.</li>
 </ul>
 <p>Si el clúster o el warehouse no están levantados todavía, desde una terminal
 de tu equipo situada en la raíz de la distribución de sesiones:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>warehouse-up
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
+<p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
+Como en S2, arráncalo desde <strong>otra terminal de tu equipo</strong> y déjala abierta
+mientras trabajes:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash<span class="w">                          </span><span class="c1"># en tu equipo: entra en namenode</span>
+su<span class="w"> </span>-<span class="w"> </span>luser<span class="w">                                             </span><span class="c1"># ya dentro de namenode</span>
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w">      </span><span class="c1"># dentro de namenode, como luser</span>
+</pre></div>
+<p>La primera orden es la única que se ejecuta en tu equipo; las otras dos, ya
+dentro del contenedor, arrancan Jupyter con el Python del curso
+(<code>make -C entorno jupyter</code> hace lo mismo en una sola orden). Copia la
+dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y, en Visual
+Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
+Kernel → Existing Jupyter Server</strong>, eligiendo el kernel <strong>Python 3
+(ipykernel)</strong>. El token cambia cada vez que se arranca el servidor.</p>
 </div>
 </div>
 </div>
@@ -8238,7 +8266,7 @@ usas «Existing Jupyter Server» desde tu equipo.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
@@ -8677,6 +8705,50 @@ de una base muy por encima del rango real de TPC-DS SF1): es la parte
 <p>La fracción de correcciones se controla con <code>--update-fraction</code> (0.3 por
 defecto). Ejecutamos el generador una primera vez para inspeccionar lo que
 produce, antes de construir la consulta de streaming.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=s8-generador-descarga">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>El generador es un fichero de la sesión (<code>s8/generate_web_sales_batch.py</code>),
+pero este notebook se ejecuta dentro de <code>namenode</code>, que no ve tu copia de la
+distribución. La celda siguiente lo descarga del repositorio público
+<code>dsevilla/tcdm-public</code> (rama <code>26-27</code>) al directorio de trabajo del kernel,
+igual que S3 descarga sus programas. Si el fichero ya está ahí —por ejemplo,
+porque lo has copiado tú o porque lo ha copiado el CI—, se conserva.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s8-generador-descarga-codigo">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
+
+<span class="n">GENERATOR</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"generate_web_sales_batch.py"</span><span class="p">)</span>
+<span class="n">generator_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/s8/generate_web_sales_batch.py"</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">GENERATOR</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">GENERATOR</span><span class="si">}</span><span class="s2"> ya está en </span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="si">}</span><span class="s2">; se conserva."</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">generator_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="s2">"Mozilla/5.0"</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">GENERATOR</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Descargado </span><span class="si">{</span><span class="n">GENERATOR</span><span class="si">}</span><span class="s2"> en </span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>

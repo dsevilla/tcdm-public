@@ -7862,6 +7862,19 @@ habremos hecho es aplicar, de forma observable, la arquitectura <em>medallion</e
 que ya se mencionó al crear el data lake en S1 y al explorar la zona <code>raw</code>
 en S2: datos detallados y reutilizables en <code>silver</code>, y un agregado orientado
 a una pregunta de negocio en <code>gold</code>.</p>
+<blockquote>
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>.
+No añade ningún paquete respecto a S4. Se instalan en el kernel de <code>namenode</code> en la sección
+«Instalar PySpark en este notebook»: una celda <code>%%writefile requirements.txt</code> crea
+el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
+<code>s5/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
+paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
+intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
+confirme que están; ejecuta
+esas celdas de todos modos: dejan explícito qué necesita la sesión y
+reparan el entorno si falta algo.</p>
+</blockquote>
 </div>
 </div>
 </div>
@@ -8079,9 +8092,24 @@ materializado TPC-DS SF1 en <code>/datalake/raw/tpcds</code> (S4 sólo lo leyó)
 vuelve a generar esos datos ni los modifica: se limita a leerlos. Si el clúster no
 está arriba, desde una terminal de tu equipo situada en la raíz de la
 distribución de sesiones:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>warehouse-up
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
+<p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
+Como en S2, arráncalo desde <strong>otra terminal de tu equipo</strong> y déjala abierta
+mientras trabajes:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash<span class="w">                          </span><span class="c1"># en tu equipo: entra en namenode</span>
+su<span class="w"> </span>-<span class="w"> </span>luser<span class="w">                                             </span><span class="c1"># ya dentro de namenode</span>
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w">      </span><span class="c1"># dentro de namenode, como luser</span>
+</pre></div>
+<p>La primera orden es la única que se ejecuta en tu equipo; las otras dos, ya
+dentro del contenedor, arrancan Jupyter con el Python del curso
+(<code>make -C entorno jupyter</code> hace lo mismo en una sola orden). Copia la
+dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y, en Visual
+Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
+Kernel → Existing Jupyter Server</strong>, eligiendo el kernel <strong>Python 3
+(ipykernel)</strong>. El token cambia cada vez que se arranca el servidor.</p>
 <p>Antes de instalar nada, comprueba que la fuente sigue donde S2 la dejó y S4
 la utilizó:</p>
 </div>
@@ -8127,6 +8155,28 @@ sí mismo. Construiremos una única <code>SparkSession</code> en modo <code>loca
 más abajo y la reutilizaremos en todo el notebook: aquí no hay una sección
 de envío a YARN como en S4, porque el objetivo de S5 no es comparar motores
 de ejecución sino la organización física de la salida.</p>
+<p>La celda siguiente crea <code>requirements.txt</code> con <code>%%writefile</code> dentro de
+<code>namenode</code> —el de tu copia de la distribución está en tu equipo y el kernel no
+lo ve— y la posterior lo instala con <code>%pip</code> en el intérprete del kernel. La
+imagen de <code>namenode</code> ya trae PySpark, así que lo normal es que <code>%pip</code> sólo
+confirme que está.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s5-requirements">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="c1"># Dependencias del kernel interactivo de la sesión 5 (Spark en modo local).</span>
+<span class="c1"># La serie de PySpark aceptada por el curso es &gt;4,&lt;4.2.</span>
+<span class="n">pyspark</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">,</span><span class="o">&lt;</span><span class="mf">4.2</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -8138,7 +8188,7 @@ de ejecución sino la organización física de la salida.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>

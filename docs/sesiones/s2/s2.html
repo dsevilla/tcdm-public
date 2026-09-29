@@ -7873,7 +7873,9 @@ metadatos;</li>
 <blockquote>
 <p><strong>Dónde se ejecuta este notebook.</strong> A partir de esta sesión, Jupyter se
 ejecuta directamente dentro del contenedor <code>namenode</code>, como <code>luser</code>, con
-acceso de red directo a HDFS y WebHDFS. Las celdas ejecutables hablan
+acceso de red directo a HDFS y WebHDFS. El servidor Jupyter se arranca a
+mano desde una terminal de tu equipo; la sección «Arrancar el entorno»
+explica cómo hacerlo y cómo conectar este notebook. Las celdas ejecutables hablan
 directamente con el clúster. Las órdenes que necesitan
 el Docker del host — arrancar o detener contenedores, <code>make</code>, borrados
 deliberados de datos — se muestran como texto para ejecutarlas en una
@@ -7890,6 +7892,19 @@ el datalake resultante (rutas, ficheros y resultados de las consultas) y
 <strong>entregar una memoria breve (una o dos páginas)</strong> que explique lo
 realizado. Esa misma sección indica también qué conceptos de esta sesión
 son relevantes para el examen final.</p>
+</blockquote>
+<blockquote>
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>requests</code>, <code>trino</code>.
+Es la primera sesión cuyo kernel se ejecuta dentro de <code>namenode</code>, así que todos son nuevos respecto a S1. Se instalan en el kernel de <code>namenode</code> en la sección
+«Preparar Python»: una celda <code>%%writefile requirements.txt</code> crea
+el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
+<code>s2/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
+paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
+intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
+confirme que están; ejecuta
+esas celdas de todos modos: dejan explícito qué necesita la sesión y
+reparan el entorno si falta algo.</p>
 </blockquote>
 </div>
 </div>
@@ -8757,52 +8772,127 @@ el flujo desde Python hay que abrirlo con <code>gzip</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Arrancar-el-entorno">Arrancar el entorno<a class="anchor-link" href="#Arrancar-el-entorno">¶</a></h2><p>El Makefile al que se refiere esta sesión está en <code>entorno/Makefile</code>, no
-dentro de <code>s2</code>. Estas órdenes se ejecutan <strong>en una terminal de tu equipo</strong>,
-desde la raíz de la distribución de sesiones — no en este notebook, porque
-crean nuevos servicios que se comunican con los nodos ya creados, en otros contenedores que podrían ser a su vez otros ordenadores o servicios existentes. Desde la raíz de la distribución, se puede hacer:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>warehouse-up
+<h2 id="Arrancar-el-entorno">Arrancar el entorno<a class="anchor-link" href="#Arrancar-el-entorno">¶</a></h2><p>Desde esta sesión hay tres lugares donde se ejecutan órdenes. Conviene
+distinguirlos antes de empezar:</p>
+<table>
+<thead>
+<tr>
+<th>Dónde</th>
+<th>Cómo aparece en este notebook</th>
+<th>Para qué se usa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal de tu equipo</td>
+<td>Bloques de texto <code>bash</code> marcados «en una terminal de tu equipo»</td>
+<td><code>make</code>, <code>docker compose</code>, <code>docker exec</code>: arrancar, parar y borrar contenedores</td>
+</tr>
+<tr>
+<td>Celdas de código de este notebook</td>
+<td>Celdas ejecutables; las que empiezan por <code>!</code> lanzan una orden de shell</td>
+<td>Se ejecutan <strong>dentro de <code>namenode</code></strong> como <code>luser</code>: <code>hdfs dfs ...</code>, Python, consultas a Trino</td>
+</tr>
+<tr>
+<td>Otro contenedor, desde tu equipo</td>
+<td><code>docker exec &lt;contenedor&gt; ...</code> en un bloque de texto</td>
+<td>Entrar en un contenedor concreto, por ejemplo en el cliente de Trino</td>
+</tr>
+</tbody>
+</table>
+<p>A diferencia de S1, aquí <code>!hdfs dfs -ls /</code> funciona sin <code>docker exec</code>: el
+kernel ya está dentro de <code>namenode</code>. Al revés, este notebook no puede usar
+<code>docker</code>, porque el contenedor no tiene acceso al Docker de tu equipo.</p>
+<h3 id="Arrancar-los-servicios">Arrancar los servicios<a class="anchor-link" href="#Arrancar-los-servicios">¶</a></h3><p>Abre una terminal de tu equipo (en Windows, la terminal de Ubuntu de WSL2
+que preparaste en S1) y sitúate en la raíz de la distribución: el directorio
+que contiene <code>s1/</code>, <code>s2/</code> y <code>entorno/</code>. Actualiza antes la copia, porque
+<code>entorno/</code> recibe con esta sesión los ficheros del warehouse:</p>
+<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm
+git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
-<p>También desde la raíz, la opción <code>-C</code> permite usar el mismo
-Makefile sin cambiar de directorio:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
+<p><code>-C entorno</code> hace que <code>make</code> use <code>entorno/Makefile</code> sin cambiar de
+directorio. El objetivo <code>warehouse-up</code> realiza tres acciones: crea la red
+Docker compartida <code>hadoop-cluster</code> si todavía no existe, arranca <code>namenode</code> y
+los tres DataNodes —si siguen creados desde S1 los reutiliza, con los mismos
+volúmenes HDFS— y arranca PostgreSQL, Hive Metastore y Trino. Los servicios
+adicionales no son nodos YARN ni almacenan bloques HDFS; son clientes y
+servicios de catálogo conectados a la red <code>hadoop-cluster</code>. La primera vez
+construye la imagen del metastore y descarga las de PostgreSQL y Trino, así
+que puede tardar varios minutos.</p>
+<p>El equivalente sin Makefile, también desde la raíz de la distribución, es:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span>network<span class="w"> </span>inspect<span class="w"> </span>hadoop-cluster<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>docker<span class="w"> </span>network<span class="w"> </span>create<span class="w"> </span>hadoop-cluster
+docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>entorno/compose-hadoop-cluster.yml<span class="w"> </span>up<span class="w"> </span>-d
+docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>entorno/compose-warehouse-hdfs.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
 </pre></div>
-<p>El objetivo <code>warehouse-up</code> realiza tres acciones: crea la red Docker
-compartida si todavía no existe, arranca <code>namenode</code> y los tres DataNodes, y
-arranca PostgreSQL, Hive Metastore y Trino. Los servicios adicionales no son
-nodos YARN ni almacenan bloques HDFS; son clientes y servicios de catálogo
-conectados a la red <code>hadoop-cluster</code>. El equivalente sin Makefile es:</p>
-<div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose-hadoop-cluster.yml<span class="w"> </span>up<span class="w"> </span>-d
-docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose-warehouse-hdfs.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
-</pre></div>
-<p>Y es conveniente comprobar que los contenedores están arrancados:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>status
+<p>Comprueba que los contenedores están arrancados:</p>
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>status
 </pre></div>
 <p>En la salida deben aparecer <code>namenode</code>, <code>datanode1</code>, <code>datanode2</code>,
 <code>datanode3</code>, <code>postgresql-metastore</code>, <code>hive-metastore</code> y <code>trino-hdfs</code>. El
 contenedor <code>catalog-init</code> es una tarea corta y puede aparecer como
 terminado correctamente; no debe confundirse con un servicio que tenga que
-permanecer ejecutándose. Es también dentro de este entorno arrancado donde
-vive el propio Jupyter que ejecuta este notebook: si <code>namenode</code> no está
-arrancado, ninguna celda posterior podrá conectarse a HDFS.</p>
-<h3 id="Arrancar-el-servidor-Jupyter-dentro-de-namenode">Arrancar el servidor Jupyter dentro de <code>namenode</code><a class="anchor-link" href="#Arrancar-el-servidor-Jupyter-dentro-de-namenode">¶</a></h3><p>A partir de esta sesión el kernel ya no vive en tu equipo, sino dentro del
-contenedor <code>namenode</code>, como <code>luser</code>. Antes de poder conectar este notebook
-hace falta arrancar ahí un servidor Jupyter. Esto también se hace <strong>en una
-terminal de tu equipo</strong>, no en este notebook — todavía no hay ningún
-kernel al que puedan pertenecer estas celdas:</p>
-<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>luser<span class="w"> </span>-c<span class="w"> </span><span class="s1">'jupyter lab --ip=0.0.0.0 --no-browser --port=8888'</span>
+permanecer ejecutándose. Si tu copia incluye ya la sesión 3, <code>status</code> muestra
+además una tabla vacía para su Compose: es normal, esos servicios se
+arrancan en esa sesión.</p>
+<h3 id="Arrancar-Jupyter-dentro-de-namenode">Arrancar Jupyter dentro de <code>namenode</code><a class="anchor-link" href="#Arrancar-Jupyter-dentro-de-namenode">¶</a></h3><p>A partir de esta sesión el kernel ya no vive en tu equipo, sino dentro del
+contenedor <code>namenode</code>, como <code>luser</code>. La imagen trae instalados Jupyter Lab,
+Python, PySpark y las bibliotecas del curso en el entorno <code>/opt/tcdm/venv</code>,
+pero el servidor no arranca solo: hay que entrar en el contenedor y lanzarlo.</p>
+<p>Abre <strong>otra terminal de tu equipo</strong> y entra en el contenedor <code>namenode</code>:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash
 </pre></div>
-<p>La orden se queda en primer plano y muestra en la terminal una URL del
-tipo <code>http://127.0.0.1:8888/lab?token=...</code>; copia esa URL (o solo el
-valor de <code>token</code>). El puerto 8888 ya está publicado en
-<code>compose-hadoop-cluster.yml</code> como <code>127.0.0.1:8888:8888</code>, así que no hace
-falta ningún túnel SSH adicional: basta con quedarte en tu propio equipo.
-En Visual Studio Code, abre este mismo <code>s2.ipynb</code> (el fichero sigue
-estando en tu equipo, no dentro del contenedor), elige <strong>Select
-Kernel → Existing Jupyter Server</strong> y pega esa URL cuando se te pida. A
-partir de ahí, las celdas de código de esta sesión ya ejecutan dentro de
-<code>namenode</code>.</p>
+<p><code>docker exec -it</code> abre una shell interactiva <em>dentro</em> del contenedor: a
+partir de aquí esa terminal ya no está en tu equipo, sino en <code>namenode</code>, y el
+indicador lo muestra (<code>root@namenode</code>). Ahí dentro, cambia al usuario de
+trabajo y arranca Jupyter Lab:</p>
+<div class="highlight"><pre><span></span>su<span class="w"> </span>-<span class="w"> </span>luser
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser
+</pre></div>
+<p><code>su - luser</code> abre una shell de login de <code>luser</code>, que carga
+<code>/etc/profile.d/tcdm-python.sh</code> y pone <code>/opt/tcdm/venv/bin</code> al principio del
+<code>PATH</code>: por eso <code>jupyter</code> es el del entorno Python del curso, que ya trae
+PySpark y las bibliotecas de las sesiones (<code>command -v jupyter</code> lo muestra).
+<code>--ip=0.0.0.0</code> hace que Jupyter escuche en la red del contenedor, y
+<code>compose-hadoop-cluster.yml</code> publica su puerto 8888 en <code>127.0.0.1</code> de tu
+equipo. Jupyter queda en primer plano: <strong>deja esa terminal abierta</strong> mientras
+trabajes. <code>Ctrl+C</code> lo detiene y dos <code>exit</code> te devuelven a tu equipo.</p>
+<p>El servidor, el kernel y todas las celdas del notebook se ejecutan así dentro
+de <code>namenode</code>; en tu equipo sólo quedan Visual Studio Code y el fichero del
+notebook. <code>entorno/Makefile</code> ofrece el atajo <code>make -C entorno jupyter</code>, que
+hace lo mismo en una sola orden
+(<code>docker exec -it namenode su - luser -c 'jupyter lab ...'</code>), pero conviene
+conocer los pasos anteriores para saber dónde se ejecuta cada cosa.</p>
+<p>Entre los mensajes de Jupyter aparece una dirección de la forma:</p>
+<div class="highlight"><pre><span></span>http://127.0.0.1:8888/lab?token=4c1f...
+</pre></div>
+<p>Copia la que empieza por <code>127.0.0.1</code>: la que usa el nombre <code>namenode</code> sólo
+funciona dentro de la red Docker.</p>
+<p>Para ejecutar este notebook:</p>
+<ol>
+<li>En Visual Studio Code, abre este <code>s2.ipynb</code> desde tu copia de la
+distribución (en Windows, dentro de WSL2, como en S1). El fichero sigue en
+tu equipo; sólo el kernel se ejecuta en el contenedor.</li>
+<li>Pulsa <strong>Select Kernel → Select Another Kernel → Existing Jupyter
+Server</strong>, pega la dirección con su token y elige el kernel <strong>Python 3
+(ipykernel)</strong>.</li>
+<li>Ejecuta las celdas de código siguientes. La comprobación de la sección
+«Preparar Python» confirma que se ejecutan en <code>namenode</code> como <code>luser</code>.</li>
+</ol>
+<p>Dos consecuencias de esta arquitectura:</p>
+<ul>
+<li>El directorio de trabajo del kernel está dentro de <code>namenode</code>, no en tu
+carpeta <code>s2/</code>. Los ficheros que crea el notebook (<code>requirements.txt</code>, lo
+que se escribe en <code>/tmp</code>...) quedan en el contenedor, y el notebook no
+puede leer el <code>entorno/</code> ni el <code>s2/</code> de tu equipo: por eso crea
+<code>requirements.txt</code> con <code>%%writefile</code> y descarga del repositorio público la
+instantánea del INE.</li>
+<li>Jupyter vive mientras siga en marcha la orden anterior. Si cierras esa
+terminal, pulsas <code>Ctrl+C</code> o paras los contenedores (<code>make -C entorno stop</code>), el servidor se detiene. Vuelve a arrancarlo como arriba (<code>docker exec -it namenode bash</code>, <code>su - luser</code>, <code>jupyter lab ...</code>), copia la nueva
+dirección (el token cambia en cada arranque), reconecta el
+kernel y vuelve a ejecutar las celdas de las que dependa la sección en la
+que estés.</li>
+</ul>
 </div>
 </div>
 </div>
@@ -8820,8 +8910,9 @@ enviaremos a Trino las consultas
 que materializan las 24 tablas de negocio de <code>tpcds.sf1</code> como Parquet.</p>
 <p>El proceso completo, que ocupan las siguientes subsecciones, es:</p>
 <ol>
-<li><strong>Preparar Python</strong>: instalar las dependencias de la sesión, incluido
-el cliente Trino.</li>
+<li><strong>Preparar Python</strong>: crear <code>requirements.txt</code>, instalar con <code>%pip</code> las
+dependencias de la sesión, incluido el cliente Trino, y comprobar que el
+kernel se ejecuta en <code>namenode</code>.</li>
 <li><strong>Publicar el INE en HDFS</strong>: subir la instantánea CSV comprimida a
 <code>raw/ine/municipios</code>.</li>
 <li><strong>Conectar con Trino</strong>: abrir la conexión y esperar a que el servicio
@@ -8840,8 +8931,8 @@ través del conector <code>hive</code>.</li>
 marcadores <code>_SUCCESS</code> y eliminar la vista, la tabla CSV y el esquema
 temporal de Hive Metastore; los Parquet permanecen en HDFS.</li>
 </ol>
-<p>Todo este proceso también está automatizado como <code>make tpcds-init</code> desde
-<code>entorno/</code> (misma lógica, por línea de órdenes); aquí se hace paso a paso,
+<p>Todo este proceso también está automatizado como <code>make -C entorno tpcds-init</code>
+desde la raíz de la distribución (misma lógica, por línea de órdenes); aquí se hace paso a paso,
 con cada consulta visible, para explicar qué construye cada una.</p>
 <p>La tabla técnica <code>dbgen_version</code> se excluye: describe el generador y no es
 parte del modelo de negocio. La generación puede tardar varios minutos. Los
@@ -8859,17 +8950,28 @@ posteriores. CI ejecuta este mismo notebook y comprueba esos resultados.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Preparar-Python">Preparar Python<a class="anchor-link" href="#Preparar-Python">¶</a></h3><p><code>requirements.txt</code> es la lista única de dependencias de S2. Además de los
-lectores Parquet incluye el cliente Python de Trino que utilizaremos para
-crear los datos en HDFS. La celda siguiente lo recrea con <code>%%writefile</code>
-para que este notebook no dependa de ningún otro fichero de la
-distribución: <code>%%writefile</code> escribe el fichero en el directorio de
-trabajo del kernel, dentro de <code>namenode</code>, donde <code>pip</code> puede leerlo justo
-después.</p>
+<h3 id="Preparar-Python">Preparar Python<a class="anchor-link" href="#Preparar-Python">¶</a></h3><p><code>requirements.txt</code> es la lista única de dependencias de S2: los lectores
+Parquet (PyArrow, Polars, DuckDB y <code>fsspec</code>) y el cliente Python de Trino que
+utilizaremos para crear los datos en HDFS. El notebook no supone que ese
+fichero esté dentro del contenedor —tu copia de <code>s2/requirements.txt</code> está en
+tu equipo y <code>namenode</code> no la ve—, así que la celda siguiente lo crea con
+<code>%%writefile</code> en el directorio de trabajo del kernel, dentro de <code>namenode</code>.
+Después, <code>%pip install -r requirements.txt</code> instala esas dependencias en el
+mismo intérprete que ejecuta el kernel: el del entorno virtual del curso,
+<code>/opt/tcdm/venv</code>, que la imagen de <code>namenode</code> incluye (ver S1, «Entorno
+Python del curso»). Todos los <code>%pip install</code> de las sesiones acaban en ese
+entorno. La imagen ya trae estas dependencias, por lo que lo normal es ver
+sólo que están satisfechas; la celda deja
+explícito qué necesita la sesión y repara el entorno si falta algo.</p>
+<p>La última celda del grupo muestra dónde se ejecuta el kernel, qué intérprete
+usa (<code>sys.executable</code> debe estar en <code>/opt/tcdm/venv/bin</code>) y las versiones
+instaladas. Si falla alguna de sus dos comprobaciones, el notebook no está
+conectado al Jupyter de <code>namenode</code> arrancado como se indica en «Arrancar el
+entorno».</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s2-requirements">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8886,13 +8988,14 @@ después.</p>
 <span class="n">polars</span>
 <span class="n">pyarrow</span>
 <span class="n">requests</span>
-<span class="n">trino</span>
+<span class="c1"># Cliente de Trino; se fija la serie mayor, igual que en S6-S8.</span>
+<span class="n">trino</span><span class="o">&gt;=</span><span class="mf">0.330</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">1</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=17">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=s2-requirements-install">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8900,7 +9003,34 @@ después.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Host: </span><span class="si">{</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span><span class="si">}</span><span class="s2">    usuario: </span><span class="si">{</span><span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Directorio de trabajo: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Intérprete: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">package</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"duckdb"</span><span class="p">,</span> <span class="s2">"fsspec"</span><span class="p">,</span> <span class="s2">"polars"</span><span class="p">,</span> <span class="s2">"pyarrow"</span><span class="p">,</span> <span class="s2">"requests"</span><span class="p">,</span> <span class="s2">"trino"</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">package</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="n">package</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"namenode"</span><span class="p">,</span> <span class="s2">"El kernel no se ejecuta dentro de namenode"</span>
+<span class="k">assert</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/opt/tcdm/venv/"</span><span class="p">),</span> <span class="s2">"El kernel no usa /opt/tcdm/venv"</span>
 </pre></div>
 </div>
 </div>
@@ -10735,7 +10865,7 @@ mismos Parquet, aunque cada una presente el resultado a su manera.</p>
 <div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
 <span class="c1"># Recapitulación: ya hemos leído Parquet con Python</span>
 <span class="o">-</span> <span class="err">`</span><span class="n">_sk</span><span class="err">`</span> <span class="n">son</span> <span class="n">claves</span> <span class="n">surrogate</span><span class="p">;</span> <span class="err">`</span><span class="n">PK</span><span class="err">`</span><span class="o">/</span><span class="err">`</span><span class="n">FK</span><span class="err">`</span><span class="o">/</span><span class="err">`</span><span class="n">BK</span><span class="err">`</span> <span class="n">describen</span> <span class="n">relaciones</span> <span class="n">lógicas</span><span class="p">,</span> <span class="n">no</span> <span class="n">restricciones</span> <span class="n">físicas</span>
-<span class="o">-</span> <span class="err">`</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span><span class="err">`</span> <span class="n">basta</span><span class="p">:</span> <span class="n">el</span> <span class="n">kernel</span> <span class="n">ya</span> <span class="n">vive</span> <span class="n">en</span> <span class="err">`</span><span class="n">namenode</span><span class="err">`</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">%%</span><span class="n">writefile</span><span class="err">`</span> <span class="o">+</span> <span class="err">`</span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span><span class="err">`</span> <span class="n">preparan</span> <span class="n">el</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">que</span> <span class="n">ya</span> <span class="n">vive</span> <span class="n">en</span> <span class="err">`</span><span class="n">namenode</span><span class="err">`</span>
 <span class="o">-</span> <span class="n">PyArrow</span><span class="p">,</span> <span class="n">Polars</span> <span class="n">y</span> <span class="n">DuckDB</span> <span class="n">coinciden</span> <span class="n">en</span> <span class="n">filas</span><span class="p">,</span> <span class="n">no</span> <span class="n">nulos</span><span class="p">,</span> <span class="n">mínimo</span><span class="p">,</span> <span class="n">máximo</span> <span class="n">y</span> <span class="n">suma</span> <span class="n">de</span> <span class="err">`</span><span class="n">d_date_sk</span><span class="err">`</span> <span class="n">al</span> <span class="n">leer</span> <span class="err">`</span><span class="n">date_dim</span><span class="err">`</span>
 </pre></div>
 </div>
@@ -10759,7 +10889,7 @@ mismos Parquet, aunque cada una presente el resultado a su manera.</p>
      font-size:31.2px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:21.6px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:49.2px;line-height:1.15;margin:0 0 22px">Recapitulación: ya hemos leído Parquet con Python</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_sk</code> son claves surrogate; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">BK</code> describen relaciones lógicas, no restricciones físicas</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">pip install -r requirements.txt</code> basta: el kernel ya vive en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code></li><li style="margin:10px 0">PyArrow, Polars y DuckDB coinciden en filas, no nulos, mínimo, máximo y suma de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">d_date_sk</code> al leer <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim</code></li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:49.2px;line-height:1.15;margin:0 0 22px">Recapitulación: ya hemos leído Parquet con Python</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_sk</code> son claves surrogate; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">BK</code> describen relaciones lógicas, no restricciones físicas</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%%writefile</code> + <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%pip install -r requirements.txt</code> preparan el kernel, que ya vive en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code></li><li style="margin:10px 0">PyArrow, Polars y DuckDB coinciden en filas, no nulos, mínimo, máximo y suma de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">d_date_sk</code> al leer <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim</code></li></ul>
 </div>
 </div>
 </div>
@@ -13160,14 +13290,13 @@ de entrada y explica el mensaje de error.</li>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Soluci%C3%B3n-de-problemas">Solución de problemas<a class="anchor-link" href="#Soluci%C3%B3n-de-problemas">¶</a></h2><h3 id="No-aparece-ning%C3%BAn-fichero">No aparece ningún fichero<a class="anchor-link" href="#No-aparece-ning%C3%BAn-fichero">¶</a></h3><p>Comprueba que el clúster y Trino están arrancados <strong>desde una terminal del
-host</strong>:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>status
+<h2 id="Soluci%C3%B3n-de-problemas">Solución de problemas<a class="anchor-link" href="#Soluci%C3%B3n-de-problemas">¶</a></h2><h3 id="No-aparece-ning%C3%BAn-fichero">No aparece ningún fichero<a class="anchor-link" href="#No-aparece-ning%C3%BAn-fichero">¶</a></h3><p>Comprueba que el clúster y Trino están arrancados <strong>desde una terminal de tu
+equipo</strong>, en la raíz de la distribución:</p>
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>status
 </pre></div>
 <p>Si algún servicio termina con error, consulta su salida:</p>
-<div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose-warehouse-hdfs.yml<span class="w"> </span>ps<span class="w"> </span>-a
-docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose-warehouse-hdfs.yml<span class="w"> </span>logs<span class="w"> </span>trino-hdfs<span class="w"> </span>hive-metastore
+<div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>entorno/compose-warehouse-hdfs.yml<span class="w"> </span>ps<span class="w"> </span>-a
+docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>entorno/compose-warehouse-hdfs.yml<span class="w"> </span>logs<span class="w"> </span>trino-hdfs<span class="w"> </span>hive-metastore
 </pre></div>
 <p>Después vuelve a la primera celda que falló: sus excepciones distinguen un
 problema de instantánea, HDFS, esquema o consulta Trino.</p>
@@ -13267,41 +13396,43 @@ descomprimido en memoria.</p>
 <h2 id="Parar,-regenerar-y-borrar">Parar, regenerar y borrar<a class="anchor-link" href="#Parar,-regenerar-y-borrar">¶</a></h2><p>Estas órdenes necesitan el Docker del host o son destructivas para los
 datos de las siguientes sesiones, así que se muestran como texto para
 ejecutarlas <strong>en una terminal de tu equipo</strong> — nunca como celdas de este
-notebook, para que un "ejecutar todo" no pueda borrar nada por accidente.</p>
+notebook, para que un "ejecutar todo" no pueda borrar nada por accidente. Todas se
+escriben desde la raíz de la distribución.</p>
 <p>Para detener los servicios conservando sus datos:</p>
-<div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>entorno
-make<span class="w"> </span>stop
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>stop
 </pre></div>
 <p>Para arrancar de nuevo el laboratorio:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>warehouse-up
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
 <p><code>compose-hadoop-cluster.yml</code> declara un volumen Docker con nombre para
 <code>dfs.namenode.name.dir</code> y otro por cada <code>dfs.datanode.data.dir</code> (ver la
-Sesión 1). Por eso los Parquet y el resto del HDFS sobreviven a <code>make stop</code>
-<strong>y también</strong> a <code>make clean</code>: ambas órdenes eliminan los contenedores
+Sesión 1). Por eso los Parquet y el resto del HDFS sobreviven a <code>make -C entorno stop</code>
+<strong>y también</strong> a <code>make -C entorno clean</code>: ambas órdenes eliminan los contenedores
 (<code>docker compose down</code>), pero un volumen con nombre no desaparece con ellos.
 Para eliminar los contenedores y el volumen de metadatos de PostgreSQL:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>clean
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>clean
 </pre></div>
 <p>Esta operación elimina el volumen de metadatos de PostgreSQL (Hive
 Metastore) y el de S3, pero <strong>no</strong> toca los volúmenes HDFS: el dataset
-TPC-DS/INE de esta sesión sigue disponible después de un <code>make clean</code> +
-<code>make warehouse-up</code>. Si además quieres borrar el propio HDFS —namenode y
+TPC-DS/INE de esta sesión sigue disponible después de un <code>make -C entorno clean</code> +
+<code>make -C entorno warehouse-up</code>. Si además quieres borrar el propio HDFS —namenode y
 los tres datanode, es decir, empezar de cero también en la Sesión 1—, hazlo
 de forma explícita y por separado:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>clean-hdfs
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>clean-hdfs
 </pre></div>
 <p>Si sólo quieres regenerar TPC-DS sin perder el resto del HDFS (por ejemplo,
-<code>/user</code> o los datos de otras sesiones), con el clúster arrancado y desde una
-sesión como <code>luser</code> puedes quitar solo esa ruta (<strong>orden destructiva para
-todos los Parquet de SF1</strong>):</p>
-<div class="highlight"><pre><span></span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-rm<span class="w"> </span>-r<span class="w"> </span>-skipTrash<span class="w"> </span>/datalake/raw/tpcds
+<code>/user</code> o los datos de otras sesiones), con el clúster arrancado puedes quitar
+solo esa ruta (<strong>orden destructiva para todos los Parquet de SF1</strong>). Desde una
+terminal de tu equipo:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>luser<span class="w"> </span>-c<span class="w"> </span><span class="s1">'hdfs dfs -rm -r -skipTrash /datalake/raw/tpcds'</span>
 </pre></div>
+<p>Es la misma orden que, escrita como <code>!hdfs dfs -rm -r -skipTrash /datalake/raw/tpcds</code>, funcionaría en una celda de este notebook; se deja
+fuera de las celdas para que no se ejecute por accidente.</p>
 <p>Después se vuelve a ejecutar desde la comprobación de la instantánea gzip hasta
 la validación de la materialización. No hace falta descargar otra edición ni
 salir del notebook.</p>
 <p>No es necesario borrar el clúster para repetir una consulta ni para volver
-a leer los ficheros. Se debe reservar <code>make clean-hdfs</code> y el borrado de
+a leer los ficheros. Se debe reservar <code>make -C entorno clean-hdfs</code> y el borrado de
 <code>/datalake/raw/tpcds</code> para una regeneración intencionada.</p>
 </div>
 </div>
