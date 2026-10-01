@@ -7890,6 +7890,159 @@ reparan el entorno si falta algo.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/dsevilla/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
+El alias <code>%%diapositiva</code> permite mantener en español los tipos usados en la sesión y produce la misma salida HTML en Jupyter, Colab y la referencia HTML publicada.</p>
+<p>En cada sesión encontrarás varios tipos de diapositivas que te ayudarán a seguir el hilo:</p>
+<ul>
+<li><strong>Sección</strong> (<code>titulo</code>): abre la sesión y resume qué vamos a ver y qué haremos.</li>
+<li><strong>A continuación</strong> (<code>avance</code>): anuncia el contenido de la parte siguiente, para saber en qué punto del programa estamos.</li>
+<li><strong>Recapitulación</strong> (<code>resumen</code>): condensa la parte anterior en puntos clave para recordarlos y revisarlos después.</li>
+<li><strong>Pregunta guía</strong> (<code>pregunta</code>): plantea cuestiones que orientan lo que viene a continuación; conviene intentar responderlas antes de seguir.</li>
+<li><strong>Evaluación de la sesión</strong> (<code>evaluacion</code>): recuerda cómo se evalúa el trabajo de esta sesión.</li>
+</ul>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=2">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="s2">"jupyter-notebook-slide @ git+https://github.com/dsevilla/jupyter-notebook-slide.git"</span>
+<span class="o">%</span><span class="n">load_ext</span> <span class="n">notebook_slide</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">notebook_slide</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnbs</span>
+
+<span class="c1"># Colores de 26-27/teoria/tcdm.css, adaptados al tema de las sesiones.</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+    <span class="n">background</span><span class="o">=</span><span class="s2">"#eaf2f8"</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="s2">"#1f2933"</span><span class="p">,</span>
+    <span class="n">border</span><span class="o">=</span><span class="s2">"#c9d6e1"</span><span class="p">,</span>
+    <span class="n">heading</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">subheading</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">link</span><span class="o">=</span><span class="s2">"#174f7a"</span><span class="p">,</span>
+    <span class="n">code_background</span><span class="o">=</span><span class="s2">"#eaf2f8"</span><span class="p">,</span>
+    <span class="n">code_foreground</span><span class="o">=</span><span class="s2">"#0c304d"</span><span class="p">,</span>
+    <span class="n">quote_background</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">font_family</span><span class="o">=</span><span class="s2">"Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif"</span><span class="p">,</span>
+    <span class="n">font_url</span><span class="o">=</span><span class="s2">"https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"avance"</span><span class="p">,</span> <span class="s2">"A continuación"</span><span class="p">,</span> <span class="s2">"#174f7a"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"resumen"</span><span class="p">,</span> <span class="s2">"Recapitulación"</span><span class="p">,</span> <span class="s2">"#a54467"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"pregunta"</span><span class="p">,</span> <span class="s2">"Pregunta guía"</span><span class="p">,</span> <span class="s2">"#0c304d"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"evaluacion"</span><span class="p">,</span> <span class="s2">"Evaluación de la sesión"</span><span class="p">,</span> <span class="s2">"#b3701a"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span>
+    <span class="s2">"titulo"</span><span class="p">,</span>
+    <span class="s2">"Sección"</span><span class="p">,</span>
+    <span class="s2">"#174f7a"</span><span class="p">,</span>
+    <span class="n">layout</span><span class="o">=</span><span class="s2">"title"</span><span class="p">,</span>
+    <span class="n">background</span><span class="o">=</span><span class="s2">"linear-gradient(135deg, #0c304d, #174f7a 62%, #a54467)"</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">border</span><span class="o">=</span><span class="s2">"transparent"</span><span class="p">,</span>
+    <span class="n">heading</span><span class="o">=</span><span class="s2">"#ffffff"</span><span class="p">,</span>
+    <span class="n">subheading</span><span class="o">=</span><span class="s2">"#dceaf4"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_alias</span><span class="p">(</span><span class="s2">"diapositiva"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">titulo</span>
+<span class="c1"># Sesión 3: un data lake sobre almacenamiento S3-compatible</span>
+<span class="c1">## Cómo vamos a recorrer la sesión</span>
+<span class="o">-</span> <span class="n">Mismo</span> <span class="n">TPC</span><span class="o">-</span><span class="n">DS</span> <span class="n">SF1</span> <span class="n">y</span> <span class="n">mismo</span> <span class="n">Parquet</span><span class="p">:</span> <span class="n">cambia</span> <span class="n">el</span> <span class="n">almacenamiento</span><span class="p">,</span> <span class="n">de</span> <span class="n">bloques</span> <span class="n">HDFS</span> <span class="n">a</span> <span class="n">objetos</span> <span class="n">S3</span>
+<span class="o">-</span> <span class="n">Arrancamos</span> <span class="n">RustFS</span><span class="p">,</span> <span class="n">un</span> <span class="n">servicio</span> <span class="n">local</span> <span class="n">compatible</span> <span class="n">con</span> <span class="n">la</span> <span class="n">API</span> <span class="n">de</span> <span class="n">Amazon</span> <span class="n">S3</span>
+<span class="o">-</span> <span class="n">Copiamos</span> <span class="err">`</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="err">`</span> <span class="n">de</span> <span class="n">HDFS</span> <span class="n">a</span> <span class="n">un</span> <span class="n">bucket</span> <span class="n">con</span> <span class="n">boto3</span>
+<span class="o">-</span> <span class="n">Leemos</span> <span class="n">los</span> <span class="n">mismos</span> <span class="n">objetos</span> <span class="n">con</span> <span class="n">PyArrow</span><span class="p">,</span> <span class="n">Polars</span> <span class="n">y</span> <span class="n">DuckDB</span> <span class="n">y</span> <span class="n">comparamos</span> <span class="n">los</span> <span class="n">resultados</span>
+<span class="o">-</span> <span class="n">Vemos</span> <span class="n">qué</span> <span class="n">habría</span> <span class="n">que</span> <span class="n">cambiar</span> <span class="n">para</span> <span class="n">usar</span> <span class="n">Amazon</span> <span class="n">S3</span> <span class="n">real</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:linear-gradient(135deg, #0c304d, #174f7a 62%, #a54467);color:#ffffff;
+     border:1px solid transparent;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     display:flex;flex-direction:column;justify-content:center;
+     text-align:left;overflow:hidden">
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 3: un data lake sobre almacenamiento S3-compatible</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Mismo TPC-DS SF1 y mismo Parquet: cambia el almacenamiento, de bloques HDFS a objetos S3</li><li style="margin:10px 0">Arrancamos RustFS, un servicio local compatible con la API de Amazon S3</li><li style="margin:10px 0">Copiamos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS a un bucket con boto3</li><li style="margin:10px 0">Leemos los mismos objetos con PyArrow, Polars y DuckDB y comparamos los resultados</li><li style="margin:10px 0">Vemos qué habría que cambiar para usar Amazon S3 real</li></ul></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: de rutas HDFS a claves de objeto</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">hdfs</span><span class="p">:</span><span class="o">///</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span><span class="o">/...</span><span class="err">`</span> <span class="n">pasa</span> <span class="n">a</span> <span class="n">ser</span> <span class="err">`</span><span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">tcdm</span><span class="o">-</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span><span class="o">/...</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Bucket</span><span class="p">,</span> <span class="n">clave</span> <span class="n">y</span> <span class="n">prefijo</span><span class="p">:</span> <span class="n">los</span> <span class="err">«</span><span class="n">directorios</span><span class="err">»</span> <span class="n">son</span> <span class="n">sólo</span> <span class="n">texto</span> <span class="n">dentro</span> <span class="n">de</span> <span class="n">la</span> <span class="n">clave</span>
+<span class="o">-</span> <span class="n">HDFS</span> <span class="n">ofrece</span> <span class="n">un</span> <span class="n">sistema</span> <span class="n">de</span> <span class="n">ficheros</span> <span class="n">con</span> <span class="n">bloques</span> <span class="n">replicados</span><span class="p">;</span> <span class="n">S3</span><span class="p">,</span> <span class="n">objetos</span> <span class="n">y</span> <span class="n">operaciones</span> <span class="n">HTTP</span> <span class="p">(</span><span class="err">`</span><span class="n">GET</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">PUT</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">HEAD</span><span class="err">`</span><span class="p">,</span> <span class="n">listar</span> <span class="n">por</span> <span class="n">prefijo</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">Los</span> <span class="n">Parquet</span> <span class="n">no</span> <span class="n">cambian</span> <span class="n">al</span> <span class="n">copiarlos</span><span class="p">;</span> <span class="n">RustFS</span> <span class="n">es</span> <span class="n">el</span> <span class="n">servicio</span> <span class="n">S3</span> <span class="n">local</span> <span class="k">del</span> <span class="n">laboratorio</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">A continuación: de rutas HDFS a claves de objeto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs:///datalake/raw/tpcds/date_dim/...</code> pasa a ser <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/date_dim/...</code></li><li style="margin:10px 0">Bucket, clave y prefijo: los «directorios» son sólo texto dentro de la clave</li><li style="margin:10px 0">HDFS ofrece un sistema de ficheros con bloques replicados; S3, objetos y operaciones HTTP (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PUT</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">HEAD</code>, listar por prefijo)</li><li style="margin:10px 0">Los Parquet no cambian al copiarlos; RustFS es el servicio S3 local del laboratorio</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Del-data-lake-HDFS-al-data-lake-S3">Del data lake HDFS al data lake S3<a class="anchor-link" href="#Del-data-lake-HDFS-al-data-lake-S3">¶</a></h2><p>En S2 los datos se encontraban en una ruta del espacio de nombres HDFS:</p>
 <div class="highlight"><pre><span></span>hdfs:///datalake/raw/tpcds/date_dim/part-...
 </pre></div>
@@ -7958,8 +8111,50 @@ el flujo de datos entre HDFS, RustFS y los lectores de la sesión.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: arrancar el clúster, RustFS y Jupyter</span>
+<span class="o">-</span> <span class="n">En</span> <span class="n">una</span> <span class="n">terminal</span> <span class="n">de</span> <span class="n">tu</span> <span class="n">equipo</span><span class="p">:</span> <span class="err">`</span><span class="n">make</span> <span class="o">-</span><span class="n">C</span> <span class="n">entorno</span> <span class="n">warehouse</span><span class="o">-</span><span class="n">up</span><span class="err">`</span> <span class="n">y</span> <span class="err">`</span><span class="n">make</span> <span class="o">-</span><span class="n">C</span> <span class="n">entorno</span> <span class="n">s3</span><span class="o">-</span><span class="n">up</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Jupyter</span> <span class="n">se</span> <span class="n">arranca</span> <span class="n">dentro</span> <span class="n">de</span> <span class="err">`</span><span class="n">namenode</span><span class="err">`</span><span class="p">,</span> <span class="n">como</span> <span class="n">en</span> <span class="n">S2</span><span class="p">:</span> <span class="err">`</span><span class="n">docker</span> <span class="n">exec</span><span class="err">`</span><span class="p">,</span> <span class="err">`</span><span class="n">su</span> <span class="o">-</span> <span class="n">luser</span><span class="err">`</span> <span class="n">y</span> <span class="err">`</span><span class="n">jupyter</span> <span class="n">lab</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">RustFS</span> <span class="n">no</span> <span class="n">es</span> <span class="n">un</span> <span class="n">DataNode</span> <span class="n">ni</span> <span class="n">un</span> <span class="n">NodeManager</span><span class="p">:</span> <span class="n">es</span> <span class="n">otro</span> <span class="n">servicio</span> <span class="n">de</span> <span class="n">la</span> <span class="n">red</span> <span class="err">`</span><span class="n">hadoop</span><span class="o">-</span><span class="n">cluster</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Desde</span> <span class="n">el</span> <span class="n">notebook</span> <span class="n">se</span> <span class="n">llega</span> <span class="n">por</span> <span class="err">`</span><span class="n">rustfs</span><span class="p">:</span><span class="mi">9000</span><span class="err">`</span><span class="p">;</span> <span class="n">desde</span> <span class="n">tu</span> <span class="n">equipo</span><span class="p">,</span> <span class="n">por</span> <span class="err">`</span><span class="n">localhost</span><span class="p">:</span><span class="mi">9000</span><span class="err">`</span> <span class="p">(</span><span class="n">consola</span> <span class="n">en</span> <span class="err">`</span><span class="mi">9001</span><span class="err">`</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">A continuación: arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno warehouse-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code> (consola en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">9001</code>)</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8036,7 +8231,7 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8050,8 +8245,50 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: copiar `raw/tpcds` de HDFS al bucket</span>
+<span class="o">-</span> <span class="n">Antes</span><span class="p">:</span> <span class="n">traer</span> <span class="n">los</span> <span class="n">programas</span> <span class="n">de</span> <span class="n">la</span> <span class="n">sesión</span><span class="p">,</span> <span class="n">instalar</span> <span class="n">dependencias</span> <span class="n">y</span> <span class="n">fijar</span> <span class="n">endpoint</span> <span class="n">y</span> <span class="n">credenciales</span> <span class="n">con</span> <span class="err">`</span><span class="o">%</span><span class="n">env</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Cada</span> <span class="n">fichero</span> <span class="n">fluye</span> <span class="n">de</span> <span class="err">`</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">cat</span><span class="err">`</span> <span class="n">a</span> <span class="err">`</span><span class="n">upload_fileobj</span><span class="err">`</span><span class="p">,</span> <span class="n">sin</span> <span class="n">pasar</span> <span class="n">por</span> <span class="n">el</span> <span class="n">disco</span> <span class="n">local</span>
+<span class="o">-</span> <span class="n">Se</span> <span class="n">borra</span> <span class="n">antes</span> <span class="n">el</span> <span class="n">prefijo</span> <span class="err">`</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="err">`</span> <span class="k">del</span> <span class="n">bucket</span><span class="p">:</span> <span class="n">repetir</span> <span class="n">el</span> <span class="n">notebook</span> <span class="n">da</span> <span class="n">el</span> <span class="n">mismo</span> <span class="n">conjunto</span> <span class="n">de</span> <span class="n">objetos</span>
+<span class="o">-</span> <span class="n">HDFS</span> <span class="n">no</span> <span class="n">se</span> <span class="n">modifica</span><span class="p">;</span> <span class="n">al</span> <span class="n">terminar</span> <span class="n">debe</span> <span class="n">haber</span> <span class="mi">24</span> <span class="n">tablas</span> <span class="n">y</span> <span class="n">al</span> <span class="n">menos</span> <span class="mi">24</span> <span class="n">objetos</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">A continuación: copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Antes: traer los programas de la sesión, instalar dependencias y fijar endpoint y credenciales con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%env</code></li><li style="margin:10px 0">Cada fichero fluye de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -cat</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">upload_fileobj</code>, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code> del bucket: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 24 tablas y al menos 24 objetos</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8080,7 +8317,7 @@ anterior. HDFS permanece intacto: sigue siendo la fuente <code>raw</code> creada
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8097,7 +8334,7 @@ del INE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=12">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8128,7 +8365,7 @@ del INE.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8142,7 +8379,7 @@ el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8170,7 +8407,7 @@ el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8185,7 +8422,7 @@ el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8200,7 +8437,7 @@ programas de esta sesión como subprocesos):</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=11">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8219,7 +8456,7 @@ programas de esta sesión como subprocesos):</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=12">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8234,7 +8471,7 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=13">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8315,8 +8552,89 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: el mismo `raw`, ahora como objetos</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">tcdm</span><span class="o">-</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/&lt;</span><span class="n">tabla</span><span class="o">&gt;/...</span><span class="err">`</span> <span class="n">contiene</span> <span class="n">los</span> <span class="n">mismos</span> <span class="n">Parquet</span> <span class="n">que</span> <span class="err">`</span><span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">La</span> <span class="n">copia</span> <span class="n">ha</span> <span class="n">usado</span> <span class="n">sólo</span> <span class="n">la</span> <span class="n">API</span> <span class="n">S3</span> <span class="n">estándar</span> <span class="p">(</span><span class="n">boto3</span><span class="p">),</span> <span class="n">configurada</span> <span class="n">con</span> <span class="n">variables</span> <span class="err">`</span><span class="n">AWS_</span><span class="o">*</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">HDFS</span> <span class="n">sigue</span> <span class="n">intacto</span><span class="p">:</span> <span class="n">es</span> <span class="n">la</span> <span class="n">fuente</span> <span class="err">`</span><span class="n">raw</span><span class="err">`</span> <span class="n">creada</span> <span class="n">en</span> <span class="n">S2</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Recapitulación: el mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0">La copia ha usado sólo la API S3 estándar (boto3), configurada con variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code></li><li style="margin:10px 0">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=21">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">pregunta</span>
+<span class="c1"># Pregunta guía</span>
+<span class="o">-</span> <span class="n">Algunos</span> <span class="n">objetos</span> <span class="n">no</span> <span class="n">terminan</span> <span class="n">en</span> <span class="err">`</span><span class="o">.</span><span class="n">parquet</span><span class="err">`</span><span class="p">:</span> <span class="err">¿</span><span class="n">cómo</span> <span class="n">puede</span> <span class="n">saber</span> <span class="n">un</span> <span class="n">lector</span> <span class="n">que</span> <span class="n">lo</span> <span class="n">son</span><span class="err">?</span>
+<span class="o">-</span> <span class="err">¿</span><span class="n">Hace</span> <span class="n">falta</span> <span class="n">descargar</span> <span class="n">el</span> <span class="n">objeto</span> <span class="n">completo</span> <span class="n">para</span> <span class="n">comprobarlo</span><span class="err">?</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #0c304d;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Pregunta guía</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Pregunta guía</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Algunos objetos no terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>: ¿cómo puede saber un lector que lo son?</li><li style="margin:10px 0">¿Hace falta descargar el objeto completo para comprobarlo?</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8331,7 +8649,7 @@ contenedor.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8346,7 +8664,7 @@ contenedor.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8356,6 +8674,58 @@ contenedor.</p>
 la respuesta de <code>get_object(Range=...)</code> es exactamente <code>b'PAR1'</code>: confirma
 que el objeto remoto comienza con la firma de Parquet y que el acceso por
 rangos HTTP funciona, sin haber descargado el objeto completo.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: tres lectores para los mismos objetos</span>
+<span class="o">-</span> <span class="n">PyArrow</span><span class="p">:</span> <span class="err">`</span><span class="n">s3fs</span><span class="err">`</span> <span class="n">adaptado</span> <span class="n">con</span> <span class="err">`</span><span class="n">FSSpecHandler</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">Polars</span><span class="p">:</span> <span class="err">`</span><span class="n">s3fs</span><span class="err">`</span> <span class="n">abre</span> <span class="n">cada</span> <span class="n">objeto</span> <span class="n">como</span> <span class="n">flujo</span> <span class="n">binario</span> <span class="n">y</span> <span class="n">se</span> <span class="n">concatenan</span> <span class="n">los</span> <span class="n">fragmentos</span>
+<span class="o">-</span> <span class="n">DuckDB</span><span class="p">:</span> <span class="n">su</span> <span class="n">extensión</span> <span class="err">`</span><span class="n">httpfs</span><span class="err">`</span> <span class="n">habla</span> <span class="n">directamente</span> <span class="n">con</span> <span class="n">la</span> <span class="n">API</span> <span class="n">S3</span>
+<span class="o">-</span> <span class="n">Los</span> <span class="n">tres</span> <span class="n">deben</span> <span class="n">dar</span> <span class="n">la</span> <span class="n">misma</span> <span class="n">firma</span> <span class="n">que</span> <span class="n">en</span> <span class="n">S2</span><span class="p">:</span> <span class="n">filas</span><span class="p">,</span> <span class="n">claves</span> <span class="n">no</span> <span class="n">nulas</span><span class="p">,</span> <span class="n">mínimo</span><span class="p">,</span> <span class="n">máximo</span> <span class="n">y</span> <span class="n">suma</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">A continuación: tres lectores para los mismos objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">PyArrow: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> adaptado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FSSpecHandler</code></li><li style="margin:10px 0">Polars: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> abre cada objeto como flujo binario y se concatenan los fragmentos</li><li style="margin:10px 0">DuckDB: su extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code> habla directamente con la API S3</li><li style="margin:10px 0">Los tres deben dar la misma firma que en S2: filas, claves no nulas, mínimo, máximo y suma</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Explorar-con-PyArrow">Explorar con PyArrow<a class="anchor-link" href="#Explorar-con-PyArrow">¶</a></h2><p><a href="read_s3_pyarrow.py"><code>read_s3_pyarrow.py</code></a> utiliza <code>s3fs</code> (que implementa el
 acceso S3 mediante el SDK de AWS) y adapta ese filesystem a PyArrow mediante
 <code>FSSpecHandler</code>:</p>
@@ -8374,7 +8744,7 @@ los objetos del prefijo y excluye explícitamente <code>_SUCCESS</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=17">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8390,7 +8760,7 @@ los objetos del prefijo y excluye explícitamente <code>_SUCCESS</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8410,7 +8780,7 @@ mayores (sesión 4).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8426,7 +8796,7 @@ mayores (sesión 4).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8441,7 +8811,7 @@ endpoint puede ser RustFS local o Amazon S3.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=21">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8457,7 +8827,7 @@ endpoint puede ser RustFS local o Amazon S3.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8484,7 +8854,7 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=23">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8511,7 +8881,7 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8521,6 +8891,99 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 de los ficheros por tabla no están garantizados, sólo el contenido lógico.
 Más adelante se combinará esta propiedad con filtros y
 particiones en Spark, Trino e Iceberg (sesiones 4 a 8).</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=35">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación: tres caminos, la misma firma</span>
+<span class="o">-</span> <span class="err">`</span><span class="n">get_object</span><span class="p">(</span><span class="n">Range</span><span class="o">=</span><span class="s2">"bytes=0-3"</span><span class="p">)</span><span class="err">`</span> <span class="n">devuelve</span> <span class="err">`</span><span class="n">PAR1</span><span class="err">`</span> <span class="n">sin</span> <span class="n">descargar</span> <span class="n">el</span> <span class="n">objeto</span> <span class="n">entero</span>
+<span class="o">-</span> <span class="n">PyArrow</span> <span class="n">y</span> <span class="n">Polars</span> <span class="n">llegan</span> <span class="n">por</span> <span class="err">`</span><span class="n">s3fs</span><span class="err">`</span><span class="p">;</span> <span class="n">DuckDB</span><span class="p">,</span> <span class="n">por</span> <span class="err">`</span><span class="n">httpfs</span><span class="err">`</span><span class="p">:</span> <span class="n">el</span> <span class="n">resultado</span> <span class="n">numérico</span> <span class="n">coincide</span>
+<span class="o">-</span> <span class="n">Leer</span> <span class="n">sólo</span> <span class="n">algunas</span> <span class="n">columnas</span> <span class="n">reduce</span> <span class="n">los</span> <span class="nb">bytes</span> <span class="n">que</span> <span class="n">hay</span> <span class="n">que</span> <span class="n">decodificar</span>
+<span class="o">-</span> <span class="n">No</span> <span class="n">hay</span> <span class="n">catálogo</span><span class="p">:</span> <span class="n">cada</span> <span class="n">lector</span> <span class="n">recibe</span> <span class="n">la</span> <span class="n">lista</span> <span class="n">de</span> <span class="n">objetos</span> <span class="k">del</span> <span class="n">prefijo</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Recapitulación: tres caminos, la misma firma</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">get_object(Range="bytes=0-3")</code> devuelve <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> sin descargar el objeto entero</li><li style="margin:10px 0">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: el resultado numérico coincide</li><li style="margin:10px 0">Leer sólo algunas columnas reduce los bytes que hay que decodificar</li><li style="margin:10px 0">No hay catálogo: cada lector recibe la lista de objetos del prefijo</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">avance</span>
+<span class="c1"># A continuación: del laboratorio a Amazon S3 real</span>
+<span class="o">-</span> <span class="n">Los</span> <span class="n">cuatro</span> <span class="n">programas</span> <span class="n">se</span> <span class="n">configuran</span> <span class="n">con</span> <span class="n">variables</span> <span class="n">estándar</span> <span class="err">`</span><span class="n">AWS_</span><span class="o">*</span><span class="err">`</span><span class="p">,</span> <span class="n">nada</span> <span class="n">propio</span> <span class="n">de</span> <span class="n">RustFS</span>
+<span class="o">-</span> <span class="n">Cambian</span> <span class="n">el</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">las</span> <span class="n">credenciales</span><span class="p">,</span> <span class="n">la</span> <span class="n">región</span> <span class="n">y</span> <span class="n">el</span> <span class="n">estilo</span> <span class="n">de</span> <span class="n">direccionamiento</span> <span class="p">(</span><span class="err">`</span><span class="n">path</span><span class="err">`</span> <span class="err">→</span> <span class="err">`</span><span class="n">virtual</span><span class="err">`</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">código</span> <span class="n">de</span> <span class="n">los</span> <span class="n">programas</span> <span class="n">no</span> <span class="n">cambia</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">A continuación: del laboratorio a Amazon S3 real</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Los cuatro programas se configuran con variables estándar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>, nada propio de RustFS</li><li style="margin:10px 0">Cambian el endpoint, las credenciales, la región y el estilo de direccionamiento (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">path</code> → <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">virtual</code>)</li><li style="margin:10px 0">El código de los programas no cambia</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Configuraci%C3%B3n-local-y-configuraci%C3%B3n-AWS">Configuración local y configuración AWS<a class="anchor-link" href="#Configuraci%C3%B3n-local-y-configuraci%C3%B3n-AWS">¶</a></h2><p>Los cuatro programas de esta sesión leen su configuración mediante
 variables estándar del SDK de AWS, no mediante nada propio de RustFS:</p>
 <table>
@@ -8579,8 +9042,51 @@ cuatro programas no cambia.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">diapositiva</span> <span class="n">resumen</span>
+<span class="c1"># Recapitulación de la sesión 3</span>
+<span class="o">-</span> <span class="n">Un</span> <span class="n">objeto</span> <span class="n">S3</span> <span class="n">es</span> <span class="n">una</span> <span class="n">clave</span> <span class="n">dentro</span> <span class="n">de</span> <span class="n">un</span> <span class="n">bucket</span><span class="p">;</span> <span class="n">el</span> <span class="n">prefijo</span> <span class="n">agrupa</span><span class="p">,</span> <span class="n">pero</span> <span class="n">no</span> <span class="n">es</span> <span class="n">un</span> <span class="n">directorio</span>
+<span class="o">-</span> <span class="n">El</span> <span class="n">mismo</span> <span class="n">Parquet</span> <span class="n">se</span> <span class="n">lee</span> <span class="n">igual</span> <span class="n">desde</span> <span class="n">HDFS</span> <span class="n">y</span> <span class="n">desde</span> <span class="n">S3</span><span class="p">:</span> <span class="n">cambia</span> <span class="n">el</span> <span class="n">acceso</span><span class="p">,</span> <span class="n">no</span> <span class="n">el</span> <span class="n">contenido</span>
+<span class="o">-</span> <span class="n">Parametrizar</span> <span class="n">endpoint</span> <span class="n">y</span> <span class="n">credenciales</span> <span class="n">permite</span> <span class="n">pasar</span> <span class="n">de</span> <span class="n">RustFS</span> <span class="n">a</span> <span class="n">Amazon</span> <span class="n">S3</span> <span class="n">sin</span> <span class="n">tocar</span> <span class="n">el</span> <span class="n">código</span>
+<span class="o">-</span> <span class="n">Sigue</span> <span class="n">siendo</span> <span class="n">un</span> <span class="n">data</span> <span class="n">lake</span> <span class="n">de</span> <span class="n">ficheros</span><span class="p">:</span> <span class="n">sin</span> <span class="n">catálogo</span><span class="p">,</span> <span class="n">esquemas</span> <span class="n">gestionados</span> <span class="n">ni</span> <span class="n">snapshots</span>
+<span class="o">&gt;</span> <span class="n">Siguiente</span> <span class="n">sesión</span><span class="p">:</span> <span class="n">Spark</span> <span class="n">como</span> <span class="n">motor</span> <span class="n">de</span> <span class="n">cómputo</span> <span class="n">distribuido</span> <span class="n">sobre</span> <span class="n">estos</span> <span class="n">mismos</span> <span class="n">datos</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Recapitulación de la sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un objeto S3 es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0">Parametrizar endpoint y credenciales permite pasar de RustFS a Amazon S3 sin tocar el código</li><li style="margin:10px 0">Sigue siendo un data lake de ficheros: sin catálogo, esquemas gestionados ni snapshots</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8621,7 +9127,7 @@ Compose de S3), aunque conserva el HDFS por el motivo anterior.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
