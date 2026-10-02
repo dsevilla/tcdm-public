@@ -21,11 +21,12 @@ contenedor y lo lanza como `luser`:
 ```bash
 docker exec -it namenode bash        # en el equipo
 su - luser                           # dentro de namenode
-jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token=tcdm
 ```
 
-Jupyter queda en primer plano y muestra la dirección
-`http://127.0.0.1:8888/lab?token=...` que se pega en Visual Studio Code.
+Jupyter queda en primer plano. El token es siempre `tcdm` (el puerto 8888 sólo
+se publica en `127.0.0.1`), por lo que la dirección que se pega en Visual
+Studio Code es `http://127.0.0.1:8888/lab?token=tcdm`.
 `make -C entorno jupyter` es un atajo que hace lo mismo en una orden. Cada
 notebook recrea su `requirements.txt` con `%%writefile` y lo instala con
 `%pip`; con la imagen al día, `%pip` sólo confirma lo que ya está instalado. Los DataNodes no necesitan este entorno: los ejecutores de

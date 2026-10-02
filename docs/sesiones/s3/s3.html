@@ -8179,7 +8179,7 @@ partir de aquí esa terminal ya no está en tu equipo, sino en <code>namenode</c
 indicador lo muestra (<code>root@namenode</code>). Ahí dentro, cambia al usuario de
 trabajo y arranca Jupyter Lab:</p>
 <div class="highlight"><pre><span></span>su<span class="w"> </span>-<span class="w"> </span>luser
-jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w"> </span>--IdentityProvider.token<span class="o">=</span>tcdm
 </pre></div>
 <p><code>su - luser</code> abre una shell de login de <code>luser</code>, que carga
 <code>/etc/profile.d/tcdm-python.sh</code> y pone <code>/opt/tcdm/venv/bin</code> al principio del
@@ -8187,7 +8187,8 @@ jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=<
 PySpark y las bibliotecas de las sesiones (<code>command -v jupyter</code> lo muestra).
 <code>--ip=0.0.0.0</code> hace que Jupyter escuche en la red del contenedor, y
 <code>compose-hadoop-cluster.yml</code> publica su puerto 8888 en <code>127.0.0.1</code> de tu
-equipo. Jupyter queda en primer plano: <strong>deja esa terminal abierta</strong> mientras
+equipo. <code>--IdentityProvider.token=tcdm</code> fija el token de acceso, así que la
+dirección de conexión es siempre la misma. Jupyter queda en primer plano: <strong>deja esa terminal abierta</strong> mientras
 trabajes. <code>Ctrl+C</code> lo detiene y dos <code>exit</code> te devuelven a tu equipo.</p>
 <p>El servidor, el kernel y todas las celdas del notebook se ejecutan así dentro
 de <code>namenode</code>; en tu equipo sólo quedan Visual Studio Code y el fichero del
@@ -8195,11 +8196,10 @@ notebook. <code>entorno/Makefile</code> ofrece el atajo <code>make -C entorno ju
 hace lo mismo en una sola orden
 (<code>docker exec -it namenode su - luser -c 'jupyter lab ...'</code>), pero conviene
 conocer los pasos anteriores para saber dónde se ejecuta cada cosa.</p>
-<p>Copia la dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra
-(la que empieza por <code>127.0.0.1</code>) y, en Visual Studio Code, conecta este
-notebook con <strong>Select Kernel → Select Another Kernel → Existing Jupyter
-Server</strong>, eligiendo el kernel <strong>Python 3 (ipykernel)</strong>. El token cambia cada
-vez que se arranca el servidor.</p>
+<p>En Visual Studio Code, conecta este notebook con <strong>Select Kernel → Select
+Another Kernel → Existing Jupyter Server</strong>, usando la dirección
+<code>http://127.0.0.1:8888/lab?token=tcdm</code> (la que empieza por <code>127.0.0.1</code>) y
+eligiendo el kernel <strong>Python 3 (ipykernel)</strong>. El token es siempre <code>tcdm</code>.</p>
 <p>La red <code>hadoop-cluster</code> conecta los contenedores, pero RustFS no es un
 DataNode ni un NodeManager: es simplemente otro servicio accesible desde
 <code>namenode</code> por red. Los puertos publicados en el host son:</p>

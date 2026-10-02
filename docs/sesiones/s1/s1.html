@@ -11911,9 +11911,12 @@ una ruta HDFS, y qué ocurre con los datos al usar <code>stop</code> frente a <c
 <p>A partir de ahora conserva este entorno: las siguientes sesiones usarán el
 mismo HDFS para acceder a datos desde Arrow, Spark y las herramientas de
 catálogo.</p>
-<h3 id="Preparaci%C3%B3n-para-la-sesi%C3%B3n-2">Preparación para la sesión 2<a class="anchor-link" href="#Preparaci%C3%B3n-para-la-sesi%C3%B3n-2">¶</a></h3><p>Desde S2 el kernel de Jupyter ya no se ejecuta en tu equipo, sino dentro del
-contenedor <code>namenode</code>, como <code>luser</code>. Antes de abrir <code>s2/s2.ipynb</code>, en una
-terminal de tu equipo situada en la raíz de la distribución:</p>
+<h3 id="Preparaci%C3%B3n-para-la-sesi%C3%B3n-2">Preparación para la sesión 2<a class="anchor-link" href="#Preparaci%C3%B3n-para-la-sesi%C3%B3n-2">¶</a></h3><p>En esta sesión el kernel ha sido un Python local que Visual Studio Code
+arranca por su cuenta: no has lanzado ningún servidor Jupyter. Desde S2 el
+kernel se ejecuta dentro del contenedor <code>namenode</code>, como <code>luser</code>, y tendrás
+que arrancar tú el servidor Jupyter allí y conectar el notebook a él. Antes
+de abrir <code>s2/s2.ipynb</code>, en una terminal de tu equipo situada en la raíz de la
+distribución:</p>
 <ol>
 <li><p>Actualiza el material; trae <code>s2/</code> y los ficheros de <code>entorno/</code> que añade
 esa sesión (el warehouse con Hive Metastore y Trino):</p>
@@ -11921,11 +11924,13 @@ esa sesión (el warehouse con Hive Metastore y Trino):</p>
 git<span class="w"> </span>pull
 </pre></div>
 </li>
-<li><p>Arranca el clúster y los servicios de catálogo. La orden reutiliza los
-contenedores y los volúmenes HDFS de esta sesión —no hace falta borrar
-nada—:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
+<li><p>Comprueba que el clúster de esta sesión está en marcha. Si lo habías
+parado, esta orden lo arranca de nuevo con los mismos volúmenes HDFS
+—no hace falta borrar nada—; si ya funciona, no hace nada:</p>
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
+<p>PostgreSQL, Hive Metastore y Trino no se arrancan todavía: S2 los añade
+más adelante con <code>make -C entorno warehouse-up</code>.</p>
 </li>
 <li><p>Arranca Jupyter <strong>dentro de <code>namenode</code></strong>. En otra terminal de tu equipo,
 entra en el contenedor:</p>
@@ -11934,22 +11939,25 @@ entra en el contenedor:</p>
 <p>Esa terminal pasa a estar dentro de <code>namenode</code> (el indicador muestra
 <code>root@namenode</code>). Ahí, cambia a <code>luser</code> y arranca Jupyter Lab:</p>
 <div class="highlight"><pre><span></span>su<span class="w"> </span>-<span class="w"> </span>luser
-jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w"> </span>--IdentityProvider.token<span class="o">=</span>tcdm
 </pre></div>
 <p><code>su - luser</code> carga el entorno de login de <code>luser</code>, que pone primero en el
 <code>PATH</code> el Python del curso (<code>/opt/tcdm/venv</code>, con Jupyter Lab, PySpark y las
-bibliotecas de las sesiones). Deja esa terminal abierta mientras
-trabajes; <code>Ctrl+C</code> detiene Jupyter y dos <code>exit</code> te devuelven a tu equipo.
-<code>make -C entorno jupyter</code> hace lo mismo en una sola orden.</p>
+bibliotecas de las sesiones). <code>--IdentityProvider.token=tcdm</code> fija el token
+de acceso, así que no hay que buscarlo en los mensajes de Jupyter: la
+dirección de conexión es siempre la misma. Deja esa terminal abierta
+mientras trabajes; <code>Ctrl+C</code> detiene Jupyter y dos <code>exit</code> te devuelven a tu
+equipo. <code>make -C entorno jupyter</code> hace lo mismo en una sola orden.</p>
 </li>
-<li><p>Copia la dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y,
-en Visual Studio Code, abre <code>s2/s2.ipynb</code> y conéctalo con <strong>Select Kernel
-→ Select Another Kernel → Existing Jupyter Server</strong>, eligiendo el kernel
-<strong>Python 3 (ipykernel)</strong>.</p>
+<li><p>En Visual Studio Code, abre <code>s2/s2.ipynb</code> y conéctalo con <strong>Select Kernel
+→ Select Another Kernel → Existing Jupyter Server</strong>, usando la dirección
+<code>http://127.0.0.1:8888/lab?token=tcdm</code> y eligiendo el kernel <strong>Python 3
+(ipykernel)</strong>.</p>
 </li>
 </ol>
 <p>El Python local que usaste en esta sesión ya no será necesario. El propio
-notebook de S2 repite estos pasos con más detalle en «Arrancar el entorno».</p>
+notebook de S2 repite estos pasos con más detalle al principio, en «Antes de
+empezar: Jupyter en <code>namenode</code>», también en su versión HTML publicada.</p>
 </div>
 </div>
 </div>

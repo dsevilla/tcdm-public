@@ -51,11 +51,13 @@ s3-up: network
 	$(S3_COMPOSE) up -d
 
 # Arranca Jupyter Lab dentro de namenode como luser, con el entorno Python del
-# curso (/opt/tcdm/venv). Queda en primer plano: muestra la dirección con el
-# token que hay que pegar en Visual Studio Code y se detiene con Ctrl+C. La
-# terminal debe quedar abierta mientras se trabaja con el notebook.
+# curso (/opt/tcdm/venv). El token es siempre «tcdm» (el puerto 8888 sólo se
+# publica en 127.0.0.1), así que la dirección que hay que pegar en Visual
+# Studio Code es http://127.0.0.1:8888/lab?token=tcdm. Queda en primer plano y
+# se detiene con Ctrl+C; la terminal debe quedar abierta mientras se trabaja
+# con el notebook.
 jupyter:
-	docker exec -it namenode su - luser -c 'jupyter lab --ip=0.0.0.0 --port=8888 --no-browser'
+	docker exec -it namenode su - luser -c 'jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token=tcdm'
 
 # La distribución de cada sesión sólo incluye los Compose que ya se usan. Los
 # de sesiones posteriores se omiten sin error mientras no se hayan publicado.

@@ -8151,17 +8151,19 @@ crea el esquema <code>hive.tcdm</code> la primera vez que se levanta el entorno.
 <p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
 Como en S2, arráncalo desde <strong>otra terminal de tu equipo</strong> y déjala abierta
 mientras trabajes:</p>
-<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash<span class="w">                          </span><span class="c1"># en tu equipo: entra en namenode</span>
-su<span class="w"> </span>-<span class="w"> </span>luser<span class="w">                                             </span><span class="c1"># ya dentro de namenode</span>
-jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w">      </span><span class="c1"># dentro de namenode, como luser</span>
+<div class="highlight"><pre><span></span><span class="c1"># en tu equipo: entra en namenode</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>namenode<span class="w"> </span>bash
+<span class="c1"># ya dentro de namenode, como luser: Jupyter con el token fijo «tcdm»</span>
+su<span class="w"> </span>-<span class="w"> </span>luser
+jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>--no-browser<span class="w"> </span>--IdentityProvider.token<span class="o">=</span>tcdm
 </pre></div>
 <p>La primera orden es la única que se ejecuta en tu equipo; las otras dos, ya
 dentro del contenedor, arrancan Jupyter con el Python del curso
-(<code>make -C entorno jupyter</code> hace lo mismo en una sola orden). Copia la
-dirección <code>http://127.0.0.1:8888/lab?token=...</code> que muestra y, en Visual
+(<code>make -C entorno jupyter</code> hace lo mismo en una sola orden). En Visual
 Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
-Kernel → Existing Jupyter Server</strong>, eligiendo el kernel <strong>Python 3
-(ipykernel)</strong>. El token cambia cada vez que se arranca el servidor.</p>
+Kernel → Existing Jupyter Server</strong>, usando la dirección
+<code>http://127.0.0.1:8888/lab?token=tcdm</code> y eligiendo el kernel <strong>Python 3
+(ipykernel)</strong>. El token es siempre <code>tcdm</code>.</p>
 <p>Esta sesión no regenera S5. Si <code>/datalake/silver/tpcds/web_sales</code> o
 <code>/datalake/gold/tpcds/web_sales_by_year</code> no existen todavía, ejecuta antes el
 notebook de S5.</p>
