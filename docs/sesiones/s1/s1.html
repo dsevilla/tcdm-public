@@ -7909,14 +7909,17 @@ preferible clonar el repositorio dentro del sistema de ficheros de WSL2
 (p. ej. <code>~/tcdm-public</code>) en lugar de <code>/mnt/c/...</code>: además de evitar problemas de
 integración, el rendimiento de E/S es mucho mejor.</p>
 </li>
-<li><p><strong>El kernel del notebook será un Python de WSL2</strong> (no uno de Windows),
-dentro de un entorno virtual propio de la asignatura. No instales nada
-con <code>pip</code> en el Python del sistema: el entorno <code>.venv</code>, con <code>ipykernel</code>,
-se crea en la sección siguiente, «Obtener el material de las sesiones».</p>
+<li><p><strong>El kernel del notebook será un Python de WSL2</strong> (no uno de Windows) y
+lo prepara Visual Studio Code. Al abrir <code>s1/s1.ipynb</code>, pulsa <strong>Select
+Kernel → Python Environments → Create Python Environment → Venv</strong>: crea
+un entorno virtual <code>.venv</code> en la carpeta abierta, instala en él
+<code>ipykernel</code> (acepta si lo pide al ejecutar la primera celda) y lo deja
+elegido como kernel de la sesión.</p>
 </li>
 <li><p><strong>Instala <code>make</code> y el soporte de entornos virtuales de Python</strong> en Ubuntu
 de WSL2. <code>make</code> se usa a partir de S2 (<code>make -C entorno ...</code> desde la
-terminal) y <code>python3-venv</code> hace falta para crear el entorno del paso 6:</p>
+terminal) y, sin <code>python3-venv</code>, Visual Studio Code no puede crear el
+entorno del paso 6:</p>
 <div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>make<span class="w"> </span>python3-venv
 </pre></div>
 </li>
@@ -7925,10 +7928,13 @@ terminal) y <code>python3-venv</code> hace falta para crear el entorno del paso 
 docker<span class="w"> </span>compose<span class="w"> </span>version
 docker<span class="w"> </span>info
 make<span class="w"> </span>--version
+python3<span class="w"> </span>--version
 </pre></div>
-<p>Si algún comando falla, revisa los pasos 2–4 (o el 7, si falta <code>make</code>) antes de seguir: el resto
-del notebook asume que estas órdenes ya funcionan desde la propia
-terminal de WSL2.</p>
+<p>Si algún comando falla, revisa los pasos 2–4 (o el 7, si faltan <code>make</code> o
+<code>python3</code>) antes de seguir: el resto del notebook asume que estas órdenes
+ya funcionan desde la propia terminal de WSL2. La última muestra la
+versión de Python con la que Visual Studio Code creará el entorno del
+paso 6; anótala si tienes que consultar un problema con el kernel.</p>
 </li>
 </ol>
 <blockquote>
@@ -7937,11 +7943,11 @@ con tener Docker (Docker Engine en Linux, o Docker Desktop en macOS)
 instalado y en ejecución, y <code>make</code> en el equipo (en Linux, paquete
 <code>make</code>; en macOS viene con las herramientas de línea de órdenes de Xcode,
 <code>xcode-select --install</code>). Sí se necesitan, igual que en Windows, Visual
-Studio Code con las extensiones <strong>Python</strong> y <strong>Jupyter</strong> y un Python local
-para el kernel de esta sesión, dentro del entorno virtual <code>.venv</code> que se
-crea en la sección siguiente (en Debian y Ubuntu hace falta el paquete
-<code>python3-venv</code>). A partir de S2 el kernel y todas las bibliotecas vienen ya
-instalados dentro del contenedor <code>namenode</code>.</p>
+Studio Code con las extensiones <strong>Python</strong> y <strong>Jupyter</strong> y un Python en el
+equipo, con el que Visual Studio Code crea el entorno del kernel de esta
+sesión (en Debian y Ubuntu hace falta el paquete <code>python3-venv</code>). A partir
+de S2 el kernel y todas las bibliotecas vienen ya instalados dentro del
+contenedor <code>namenode</code>.</p>
 </blockquote>
 </div>
 </div>
@@ -7957,25 +7963,14 @@ instalados dentro del contenedor <code>namenode</code>.</p>
 <a href="https://github.com/dsevilla/tcdm-public"><code>dsevilla/tcdm-public</code></a>, rama
 <code>26-27</code>. En una terminal de tu equipo (en Windows, la terminal de Ubuntu de
 WSL2):</p>
+<p align="center" style="text-align: center;"><img alt="Animación: en una terminal de tu equipo (host) se teclean git clone, cd tcdm-public y code . &amp;" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-git-clone.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>--branch<span class="w"> </span><span class="m">26</span>-27<span class="w"> </span>https://github.com/dsevilla/tcdm-public.git<span class="w"> </span>~/tcdm-public
 <span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
-.venv/bin/python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>ipykernel
-code<span class="w"> </span>.
 </pre></div>
-<p>Las dos órdenes centrales preparan el Python que ejecutará este notebook.
-<code>python3 -m venv .venv</code> crea un entorno virtual en la raíz de la distribución
-y la siguiente instala en él <code>ipykernel</code>, el paquete que Visual Studio Code
-necesita para ejecutar las celdas. Hace falta un entorno propio porque
-Ubuntu, Debian y otras distribuciones marcan el Python del sistema como
-<em>gestionado externamente</em> (PEP 668): fuera de un entorno virtual,
-<code>pip install</code> termina con <code>error: externally-managed-environment</code>. Eso
-afectaría tanto a <code>ipykernel</code> como a la celda <code>%pip install</code> que, un poco
-más abajo, instala las diapositivas. <code>.venv</code> ya figura en el <code>.gitignore</code> de
-la distribución, así que <code>git pull</code> no lo toca.</p>
-<p>Con la carpeta abierta en Visual Studio Code, abre <code>s1/s1.ipynb</code>, pulsa
-<strong>Select Kernel → Python Environments</strong> y elige <code>.venv</code>: es el kernel de
-toda la sesión 1.</p>
+<p>La animación abrevia la orden de clonado: la completa es la del bloque
+anterior, que fija la rama <code>26-27</code> y el directorio de destino. Su última
+orden, <code>code . &amp;</code>, abre la carpeta en Visual Studio Code y devuelve el
+control a la terminal.</p>
 <p>A este directorio (<code>~/tcdm-public</code>) lo llamaremos <strong>raíz de la distribución</strong>.
 Contiene un directorio por sesión (<code>s1/</code>, <code>s2/</code>, ...) y <code>entorno/</code>, con los
 ficheros Docker Compose y el <code>Makefile</code> del laboratorio. <code>entorno/</code> crece a
