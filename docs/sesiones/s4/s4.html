@@ -8865,7 +8865,14 @@ darlo por hecho sólo porque la función se llame <code>filter</code>.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Filtrado,-ordenaci%C3%B3n-y-agrupamiento">Filtrado, ordenación y agrupamiento<a class="anchor-link" href="#Filtrado,-ordenaci%C3%B3n-y-agrupamiento">¶</a></h2><p>Contamos, para cada cliente, cuántas líneas de venta con beneficio positivo
-tiene en <code>web_sales</code>, y mostramos las diez con más líneas. Aquí seguimos
+tiene en <code>web_sales</code>, y mostramos los diez clientes con más líneas.</p>
+<p>Antes de agrupar descartamos las líneas sin cliente. TPC-DS deja a propósito
+algunas claves nulas en las tablas de hechos, para simular datos de origen
+imperfectos, y <code>groupBy</code> reúne todos los nulos en un único grupo: sin el
+filtro, ese grupo <code>NULL</code> encabezaría la lista con más líneas que cualquier
+cliente real, como si fuera uno más. S2 hizo lo mismo con <code>is_valid</code> al
+contar pedidos por cliente con PyArrow.</p>
+<p>Aquí seguimos
 contando <strong>líneas</strong>, no pedidos: cada fila de <code>web_sales</code> es una línea de
 un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
@@ -8880,7 +8887,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">lineas_con_beneficio</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">web_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">web_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">col</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">())</span>
     <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">count</span><span class="p">()</span>
     <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"count"</span><span class="p">)</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>

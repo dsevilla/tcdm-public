@@ -10364,7 +10364,10 @@ reconoce por la firma binaria <code>PAR1</code> al principio y al final del fich
 no por su nombre. Puedes comprobarlo sin descargar el fichero al host: se pide
 primero el nombre de un fragmento real con <code>hdfs dfs -ls</code> (evitando
 <code>_SUCCESS</code>, que es un marcador de finalización y no contiene filas Parquet) y
-después inspeccionamos sus primeros bytes:</p>
+después inspeccionamos sus primeros bytes. <code>od -N 4</code> deja de leer tras cuatro
+bytes y cierra la tubería; <code>hdfs dfs -cat</code>, que seguía enviando el fichero,
+protestaría entonces con <code>cat: Unable to write to output stream.</code> Es un
+aviso inofensivo, y <code>2&gt;/dev/null</code> lo oculta:</p>
 </div>
 </div>
 </div>
@@ -10377,7 +10380,7 @@ después inspeccionamos sus primeros bytes:</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">cat</span> <span class="err">$</span><span class="p">(</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span> \
-  <span class="o">|</span> <span class="n">awk</span> <span class="s1">'$NF ~ /date_dim\// &amp;&amp; $NF !~ /_SUCCESS$/ { print $NF; exit }'</span><span class="p">)</span> \
+  <span class="o">|</span> <span class="n">awk</span> <span class="s1">'$NF ~ /date_dim\// &amp;&amp; $NF !~ /_SUCCESS$/ { print $NF; exit }'</span><span class="p">)</span> <span class="mi">2</span><span class="o">&gt;/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span> \
   <span class="o">|</span> <span class="n">od</span> <span class="o">-</span><span class="n">An</span> <span class="o">-</span><span class="n">c</span> <span class="o">-</span><span class="n">N</span> <span class="mi">4</span>
 </pre></div>
 </div>
@@ -10391,8 +10394,7 @@ después inspeccionamos sus primeros bytes:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>En la salida hexadecimal o de caracteres debe aparecer la firma inicial
-<code>P A R 1</code>. Las celdas de generación muestran también el tamaño de cada
+<p>En la salida debe aparecer la firma inicial <code>P A R 1</code>. Las celdas de generación muestran también el tamaño de cada
 directorio de tabla y un resumen del dataset completo con
 <code>hdfs dfs -du -h</code>. Su salida tiene dos tamaños: el primero es el tamaño
 lógico de los datos y el segundo es el espacio consumido en HDFS después de
