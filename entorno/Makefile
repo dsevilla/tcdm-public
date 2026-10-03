@@ -21,7 +21,7 @@ S3_COMPOSE := docker compose -f compose-s3.yml
 HDFS_VOLUMES := tcdm-26-27-namenode-data tcdm-26-27-datanode1-data \
 	tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data
 
-.PHONY: network hadoop-up warehouse-up tpcds-init tpcds-size s3-up jupyter status stop clean clean-hdfs
+.PHONY: network hadoop-up warehouse-up tpcds-init tpcds-size s3-up jupyter status stop down clean clean-hdfs
 
 network:
 	docker network inspect hadoop-cluster >/dev/null 2>&1 || docker network create hadoop-cluster
@@ -61,23 +61,46 @@ jupyter:
 
 # La distribución de cada sesión sólo incluye los Compose que ya se usan. Los
 # de sesiones posteriores se omiten sin error mientras no se hayan publicado.
+# `ps -a` muestra también los contenedores parados con `make stop`.
 status:
-	$(HADOOP_COMPOSE) ps
+	$(HADOOP_COMPOSE) ps -a
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) ps -a; fi
 	if test -e compose-s3.yml; then $(S3_COMPOSE) ps -a; fi
 
-# Elimina los contenedores. Los datos HDFS sobreviven porque viven en los
-# volúmenes con nombre de compose-hadoop-cluster.yml (namenode-data,
-# datanodeN-data), no en la capa de escritura de los contenedores: un
-# `up -d` posterior los reutiliza tal cual. Usa `clean-hdfs` para borrarlos.
+# Parar y borrar: cuatro órdenes, de menos a más destructiva.
+#
+#   stop        para los contenedores       conserva todo
+#   down        elimina los contenedores    conserva los volúmenes
+#   clean       down + borra volúmenes      conserva sólo HDFS
+#   clean-hdfs  clean + borra HDFS          no conserva ningún dato
+#
+# Después de cualquiera de ellas se vuelve a arrancar con `hadoop-up`,
+# `warehouse-up` o `s3-up`.
+
+# Para los contenedores sin eliminarlos. No se pierde nada: ni los volúmenes
+# ni lo que hay dentro de cada contenedor (ficheros del directorio de trabajo
+# de Jupyter en namenode, /tmp, histórico del Timeline Server). Un `up -d`
+# posterior reanuda los mismos contenedores. Lo único que no vuelve solo es
+# Jupyter, que hay que lanzar de nuevo.
 stop:
+	if test -e compose-s3.yml; then $(S3_COMPOSE) stop; fi
+	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) stop; fi
+	$(HADOOP_COMPOSE) stop
+
+# Elimina los contenedores y conserva los volúmenes. Sobreviven los datos
+# HDFS (volúmenes namenode-data y datanodeN-data de
+# compose-hadoop-cluster.yml), los metadatos del Hive Metastore y los objetos
+# de S3: un `up -d` posterior crea contenedores nuevos sobre esos mismos
+# volúmenes. Se pierde lo que vivía en la capa de escritura de los
+# contenedores.
+down:
 	if test -e compose-s3.yml; then $(S3_COMPOSE) down; fi
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) down; fi
 	$(HADOOP_COMPOSE) down
 
-# Además de parar y eliminar los contenedores, borra el volumen de
-# metadatos de PostgreSQL (Hive Metastore) y el de S3. El HDFS de Hadoop no
-# se toca aquí: usa `clean-hdfs` para eso, de forma explícita y separada.
+# Como `down`, y además borra el volumen de metadatos de PostgreSQL (Hive
+# Metastore) y el de S3. El HDFS de Hadoop no se toca aquí: usa `clean-hdfs`
+# para eso, de forma explícita y separada.
 clean:
 	if test -e compose-s3.yml; then $(S3_COMPOSE) down -v; fi
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) down -v; fi

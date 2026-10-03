@@ -8166,6 +8166,9 @@ Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
 Kernel → Existing Jupyter Server</strong>, usando la dirección
 <code>http://127.0.0.1:8888/lab?token=tcdm</code> y eligiendo el kernel <strong>Python 3
 (ipykernel)</strong>. El token es siempre <code>tcdm</code>.</p>
+<p>Si algo no funciona —el notebook no conecta, una celda <code>!hdfs</code> no
+encuentra la orden, un servicio no responde—, consulta «Solución de
+problemas» en <code>entorno/README.md</code>.</p>
 <p>Esta sesión no regenera S5. Si <code>/datalake/silver/tpcds/web_sales</code> o
 <code>/datalake/gold/tpcds/web_sales_by_year</code> no existen todavía, ejecuta antes el
 notebook de S5.</p>
@@ -8942,7 +8945,7 @@ ahí desde que terminó esa sesión. <code>CREATE TABLE ... WITH (external_locat
 particionado, pero no recorre HDFS para descubrir qué valores de
 <code>sold_year</code>/<code>sold_month</code> existen realmente: el metastore todavía no conoce
 ninguna partición.</p>
-<p><strong>Investigación sobre el mecanismo real de este clúster.</strong> El patrón clásico
+<p><strong>Cómo se sincronizan las particiones desde Trino.</strong> El patrón clásico
 de Hive es <code>MSCK REPAIR TABLE</code>, pero esa sentencia es HiveQL, no SQL de
 Trino: el <a href="https://trino.io/docs/current/connector/hive.html">conector Hive de Trino</a>
 no la implementa. Lo que expone en su lugar es un procedimiento propio del
@@ -9163,43 +9166,8 @@ bytes se leyeron realmente en cada caso.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">hdfs_file_count</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-count"</span><span class="p">,</span> <span class="n">path</span><span class="p">],</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
-
-
-<span class="n">silver_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/silver/tpcds/web_sales"</span>
-<span class="n">full_scan_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hdfs_file_count</span><span class="p">(</span><span class="n">silver_path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># descarta _SUCCESS</span>
-<span class="n">filtered_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hdfs_file_count</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">silver_path</span><span class="si">}</span><span class="s2">/sold_year=2000/sold_month=1"</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros bajo la ruta completa: </span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros bajo sold_year=2000/sold_month=1: </span><span class="si">{</span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">filtered_files</span> <span class="o">&lt;</span> <span class="n">full_scan_files</span><span class="p">,</span> <span class="p">(</span>
-    <span class="s2">"El directorio de un solo mes debería tener estrictamente menos ficheros "</span>
-    <span class="sa">f</span><span class="s2">"que la tabla completa: completa=</span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2"> filtrada=</span><span class="si">{</span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros descartados por la poda de particiones: </span><span class="si">{</span><span class="n">full_scan_files</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">filtered_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9207,13 +9175,12 @@ bytes se leyeron realmente en cada caso.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Igual que en S4 con <em>predicate/projection pushdown</em> en Spark, la
 mejora de una consulta filtrada por partición no se debe dar por hecha sólo
-por el tiempo de pared: hay que comprobarla en el plan, en las métricas de
-filas/bytes leídos que ofrece <code>EXPLAIN ANALYZE</code>, y en el número de ficheros
-que hay realmente bajo cada ruta de HDFS, como hicimos en S5.</p>
+por el tiempo de pared: hay que comprobarla en el plan y en las métricas de
+filas y bytes leídos que ofrece <code>EXPLAIN ANALYZE</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9254,7 +9221,7 @@ que hay realmente bajo cada ruta de HDFS, como hicimos en S5.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9269,12 +9236,13 @@ pequeña, un año por fila, pensada para consumirse entera. Sus columnas son
 sesión (<code>DECIMAL(7, 2)</code> en <code>web_sales_silver</code>): un <code>SUM</code> de una columna
 <code>decimal(7,2)</code> en Spark amplía la precisión, pero mantiene el tipo decimal en
 lugar de convertirlo a coma flotante — importante para un agregado de dinero.
-Si el Parquet físico que escribió S5 usara <code>DOUBLE</code> en su lugar, <code>DESCRIBE</code>
-lo dejaría ver de inmediato y bastaría con ajustar este único tipo.</p>
+Si el Parquet físico que escribió S5 usara <code>DOUBLE</code> en su lugar, se notaría
+al consultar la tabla, no al declararla: el <code>SELECT</code> de más abajo fallaría o
+devolvería <code>NULL</code> en esa columna, y bastaría con ajustar este único tipo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9302,7 +9270,7 @@ lo dejaría ver de inmediato y bastaría con ajustar este único tipo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9316,7 +9284,7 @@ lo dejaría ver de inmediato y bastaría con ajustar este único tipo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9332,23 +9300,23 @@ lo dejaría ver de inmediato y bastaría con ajustar este único tipo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Si <code>DESCRIBE</code> mostrara un tipo distinto al declarado aquí para
-<code>beneficio_neto</code> (por ejemplo, si Trino se quejara al leer o si los valores
-aparecieran como <code>NULL</code>), sería la señal de que el Parquet físico no coincide
-con el DDL: el conector Hive de Trino asocia columnas por nombre y espera un
-tipo compatible con el que encuentra en el fichero, no infiere el esquema
-por sí solo.</p>
+<p><code>DESCRIBE</code> muestra el esquema declarado en el <code>CREATE TABLE</code>, no el de los
+ficheros. Si el tipo declarado para <code>beneficio_neto</code> no coincidiera con el
+del Parquet físico, la señal aparecería al leer: Trino se quejaría en el
+<code>SELECT</code> anterior o los valores saldrían como <code>NULL</code>. El conector Hive de
+Trino asocia columnas por nombre y espera un tipo compatible con el que
+encuentra en el fichero; no infiere el esquema por sí solo.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9360,7 +9328,7 @@ conozca el nombre lógico de las tablas, sin saber nada de rutas HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9374,7 +9342,7 @@ conozca el nombre lógico de las tablas, sin saber nada de rutas HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9389,7 +9357,7 @@ conozca el nombre lógico de las tablas, sin saber nada de rutas HDFS.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9403,7 +9371,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9417,7 +9385,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9431,7 +9399,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9445,7 +9413,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9464,7 +9432,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9476,14 +9444,15 @@ de columnas numéricas (<code>nulls_fraction</code>, <code>distinct_values_count
 tamaño de los ficheros; después, cada columna trae una estimación calculada
 sobre los datos reales, y la fila final añade <code>row_count</code>. Los <code>EXPLAIN</code> de
 unas celdas más arriba se ejecutaron <strong>antes</strong> de este <code>ANALYZE</code>, así que
-planificaron sin estas estadísticas de columna: repite ahora el <code>EXPLAIN</code>
-de la misma consulta filtrada (celda anterior) y compáralo con el de antes
-de <code>ANALYZE</code> — el optimizador ya dispone de estas estadísticas para decidir
-el plan.</p>
+planificaron sin estas estadísticas de columna. La celda anterior ha
+repetido el <code>EXPLAIN</code> de la misma consulta filtrada: compáralo con el de
+antes de <code>ANALYZE</code> y fíjate en las líneas <code>Estimates</code>, donde el número de
+filas estimado deja de aparecer como desconocido (<code>?</code>). El optimizador ya
+dispone de estas estadísticas para decidir el plan.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9524,7 +9493,7 @@ el plan.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=69">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9566,7 +9535,7 @@ el plan.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9580,7 +9549,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9594,7 +9563,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9611,7 +9580,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9629,7 +9598,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9641,7 +9610,7 @@ partición tal como las ve el mismo metastore.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=75">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9656,7 +9625,7 @@ partición tal como las ve el mismo metastore.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9673,7 +9642,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9690,7 +9659,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9716,7 +9685,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9729,7 +9698,7 @@ ficheros y filtrar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9746,7 +9715,7 @@ ficheros y filtrar después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9770,7 +9739,7 @@ de leer la tabla con Spark—, pero es el motivo por el que a veces una tabla
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9783,7 +9752,7 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9805,7 +9774,7 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9820,7 +9789,7 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9830,12 +9799,13 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 la tabla administrada no declara <code>external_location</code>, y su ubicación real
 —visible también en la propiedad <code>location</code> que añade Trino— cae bajo
 <code>/warehouse/tcdm.db/web_sales_by_year_managed_demo</code>, siguiendo el patrón
-<code>/warehouse/&lt;esquema&gt;.db/&lt;tabla&gt;</code> que ya viste al crear la tabla externa.
+<code>/warehouse/&lt;esquema&gt;.db/&lt;tabla&gt;</code> que se explicó en «Tabla administrada en
+el warehouse».
 Lo comprobamos directamente en HDFS:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9850,7 +9820,7 @@ Lo comprobamos directamente en HDFS:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9863,7 +9833,166 @@ registrar una ubicación existente y pedirle al motor que gestione una nueva.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=88">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Qu%C3%A9-ocurre-al-borrar-cada-tipo-de-tabla">Qué ocurre al borrar cada tipo de tabla<a class="anchor-link" href="#Qu%C3%A9-ocurre-al-borrar-cada-tipo-de-tabla">¶</a></h3><p>La diferencia entre los dos modelos se ve al borrar. Para no tocar ninguna
+tabla de la sesión, creamos dos tablas efímeras con los mismos datos de
+<code>gold</code>: una administrada, cuya ubicación elige el catálogo, y una externa,
+sobre una ruta de trabajo propia bajo <code>/user/luser/s6</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span>
+<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">rm</span> <span class="o">-</span><span class="n">r</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.drop_demo_managed"</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.drop_demo_external"</span><span class="p">)</span>
+
+<span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    CREATE TABLE hive.tcdm.drop_demo_managed</span>
+<span class="s1">    WITH (format = 'PARQUET') AS</span>
+<span class="s1">    SELECT * FROM hive.tcdm.web_sales_by_year_gold</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    CREATE TABLE hive.tcdm.drop_demo_external</span>
+<span class="s1">    WITH (</span>
+<span class="s1">        format = 'PARQUET',</span>
+<span class="s1">        external_location = 'hdfs://namenode:9000/user/luser/s6/drop_demo_external'</span>
+<span class="s1">    ) AS</span>
+<span class="s1">    SELECT * FROM hive.tcdm.web_sales_by_year_gold</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Tablas efímeras creadas: drop_demo_managed y drop_demo_external."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Antes de borrar, las dos tienen ficheros en HDFS: la administrada bajo
+<code>/warehouse/tcdm.db</code>, la externa en la ruta que le indicamos.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">warehouse</span><span class="o">/</span><span class="n">tcdm</span><span class="o">.</span><span class="n">db</span><span class="o">/</span><span class="n">drop_demo_managed</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Ahora ejecutamos el mismo <code>DROP TABLE</code> sobre las dos y volvemos a mirar
+HDFS.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE hive.tcdm.drop_demo_managed"</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE hive.tcdm.drop_demo_external"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">hdfs_dir_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-test"</span><span class="p">,</span> <span class="s2">"-d"</span><span class="p">,</span> <span class="n">path</span><span class="p">])</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span>
+
+
+<span class="n">managed_dir_exists</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">hdfs_dir_exists</span><span class="p">(</span><span class="s2">"/warehouse/tcdm.db/drop_demo_managed"</span><span class="p">)</span>
+<span class="n">external_dir_exists</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">hdfs_dir_exists</span><span class="p">(</span><span class="s2">"/user/luser/s6/drop_demo_external"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"¿Sigue el directorio de la tabla administrada? </span><span class="si">{</span><span class="n">managed_dir_exists</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"¿Sigue el directorio de la tabla externa?      </span><span class="si">{</span><span class="n">external_dir_exists</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">managed_dir_exists</span>
+<span class="k">assert</span> <span class="n">external_dir_exists</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Las dos tablas han desaparecido del catálogo, pero sólo la administrada se
+ha llevado sus ficheros: los de la externa siguen en HDFS, sin ninguna
+definición que los describa. Por eso el <code>DROP TABLE</code> de una tabla externa no
+es una forma de borrar datos, y por eso las definiciones de <code>/datalake</code> se
+pueden eliminar y volver a crear sin riesgo. Borrar esos ficheros es una
+decisión aparte:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=95">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">rm</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9904,7 +10033,7 @@ registrar una ubicación existente y pedirle al motor que gestione una nueva.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9948,7 +10077,7 @@ registrar una ubicación existente y pedirle al motor que gestione una nueva.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9982,7 +10111,7 @@ introducir Iceberg en S7.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10019,13 +10148,16 @@ de tabla como Iceberg?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión, ten preparadas estas evidencias:</p>
+<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión tendrás una reunión individual breve con el
+profesor para revisar el trabajo de esta sesión. Esa reunión combina una
+demostración en vivo sobre tu propio ordenador y una memoria escrita breve.</p>
+<h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias:</p>
 <ol>
 <li>El <code>SHOW CREATE TABLE</code> de <code>tcdm.date_dim</code>, <code>tcdm.web_sales_silver</code> y
 <code>tcdm.web_sales_by_year_gold</code>, mostrando que las tres son tablas externas
@@ -10047,11 +10179,38 @@ de una tabla externa.</li>
 eliminar la definición de una tabla externa y eliminar una tabla
 administrada.</li>
 </ol>
+<h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
+no se limite a pegar capturas de las salidas anteriores: debe explicar con
+tus propias palabras qué papel tiene cada pieza de la arquitectura
+(PostgreSQL, Hive Metastore, Trino y Spark); qué diferencia hay entre una
+tabla externa y una administrada, y qué ocurre con los datos al borrar cada
+una; por qué la tabla particionada devolvía cero filas hasta sincronizar
+sus particiones; para qué sirven las estadísticas de <code>ANALYZE</code>; y qué
+limitaciones del metastore justifican introducir Iceberg.</p>
+<h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una sentencia. Debes poder
+explicar:</p>
+<ul>
+<li>qué problema resuelve un catálogo frente a una ruta física, y qué guarda
+y qué no guarda el Hive Metastore;</li>
+<li>por qué el metastore no es un motor de consultas y Trino no es un
+catálogo, y qué significa que Spark y Trino sean dos clientes de la misma
+definición de tabla;</li>
+<li>la diferencia entre tabla externa y tabla administrada: ubicación y
+ciclo de vida de los datos;</li>
+<li>que una partición Hive son dos cosas, un directorio <code>columna=valor</code> y una
+fila de metadatos, y por qué hace falta un paso de descubrimiento;</li>
+<li>cómo se reconoce en un plan la poda de particiones y la selección de
+columnas;</li>
+<li>qué son las estadísticas de tabla y de columna y para qué las usa el
+planificador;</li>
+<li>qué no ofrece el metastore: transacciones, historial de versiones y
+evolución segura del esquema.</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10059,9 +10218,11 @@ administrada.</li>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Detener-y-limpiar">Detener y limpiar<a class="anchor-link" href="#Detener-y-limpiar">¶</a></h2><p>Estas operaciones se muestran como texto, no como celdas de código, para que
 un «ejecutar todo» de este notebook no las dispare por accidente. La tabla
-administrada de esta sesión es un recurso de laboratorio: bórrala cuando
-termines, pero <strong>nunca</strong> apliques el mismo razonamiento a las tablas
-externas, cuyo <code>DROP TABLE</code> sólo afecta al catálogo.</p>
+administrada de esta sesión es un recurso de laboratorio: consérvala hasta
+la reunión de evidencias, que la necesita, y bórrala después. <strong>Nunca</strong>
+apliques el mismo razonamiento a las tablas externas, cuyo <code>DROP TABLE</code>
+sólo afecta al catálogo; y no elimines sus definiciones antes de terminar
+S7, que parte de ellas.</p>
 <table>
 <thead>
 <tr>
@@ -10079,7 +10240,7 @@ externas, cuyo <code>DROP TABLE</code> sólo afecta al catálogo.</p>
 <tr>
 <td>Eliminar las definiciones externas de esta sesión</td>
 <td><code>DROP TABLE hive.tcdm.date_dim</code>, <code>DROP TABLE hive.tcdm.web_sales_silver</code>, <code>DROP TABLE hive.tcdm.web_sales_by_year_gold</code></td>
-<td>Borra únicamente las tres entradas del metastore. Los Parquet de <code>/datalake/raw</code>, <code>/datalake/silver</code> y <code>/datalake/gold</code> siguen intactos: nunca interpretes este <code>DROP TABLE</code> como "borrar el data lake".</td>
+<td>Borra únicamente las tres entradas del metastore. Los Parquet de <code>/datalake/raw</code>, <code>/datalake/silver</code> y <code>/datalake/gold</code> siguen intactos: nunca interpretes este <code>DROP TABLE</code> como "borrar el data lake". S7 necesita las tres definiciones: no las elimines hasta haberla terminado.</td>
 </tr>
 <tr>
 <td>Parar temporalmente el warehouse</td>
@@ -10094,12 +10255,13 @@ externas, cuyo <code>DROP TABLE</code> sólo afecta al catálogo.</p>
 </tbody>
 </table>
 <p>No confundas ese <code>down -v</code> del warehouse con el <code>down</code>/<code>volume rm</code> de S1
-(clúster Hadoop) o con el <code>down -v</code> de S3 (S3): cada Compose tiene su propio
+(clúster Hadoop) o con el <code>down -v</code> de la sesión 3 (RustFS): cada Compose
+tiene su propio
 volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10141,7 +10303,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

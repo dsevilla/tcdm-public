@@ -7909,12 +7909,15 @@ preferible clonar el repositorio dentro del sistema de ficheros de WSL2
 (p. ej. <code>~/tcdm-public</code>) en lugar de <code>/mnt/c/...</code>: además de evitar problemas de
 integración, el rendimiento de E/S es mucho mejor.</p>
 </li>
-<li><p><strong>Selecciona como kernel del notebook un intérprete de Python de WSL2</strong>
-(no uno de Windows), con <code>ipykernel</code> instalado.</p>
+<li><p><strong>El kernel del notebook será un Python de WSL2</strong> (no uno de Windows),
+dentro de un entorno virtual propio de la asignatura. No instales nada
+con <code>pip</code> en el Python del sistema: el entorno <code>.venv</code>, con <code>ipykernel</code>,
+se crea en la sección siguiente, «Obtener el material de las sesiones».</p>
 </li>
-<li><p><strong>Instala <code>make</code></strong> en Ubuntu de WSL2, porque a partir de S2 se usa
-<code>make -C entorno ...</code> desde la terminal:</p>
-<div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>make
+<li><p><strong>Instala <code>make</code> y el soporte de entornos virtuales de Python</strong> en Ubuntu
+de WSL2. <code>make</code> se usa a partir de S2 (<code>make -C entorno ...</code> desde la
+terminal) y <code>python3-venv</code> hace falta para crear el entorno del paso 6:</p>
+<div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>make<span class="w"> </span>python3-venv
 </pre></div>
 </li>
 <li><p><strong>Comprueba antes de continuar</strong>, en una terminal de WSL2:</p>
@@ -7935,7 +7938,9 @@ instalado y en ejecución, y <code>make</code> en el equipo (en Linux, paquete
 <code>make</code>; en macOS viene con las herramientas de línea de órdenes de Xcode,
 <code>xcode-select --install</code>). Sí se necesitan, igual que en Windows, Visual
 Studio Code con las extensiones <strong>Python</strong> y <strong>Jupyter</strong> y un Python local
-con <code>ipykernel</code> para el kernel de esta sesión. A partir de S2 el kernel y todas las bibliotecas vienen ya
+para el kernel de esta sesión, dentro del entorno virtual <code>.venv</code> que se
+crea en la sección siguiente (en Debian y Ubuntu hace falta el paquete
+<code>python3-venv</code>). A partir de S2 el kernel y todas las bibliotecas vienen ya
 instalados dentro del contenedor <code>namenode</code>.</p>
 </blockquote>
 </div>
@@ -7954,8 +7959,23 @@ instalados dentro del contenedor <code>namenode</code>.</p>
 WSL2):</p>
 <div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>--branch<span class="w"> </span><span class="m">26</span>-27<span class="w"> </span>https://github.com/dsevilla/tcdm-public.git<span class="w"> </span>~/tcdm-public
 <span class="nb">cd</span><span class="w"> </span>~/tcdm-public
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+.venv/bin/python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>ipykernel
 code<span class="w"> </span>.
 </pre></div>
+<p>Las dos órdenes centrales preparan el Python que ejecutará este notebook.
+<code>python3 -m venv .venv</code> crea un entorno virtual en la raíz de la distribución
+y la siguiente instala en él <code>ipykernel</code>, el paquete que Visual Studio Code
+necesita para ejecutar las celdas. Hace falta un entorno propio porque
+Ubuntu, Debian y otras distribuciones marcan el Python del sistema como
+<em>gestionado externamente</em> (PEP 668): fuera de un entorno virtual,
+<code>pip install</code> termina con <code>error: externally-managed-environment</code>. Eso
+afectaría tanto a <code>ipykernel</code> como a la celda <code>%pip install</code> que, un poco
+más abajo, instala las diapositivas. <code>.venv</code> ya figura en el <code>.gitignore</code> de
+la distribución, así que <code>git pull</code> no lo toca.</p>
+<p>Con la carpeta abierta en Visual Studio Code, abre <code>s1/s1.ipynb</code>, pulsa
+<strong>Select Kernel → Python Environments</strong> y elige <code>.venv</code>: es el kernel de
+toda la sesión 1.</p>
 <p>A este directorio (<code>~/tcdm-public</code>) lo llamaremos <strong>raíz de la distribución</strong>.
 Contiene un directorio por sesión (<code>s1/</code>, <code>s2/</code>, ...) y <code>entorno/</code>, con los
 ficheros Docker Compose y el <code>Makefile</code> del laboratorio. <code>entorno/</code> crece a
@@ -7983,6 +8003,11 @@ El alias <code>%%diapositiva</code> permite mantener en español los tipos usado
 <li><strong>Pregunta guía</strong> (<code>pregunta</code>): plantea cuestiones que orientan lo que viene a continuación; conviene intentar responderlas antes de seguir.</li>
 <li><strong>Evaluación de la sesión</strong> (<code>evaluacion</code>): recuerda cómo se evalúa el trabajo de esta sesión.</li>
 </ul>
+<p>La celda siguiente instala y configura ese paquete: ejecútala una vez por
+sesión de kernel, antes que cualquier celda <code>%%diapositiva</code>. Si no, esas
+celdas fallan con <code>UsageError: Cell magic %%diapositiva not found</code>. Las
+diapositivas acompañan la explicación; el trabajo práctico no depende de
+ellas.</p>
 </div>
 </div>
 </div>
@@ -8186,8 +8211,8 @@ parte del curso se utiliza HDFS porque permite estudiar de forma explícita la
 división en bloques, la replicación y la relación entre almacenamiento y
 procesamiento. HDFS alojará tanto un <em>data lake</em> de ficheros Parquet como un
 <em>data warehouse</em> gobernado por un catálogo. Más adelante se repetirá parte
-del diseño sobre almacenamiento de objetos (sesión 3, S3) para comparar
-ambos soportes.</p>
+del diseño sobre un almacenamiento de objetos compatible con Amazon S3
+(sesión 3) para comparar ambos soportes.</p>
 <h3 id="HDFS-como-sistema-de-ficheros-distribuido">HDFS como sistema de ficheros distribuido<a class="anchor-link" href="#HDFS-como-sistema-de-ficheros-distribuido">¶</a></h3><p>HDFS, <em>Hadoop Distributed File System</em>, está diseñado para almacenar
 ficheros grandes en un conjunto de máquinas relativamente convencionales. Un
 fichero <strong>se divide en bloques</strong> y esos bloques se distribuyen entre los
@@ -8410,45 +8435,45 @@ nodo deja de responder.</p>
 <h2 id="Retos-tecnol%C3%B3gicos-de-Big-Data">Retos tecnológicos de Big Data<a class="anchor-link" href="#Retos-tecnol%C3%B3gicos-de-Big-Data">¶</a></h2><p>La gestión de Big Data requiere abordar múltiples desafíos tecnológicos en diferentes áreas:</p>
 <h3 id="B%C3%BAsqueda-y-refinamiento">Búsqueda y refinamiento<a class="anchor-link" href="#B%C3%BAsqueda-y-refinamiento">¶</a></h3><p>Para localizar y limpiar datos de múltiples fuentes dispersas y heterogéneas:</p>
 <ul>
-<li><a href="http://lucene.apache.org/">Lucene</a></li>
-<li><a href="http://lucene.apache.org/solr/">Solr</a></li>
-<li><a href="https://www.elastic.co/products/elasticsearch">Elasticsearch</a></li>
+<li><a href="https://lucene.apache.org/">Lucene</a></li>
+<li><a href="https://solr.apache.org/">Solr</a></li>
+<li><a href="https://www.elastic.co/elasticsearch">Elasticsearch</a></li>
 <li><a href="https://opensearch.org/">OpenSearch</a> — fork abierto de Elasticsearch tras el cambio de licencia</li>
 <li><a href="https://www.meilisearch.com/">Meilisearch</a> — motor de búsqueda ligero y moderno</li>
-<li><a href="http://openrefine.org/">OpenRefine</a></li>
+<li><a href="https://openrefine.org/">OpenRefine</a></li>
 </ul>
 <h3 id="Serializaci%C3%B3n">Serialización<a class="anchor-link" href="#Serializaci%C3%B3n">¶</a></h3><p>Transformar datos entre distintos sistemas y formatos de almacenamiento:</p>
 <ul>
-<li><a href="http://www.json.org/">JSON</a></li>
-<li><a href="http://bsonspec.org/">BSON</a></li>
-<li><a href="http://avro.apache.org/">Apache Avro</a></li>
-<li><a href="https://developers.google.com/protocol-buffers/">Google Protocol Buffers</a></li>
+<li><a href="https://www.json.org/">JSON</a></li>
+<li><a href="https://bsonspec.org/">BSON</a></li>
+<li><a href="https://avro.apache.org/">Apache Avro</a></li>
+<li><a href="https://protobuf.dev/">Google Protocol Buffers</a></li>
 <li><a href="https://arrow.apache.org/">Apache Arrow</a> — formato columnar en memoria, base de Pandas, Polars y DuckDB</li>
 <li><a href="https://grpc.io/">gRPC</a> — RPC moderno construido sobre Protocol Buffers</li>
 </ul>
 <h3 id="Sistemas-de-almacenamiento">Sistemas de almacenamiento<a class="anchor-link" href="#Sistemas-de-almacenamiento">¶</a></h3><p>Distribuir el almacenamiento entre múltiples servidores para máximo rendimiento:</p>
 <ul>
-<li><a href="http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html">HDFS</a></li>
-<li><a href="http://aws.amazon.com/es/s3/">Amazon S3</a></li>
-<li><a href="https://min.io/">MinIO</a> — almacenamiento de objetos compatible con S3, autoalojable</li>
+<li><a href="https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html">HDFS</a></li>
+<li><a href="https://aws.amazon.com/es/s3/">Amazon S3</a></li>
+<li><a href="https://www.min.io/">MinIO</a> — almacenamiento de objetos compatible con S3, autoalojable</li>
 <li><a href="https://rustfs.com/">RustFS</a> — almacenamiento de objetos compatible con S3 escrito en Rust; es el que usa el laboratorio en la sesión 3</li>
 <li><a href="https://cloud.google.com/storage">Google Cloud Storage</a></li>
 <li><a href="https://azure.microsoft.com/es-es/products/storage/data-lake-storage/">Azure Data Lake Storage</a></li>
 </ul>
 <h3 id="Servidores">Servidores<a class="anchor-link" href="#Servidores">¶</a></h3><p>Infraestructura en la nube para escalar recursos según demanda:</p>
 <ul>
-<li><a href="http://aws.amazon.com/es/ec2/">Amazon EC2</a></li>
+<li><a href="https://aws.amazon.com/es/ec2/">Amazon EC2</a></li>
 <li><a href="https://cloud.google.com/">Google Cloud Platform</a></li>
-<li><a href="http://azure.microsoft.com/">Azure</a></li>
-<li><a href="https://openshift.redhat.com/app/">OpenShift</a></li>
-<li><a href="https://tanzu.vmware.com/">Tanzu</a></li>
+<li><a href="https://azure.microsoft.com/">Azure</a></li>
+<li><a href="https://www.redhat.com/en/technologies/cloud-computing/openshift">OpenShift</a></li>
+<li><a href="https://www.vmware.com/products/app-platform/tanzu">Tanzu</a></li>
 <li><a href="https://kubernetes.io/">Kubernetes</a> — orquestación de contenedores, estándar de facto para desplegar clústeres</li>
 <li><a href="https://www.docker.com/">Docker</a> — la tecnología de contenedores usada en este propio laboratorio</li>
 </ul>
 <h3 id="Procesamiento">Procesamiento<a class="anchor-link" href="#Procesamiento">¶</a></h3><p>Plataformas y herramientas para procesar datos distribuidos:</p>
 <ul>
-<li><a href="http://hadoop.apache.org/">Hadoop</a></li>
-<li><a href="http://hive.apache.org/">Hive</a></li>
+<li><a href="https://hadoop.apache.org/">Hadoop</a></li>
+<li><a href="https://hive.apache.org/">Hive</a></li>
 <li><a href="https://spark.apache.org/">Spark</a></li>
 <li><a href="https://flink.apache.org/">Flink</a></li>
 <li><a href="https://kafka.apache.org/">Kafka</a> — la plataforma de <em>streaming</em> de eventos más extendida</li>
@@ -8456,7 +8481,7 @@ nodo deja de responder.</p>
 <li><a href="https://dagster.io/">Dagster</a> — orquestador de datos moderno, alternativa a Airflow</li>
 <li><a href="https://www.getdbt.com/">dbt</a> — transformación de datos como código dentro del almacén analítico</li>
 <li><a href="https://beam.apache.org/">Beam</a></li>
-<li><a href="https://dask.org/">Dask</a></li>
+<li><a href="https://www.dask.org/">Dask</a></li>
 <li><a href="https://trino.io/">Trino</a> — motor de consultas SQL distribuido sobre múltiples fuentes</li>
 <li><a href="https://duckdb.org/">DuckDB</a> — motor analítico embebido, muy popular para análisis local</li>
 <li><a href="https://pola.rs/">Polars</a> — DataFrames de alto rendimiento, alternativa moderna a pandas</li>
@@ -8464,11 +8489,11 @@ nodo deja de responder.</p>
 </ul>
 <h3 id="Bases-de-datos">Bases de datos<a class="anchor-link" href="#Bases-de-datos">¶</a></h3><p>Almacenamiento de datos estructurados y semiestructurados a gran escala:</p>
 <ul>
-<li><a href="http://hbase.apache.org/">HBase</a></li>
-<li><a href="http://cassandra.apache.org/">Cassandra</a></li>
-<li><a href="http://www.mongodb.org/">MongoDB</a></li>
-<li><a href="http://aws.amazon.com/es/dynamodb/">Amazon DynamoDB</a></li>
-<li><a href="http://research.google.com/archive/bigtable.html">Google BigTable</a></li>
+<li><a href="https://hbase.apache.org/">HBase</a></li>
+<li><a href="https://cassandra.apache.org/">Cassandra</a></li>
+<li><a href="https://www.mongodb.com/">MongoDB</a></li>
+<li><a href="https://aws.amazon.com/es/dynamodb/">Amazon DynamoDB</a></li>
+<li><a href="https://research.google/pubs/bigtable-a-distributed-storage-system-for-structured-data/">Google BigTable</a></li>
 <li><a href="https://parquet.apache.org/">Parquet</a></li>
 <li><a href="https://iceberg.apache.org/">Apache Iceberg</a> — formato de tabla abierto sobre almacenamiento de objetos</li>
 <li><a href="https://delta.io/">Delta Lake</a> — formato de tabla con transacciones ACID, alternativa a Iceberg</li>
@@ -8478,36 +8503,36 @@ nodo deja de responder.</p>
 </ul>
 <h3 id="An%C3%A1lisis-y-BI">Análisis y BI<a class="anchor-link" href="#An%C3%A1lisis-y-BI">¶</a></h3><p>Análisis estadístico y visualización de datos:</p>
 <ul>
-<li><a href="http://www.r-project.org/">R</a></li>
-<li><a href="https://pivotal.io/pivotal-greenplum">Greenplum</a></li>
-<li><a href="http://www.splunk.com/">Splunk</a></li>
-<li><a href="http://www.tableausoftware.com/">Tableau</a></li>
-<li><a href="https://powerbi.microsoft.com">PowerBI</a></li>
+<li><a href="https://www.r-project.org/">R</a></li>
+<li><a href="https://www.vmware.com/products/app-platform/tanzu-data-intelligence/greenplum">Greenplum</a></li>
+<li><a href="https://www.splunk.com/">Splunk</a></li>
+<li><a href="https://www.tableau.com/">Tableau</a></li>
+<li><a href="https://www.microsoft.com/power-platform/products/power-bi">PowerBI</a></li>
 <li><a href="https://superset.apache.org/">Apache Superset</a> — BI de código abierto</li>
 <li><a href="https://www.metabase.com/">Metabase</a> — BI de código abierto sencillo de desplegar</li>
 </ul>
 <h3 id="Procesamiento-de-lenguaje-natural">Procesamiento de lenguaje natural<a class="anchor-link" href="#Procesamiento-de-lenguaje-natural">¶</a></h3><p>Análisis de contenidos textuales generados por usuarios:</p>
 <ul>
-<li><a href="http://nltk.org/">Natural Language Toolkit</a></li>
+<li><a href="https://www.nltk.org/">Natural Language Toolkit</a></li>
 <li><a href="https://spacy.io/">spaCy</a> — librería de NLP de producción, más rápida que NLTK</li>
 <li><a href="https://huggingface.co/docs/transformers">Hugging Face Transformers</a> — modelos de lenguaje preentrenados y <em>pipelines</em> de NLP</li>
 </ul>
 <h3 id="Machine-Learning-y-Deep-Learning">Machine Learning y Deep Learning<a class="anchor-link" href="#Machine-Learning-y-Deep-Learning">¶</a></h3><p>Automatización de decisiones basadas en datos:</p>
 <ul>
-<li><a href="http://www.cs.waikato.ac.nz/ml/weka/">Weka</a></li>
-<li><a href="http://scikit-learn.org/stable/">SciKit-learn</a></li>
+<li><a href="https://ml.cms.waikato.ac.nz/weka/">Weka</a></li>
+<li><a href="https://scikit-learn.org/stable/">SciKit-learn</a></li>
 <li><a href="https://pytorch.org/">PyTorch</a></li>
 <li><a href="https://www.tensorflow.org/">TensorFlow</a></li>
 <li><a href="https://keras.io/">Keras</a></li>
 <li><a href="https://huggingface.co/">Hugging Face</a> — repositorio y herramientas para modelos preentrenados</li>
 <li><a href="https://xgboost.ai/">XGBoost</a> — <em>gradient boosting</em> de referencia para datos tabulares</li>
 <li><a href="https://lightgbm.readthedocs.io/">LightGBM</a> — <em>gradient boosting</em> rápido, alternativa a XGBoost</li>
-<li><a href="https://jax.readthedocs.io/">JAX</a> — computación numérica de alto rendimiento para investigación en ML</li>
+<li><a href="https://docs.jax.dev/">JAX</a> — computación numérica de alto rendimiento para investigación en ML</li>
 </ul>
 <h3 id="Visualizaci%C3%B3n">Visualización<a class="anchor-link" href="#Visualizaci%C3%B3n">¶</a></h3><p>Representación gráfica de datos para facilitar su comprensión:</p>
 <ul>
-<li><a href="http://www.r-project.org/">R</a></li>
-<li><a href="http://d3js.org/">D3.js</a></li>
+<li><a href="https://www.r-project.org/">R</a></li>
+<li><a href="https://d3js.org/">D3.js</a></li>
 <li><a href="https://lookerstudio.google.com/">Looker Studio</a> — antes Google Data Studio</li>
 <li><a href="https://observablehq.com/">Observable</a> — cuadernos interactivos para visualización con D3</li>
 </ul>
@@ -8686,10 +8711,10 @@ nodo deja de responder.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Objetivos-de-la-sesi%C3%B3n">Objetivos de la sesión<a class="anchor-link" href="#Objetivos-de-la-sesi%C3%B3n">¶</a></h2><p>Al finalizar esta sesión debes saber:</p>
+<h2 id="Objetivos-de-la-sesi%C3%B3n">Objetivos de la sesión<a class="anchor-link" href="#Objetivos-de-la-sesi%C3%B3n">¶</a></h2><p>Al finalizar esta sesión deberías poder:</p>
 <ul>
-<li>conocer la arquitectura de Hadoop y sus componentes principales;</li>
-<li>entender la configuración de un clúster Hadoop en contenedores Docker;</li>
+<li>describir la arquitectura de Hadoop y sus componentes principales;</li>
+<li>explicar la configuración de un clúster Hadoop en contenedores Docker;</li>
 <li>iniciar, detener y regenerar el clúster con Docker Compose;</li>
 <li>distinguir el sistema de ficheros local de cada contenedor del espacio de
 nombres distribuido de HDFS;</li>
@@ -8699,8 +8724,7 @@ nombres distribuido de HDFS;</li>
 <li>crear, copiar, mover, leer y borrar ficheros en HDFS como <code>luser</code>;</li>
 <li>interpretar el factor de replicación y la ubicación de los bloques;</li>
 <li>enviar un trabajo MapReduce a YARN y consultar su resultado;</li>
-<li>recuperar un clúster limpio después de una prueba fallida o de un cambio de
-permisos incorrecto.</li>
+<li>recuperar un clúster limpio después de una prueba fallida.</li>
 </ul>
 <p>El entorno debe quedar operativo al terminar la sesión porque se reutilizará
 en sesiones posteriores con Parquet/Arrow, Spark, Trino y tablas Iceberg.</p>
@@ -9077,11 +9101,12 @@ crean, entre otros, estos directorios:</p>
 directorios temporales tienen <em>sticky bit</em>, de forma parecida a <code>/tmp</code> en un
 sistema Unix.</p>
 <p><code>/datalake</code> y <code>/warehouse</code> pertenecen a <code>luser:hadoop</code> con permisos <code>770</code>.</p>
-<p>Jupyter se ejecuta en <code>namenode</code>, y desde allí se lanzarán los clientes
-PyArrow/Polars y los trabajos Spark como <code>luser</code>. Por eso los nombres
-<code>datanode1</code>, <code>datanode2</code> y <code>datanode3</code> que devuelve WebHDFS son resolubles:
-todos están conectados a la misma red Docker <code>hadoop-cluster</code>. <code>fsspec</code> usa
-WebHDFS por HTTP y sigue los redireccionados hacia los DataNodes.</p>
+<p>A partir de la sesión 2, Jupyter se ejecutará en <code>namenode</code>, y desde allí
+se lanzarán como <code>luser</code> los clientes Python y los trabajos Spark. Esos
+clientes leerán HDFS por HTTP (WebHDFS) y recibirán redirecciones hacia
+<code>datanode1</code>, <code>datanode2</code> y <code>datanode3</code>: esos nombres serán resolubles porque
+todos los contenedores están conectados a la misma red Docker
+<code>hadoop-cluster</code>.</p>
 </div>
 </div>
 </div>
@@ -9287,8 +9312,8 @@ hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </
 <p>Después el NameNode se detiene de nuevo; el estado formateado y esos
 directorios pasan a formar parte de la imagen publicada. El metastore y
 Trino <strong>no</strong> se incluyen en esta imagen: se arrancarán como servicios
-independientes en la misma red y accederán remotamente a HDFS (sesiones 6 y
-7).</p>
+independientes en la misma red y accederán remotamente a HDFS (a partir de
+la sesión 2; se estudian a fondo en las sesiones 6 y 7).</p>
 <h4 id="Arranque-autom%C3%A1tico-de-los-demonios">Arranque automático de los demonios<a class="anchor-link" href="#Arranque-autom%C3%A1tico-de-los-demonios">¶</a></h4><p>La imagen del NameNode termina generando <code>/inicio.sh</code>:</p>
 <div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env sh</span>
 <span class="nb">set</span><span class="w"> </span>-eu
@@ -9442,11 +9467,10 @@ nada es que la red ya existía.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Arrancar-el-cl%C3%BAster">Arrancar el clúster<a class="anchor-link" href="#Arrancar-el-cl%C3%BAster">¶</a></h2><p>La siguiente orden lee el fichero Compose, descarga las imágenes que falten
-en el equipo (<code>-d</code> es <em>detached</em>: los contenedores quedan en segundo plano y
-el terminal vuelve a estar disponible) y crea los cuatro contenedores. La
-primera ejecución puede tardar varios minutos, especialmente si hay que
-descargar imágenes para otra arquitectura de procesador; las siguientes
-suelen ser mucho más rápidas.</p>
+en el equipo y crea los cuatro contenedores. <code>-d</code> (<em>detached</em>) los deja en
+segundo plano, de modo que la celda termina en cuanto están creados. La
+primera ejecución puede tardar varios minutos, porque tiene que descargar
+las dos imágenes; las siguientes suelen ser mucho más rápidas.</p>
 </div>
 </div>
 </div>
@@ -9476,6 +9500,9 @@ suelen ser mucho más rápidas.</p>
 principal sigue vivo: los demonios Hadoop necesitan además unos segundos para
 arrancar y registrarse. Las comprobaciones de la siguiente sección son las
 que confirman que el clúster está realmente preparado.</p>
+<p>Si algún contenedor no aparece o figura como <code>exited</code>, o si las
+comprobaciones siguientes siguen fallando después de esperar, ve a
+«Diagnosticar un arranque incompleto», al final de este notebook.</p>
 </div>
 </div>
 </div>
@@ -9570,8 +9597,10 @@ por <code>datanode1</code>, <code>datanode2</code> o <code>datanode3</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Comprobar-HDFS-y-YARN">Comprobar HDFS y YARN<a class="anchor-link" href="#Comprobar-HDFS-y-YARN">¶</a></h2><p><code>hdfs dfsadmin -report</code> pregunta al NameNode por los DataNodes registrados y
-debe mostrar <strong>3 live datanodes</strong>. Si falla poco después del arranque, espera
+<h2 id="Comprobar-HDFS-y-YARN">Comprobar HDFS y YARN<a class="anchor-link" href="#Comprobar-HDFS-y-YARN">¶</a></h2><p><code>hdfs dfsadmin -report</code> pregunta al NameNode por los DataNodes registrados.
+Tras el resumen de capacidad debe aparecer la línea <code>Live datanodes (3):</code>,
+seguida de un bloque por cada DataNode. Si el número es menor que tres, o la
+orden responde con un error de conexión poco después del arranque, espera
 15-30 segundos y repite únicamente esta celda: es posible que los tres nodos
 todavía no se hayan registrado.</p>
 </div>
@@ -9599,9 +9628,14 @@ todavía no se hayan registrado.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>YARN administra recursos de procesamiento, no bloques HDFS, y sus nodos de
-trabajo se consultan por separado. La salida esperada contiene tres
-NodeManagers en estado <code>RUNNING</code>, cada uno anunciando dos vcores y la
-memoria configurada. Es posible que HDFS tenga tres DataNodes vivos y YARN no
+trabajo se consultan por separado. La salida esperada empieza por
+<code>Total Nodes:3</code> y tiene una fila por NodeManager con cuatro columnas:
+<code>Node-Id</code>, <code>Node-State</code> (debe ser <code>RUNNING</code>), <code>Node-Http-Address</code> y
+<code>Number-of-Running-Containers</code> (cero mientras no haya aplicaciones en
+marcha). La opción <code>-showDetails</code> añade bajo cada nodo sus recursos: la
+línea <code>Configured Resources : &lt;memory:2560, vCores:2&gt;</code> es lo que ese
+NodeManager anuncia a YARN, los 2560 MiB y 2 vcores de la tabla de recursos
+de más arriba. Es posible que HDFS tenga tres DataNodes vivos y YARN no
 tenga tres NodeManagers, o al contrario, porque son servicios diferentes
 aunque compartan contenedores:</p>
 <ul>
@@ -9619,7 +9653,7 @@ aunque compartan contenedores:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>hdadmin<span class="w"> </span>-c<span class="w"> </span><span class="s1">'yarn node -list -all'</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>hdadmin<span class="w"> </span>-c<span class="w"> </span><span class="s1">'yarn node -list -all -showDetails'</span>
 </pre></div>
 </div>
 </div>
@@ -10323,6 +10357,7 @@ dónde se guardan <strong>bloques</strong>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>hdfs-site.xml</code> en <code>namenode</code>:</p>
 <div class="highlight"><pre><span></span><span class="cp">&lt;?xml version="1.0"?&gt;</span>
 <span class="nt">&lt;configuration&gt;</span>
 <span class="w">  </span><span class="nt">&lt;property&gt;</span>
@@ -10372,6 +10407,7 @@ dónde se guardan <strong>bloques</strong>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>hdfs-site.xml</code> en cada <code>datanodeN</code>:</p>
 <div class="highlight"><pre><span></span><span class="cp">&lt;?xml version="1.0"?&gt;</span>
 <span class="nt">&lt;configuration&gt;</span>
 <span class="w">  </span><span class="nt">&lt;property&gt;</span>
@@ -10495,6 +10531,7 @@ NameNode.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>yarn-site.xml</code> en <code>namenode</code>:</p>
 <div class="highlight"><pre><span></span><span class="cp">&lt;?xml version="1.0"?&gt;</span>
 <span class="nt">&lt;configuration&gt;</span>
 <span class="w">  </span><span class="nt">&lt;property&gt;</span>
@@ -10593,6 +10630,7 @@ NameNode.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Propiedades propias del NodeManager, en el <code>yarn-site.xml</code> de cada <code>datanodeN</code>:</p>
 <div class="highlight"><pre><span></span><span class="nt">&lt;property&gt;</span>
 <span class="w">  </span><span class="nt">&lt;name&gt;</span>yarn.nodemanager.resource.detect-hardware-capabilities<span class="nt">&lt;/name&gt;</span>
 <span class="w">  </span><span class="nt">&lt;value&gt;</span>false<span class="nt">&lt;/value&gt;</span>
@@ -10635,8 +10673,7 @@ se usa dentro de la red Docker, y su interfaz HTTP se publica en el host
 como <code>http://localhost:8188</code>. La propiedad que permite que el
 ResourceManager publique información de aplicaciones es
 <code>yarn.system-metrics-publisher.enabled</code> (en Hadoop 3.5.0 la variante con el
-prefijo <code>resourcemanager.</code> está deprecada). Esta es la clave que se usa en
-el laboratorio; no se debe sustituir por una advertencia de otra versión.
+prefijo <code>resourcemanager.</code> está deprecada).
 La agregación de logs
 (<code>yarn.log-aggregation-enable</code>) copia a <code>/tmp/logs</code> de HDFS los logs de los
 contenedores, comprimidos como TFile con <code>gz</code>: no se puede leer ese
@@ -10763,9 +10800,10 @@ tareas <code>reduce</code>.</p>
 recursos siempre se piden al clúster. El ApplicationMaster reserva 1 vcore
 y 512 MiB; cada tarea <code>map</code> y <code>reduce</code> solicita 1 vcore y un contenedor de
 768 MiB, pero limita el <em>heap</em> de su JVM a 512 MiB (<code>-Xmx512M</code>). El ratio
-<code>mapreduce.job.heap.memory-mb.ratio=0.8</code> sería una regla de inferencia si
-faltaran estos valores explícitos; aquí no se usa para obtener los 614,4
-MiB hipotéticos. La diferencia deja memoria para la propia JVM, bibliotecas nativas y otros
+<code>mapreduce.job.heap.memory-mb.ratio=0.8</code> sólo se aplicaría si faltara ese
+<code>-Xmx</code>: Hadoop deduciría entonces un <em>heap</em> de 768 × 0,8 = 614,4 MiB. Aquí
+el valor explícito tiene prioridad. La diferencia entre el contenedor y el
+<em>heap</em> deja memoria para la propia JVM, bibliotecas nativas y otros
 costes fuera del <em>heap</em>. <code>HADOOP_MAPRED_HOME</code> se propaga a los procesos
 remotos (<code>*.env</code>) para que cualquier DataNode localice las bibliotecas de
 MapReduce.</p>
@@ -11431,14 +11469,15 @@ vistazo, esta es la misma cuenta de palabras escrita en Python con
 directamente las funciones <code>mapper</code> y <code>reducer</code> y oculta el resto del motor
 MapReduce (<em>shuffle</em>, combinador, reintentos...). El curso ya no usa MrJob en
 las prácticas —se trabaja con Spark—, pero verlo una vez ayuda a fijar el
-modelo:</p>
+modelo. Es un ejemplo <strong>sólo para leer</strong>: no se ejecuta en esta sesión y
+MrJob no está instalado en el laboratorio.</p>
 <div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mrjob.job</span><span class="w"> </span><span class="kn">import</span> <span class="n">MRJob</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MRWordCount</span><span class="p">(</span><span class="n">MRJob</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">mapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># map(K1, V1) -&gt; list(K2, V2)</span>
-        <span class="c1"># K1 (el número de línea) no se usa; V1 es la línea de texto.</span>
+        <span class="c1"># K1 no se usa; V1 es la línea de texto.</span>
         <span class="c1"># Cada palabra de la línea produce un par intermedio (palabra, 1).</span>
         <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
             <span class="k">yield</span> <span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="mi">1</span>
@@ -11469,10 +11508,10 @@ modelo:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Guardado como <code>wordcount_mrjob.py</code>, se ejecuta en local sin Hadoop ni
+<p>Guardado como <code>wordcount_mrjob.py</code>, se ejecutaría en local sin Hadoop ni
 clúster —MrJob agrupa las claves como haría el <em>shuffle</em> antes de llamar al
-reducer—. Usando el mismo contenido de <code>s1-a.txt</code>, <code>s1-b.txt</code> y <code>s1-c.txt</code>
-que se sube a HDFS más abajo:</p>
+reducer—. Con el mismo contenido de <code>s1-a.txt</code>, <code>s1-b.txt</code> y <code>s1-c.txt</code>
+que se subió a HDFS más arriba, la orden y su salida serían:</p>
 <div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s1">'hadoop hdfs mapreduce\nhadoop yarn\nhdfs hadoop\nyarn recursos\nmapreduce datos hadoop\ndatos datos\n'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>wordcount_mrjob.py
 </pre></div>
@@ -11723,62 +11762,44 @@ YARN— y estado <code>SUCCEEDED</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Ahora que la aplicación ya no está activa, es un buen momento para localizarla
-en la interfaz de histórico del Timeline Server
-(<a href="http://localhost:8188/applicationhistory/">http://localhost:8188/applicationhistory/</a>) y comparar su estado con el
-mostrado por el ResourceManager. La distribución exacta de tareas entre
-DataNodes puede cambiar entre ejecuciones: un planificador distribuido no
-promete que cada trabajo pequeño utilice todos los nodos por igual. Lo que
-importa comprobar aquí es que el cliente entrega la aplicación a YARN, que
-los NodeManagers aportan contenedores y que el resultado se escribe en HDFS.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=146">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# Sesión 1
-- HDFS separa metadatos (NameNode) de bloques (DataNodes) y los replica
-- YARN separa la gestión de recursos (ResourceManager/NodeManager) de la aplicación (ApplicationMaster)
-- MapReduce ejecuta map -&gt; shuffle -&gt; reduce sobre los datos, no al revés
-- `stop` y `down` conservan los datos HDFS (viven en volúmenes); sólo borrar los volúmenes devuelve el HDFS al estado de las imágenes
-&gt; Siguiente sesión: los mismos datos, pero como ficheros Parquet en `/datalake/raw/tpcds`.
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #a54467;
-     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 1</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">HDFS separa metadatos (NameNode) de bloques (DataNodes) y los replica</li><li style="margin:10px 0">YARN separa la gestión de recursos (ResourceManager/NodeManager) de la aplicación (ApplicationMaster)</li><li style="margin:10px 0">MapReduce ejecuta map -&gt; shuffle -&gt; reduce sobre los datos, no al revés</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">stop</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">down</code> conservan los datos HDFS (viven en volúmenes); sólo borrar los volúmenes devuelve el HDFS al estado de las imágenes</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: los mismos datos, pero como ficheros Parquet en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code>.</div></div>
+<h3 id="Ver-en-qu%C3%A9-nodo-se-ejecut%C3%B3-cada-tarea">Ver en qué nodo se ejecutó cada tarea<a class="anchor-link" href="#Ver-en-qu%C3%A9-nodo-se-ejecut%C3%B3-cada-tarea">¶</a></h3><p>La orden <code>yarn jar</code> se lanzó desde <code>namenode</code>, pero las tareas se ejecutaron
+en los DataNodes. Se puede comprobar en el navegador, sin más órdenes:</p>
+<ol>
+<li>Abre el histórico del Timeline Server,
+<a href="http://localhost:8188/applicationhistory/">http://localhost:8188/applicationhistory/</a>. Hay una fila por aplicación:
+localiza la de nombre <code>word count</code> con el identificador <code>application_...</code>
+que mostró <code>yarn jar</code>.</li>
+<li>Pulsa ese identificador. La página de la aplicación muestra su estado
+final y una tabla con sus intentos (<code>appattempt_...</code>); lo normal es que
+haya uno solo.</li>
+<li>Pulsa el identificador del intento. La tabla de esa página lista los
+contenedores YARN que usó la aplicación, cada uno con su columna
+<strong>Node</strong>: el <code>datanodeN</code> en el que se ejecutó.</li>
+</ol>
+<p>Con tres ficheros de entrada se esperan cinco contenedores. El primero
+(<code>..._000001</code>) es el ApplicationMaster; los demás son las tres tareas <code>map</code>
+—una por fichero— y la tarea <code>reduce</code>. Anota en qué nodo cayó cada uno: es
+la respuesta a la pregunta guía de antes de lanzar el trabajo.</p>
+<p>Los enlaces de la columna <strong>Node</strong> y los de los logs apuntan a nombres como
+<code>datanode1:8042</code>, que sólo se resuelven dentro de la red Docker: desde tu
+navegador no se abren, pero el nombre del nodo ya está a la vista.</p>
+<p>Si no lo has visto a la primera, repite el trabajo —las celdas de «Ejecutar
+un trabajo MapReduce con YARN», empezando por la que borra la salida— con
+<a href="http://localhost:8088">http://localhost:8088</a> abierto en otra pestaña. Mientras se ejecuta, la
+aplicación aparece allí como <code>RUNNING</code> y el mismo recorrido —aplicación,
+intento, contenedores— muestra los contenedores activos en ese momento. El
+trabajo dura poco: si no llegas a tiempo, el histórico del Timeline Server
+conserva la ejecución y ahora tendrá dos aplicaciones que comparar.</p>
+<p>La distribución exacta de tareas entre DataNodes puede cambiar entre
+ejecuciones: un planificador distribuido no promete que cada trabajo pequeño
+utilice todos los nodos por igual. Lo que importa comprobar aquí es que el
+cliente entrega la aplicación a YARN, que los NodeManagers aportan
+contenedores y que el resultado se escribe en HDFS.</p>
 </div>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=146">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11828,19 +11849,77 @@ equipo, situada en la raíz de la distribución (el directorio que contiene
 <tr>
 <td>Borrar también el HDFS (destructivo)</td>
 <td><code>docker volume rm tcdm-26-27-namenode-data tcdm-26-27-datanode1-data tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data</code> (con los contenedores ya eliminados)</td>
-<td>Vacía el espacio de nombres y los bloques: el próximo <code>up -d</code> arranca con un HDFS recién formateado, como la primera vez. Es la única orden de esta tabla que borra <code>/datalake/raw/tpcds</code> y cualquier otro dato ya materializado en sesiones posteriores. A partir de la Sesión 2, <code>entorno/Makefile</code> envuelve esta misma orden como <code>make -C entorno clean-hdfs</code>.</td>
+<td>Vacía el espacio de nombres y los bloques: el próximo <code>up -d</code> arranca con un HDFS recién formateado, como la primera vez. Es la única orden de esta tabla que borra <code>/datalake/raw/tpcds</code> y cualquier otro dato ya materializado en sesiones posteriores.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="Diagnosticar-un-arranque-incompleto">Diagnosticar un arranque incompleto<a class="anchor-link" href="#Diagnosticar-un-arranque-incompleto">¶</a></h3><p>Si algo no arranca como se espera, conviene mirar en este orden: primero qué
-contenedores siguen activos (<code>docker compose ... ps</code>), después las últimas
-líneas de todos los servicios (<code>docker compose ... logs --tail=120</code>) y, si el
-problema parece localizado, los logs de un contenedor concreto (<code>docker logs namenode --tail=120</code>, <code>docker logs datanode1 --tail=120</code>). Los fallos más
+<p>El <code>Makefile</code> de <code>entorno/</code> ofrece estas mismas operaciones para todos los
+servicios del laboratorio a la vez y con los mismos nombres:
+<code>make -C entorno stop</code> para los contenedores sin eliminarlos,
+<code>make -C entorno down</code> los elimina conservando los volúmenes y
+<code>make -C entorno clean-hdfs</code> borra además los volúmenes HDFS. Tras <code>stop</code> o
+<code>down</code> se vuelve a arrancar con <code>make -C entorno hadoop-up</code>. La sección
+«Referencia: arrancar y parar el laboratorio», al final de este notebook,
+los reúne en una tabla.</p>
+<h3 id="Diagnosticar-un-arranque-incompleto">Diagnosticar un arranque incompleto<a class="anchor-link" href="#Diagnosticar-un-arranque-incompleto">¶</a></h3><p>Si algo no arranca como se espera, conviene mirar en este orden, en una
+terminal de tu equipo y desde la raíz de la distribución: qué contenedores
+siguen activos, las últimas líneas de todos los servicios y, si el problema
+parece localizado, los logs de un contenedor concreto:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>entorno/compose-hadoop-cluster.yml<span class="w"> </span>ps<span class="w"> </span>-a
+docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>entorno/compose-hadoop-cluster.yml<span class="w"> </span>logs<span class="w"> </span>--tail<span class="o">=</span><span class="m">120</span>
+docker<span class="w"> </span>logs<span class="w"> </span>namenode<span class="w"> </span>--tail<span class="o">=</span><span class="m">120</span>
+docker<span class="w"> </span>logs<span class="w"> </span>datanode1<span class="w"> </span>--tail<span class="o">=</span><span class="m">120</span>
+</pre></div>
+<p>Los fallos más
 habituales en esta fase son que Docker no tenga recursos suficientes, que la
 red externa no exista todavía, o que los demonios sigan arrancando. Después
 de revisar los logs, repite las comprobaciones de HDFS y YARN de este
 notebook: no hace falta reconstruir las imágenes para una incidencia
-habitual.</p>
+habitual. <code>entorno/README.md</code> reúne, en «Solución de problemas», los fallos
+más frecuentes de todas las sesiones.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=147">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
+# Sesión 1
+- HDFS separa metadatos (NameNode) de bloques (DataNodes) y los replica
+- YARN separa la gestión de recursos (ResourceManager/NodeManager) de la aplicación (ApplicationMaster)
+- MapReduce ejecuta map -&gt; shuffle -&gt; reduce sobre los datos, no al revés
+- `stop` y `down` conservan los datos HDFS (viven en volúmenes); sólo borrar los volúmenes devuelve el HDFS al estado de las imágenes
+&gt; Siguiente sesión: un dataset de negocio (TPC-DS) como ficheros Parquet en `/datalake/raw/tpcds`.
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 1</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">HDFS separa metadatos (NameNode) de bloques (DataNodes) y los replica</li><li style="margin:10px 0">YARN separa la gestión de recursos (ResourceManager/NodeManager) de la aplicación (ApplicationMaster)</li><li style="margin:10px 0">MapReduce ejecuta map -&gt; shuffle -&gt; reduce sobre los datos, no al revés</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">stop</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">down</code> conservan los datos HDFS (viven en volúmenes); sólo borrar los volúmenes devuelve el HDFS al estado de las imágenes</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: un dataset de negocio (TPC-DS) como ficheros Parquet en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code>.</div></div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -11960,6 +12039,101 @@ equipo. <code>make -C entorno jupyter</code> hace lo mismo en una sola orden.</p
 <p>El Python local que usaste en esta sesión ya no será necesario. El propio
 notebook de S2 repite estos pasos con más detalle al principio, en «Antes de
 empezar: Jupyter en <code>namenode</code>», también en su versión HTML publicada.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Referencia:-arrancar-y-parar-el-laboratorio">Referencia: arrancar y parar el laboratorio<a class="anchor-link" href="#Referencia:-arrancar-y-parar-el-laboratorio">¶</a></h2><p>Desde la sesión 2 el laboratorio se maneja con el <code>Makefile</code> de <code>entorno/</code>,
+que agrupa las órdenes de Docker Compose de esta sesión y las aplica a todos
+los servicios que se vayan añadiendo. Estas dos tablas las reúnen para
+tenerlas a mano. Todas se teclean <strong>en una terminal de tu equipo, desde la
+raíz de la distribución</strong> (el directorio que contiene <code>s1/</code> y <code>entorno/</code>);
+ninguna es una celda de notebook.</p>
+<h3 id="Arrancar">Arrancar<a class="anchor-link" href="#Arrancar">¶</a></h3><table>
+<thead>
+<tr>
+<th>Orden</th>
+<th>Qué hace</th>
+<th>Cuándo se usa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make -C entorno hadoop-up</code></td>
+<td>Crea la red <code>hadoop-cluster</code> si falta y arranca <code>namenode</code> y los tres DataNodes. Si estaban parados, los reanuda; si ya funcionan, no hace nada</td>
+<td>Al empezar cualquier sesión. Equivale a las órdenes <code>docker network create</code> y <code>docker compose ... up -d</code> de esta sesión</td>
+</tr>
+<tr>
+<td><code>make -C entorno warehouse-up</code></td>
+<td>Lo anterior y, además, PostgreSQL, Hive Metastore y Trino</td>
+<td>Desde la sesión 2; sus ficheros llegan con el <code>git pull</code> de esa sesión</td>
+</tr>
+<tr>
+<td><code>make -C entorno jupyter</code></td>
+<td>Arranca Jupyter Lab dentro de <code>namenode</code> como <code>luser</code>; la terminal queda ocupada mientras Jupyter esté en marcha</td>
+<td>Desde la sesión 2. Es el atajo de <code>docker exec -it namenode bash</code>, <code>su - luser</code> y <code>jupyter lab ...</code></td>
+</tr>
+<tr>
+<td><code>make -C entorno status</code></td>
+<td>Lista los contenedores del laboratorio, tanto los que están en marcha como los parados</td>
+<td>En cualquier momento, para saber en qué estado está el laboratorio</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Parar-y-borrar">Parar y borrar<a class="anchor-link" href="#Parar-y-borrar">¶</a></h3><p>Cuatro órdenes, de menos a más destructiva. Las dos primeras conservan todos
+los datos; las dos últimas borran volúmenes.</p>
+<table>
+<thead>
+<tr>
+<th>Orden</th>
+<th>Qué hace</th>
+<th>Qué se conserva</th>
+<th>Qué se pierde</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make -C entorno stop</code></td>
+<td>Para los contenedores sin eliminarlos (<code>docker compose stop</code>)</td>
+<td>Todo: los datos HDFS y también el interior de cada contenedor (ficheros locales, histórico del Timeline Server)</td>
+<td>Sólo los procesos en marcha, entre ellos Jupyter</td>
+</tr>
+<tr>
+<td><code>make -C entorno down</code></td>
+<td>Elimina los contenedores (<code>docker compose down</code>)</td>
+<td>Los volúmenes Docker, con todos los datos HDFS</td>
+<td>Lo que vivía dentro de los contenedores: ficheros locales e histórico del Timeline Server</td>
+</tr>
+<tr>
+<td><code>make -C entorno clean</code></td>
+<td><code>down</code> y, además, borra los volúmenes de los servicios que añaden la sesión 2 (Hive Metastore) y la sesión 3 (almacenamiento de objetos)</td>
+<td>Todo HDFS</td>
+<td>Las definiciones de tablas y los objetos de esos servicios. Con sólo el clúster de esta sesión equivale a <code>down</code></td>
+</tr>
+<tr>
+<td><code>make -C entorno clean-hdfs</code></td>
+<td><code>clean</code> y, además, borra los volúmenes HDFS: es el <code>docker volume rm</code> de «Detener, limpiar y recuperar el entorno»</td>
+<td>Sólo las imágenes ya descargadas</td>
+<td>Todos los datos: el siguiente arranque parte de un HDFS recién formateado</td>
+</tr>
+</tbody>
+</table>
+<p>Para el uso normal entre sesiones basta <code>stop</code>. <code>down</code> sirve para recrear los
+contenedores sin perder datos, por ejemplo si alguno ha quedado en mal
+estado. <code>clean</code> y <code>clean-hdfs</code> son deliberadamente destructivas y se dejan
+para cuando se quiera empezar de cero.</p>
+<p>Después de cualquiera de las cuatro se vuelve a arrancar con
+<code>make -C entorno hadoop-up</code> (o <code>warehouse-up</code> desde la sesión 2) y, desde la
+sesión 2, hay que lanzar Jupyter de nuevo. Si has hecho un <code>down</code>, el
+Timeline Server habrá perdido su histórico: para volver a tener una
+aplicación visible en él —una de las evidencias de esta sesión— repite las
+celdas de WordCount de «Ejecutar un trabajo MapReduce con YARN».</p>
 </div>
 </div>
 </div>

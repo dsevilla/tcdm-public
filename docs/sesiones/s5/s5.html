@@ -8120,6 +8120,9 @@ Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
 Kernel → Existing Jupyter Server</strong>, usando la dirección
 <code>http://127.0.0.1:8888/lab?token=tcdm</code> y eligiendo el kernel <strong>Python 3
 (ipykernel)</strong>. El token es siempre <code>tcdm</code>.</p>
+<p>Si algo no funciona —el notebook no conecta, una celda <code>!hdfs</code> no
+encuentra la orden, un servicio no responde—, consulta «Solución de
+problemas» en <code>entorno/README.md</code>.</p>
 <p>Antes de instalar nada, comprueba que la fuente sigue donde S2 la dejó y S4
 la utilizó:</p>
 </div>
@@ -9274,7 +9277,7 @@ versión de referencia con exactamente las mismas filas y columnas, pero
 escrita en un único directorio sin subdirectorios <code>columna=valor</code>. Esta
 salida es únicamente un artefacto de laboratorio para la comparación de
 esta sesión: a diferencia de <code>/datalake/silver/tpcds/web_sales</code>, no forma
-parte del contrato que usarán S6, S7 u S8, así que la dejamos bajo la
+parte del contrato que usarán S6, S7 o S8, así que la dejamos bajo la
 ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</code>.</p>
 </div>
 </div>
@@ -9320,7 +9323,10 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Agregar-el-producto-gold">Agregar el producto <em>gold</em><a class="anchor-link" href="#Agregar-el-producto-gold">¶</a></h3><p>El producto <code>gold</code> responde a una pregunta de negocio concreta —"pedidos,
 líneas de venta y beneficio neto por año"— y se calcula agregando desde
-<code>silver</code>, no releyendo <code>raw</code>. Mantenemos la misma disciplina de métricas
+<code>silver</code>, no releyendo <code>raw</code>: la celda lee la tabla que acabamos de escribir
+en <code>silver_path</code> y agrupa por <code>sold_year</code>, una columna que Spark reconstruye
+a partir de los nombres de directorio (lo veremos con detalle al releer la
+tabla, más abajo). Mantenemos la misma disciplina de métricas
 que en S2: <code>count(DISTINCT ws_order_number)</code> cuenta pedidos, <code>count(*)</code>
 cuenta líneas de venta, y ambas cifras se muestran por separado para que no
 se confundan.</p>
@@ -9335,8 +9341,10 @@ se confundan.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_by_year</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_silver_written</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">silver_path</span><span class="p">)</span>
+
+<span class="n">web_sales_by_year</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">web_sales_silver_written</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
         <span class="n">countDistinct</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"pedidos"</span><span class="p">),</span>
         <span class="n">count</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"lineas_de_venta"</span><span class="p">),</span>
@@ -9637,17 +9645,55 @@ después de leer todas las filas.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Ficheros-efectivamente-le%C3%ADdos">Ficheros efectivamente leídos<a class="anchor-link" href="#Ficheros-efectivamente-le%C3%ADdos">¶</a></h3><p>El plan formateado ya es una evidencia de qué <em>decide</em> Spark, pero conviene
-comprobar también qué ficheros existen <em>de verdad</em> para cada consulta.
-<code>DataFrame.inputFiles()</code> podría parecer el camino directo, pero para una
-relación basada en ruta (sin catálogo) devuelve siempre la lista completa
-de ficheros de la tabla, sin aplicar ningún filtro: no sirve para medir la
-poda. Contamos en su lugar los ficheros que existen en HDFS bajo cada
-ruta.</p>
+<h3 id="Ficheros-efectivamente-le%C3%ADdos">Ficheros efectivamente leídos<a class="anchor-link" href="#Ficheros-efectivamente-le%C3%ADdos">¶</a></h3><p><code>explain()</code> dice qué <em>decide</em> Spark; para ver qué <em>ha leído</em> hay que
+ejecutar las dos consultas y mirar sus métricas. La celda siguiente lanza
+una acción sobre cada una.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">full_scan_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">full_scan</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">filtered_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">filtered</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas de la lectura completa: </span><span class="si">{</span><span class="n">full_scan_rows</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas de la lectura filtrada (sold_year = </span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">filtered_rows</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">filtered_rows</span> <span class="o">&lt;</span> <span class="n">full_scan_rows</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Abre la pestaña <strong>SQL / DataFrame</strong> de <a href="http://localhost:4040">http://localhost:4040</a> —la
+interfaz web de Spark presentada en S4— y entra en las dos últimas
+consultas. En el nodo <code>Scan parquet</code> de cada una aparecen, entre otras, las
+métricas <em>number of files read</em>, <em>size of files read</em> y <em>number of
+partitions read</em>: en la lectura filtrada deben ser una fracción de las de
+la lectura completa. Esa es la medida directa de la poda.</p>
+<p>Como comprobación independiente, contamos también los ficheros que existen
+en HDFS bajo cada ruta: los de la partición del año elegido deberían
+coincidir con el <em>number of files read</em> de la consulta filtrada.
+<code>DataFrame.inputFiles()</code> no sirve para esto: en una relación basada en ruta
+(sin catálogo) devuelve siempre la lista completa de ficheros de la tabla,
+aunque el plan aplique <code>PartitionFilters</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9665,10 +9711,6 @@ ruta.</p>
     <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
 
 
-<span class="c1"># inputFiles() no sirve aquí: para esta relación basada en ruta, devuelve</span>
-<span class="c1"># siempre la lista completa de ficheros de la tabla, aunque el plan ya</span>
-<span class="c1"># aplique PartitionFilters (lo comprobamos en la celda anterior). Por eso</span>
-<span class="c1"># contamos los ficheros realmente presentes en cada ruta de HDFS.</span>
 <span class="n">full_scan_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hdfs_file_count</span><span class="p">(</span><span class="n">silver_path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># descarta _SUCCESS</span>
 <span class="n">filtered_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hdfs_file_count</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">silver_path</span><span class="si">}</span><span class="s2">/sold_year=</span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
@@ -9686,27 +9728,24 @@ ruta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El plan formateado de la celda anterior ya mostraba <code>PartitionFilters</code> para
-<code>sold_year = {sample_year}</code>, pero <code>DataFrame.inputFiles()</code> no refleja esa
-poda en una relación basada en ruta: devuelve siempre la lista completa de
-ficheros de la tabla, filtro aparte. Por eso el recuento real se hace
-contando ficheros en HDFS bajo cada ruta. <code>sample_year</code> es el año con más
-líneas de los que hay en SF1 (unos pocos años en total), así que la
-partición de ese año tiene garantizado ser sólo una fracción del total:
-<code>filtered_files</code> debe ser estrictamente menor que <code>full_scan_files</code>. Esa
-diferencia de ficheros —no el tiempo que ha tardado la celda— es la
-evidencia que vamos a citar en la tabla comparativa de más abajo.</p>
+<p><code>sample_year</code> es el año con más líneas de los que hay en SF1 (unos pocos
+años en total), así que su partición es sólo una fracción del total:
+<code>filtered_files</code> debe ser estrictamente menor que <code>full_scan_files</code>, y
+debería coincidir con lo que mostró la interfaz de Spark para la consulta
+filtrada. Esa diferencia de ficheros —no el tiempo que ha tardado la
+celda— es la evidencia que vamos a citar en la tabla comparativa de más
+abajo.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9718,7 +9757,7 @@ hace S4 antes de cambiar de sección.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9733,7 +9772,7 @@ hace S4 antes de cambiar de sección.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9745,7 +9784,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9760,7 +9799,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9774,7 +9813,7 @@ ficheros y el tamaño lógico total:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9789,7 +9828,7 @@ ficheros y el tamaño lógico total:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9801,7 +9840,7 @@ antes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9816,7 +9855,7 @@ antes:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9828,7 +9867,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9843,7 +9882,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9854,7 +9893,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9869,15 +9908,16 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Tabla-comparativa:-fuente,-refinada-y-gold">Tabla comparativa: fuente, refinada y <em>gold</em><a class="anchor-link" href="#Tabla-comparativa:-fuente,-refinada-y-gold">¶</a></h2><p>Con lo observado en las celdas anteriores, la tabla de la introducción se
-puede rellenar con evidencia concreta de esta ejecución, en lugar de con
-texto genérico:</p>
+<h2 id="Tabla-comparativa:-fuente,-refinada-y-gold">Tabla comparativa: fuente, refinada y <em>gold</em><a class="anchor-link" href="#Tabla-comparativa:-fuente,-refinada-y-gold">¶</a></h2><p>Con lo observado en las celdas anteriores se pueden comparar las tres
+versiones del dato que anunciaba la introducción —más la salida de
+control—, con evidencia concreta de esta ejecución en lugar de con texto
+genérico:</p>
 <table>
 <thead>
 <tr>
@@ -9922,7 +9962,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9966,7 +10006,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=83">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10010,7 +10050,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10056,7 +10096,7 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10064,8 +10104,8 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Relaci%C3%B3n-con-HDFS-y-S3">Relación con HDFS y S3<a class="anchor-link" href="#Relaci%C3%B3n-con-HDFS-y-S3">¶</a></h2><p>La organización <code>columna=valor</code> que hemos aplicado en esta sesión puede
 utilizarse tanto en HDFS como en un almacenamiento de objetos compatible
-con S3, como el que se introdujo en S3. Sin embargo, S3 no tiene
-directorios reales: lo que aquí llamamos "directorio" es, en un backend
+con S3, como el que se introdujo en la sesión 3. Sin embargo, un
+almacenamiento de objetos no tiene directorios reales: lo que aquí llamamos "directorio" es, en un backend
 S3, una convención sobre el prefijo de las claves de objeto. Conviene
 mantener separadas tres ideas que es fácil mezclar:</p>
 <ul>
@@ -10077,7 +10117,7 @@ distintos para conseguir el mismo efecto observable;</li>
 <li>la gestión de catálogo que se incorporará después, en S6 y S7, y que es
 independiente del almacenamiento subyacente.</li>
 </ul>
-<p>S3 ya mostró que el mismo Parquet puede copiarse a un almacenamiento
+<p>La sesión 3 ya mostró que el mismo Parquet puede copiarse a un almacenamiento
 S3-compatible sin modificar su esquema. S5 continúa ese recorrido
 centrándose en la organización física y el particionado de los ficheros,
 no en dónde viven los bytes.</p>
@@ -10085,7 +10125,7 @@ no en dónde viven los bytes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10122,13 +10162,16 @@ un ejemplo concreto de esta sesión en qué momento lo has notado.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión, ten preparadas estas evidencias:</p>
+<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión tendrás una reunión individual breve con el
+profesor para revisar el trabajo de esta sesión. Esa reunión combina una
+demostración en vivo sobre tu propio ordenador y una memoria escrita breve.</p>
+<h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias:</p>
 <ol>
 <li>La ruta fuente inmutable (<code>/datalake/raw/tpcds/web_sales</code>) y su número
 de filas, sin modificar.</li>
@@ -10143,16 +10186,46 @@ sesión, junto con los valores que compararon (<code>raw_count</code>,
 <li>El listado <code>hdfs dfs -ls</code> de al menos un nivel de directorios
 <code>columna=valor</code> de la tabla particionada.</li>
 <li>La comparación entre la consulta completa y la consulta filtrada: los
-dos planes de <code>.explain("formatted")</code> (con sus <code>PartitionFilters</code>) y los
-dos recuentos de ficheros en HDFS (<code>full_scan_files</code>, <code>filtered_files</code>).</li>
+dos planes de <code>.explain("formatted")</code> (con sus <code>PartitionFilters</code>), los
+ficheros leídos por cada consulta según la interfaz de Spark y los dos
+recuentos de ficheros en HDFS (<code>full_scan_files</code>, <code>filtered_files</code>).</li>
 <li>Una explicación, con tus propias palabras, de por qué <code>sold_year</code>/
 <code>sold_month</code> es una partición útil para <code>web_sales</code> y por qué
 <code>ws_order_number</code>, <code>ws_item_sk</code> o <code>ws_bill_customer_sk</code> no lo serían.</li>
 </ol>
+<p>Las evidencias que salen de Spark (esquemas, planes y recuentos) necesitan
+una <code>SparkSession</code> viva: como el notebook la cierra con <code>spark.stop()</code>, para
+enseñarlas en la reunión hay que volver a ejecutar las celdas desde «Crear
+una SparkSession local».</p>
+<h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
+no se limite a pegar capturas de las salidas anteriores: debe explicar con
+tus propias palabras qué garantiza cada zona del data lake (<code>raw</code>, <code>silver</code>
+y <code>gold</code>); qué dice el contrato de las dos salidas de esta sesión; por qué
+<code>sold_year</code> y <code>sold_month</code> son una buena partición y una clave de cliente,
+de artículo o de pedido no lo sería; qué evidencia demuestra que el filtro
+evita leer ficheros; y qué sigue sin resolver una colección de Parquet bien
+organizada pero sin catálogo.</p>
+<h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una función. Debes poder
+explicar:</p>
+<ul>
+<li>la arquitectura medallion y qué se espera de los datos en cada zona;</li>
+<li>qué debe decir el contrato de una salida de datos: ruta, columnas, claves
+de unión, significado de cada métrica, formato y regla de regeneración;</li>
+<li>qué es el particionado físico por directorios <code>columna=valor</code> y en qué se
+distingue de una partición de ejecución de Spark, de un bloque HDFS y de
+una transformación de partición de Iceberg;</li>
+<li>con qué criterios se elige una columna de partición: filtros habituales,
+cardinalidad y tamaño de los ficheros resultantes;</li>
+<li>qué comprobaciones de calidad conviene hacer tras una unión (filas
+perdidas o duplicadas, claves nulas, rangos) y qué detecta cada una;</li>
+<li>cómo se reconoce la poda de particiones en un plan y por qué el tiempo de
+una celda no es una evidencia fiable;</li>
+<li>qué limitaciones tiene un data lake de ficheros sin catálogo.</li>
+</ul>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10198,7 +10271,7 @@ dos recuentos de ficheros en HDFS (<code>full_scan_files</code>, <code>filtered_
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

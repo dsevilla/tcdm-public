@@ -69,6 +69,46 @@ del host. Mantiene un prefijo por tabla, igual que la organización de HDFS.
 En un almacenamiento de objetos, `raw` y `tpcds` son componentes de la clave
 y no directorios reales.
 
+## Parar, eliminar y borrar
+
+El `Makefile` ofrece cuatro órdenes, de menos a más destructiva. Se aplican
+a todos los Compose presentes en la distribución (Hadoop, warehouse y S3):
+
+| Orden | Qué hace | Qué se conserva |
+| --- | --- | --- |
+| `make -C entorno stop` | Para los contenedores sin eliminarlos | Todo, incluido el interior de cada contenedor |
+| `make -C entorno down` | Elimina los contenedores | Los volúmenes: HDFS, metadatos del Hive Metastore y objetos de S3 |
+| `make -C entorno clean` | `down` y borra los volúmenes del Hive Metastore y de S3 | Sólo HDFS |
+| `make -C entorno clean-hdfs` | `clean` y borra los volúmenes HDFS | Ningún dato |
+
+Después de cualquiera de ellas se arranca de nuevo con `hadoop-up`,
+`warehouse-up` o `s3-up`. Jupyter no vuelve solo: hay que lanzarlo otra vez
+dentro de `namenode`. `make -C entorno status` lista los contenedores en
+marcha y los parados.
+
+## Solución de problemas
+
+Los fallos más habituales al seguir las sesiones. Las órdenes `make` y
+`docker` se teclean en una terminal del equipo, desde la raíz de la
+distribución.
+
+| Síntoma | Causa probable | Qué hacer |
+| --- | --- | --- |
+| Una celda `!hdfs ...` responde `hdfs: command not found`, o falla un `import` de una biblioteca del curso, aunque el clúster está en marcha | El notebook está usando un kernel de tu equipo, no el de `namenode` | En Visual Studio Code: **Select Kernel → Select Another Kernel → Existing Jupyter Server**, con `http://127.0.0.1:8888/lab?token=tcdm`. Para comprobarlo, `import socket; socket.gethostname()` debe devolver `namenode` |
+| Visual Studio Code no consigue conectar con `http://127.0.0.1:8888` | Jupyter no está arrancado: se cerró su terminal, se pulsó `Ctrl+C` o se pararon los contenedores | Volver a lanzarlo con `make -C entorno jupyter` (o `docker exec -it namenode bash`, `su - luser` y `jupyter lab ...`) y reconectar el kernel |
+| `NameError` al usar una variable definida más arriba | El kernel se ha reiniciado y ha perdido su estado | Ejecutar de nuevo, en orden, las celdas anteriores de las que depende la sección |
+| `UsageError: Cell magic %%diapositiva not found` | No se ha ejecutado la celda que instala y carga las diapositivas | Ejecutar esa celda, la primera de código del notebook |
+| `make -C entorno status` no muestra en marcha `namenode` y los tres `datanodeN`, o `hdfs dfsadmin -report` lista menos de tres DataNodes | El clúster está parado o todavía arrancando | `make -C entorno hadoop-up`, esperar medio minuto y repetir la comprobación. Si sigue igual, `docker logs namenode --tail=120` |
+| Errores de conexión con `trino-hdfs:8080` o `hive-metastore:9083` | El warehouse no está arrancado, o Trino sigue arrancando | `make -C entorno warehouse-up` y `make -C entorno status`. Si un servicio ha terminado con error, `docker compose -f entorno/compose-warehouse-hdfs.yml logs trino-hdfs hive-metastore` |
+| Errores de conexión con `rustfs:9000` (sesión 3) | RustFS no está arrancado | `make -C entorno s3-up` |
+| Falla una descarga: `%pip install`, un fichero de `raw.githubusercontent.com` o el conector de Iceberg al crear la `SparkSession` de las sesiones 7 y 8 | El contenedor `namenode` no tiene salida a Internet | Comprobarlo con `docker exec namenode curl -sI https://github.com` y revisar la red, la VPN o el proxy de Docker |
+| Un contenedor aparece como `Exited (137)`, o el kernel muere durante un cálculo | Docker se ha quedado sin memoria | Asignar más memoria a Docker (ver «Antes de empezar» en la sesión 1), parar los servicios que la sesión no use y cerrar otros notebooks que tengan una `SparkSession` abierta |
+| Al arrancar, Docker responde `port is already allocated` | Otro contenedor o programa usa ya ese puerto (8888, 9000, 8080…) | Localizarlo con `docker ps` y pararlo. No deben estar arrancados a la vez dos laboratorios que publiquen el mismo puerto |
+| Una sesión no encuentra rutas o tablas que debía dejar otra anterior | Esa sesión anterior no se completó, o se borraron sus datos con `clean` o `clean-hdfs` | Volver a ejecutar el notebook de la sesión anterior que indica el mensaje |
+
+Para saber en qué estado está el laboratorio antes de buscar más:
+`make -C entorno status`.
+
 ## Bind mounts y Docker Desktop para macOS
 
 Los ficheros de configuración y los scripts que entran en los contenedores se
@@ -268,6 +308,60 @@ Los metadatos PostgreSQL permanecen en el volumen
 `tcdm-26-27-postgresql-metastore-data`. Los datos de las tablas permanecen en
 HDFS y, por tanto, tienen el mismo ciclo de vida que los contenedores Hadoop de
 este laboratorio.
+
+### Limitaciones a revisar al actualizar versiones
+
+Estas limitaciones de las versiones fijadas (Trino `483`, Iceberg `1.11.0`,
+Spark `4.1.x`, Hive Metastore `3.1.3`) condicionan lo que las sesiones 7 y 8
+pueden demostrar. Los notebooks las enuncian como un hecho; aquí queda el
+detalle para comprobar, cada vez que se actualice una versión, si alguna ha
+dejado de aplicarse.
+
+**Z-order (sesión 7).** La sección «Z-order» se presenta sin ejecutar.
+
+- El conector Iceberg de Trino no ofrece Z-order: `ALTER TABLE ... EXECUTE
+  optimize` sólo compacta por tamaño de fichero.
+- Desde Spark, la llamada
+
+  ```text
+  CALL iceberg.system.rewrite_data_files(
+      table => 'tcdm.web_sales_lab_sorted',
+      strategy => 'sort',
+      sort_order => 'zorder(ws_item_sk, ws_net_paid)',
+      options => map('rewrite-all', 'true')
+  )
+  ```
+
+  falla con `IllegalArgumentException: Cannot use column ws_net_paid of type
+  DecimalType(7,2) in ZOrdering, the type is unsupported`: Z-order no admite
+  columnas `DECIMAL`.
+- Con dos columnas `BIGINT` (`zorder(ws_item_sk, ws_order_number)`) sobre la
+  misma tabla, creada por Trino con `sorted_by = ARRAY['ws_item_sk']`, falla
+  con `IllegalArgumentException: Cannot use output sort order id 0 because
+  the table does not contain a sort order with that id`. Coincide con
+  incompatibilidades ya comunicadas entre `rewrite_data_files` y el *sort
+  order* declarado de una tabla
+  ([apache/iceberg#10346](https://github.com/apache/iceberg/issues/10346)).
+  No se ha probado sobre una tabla de laboratorio sin `sorted_by`.
+
+Cuando una versión lo resuelva, la sección debe pasar a ser una demostración
+ejecutada y medida (inventario de ficheros y plan antes y después), y las
+preguntas y evidencias de la sesión que la mencionan deben actualizarse.
+
+***Copy-on-write* desde Trino (sesión 8).** El conector Iceberg de Trino
+sólo implementa *merge-on-read* para `UPDATE`, `DELETE` y `MERGE`, y rechaza
+las propiedades de modo de escritura: declarar `write.merge.mode` en
+`extra_properties` da `TrinoUserError: Illegal keys in extra_properties:
+[write.merge.mode]`
+([trinodb/trino#17272](https://github.com/trinodb/trino/issues/17272)). Por
+eso las tablas de laboratorio `web_sales_lab_cow` y `web_sales_lab_mor` se
+crean y se modifican con Spark. Si Trino llega a admitir *copy-on-write*, la
+comparación puede hacerse también desde Trino.
+
+**Hive Metastore 4.x.** La incompatibilidad del catálogo Iceberg de Spark
+con Hive Metastore 4.x, descrita más arriba, es el motivo de fijar `3.1.3`.
+Si `HiveCatalog` de Iceberg pasa a usar `get_table_req`, conviene volver a
+valorar la rama 4.x.
 
 ## Laboratorio posterior con S3 e Iceberg REST
 

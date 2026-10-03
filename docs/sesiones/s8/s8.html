@@ -7985,6 +7985,7 @@ El alias <code>%%diapositiva</code> permite mantener en español los tipos usado
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Recorrido-del-curso">Recorrido del curso<a class="anchor-link" href="#Recorrido-del-curso">¶</a></h2><div class="highlight"><pre><span></span>S2: Parquet como ficheros
+  → S3: los mismos Parquet en un almacenamiento de objetos
   → S4: Spark procesa por lotes
   → S5: zonas raw/silver/gold y particionado físico
   → S6: catálogo Hive y Trino
@@ -8140,7 +8141,7 @@ coincide con el que daría un recálculo completo por lotes.</li>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Antes-de-empezar">Antes de empezar<a class="anchor-link" href="#Antes-de-empezar">¶</a></h2><blockquote>
-<p><strong>Dónde se ejecuta este notebook.</strong> Igual que en S2, S4, S5, S6 y S7,
+<p><strong>Dónde se ejecuta este notebook.</strong> Igual que en las sesiones anteriores,
 Jupyter se ejecuta directamente dentro del contenedor <code>namenode</code>, como
 <code>luser</code>, con acceso de red directo a HDFS, YARN y el Hive Metastore: todos
 comparten la misma red Docker <code>hadoop-cluster</code>. Las celdas ejecutables
@@ -8160,7 +8161,7 @@ Trino;</li>
 <li><strong>S7 ya creó y pobló las dos tablas Iceberg que esta sesión alimenta de
 forma continua</strong>: <code>iceberg.tcdm.web_sales</code> (la <em>silver</em> a nivel de línea)
 y <code>iceberg.tcdm.web_sales_by_year</code> (el agregado <em>gold</em>). Esta sesión no
-las crea: las verifica con <code>DESCRIBE</code> más abajo y falla pronto y con un
+las crea: las comprueba más abajo y falla pronto y con un
 mensaje claro si no existen o si su esquema no es el esperado.</li>
 </ul>
 <p>Si el clúster o el warehouse no están levantados todavía, desde una terminal
@@ -8187,6 +8188,9 @@ Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
 Kernel → Existing Jupyter Server</strong>, usando la dirección
 <code>http://127.0.0.1:8888/lab?token=tcdm</code> y eligiendo el kernel <strong>Python 3
 (ipykernel)</strong>. El token es siempre <code>tcdm</code>.</p>
+<p>Si algo no funciona —el notebook no conecta, una celda <code>!hdfs</code> no
+encuentra la orden, un servicio no responde—, consulta «Solución de
+problemas» en <code>entorno/README.md</code>.</p>
 </div>
 </div>
 </div>
@@ -8219,7 +8223,8 @@ Kernel → Existing Jupyter Server</strong>, usando la dirección
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Si alguna de esas rutas no aparece, revisa S2 antes de continuar: esta
 sesión no regenera TPC-DS. La comprobación de que S7 ya creó las tablas
-Iceberg llega un poco más abajo, en cuanto abramos la conexión con Trino.</p>
+Iceberg llega un poco más abajo, en «Verificar que S7 ya creó las tablas
+Iceberg».</p>
 <h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>El kernel de este notebook instala PySpark sobre sí mismo, igual que en las
 sesiones anteriores, más el cliente <code>trino</code> de PyPI —el mismo de S6 y
 S7—, que usaremos en varias celdas de sólo lectura como confirmación
@@ -8739,10 +8744,11 @@ es el par <code>(ws_order_number, ws_item_sk)</code>, no <code>ws_order_number</
 solitario, porque un mismo pedido puede tener varias líneas con productos
 distintos. El generador calcula, antes de fabricar ninguna fila, los rangos
 reales de <code>c_customer_sk</code>, <code>ca_address_sk</code> e <code>i_item_sk</code> (con PyArrow, sobre
-los Parquet reales de <code>customer</code>, <code>customer_address</code> e <code>item</code>) y lee la
-tabla <code>date_dim</code> completa para elegir fechas realmente materializadas — así
-las claves generadas siguen siendo coherentes con las tablas de dimensión,
-sin inventar rangos.</p>
+los Parquet reales de <code>customer</code>, <code>customer_address</code> e <code>item</code>) y lee de
+<code>date_dim</code> las fechas del periodo real de ventas de <code>web_sales</code>, que empieza
+en 1998 — así las claves generadas siguen siendo coherentes con las tablas
+de dimensión, sin inventar rangos, y las líneas nuevas caen en los mismos
+años que las ventas que ya existen.</p>
 <p>Cada lote mezcla dos tipos de líneas:</p>
 <ul>
 <li><strong>correcciones</strong>, que reutilizan un par <code>(ws_order_number, ws_item_sk)</code>
@@ -8771,8 +8777,8 @@ produce, antes de construir la consulta de streaming.</p>
 pero este notebook se ejecuta dentro de <code>namenode</code>, que no ve tu copia de la
 distribución. La celda siguiente lo descarga del repositorio público
 <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>) al directorio de trabajo del kernel,
-igual que S3 descarga sus programas. Si el fichero ya está ahí —por ejemplo,
-porque lo has copiado tú o porque lo ha copiado el CI—, se conserva.</p>
+igual que la sesión 3 descarga sus programas. Si el fichero ya está ahí
+—por ejemplo, porque lo has copiado tú—, se conserva.</p>
 </div>
 </div>
 </div>
@@ -9068,13 +9074,13 @@ ruta que vigilará la fuente de ficheros una vez arranque la consulta.</p>
 catálogo <code>iceberg</code>— qué año (<code>sold_year</code>) tenía <strong>ya</strong> cada clave que el
 micro-lote va a tocar, cruzando la vista temporal con
 <code>iceberg.tcdm.web_sales</code> tal y como está <em>antes</em> del <code>MERGE</code>. Es
-necesario porque el generador simulado reasigna una fecha completamente
-nueva y aleatoria a <strong>cada</strong> fila que fabrica, tanto si es una corrección
-como si es un alta (lo comprobarás si lees
-<code>generate_web_sales_batch.py</code>): una corrección puede mover una línea de
-venta real de, por ejemplo, 2001 a 1948. Si <code>touched_years</code> sólo
+necesario porque el generador simulado reasigna una fecha nueva y
+aleatoria, dentro del periodo real de ventas, a <strong>cada</strong> fila que
+fabrica, tanto si es una corrección como si es un alta (lo comprobarás
+si lees <code>generate_web_sales_batch.py</code>): una corrección puede mover una
+línea de venta real de, por ejemplo, 2001 a 1999. Si <code>touched_years</code> sólo
 contuviera el año <em>nuevo</em> de esa fila, el <code>MERGE</code> de <em>gold</em> recalcularía
-1948 (correcto) pero nunca volvería a tocar 2001 —el año que la fila
+1999 (correcto) pero nunca volvería a tocar 2001 —el año que la fila
 acaba de abandonar—, y el agregado de 2001 se quedaría con una fila
 fantasma para siempre.</li>
 <li>Fusiona <code>micro_batch_src</code> contra <code>iceberg.tcdm.web_sales</code>, con la clave
@@ -9125,7 +9131,7 @@ lo que queda en <code>web_sales</code> no produciría ninguna fila para un año 
 
     <span class="c1"># foreachBatch entrega micro_batch_df con su propia SparkSession "clonada":</span>
     <span class="c1"># aunque comparte el mismo catálogo que la sesión global `spark`, es un</span>
-    <span class="c1"># objeto Python distinto, y una vista temporal es visible solo dentro de</span>
+    <span class="c1"># objeto Python distinto, y una vista temporal es visible sólo dentro de</span>
     <span class="c1"># la sesión que la registró. Por eso todo este cuerpo usa</span>
     <span class="c1"># `batch_spark`, obtenida del propio DataFrame, en vez de la variable</span>
     <span class="c1"># global `spark` capturada por el closure.</span>
@@ -9206,9 +9212,10 @@ lo que queda en <code>web_sales</code> no produciría ninguna fila para un año 
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El segundo <code>MERGE</code> es la diferencia práctica entre mantener un agregado de
 forma incremental y recalcularlo por completo en cada micro-lote: el coste
-de la actualización depende de cuántos años ha tocado el micro-lote (casi
-siempre uno o dos), no del tamaño total de <em>silver</em> (varios años de TPC-DS
-SF1).</p>
+de la actualización depende de cuántos años ha tocado el micro-lote, no del
+tamaño total de <em>silver</em>. Con este generador, que reparte las fechas por
+todo el periodo de ventas, cada micro-lote toca casi todos los años; en una
+ingesta real, donde los pedidos nuevos son recientes, serían uno o dos.</p>
 <h3 id="Arrancar-la-consulta">Arrancar la consulta<a class="anchor-link" href="#Arrancar-la-consulta">¶</a></h3><p>El <em>checkpoint</em> guarda qué ficheros de la fuente ya se han procesado, para
 que reiniciar la consulta más adelante no vuelva a aplicar el mismo
 micro-lote dos veces.</p>
@@ -9379,6 +9386,11 @@ sirviendo la consulta para siempre.</p>
 concreta a "¿cuánto tarda en incorporarse un lote nuevo, desde que el
 generador lo escribe hasta que aparece en el agregado <em>gold</em>?": la suma de
 <code>triggerExecution</code> de cada micro-lote.</p>
+<p>Mientras la consulta está activa, la interfaz web de Spark
+(<a href="http://localhost:4040">http://localhost:4040</a>, presentada en S4) añade la pestaña <strong>Structured
+Streaming</strong>, con una fila por consulta y, dentro de ella, las gráficas de
+filas de entrada y de duración de cada micro-lote. Los <code>MERGE</code> que lanza
+<code>foreachBatch</code> aparecen además como consultas en <strong>SQL / DataFrame</strong>.</p>
 </div>
 </div>
 </div>
@@ -9672,30 +9684,21 @@ reescribe por completo los ficheros de datos afectados.</li>
 únicamente los cambios — ficheros de borrado y, cuando aplica, ficheros de
 datos nuevos — y delega en el lector la tarea de aplicarlos al leer.</li>
 </ul>
-<p><strong>Comprobación en vivo: Trino no puede hacer <em>copy-on-write</em>.</strong> Al preparar
-esta sección se intentó crear una tabla Iceberg con Trino declarando
-<code>write.merge.mode</code>/<code>write.update.mode</code>/<code>write.delete.mode</code> a través de
-<code>extra_properties</code> (la única vía que expone el conector Iceberg de Trino
-para propiedades que no modela como argumento de <code>WITH</code> propio) y Trino lo
-rechazó:</p>
+<p><strong>Qué motor permite elegir.</strong> El conector Iceberg de Trino <strong>sólo
+implementa <em>merge-on-read</em></strong> para <code>UPDATE</code>/<code>DELETE</code>/<code>MERGE</code>: siempre escribe
+ficheros de borrado, nunca reescribe ficheros de datos completos. Por eso
+no deja declarar <code>write.merge.mode</code>, <code>write.update.mode</code> ni
+<code>write.delete.mode</code>; si se intentan pasar a través de <code>extra_properties</code>,
+responde:</p>
 <div class="highlight"><pre><span></span>TrinoUserError: Illegal keys in extra_properties: [write.merge.mode]
 </pre></div>
-<p>No es un error de sintaxis: el conector Iceberg de Trino <strong>sólo implementa
-merge-on-read</strong> para <code>UPDATE</code>/<code>DELETE</code>/<code>MERGE</code> — siempre escribe ficheros de
-borrado, nunca reescribe ficheros de datos completos — y por eso ni
-siquiera deja declarar esas propiedades, para no sugerir un comportamiento
-que no va a cumplir. Es una limitación conocida y todavía abierta del
-conector (por ejemplo,
-<a href="https://github.com/trinodb/trino/issues/17272">trinodb/trino#17272</a>), no
-una particularidad de este clúster: sigue vigente y es independiente de la
-versión del Hive Metastore.</p>
-<p><strong>Eso ya no bloquea la comparación.</strong> El escritor de Iceberg de <strong>Spark</strong>
-sí honra <code>write.merge.mode</code>, y esta sesión ya configuró más arriba un
-catálogo <code>iceberg</code> de Spark que habla con el mismo Hive Metastore que
-Trino: podemos crear estas dos tablas de laboratorio directamente con
-<code>spark.sql("CREATE TABLE iceberg.tcdm... TBLPROPERTIES(...)")</code>, en el mismo
-catálogo que usa el resto de la sesión, sin necesitar un segundo
-catálogo Iceberg separado. Como estas tablas sólo sirven para esta
+<p>Es una característica del conector
+(<a href="https://github.com/trinodb/trino/issues/17272">trinodb/trino#17272</a>), no
+de este clúster. El escritor de Iceberg de <strong>Spark</strong> sí respeta
+<code>write.merge.mode</code>, y el catálogo <code>iceberg</code> de Spark configurado más arriba
+habla con el mismo Hive Metastore que Trino: creamos las dos tablas de
+laboratorio con <code>spark.sql("CREATE TABLE iceberg.tcdm... TBLPROPERTIES(...)")</code>,
+en el mismo catálogo que usa el resto de la sesión. Como estas tablas sólo sirven para esta
 comparación, se llaman <code>iceberg.tcdm.web_sales_lab_cow</code> y
 <code>iceberg.tcdm.web_sales_lab_mor</code>, y se borran en la sección "Detener y
 limpiar" al final del notebook.</p>
@@ -9963,13 +9966,13 @@ laboratorio: son la línea base con la que compararemos después del <code>MERGE
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">table_location</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">'''Ubicacion fisica real de una tabla del catalogo iceberg (Hive Metastore).</span>
+<span class="w">    </span><span class="sd">'''Ubicación física real de una tabla del catálogo iceberg (Hive Metastore).</span>
 
-<span class="sd">    A diferencia de un catalogo hadoop, donde la ruta se puede calcular sin</span>
-<span class="sd">    preguntarle a nadie, aqui el Hive Metastore puede anadir un sufijo unico</span>
-<span class="sd">    a la ubicacion de cada tabla (como ya viste en S7 con</span>
-<span class="sd">    "SHOW CREATE TABLE"): hay que preguntarselo al catalogo con</span>
-<span class="sd">    "DESCRIBE TABLE EXTENDED", la version Spark del mismo tipo de consulta.</span>
+<span class="sd">    A diferencia de un catálogo hadoop, donde la ruta se puede calcular sin</span>
+<span class="sd">    preguntarle a nadie, aquí el Hive Metastore puede añadir un sufijo único</span>
+<span class="sd">    a la ubicación de cada tabla (como ya viste en S7 con</span>
+<span class="sd">    "SHOW CREATE TABLE"): hay que preguntárselo al catálogo con</span>
+<span class="sd">    "DESCRIBE TABLE EXTENDED", la versión Spark del mismo tipo de consulta.</span>
 <span class="sd">    '''</span>
     <span class="n">extended_rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Row</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DESCRIBE TABLE EXTENDED </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
     <span class="n">location_row</span><span class="p">:</span> <span class="n">Row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">extended_rows</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">"col_name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Location"</span><span class="p">)</span>
@@ -10097,8 +10100,8 @@ sustituyen a los que contenían las tres filas corregidas (el resto de
 ficheros, los que no tenían ninguna fila afectada, se conservan igual). En
 <code>web_sales_lab_mor</code> los ficheros de datos originales deben seguir intactos y
 aparecer, además, uno o varios ficheros nuevos de un tipo distinto —
-ficheros de borrado (<em>delete files</em>), habitualmente con <code>eq-deletes</code> o
-<code>pos-deletes</code> en el nombre—, más los ficheros de datos con las filas nuevas.
+ficheros de borrado (<em>delete files</em>), cuyo nombre termina en
+<code>-deletes.parquet</code>—, más los ficheros de datos con las filas nuevas.
 Esa es la diferencia física que promete la teoría: <em>copy-on-write</em> paga el
 coste en la escritura, reescribiendo; <em>merge-on-read</em> lo aplaza a la
 lectura, acumulando ficheros de borrado que en algún momento habría que
@@ -10400,8 +10403,8 @@ micro-lote, igual que en S7.</p>
 <span class="s1">    SELECT filas, claves FROM totals, distinct_keys</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">key_uniqueness</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">key_uniqueness</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"claves"</span><span class="p">]),</span> <span class="p">(</span>
-    <span class="s2">"La clave compuesta (ws_order_number, ws_item_sk) debe seguir siendo unica "</span>
-    <span class="s2">"en iceberg.tcdm.web_sales tras los MERGE de esta sesion"</span>
+    <span class="s2">"La clave compuesta (ws_order_number, ws_item_sk) debe seguir siendo única "</span>
+    <span class="s2">"en iceberg.tcdm.web_sales tras los MERGE de esta sesión"</span>
 <span class="p">)</span>
 <span class="n">key_uniqueness</span>
 </pre></div>
@@ -10520,7 +10523,12 @@ paneles "como código" mediante su API REST.</li>
 <h2 id="Detener-y-limpiar">Detener y limpiar<a class="anchor-link" href="#Detener-y-limpiar">¶</a></h2><p>Estas operaciones se muestran como texto, no como celdas de código, para que
 un «ejecutar todo» de este notebook no las dispare por accidente. Las dos
 consultas de streaming de este notebook ya se han detenido con <code>query.stop()</code>
-más arriba; lo que queda pendiente es limpieza de recursos de laboratorio.</p>
+más arriba; lo que queda pendiente es limpieza de recursos de laboratorio.
+Las tablas de laboratorio y los ficheros de aterrizaje forman parte de las
+evidencias: consérvalos hasta la reunión y límpialos después. Las órdenes
+<code>spark.sql(...)</code> van en una celda de este notebook, igual que las de
+<code>hdfs dfs ...</code> precedidas de <code>!</code>; <code>docker compose</code>, en una terminal de tu
+equipo desde la raíz de la distribución.</p>
 <table>
 <thead>
 <tr>
@@ -10544,6 +10552,11 @@ más arriba; lo que queda pendiente es limpieza de recursos de laboratorio.</p>
 <td>Forzar que la consulta reprocese todo desde el principio</td>
 <td><code>hdfs dfs -rm -r /user/luser/s8/checkpoints/web_sales_incremental</code></td>
 <td>Borra el <em>checkpoint</em>: la próxima vez que se arranque la consulta sobre la misma ruta de aterrizaje, volverá a fusionar todos los ficheros que sigan ahí. Útil para repetir el ejercicio desde cero, nunca como efecto colateral de otra limpieza.</td>
+</tr>
+<tr>
+<td>Volver al estado en que S7 dejó las tablas</td>
+<td>Con la consulta detenida: <code>spark.sql("DROP TABLE iceberg.tcdm.web_sales")</code> y <code>spark.sql("DROP TABLE iceberg.tcdm.web_sales_by_year")</code>; borrar la ruta de aterrizaje y el <em>checkpoint</em> (las dos filas anteriores); y volver a ejecutar en S7 las celdas de «Crear la tabla Iceberg»</td>
+<td>Deshace todo lo que esta sesión ha fusionado: S7 recrea las dos tablas desde las tablas Hive de S6, que no han cambiado. Si no se borran el aterrizaje y el <em>checkpoint</em>, la siguiente ejecución de esta sesión volvería a aplicar los lotes antiguos.</td>
 </tr>
 <tr>
 <td>Parar temporalmente el warehouse</td>
@@ -10605,7 +10618,11 @@ simulado, los datos llegaran realmente por Kafka? ¿Qué parte del
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión, ten preparadas estas evidencias:</p>
+<h2 id="Evidencias-de-la-sesi%C3%B3n">Evidencias de la sesión<a class="anchor-link" href="#Evidencias-de-la-sesi%C3%B3n">¶</a></h2><p>Esta es la última sesión del itinerario, así que no hay una sesión
+siguiente: la reunión individual breve con el profesor para revisar este
+trabajo se fija aparte. Como en las anteriores, combina una demostración en
+vivo sobre tu propio ordenador y una memoria escrita breve.</p>
+<h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias:</p>
 <ol>
 <li>Varias ejecuciones del generador, con los ficheros nuevos visibles en
 <code>/datalake/raw/streaming/web_sales_incremental</code> (<code>hdfs dfs -ls</code>).</li>
@@ -10623,6 +10640,33 @@ datos reescritos y ficheros de borrado.</li>
 reiniciada desde su <em>checkpoint</em> sin reprocesar micro-lotes ya
 aplicados.</li>
 </ol>
+<h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
+no se limite a pegar capturas de las salidas anteriores: debe explicar con
+tus propias palabras qué cambia entre procesar por lotes y por micro-lotes;
+qué hace <code>foreachBatch</code> con cada micro-lote y por qué necesita dos <code>MERGE</code>;
+por qué la clave del <code>MERGE</code> es el par <code>(ws_order_number, ws_item_sk)</code>; qué
+garantiza el <em>checkpoint</em> y qué no; qué diferencia física hay entre
+<em>copy-on-write</em> y <em>merge-on-read</em>; y por qué el agregado mantenido de forma
+incremental coincide con el recálculo completo.</p>
+<h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una sentencia. Debes poder
+explicar:</p>
+<ul>
+<li>qué es un micro-lote, qué es un disparador y por qué una fuente de
+ficheros en streaming exige declarar el esquema;</li>
+<li>qué recibe <code>foreachBatch</code> y por qué permite reutilizar en streaming las
+operaciones de las sesiones por lotes;</li>
+<li>cómo resuelve un único <code>MERGE INTO</code> las altas, las correcciones y los
+borrados, y qué papel tiene la clave de comparación;</li>
+<li>cómo se mantiene un agregado de forma incremental, tocando sólo lo que
+cambia, y por qué hay que tener en cuenta el valor anterior de las filas
+corregidas;</li>
+<li>qué recuerda un <em>checkpoint</em> y qué ocurre al reiniciar una consulta con y
+sin él;</li>
+<li>la diferencia entre <em>copy-on-write</em> y <em>merge-on-read</em>, y su relación con
+la compactación vista en S7;</li>
+<li>por qué el resultado de negocio, y no el número de micro-lotes, es la
+evidencia de que la ingesta continua es correcta.</li>
+</ul>
 </div>
 </div>
 </div>

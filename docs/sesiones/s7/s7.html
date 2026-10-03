@@ -7834,10 +7834,9 @@ textarea,
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">Sesión 7 — Iceberg: del data lake al lakehouse, evolución y optimización<a class="anchor-link" href="#Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">¶</a></h1><p>Esta sesión reúne, de forma deliberada, lo que en los perfiles docentes
-originales del curso eran dos bloques distintos: la creación y evolución de
-una tabla Iceberg, y la medición y optimización de esa misma tabla. Se
-fusionan aquí porque comparten la tabla de trabajo, el dataset TPC-DS SF1 que
+<h1 id="Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">Sesión 7 — Iceberg: del data lake al lakehouse, evolución y optimización<a class="anchor-link" href="#Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">¶</a></h1><p>Esta sesión reúne, de forma deliberada, dos bloques: la creación y evolución
+de una tabla Iceberg, y la medición y optimización de esa misma tabla. Van
+juntos porque comparten la tabla de trabajo, el dataset TPC-DS SF1 que
 ya conoces de S2-S6 y buena parte del vocabulario: no tiene sentido medir
 manifests y snapshots sobre una tabla que todavía no has visto crear ni
 evolucionar.</p>
@@ -8200,6 +8199,9 @@ Studio Code, conecta este notebook con <strong>Select Kernel → Select Another
 Kernel → Existing Jupyter Server</strong>, usando la dirección
 <code>http://127.0.0.1:8888/lab?token=tcdm</code> y eligiendo el kernel <strong>Python 3
 (ipykernel)</strong>. El token es siempre <code>tcdm</code>.</p>
+<p>Si algo no funciona —el notebook no conecta, una celda <code>!hdfs</code> no
+encuentra la orden, un servicio no responde—, consulta «Solución de
+problemas» en <code>entorno/README.md</code>.</p>
 <p>Esta sesión no vuelve a ejecutar S5 ni S6. Si alguna de las tablas Hive
 anteriores no existe todavía, ejecuta antes esos dos notebooks.</p>
 </div>
@@ -8399,13 +8401,13 @@ mismo almacén de metadatos, no dos almacenes distintos.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">tablas_p6</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW TABLES FROM hive.tcdm"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">tablas_p6</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">tablas_s6</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW TABLES FROM hive.tcdm"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tablas_s6</span><span class="p">)</span>
 
-<span class="n">nombres_p6</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tablas_p6</span><span class="p">[</span><span class="s2">"Table"</span><span class="p">])</span>
+<span class="n">nombres_s6</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tablas_s6</span><span class="p">[</span><span class="s2">"Table"</span><span class="p">])</span>
 <span class="k">for</span> <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"date_dim"</span><span class="p">,</span> <span class="s2">"web_sales_silver"</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold"</span><span class="p">):</span>
     <span class="k">assert</span> <span class="p">(</span>
-        <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="n">nombres_p6</span>
+        <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="n">nombres_s6</span>
     <span class="p">),</span> <span class="sa">f</span><span class="s2">"falta hive.tcdm.</span><span class="si">{</span><span class="n">tabla_esperada</span><span class="si">}</span><span class="s2">: ejecuta S6 antes de continuar"</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Las tres tablas Hive de S6 están registradas."</span><span class="p">)</span>
 </pre></div>
@@ -8430,8 +8432,8 @@ mismo almacén de metadatos, no dos almacenes distintos.</p>
 
 <span class="k">assert</span> <span class="p">(</span>
     <span class="nb">int</span><span class="p">(</span><span class="n">filas_silver</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
-<span class="p">),</span> <span class="s2">"web_sales_silver esta vacia: repite la sincronizacion de particiones de S6"</span>
-<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold esta vacia: repite S5/S6"</span>
+<span class="p">),</span> <span class="s2">"web_sales_silver está vacía: repite la sincronización de particiones de S6"</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold está vacía: repite S5/S6"</span>
 </pre></div>
 </div>
 </div>
@@ -8486,7 +8488,7 @@ mismo almacén de metadatos, no dos almacenes distintos.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Por-qu%C3%A9-no-basta-el-modelo-Hive">Por qué no basta el modelo Hive<a class="anchor-link" href="#Por-qu%C3%A9-no-basta-el-modelo-Hive">¶</a></h2><p>En S6, la tabla <code>hive.tcdm.web_sales_silver</code> se apoya en directorios
-(<code>sold_year=2000/sold_month=01/...</code>) y en entradas de partición que el
+(<code>sold_year=2000/sold_month=1/...</code>) y en entradas de partición que el
 metastore conoce sólo después de un paso explícito de sincronización
 (<code>sync_partition_metadata</code>). Ese modelo resuelve "encontrar los datos", pero
 dejaba abiertas varias preguntas que no llegamos a plantear en S6: ¿qué pasa
@@ -8603,8 +8605,7 @@ tener que listar a ciegas todo el almacenamiento como haría un <code>MSCK REPAI
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Crear-la-tabla-Iceberg">Crear la tabla Iceberg<a class="anchor-link" href="#Crear-la-tabla-Iceberg">¶</a></h2><p>Como recomienda el perfil docente de esta sesión, empezamos por Trino: es
-el cliente SQL más sencillo para crear y examinar una tabla Iceberg, sin la
+<h2 id="Crear-la-tabla-Iceberg">Crear la tabla Iceberg<a class="anchor-link" href="#Crear-la-tabla-Iceberg">¶</a></h2><p>Empezamos por Trino: es el cliente SQL más sencillo para crear y examinar una tabla Iceberg, sin la
 sobrecarga de arrancar antes una <code>SparkSession</code>. Más adelante leeremos la
 misma tabla desde Spark y compararemos.</p>
 <p>Vamos a crear dos tablas Iceberg mediante <code>CREATE TABLE ... AS SELECT</code>
@@ -8619,6 +8620,11 @@ Iceberg.</p>
 <p>Estas dos tablas son las que usará también S8 para practicar ingesta
 continua con Spark Structured Streaming, así que sus nombres y columnas se
 mantienen exactamente como las dejamos aquí durante el resto del curso.</p>
+<p>Por eso los dos CTAS llevan <code>IF NOT EXISTS</code>: si repites esta sesión —por
+ejemplo, tras reiniciar el kernel— las tablas se conservan tal como estén,
+incluidos los cambios que S8 haya hecho en ellas, en lugar de fallar o de
+recrearse. Las comprobaciones que comparan cada tabla con su fuente Hive
+sólo se aplican cuando la tabla se acaba de crear.</p>
 <h3 id="iceberg.tcdm.web_sales"><code>iceberg.tcdm.web_sales</code><a class="anchor-link" href="#iceberg.tcdm.web_sales">¶</a></h3><p>Mantenemos las mismas columnas de negocio de <code>web_sales_silver</code>, incluida
 <code>ws_sold_date</code> (tipo <code>DATE</code>): la necesitamos intacta porque es sobre ella
 donde aplicaremos la transformación de partición oculta de Iceberg,
@@ -8640,8 +8646,12 @@ tabla.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"CREATE SCHEMA IF NOT EXISTS iceberg.tcdm"</span><span class="p">)</span>
 
+<span class="n">tablas_iceberg_previas</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW TABLES FROM iceberg.tcdm"</span><span class="p">)[</span><span class="s2">"Table"</span><span class="p">])</span>
+<span class="n">web_sales_recien_creada</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="s2">"web_sales"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tablas_iceberg_previas</span>
+<span class="n">web_sales_by_year_recien_creada</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="s2">"web_sales_by_year"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tablas_iceberg_previas</span>
+
 <span class="n">ctas_web_sales_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
-<span class="s1">CREATE TABLE iceberg.tcdm.web_sales</span>
+<span class="s1">CREATE TABLE IF NOT EXISTS iceberg.tcdm.web_sales</span>
 <span class="s1">WITH (partitioning = ARRAY['month(ws_sold_date)']) AS</span>
 <span class="s1">SELECT</span>
 <span class="s1">    ws_order_number,</span>
@@ -8661,7 +8671,10 @@ tabla.</p>
 <span class="s1">FROM hive.tcdm.web_sales_silver</span>
 <span class="s1">'''</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="n">ctas_web_sales_sql</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales creada."</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">web_sales_recien_creada</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales creada."</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales ya existía: se conserva tal como estaba."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8699,7 +8712,10 @@ exactamente igual que en la tabla Hive de origen.</p>
 <span class="n">filas_iceberg</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM iceberg.tcdm.web_sales"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"hive.tcdm.web_sales_silver:"</span><span class="p">,</span> <span class="n">filas_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">],</span> <span class="s2">"filas"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales:    "</span><span class="p">,</span> <span class="n">filas_iceberg</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">],</span> <span class="s2">"filas"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_iceberg</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
+<span class="k">if</span> <span class="n">web_sales_recien_creada</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_iceberg</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"La tabla ya existía: puede incluir cambios posteriores a su creación (S8)."</span><span class="p">)</span>
 
 <span class="n">clave_compuesta</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    SELECT</span>
@@ -8711,8 +8727,8 @@ exactamente igual que en la tabla Hive de origen.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">clave_compuesta</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">clave_compuesta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span>
     <span class="n">clave_compuesta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"claves_distintas"</span><span class="p">]</span>
-<span class="p">),</span> <span class="s2">"la clave (ws_order_number, ws_item_sk) ha dejado de ser unica: revisa el CTAS"</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"La clave (ws_order_number, ws_item_sk) sigue siendo unica en iceberg.tcdm.web_sales."</span><span class="p">)</span>
+<span class="p">),</span> <span class="s2">"la clave (ws_order_number, ws_item_sk) ha dejado de ser única: revisa el CTAS"</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"La clave (ws_order_number, ws_item_sk) sigue siendo única en iceberg.tcdm.web_sales."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8740,12 +8756,15 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">ctas_web_sales_by_year_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
-<span class="s1">CREATE TABLE iceberg.tcdm.web_sales_by_year AS</span>
+<span class="s1">CREATE TABLE IF NOT EXISTS iceberg.tcdm.web_sales_by_year AS</span>
 <span class="s1">SELECT d_year, pedidos, lineas_de_venta, beneficio_neto</span>
 <span class="s1">FROM hive.tcdm.web_sales_by_year_gold</span>
 <span class="s1">'''</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="n">ctas_web_sales_by_year_sql</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_by_year creada."</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">web_sales_by_year_recien_creada</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_by_year creada."</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_by_year ya existía: se conserva tal como estaba."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8769,7 +8788,10 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_by_year:    "</span><span class="p">,</span> <span class="n">comparacion_gold</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s2">"records"</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"hive.tcdm.web_sales_by_year_gold:  "</span><span class="p">,</span> <span class="n">comparacion_gold_hive</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s2">"records"</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-<span class="k">assert</span> <span class="n">comparacion_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">]</span> <span class="o">==</span> <span class="n">comparacion_gold_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">web_sales_by_year_recien_creada</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">comparacion_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">]</span> <span class="o">==</span> <span class="n">comparacion_gold_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">]</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"La tabla ya existía: puede incluir cambios posteriores a su creación (S8)."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8913,10 +8935,10 @@ comprobamos en Python en toda esta sesión.</p>
 
 
 <span class="n">ubicacion_web_sales</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ubicacion_de_tabla_iceberg</span><span class="p">(</span><span class="n">ddl_web_sales_texto</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Ubicacion real de iceberg.tcdm.web_sales:"</span><span class="p">,</span> <span class="n">ubicacion_web_sales</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ubicación real de iceberg.tcdm.web_sales:"</span><span class="p">,</span> <span class="n">ubicacion_web_sales</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">ubicacion_web_sales</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
     <span class="s2">"hdfs://namenode:9000/warehouse/tcdm.db/web_sales-"</span>
-<span class="p">),</span> <span class="s2">"la ubicacion no seria la esperada bajo /warehouse/tcdm.db/"</span>
+<span class="p">),</span> <span class="s2">"la ubicación no sería la esperada bajo /warehouse/tcdm.db/"</span>
 </pre></div>
 </div>
 </div>
@@ -8945,8 +8967,8 @@ directorio <code>data</code> (los ficheros Parquet) del directorio <code>metadat
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Las celdas <code>!orden</code> de Jupyter/IPython permiten interpolar variables
-de Python escribiendo <code>{variable}</code> dentro de la orden de shell: así evitamos
+<p>Como en S4, la celda <code>!orden</code> siguiente interpola una variable de Python
+escribiendo <code>{variable}</code> dentro de la orden de shell: así evitamos
 reconstruir la ruta a mano y nos aseguramos de listar exactamente la
 ubicación que acaba de confirmar Trino.</p>
 </div>
@@ -9085,12 +9107,7 @@ mismo Hive Metastore que ya usa Trino para su propio catálogo <code>iceberg</co
 </ul>
 <p>Con esto, Spark resuelve <code>iceberg.tcdm.web_sales</code> por su nombre de catálogo
 exactamente igual que ya resuelve <code>tcdm.web_sales_silver</code> por el catálogo
-Hive nativo: no hace falta ninguna ruta física ni ningún paso adicional.
-Antes de escribir la <code>SparkSession</code>, merece la pena dejar constancia de un
-problema real de compatibilidad de versiones que esta sesión llegó a
-sufrir con una versión distinta del Hive Metastore, porque es una lección de
-arquitectura tan valiosa como cualquiera de las técnicas de Iceberg que vas
-a ver a continuación.</p>
+Hive nativo: no hace falta ninguna ruta física ni ningún paso adicional.</p>
 </div>
 </div>
 </div>
@@ -9150,7 +9167,7 @@ más reciente de la rama 4.x— está en <code>entorno/README.md</code>, secció
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Metastore URIs: </span><span class="si">{</span><span class="n">HIVE_METASTORE_URIS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warehouse dir: </span><span class="si">{</span><span class="n">WAREHOUSE_DIR</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Paquete Iceberg: </span><span class="si">{</span><span class="n">ICEBERG_SPARK_PACKAGE</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Catalogo 'iceberg' configurado como tipo hive contra el mismo metastore."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Catálogo 'iceberg' configurado como tipo hive contra el mismo metastore."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9517,12 +9534,13 @@ convención <code>&lt;tabla&gt;$metadato</code> que ya usaste en S6 para <code>$
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Un único snapshot, con <code>operation = 'append'</code> (así etiqueta Iceberg un
 CTAS: es, en el fondo, una escritura que añade el primer conjunto de
-ficheros). Antes de seguir experimentando con inserciones, cambios de
+ficheros). Si repites esta sesión después de S8, verás además los snapshots
+que dejó el streaming. Antes de seguir experimentando con inserciones, cambios de
 esquema y viajes en el tiempo, vamos a decidir dónde hacerlo.</p>
 <p><strong>Por qué no seguimos experimentando sobre <code>iceberg.tcdm.web_sales</code> a partir
-de aquí.</strong> El perfil docente de esta sesión sugiere insertar una tanda de
-datos "sencilla y reproducible", y el ejemplo más simple sería reinsertar un
-subconjunto ya existente de la propia tabla. Pero <code>iceberg.tcdm.web_sales</code>
+de aquí.</strong> El ejemplo más simple de una nueva tanda de datos sería
+reinsertar un subconjunto ya existente de la propia tabla. Pero
+<code>iceberg.tcdm.web_sales</code>
 tiene un contrato con S8: su clave compuesta <code>(ws_order_number, ws_item_sk)</code> debe seguir siendo única, porque S8 hará un <code>MERGE INTO</code> sobre
 exactamente esa pareja de columnas. Reinsertar filas que ya existen
 —aunque sea sólo para ver aparecer un segundo snapshot— rompería esa unicidad
@@ -9544,7 +9562,8 @@ que dejó su creación, y su clave compuesta intacta.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS iceberg.tcdm.web_sales_lab_evolution"</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span>
     <span class="s2">"CREATE TABLE iceberg.tcdm.web_sales_lab_evolution AS SELECT * FROM iceberg.tcdm.web_sales"</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_lab_evolution creada como copia de laboratorio."</span><span class="p">)</span>
@@ -9638,7 +9657,7 @@ snapshots—, pero no la tomes como ejemplo del contrato
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="p">(</span>
     <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_inicial</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-<span class="p">),</span> <span class="s2">"deberia haber un snapshot mas tras el INSERT"</span>
+<span class="p">),</span> <span class="s2">"debería haber un snapshot más tras el INSERT"</span>
 <span class="n">snapshot_inicial_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">])</span>
 <span class="n">snapshot_tras_insert_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
     <span class="n">snapshots_tras_insert</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">]</span>
@@ -9694,8 +9713,8 @@ simplemente no tienen valor en la columna nueva.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">filas_tras_evolucion</span><span class="p">)</span>
 <span class="k">assert</span> <span class="p">(</span>
     <span class="nb">int</span><span class="p">(</span><span class="n">filas_tras_evolucion</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas_con_canal"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="p">),</span> <span class="s2">"las filas antiguas no deberian tener valor en la columna nueva"</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Las filas anteriores a la evolucion de esquema se siguen leyendo, con canal_venta a NULL."</span><span class="p">)</span>
+<span class="p">),</span> <span class="s2">"las filas antiguas no deberían tener valor en la columna nueva"</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Las filas anteriores a la evolución de esquema se siguen leyendo, con canal_venta a NULL."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9733,7 +9752,7 @@ esquema y sus filas de entonces.</p>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Filas en el snapshot inicial:"</span><span class="p">,</span> <span class="n">conteo_snapshot_inicial</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas en la version actual:  "</span><span class="p">,</span> <span class="n">conteo_actual</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas en la versión actual:  "</span><span class="p">,</span> <span class="n">conteo_actual</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
 <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">conteo_actual</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">conteo_snapshot_inicial</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
 </pre></div>
 </div>
@@ -10069,7 +10088,7 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 <span class="s1">    )</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span>
-    <span class="s2">"hive.tcdm.web_sales_raw_sin_particionar registrada (solo columnas necesarias para esta comparacion)."</span>
+    <span class="s2">"hive.tcdm.web_sales_raw_sin_particionar registrada (sólo columnas necesarias para esta comparación)."</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -10160,7 +10179,7 @@ año (podemos obtenerlo de <code>date_dim</code>, la tabla que ya registró S6).
 <span class="s1">    EXPLAIN SELECT count(*) FROM iceberg.tcdm.web_sales</span>
 <span class="s1">    WHERE ws_sold_date &gt;= DATE '2000-01-01' AND ws_sold_date &lt; DATE '2001-01-01'</span>
 <span class="s1">'''</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"=== Iceberg con transformacion month(ws_sold_date) ==="</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"=== Iceberg con transformación month(ws_sold_date) ==="</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">explain_iceberg_2000</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
 </pre></div>
 </div>
@@ -10206,7 +10225,7 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE hive.tcdm.web_sales_raw_sin_particionar"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Definicion temporal retirada; /datalake/raw/tpcds/web_sales no se ha visto afectado."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Definición temporal retirada; /datalake/raw/tpcds/web_sales no se ha visto afectado."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -10315,7 +10334,7 @@ después.</p>
 
 <span class="nb">print</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span>
-    <span class="s2">"Planes identicos antes y despues de ANALYZE:"</span><span class="p">,</span>
+    <span class="s2">"Planes idénticos antes y después de ANALYZE:"</span><span class="p">,</span>
     <span class="n">explain_join_antes_texto</span> <span class="o">==</span> <span class="n">explain_join_despues_texto</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
@@ -10335,8 +10354,8 @@ como <code>distinct_values_count</code> o <code>data_size</code> suelen venir va
 estimaciones muy toscas basadas sólo en el tamaño de los ficheros; después,
 cada columna trae una estimación calculada sobre los datos reales, y
 aparece <code>row_count</code> en la fila final. Ahora bien: en una tabla tan pequeña
-como la de esta sesión (SF1, unas pocas decenas de miles de líneas de
-venta), es perfectamente posible que <code>explain_join_antes_texto</code> y
+como la de esta sesión (SF1, unos cientos de miles de líneas de venta), es
+perfectamente posible que <code>explain_join_antes_texto</code> y
 <code>explain_join_despues_texto</code> resulten idénticos —Trino puede elegir el mismo
 tipo de <code>JOIN</code> con o sin estadísticas si el volumen de datos ya es pequeño
 de por sí—. Si es tu caso, esa es precisamente la lección: las estadísticas
@@ -10470,8 +10489,8 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 <span class="s1">    '''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"8 tandas de 3 filas insertadas por separado en iceberg.tcdm.web_sales_lab_smallfiles."</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Cada INSERT independiente produce su propio fichero de datos y su propio snapshot,"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"que es exactamente lo que queremos observar aqui: no importa que las filas se repitan,"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"esto es una tabla de laboratorio pensada solo para medir ficheros y manifests."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"que es exactamente lo que queremos observar aquí: no importa que las filas se repitan,"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"esto es una tabla de laboratorio pensada sólo para medir ficheros y manifests."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -10499,7 +10518,7 @@ manifests y número de snapshots.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">inventario_tabla_iceberg</span><span class="p">(</span><span class="n">esquema</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tabla</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">'''Recoge un pequeno inventario de una tabla Iceberg via las tablas de metadatos de Trino.'''</span>
+<span class="w">    </span><span class="sd">'''Recoge un pequeño inventario de una tabla Iceberg vía las tablas de metadatos de Trino.'''</span>
     <span class="n">n_ficheros</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s1">'SELECT count(*) AS n FROM iceberg.</span><span class="si">{</span><span class="n">esquema</span><span class="si">}</span><span class="s1">."</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s1">$files"'</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
         <span class="mi">0</span><span class="p">,</span> <span class="s2">"n"</span>
     <span class="p">]</span>
@@ -10536,8 +10555,8 @@ manifests y número de snapshots.</p>
 pequeños en tablas Iceberg. <a href="https://trino.io/docs/current/connector/iceberg.html">El conector Iceberg de
 Trino</a> documenta este
 procedimiento; Spark ofrece la acción equivalente a través del procedimiento
-<code>rewrite_data_files</code> de su catálogo Iceberg —lo usaremos más abajo, en la
-sección de Z-order, porque es la única de las dos vías que soporta esa
+<code>rewrite_data_files</code> de su catálogo Iceberg —se cita más abajo, en la
+sección de Z-order, porque es la única de las dos vías que admite esa
 estrategia—. Aquí seguimos con Trino porque es el motor que ya ha creado y
 sincronizado esta tabla de laboratorio, y la compactación por tamaño
 (<code>strategy =&gt; 'binpack'</code>, la que activa <code>EXECUTE optimize</code> sin más
@@ -10574,7 +10593,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
     <span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_smallfiles"</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Antes de compactar:  "</span><span class="p">,</span> <span class="n">inventario_antes_compactar</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Despues de compactar:"</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Después de compactar:"</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">inventario_despues_compactar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">inventario_antes_compactar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span>
@@ -10682,7 +10701,7 @@ borrar.</p>
 <span class="s1">    SELECT snapshot_id, operation FROM iceberg.tcdm."web_sales_lab_smallfiles$snapshots"</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Snapshots antes de expirar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Snapshots despues de expirar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Snapshots después de expirar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="p">)</span>
 <span class="n">snapshots_tras_expirar</span>
 </pre></div>
@@ -10847,73 +10866,33 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 <h3 id="Z-order">Z-order<a class="anchor-link" href="#Z-order">¶</a></h3><p>Z-order es una técnica que combina varias columnas de filtrado en un único
 criterio de organización física, útil cuando las consultas filtran a veces
 por una columna y a veces por otra, no siempre por la misma.</p>
-<p>El conector Iceberg de Trino no expone ninguna estrategia de Z-order en
-<code>ALTER TABLE ... EXECUTE optimize</code>: sólo compacta por tamaño de fichero, sin
-ordenación multi-columna. Iceberg sí define, en su capa Java, el
-procedimiento de sistema <code>rewrite_data_files</code>, con una estrategia <code>sort</code> y
-un <code>sort_order</code> de tipo <code>zorder(columna1, columna2, ...)</code>, invocable desde
-Spark con <code>CALL &lt;catalogo&gt;.system.rewrite_data_files(...)</code>.</p>
-<p>Esta sesión llegó a documentar que esa demostración no era posible en este
-entorno porque el procedimiento necesita <strong>escribir</strong> un nuevo snapshot a
-través del catálogo Iceberg de Spark, y esa era exactamente la vía
-bloqueada por la incompatibilidad con Hive Metastore <code>4.2.1</code> descrita más
-arriba. Con Hive Metastore <code>3.1.3</code> esa vía ya funciona —el catálogo
-<code>iceberg</code> de Spark resuelve tablas por nombre igual que el catálogo Hive
-nativo—, así que esta vez sí se intentó ejecutar de verdad. El intento reveló
-dos limitaciones reales de la propia implementación de Iceberg, no de este
-clúster, y por eso Z-order sigue quedando como ampliación documentada, no
-como paso ejecutado, siguiendo la misma política docente que ya se declaró
-para esta sección: se incluye sólo si existe una demostración reproducible
-y medible.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Primer intento: Z-order no admite columnas <code>DECIMAL</code>.</strong> Sobre
-<code>iceberg.tcdm.web_sales_lab_sorted</code> (creada arriba, con <code>sorted_by = ARRAY['ws_item_sk']</code>) se intentó</p>
+<p>Esta sesión lo presenta sin ejecutarlo, porque con las versiones del
+laboratorio no hay una demostración reproducible:</p>
+<ul>
+<li>el conector Iceberg de Trino no ofrece ninguna estrategia de Z-order:
+<code>ALTER TABLE ... EXECUTE optimize</code> sólo compacta por tamaño de fichero;</li>
+<li>Iceberg sí lo define para Spark, en el procedimiento <code>rewrite_data_files</code>
+con <code>strategy =&gt; 'sort'</code> y un <code>sort_order</code> de tipo
+<code>zorder(columna1, columna2, ...)</code>, pero con dos restricciones: no admite
+columnas <code>DECIMAL</code> —las monetarias de <code>web_sales</code> lo son— y en este
+entorno falla sobre una tabla cuyo <em>sort order</em> ya declaró Trino, como
+<code>web_sales_lab_sorted</code>.</li>
+</ul>
+<p>La llamada tendría esta forma:</p>
 <div class="highlight"><pre><span></span>CALL iceberg.system.rewrite_data_files(
-    table =&gt; 'tcdm.web_sales_lab_sorted',
+    table =&gt; 'tcdm.&lt;tabla&gt;',
     strategy =&gt; 'sort',
-    sort_order =&gt; 'zorder(ws_item_sk, ws_net_paid)',
-    options =&gt; map('rewrite-all', 'true')
+    sort_order =&gt; 'zorder(&lt;columna1&gt;, &lt;columna2&gt;)'
 )
 </pre></div>
-<p>y falló con
-<code>IllegalArgumentException: Cannot use column ws_net_paid of type DecimalType(7,2) in ZOrdering, the type is unsupported</code>. No es un fallo de
-sintaxis: la implementación de Z-order de Iceberg convierte cada columna a
-una representación binaria de ancho fijo para poder intercalar sus bits, y
-no sabe hacerlo para <code>DECIMAL</code> (a diferencia de enteros, cadenas, fechas o
-<code>DOUBLE</code>, que sí soporta).</p>
-<p><strong>Segundo intento: un conflicto con el <em>sort order</em> que ya declaró
-Trino.</strong> Cambiando a dos columnas <code>BIGINT</code> sin ese problema
-(<code>zorder(ws_item_sk, ws_order_number)</code>), la misma llamada falló de forma
-distinta:
-<code>IllegalArgumentException: Cannot use output sort order id 0 because the table does not contain a sort order with that id</code>. La tabla ya tenía un
-<em>sort order</em> propio registrado por Trino (la propiedad <code>sorted_by</code> de más
-arriba); pasarle a <code>rewrite_data_files</code> un <code>sort_order</code> distinto y ad hoc
-(<code>zorder(...)</code>) sobre una tabla que ya declara su propio orden entra en un
-camino de validación de Iceberg que no se resolvió en el tiempo de esta
-sesión. Coincide con incompatibilidades ya reportadas entre
-<code>rewrite_data_files</code> y el <em>sort order</em> declarado de una tabla (por ejemplo,
-<a href="https://github.com/apache/iceberg/issues/10346">apache/iceberg#10346</a>).</p>
-<p>Con esto, Z-order pasa de "no se puede ejecutar en este entorno por una
-incompatibilidad de metastore" (la situación con Hive Metastore <code>4.2.1</code>) a
-"se puede invocar, pero dos limitaciones reales y todavía no resueltas de
-Iceberg impiden completarlo de forma fiable sobre esta tabla concreta": una
-mejora real en el diagnóstico, aunque la demostración en sí siga sin
-ejecutarse. Si en el futuro una versión de Iceberg resuelve alguna de las
-dos, esta sección debería revisarse con la llamada de arriba tal cual está
-escrita.</p>
+<p>Como cualquier otra optimización de esta sesión, Z-order sólo merece la
+pena cuando hay un problema medido que resolver: filtros frecuentes por
+varias columnas sobre una tabla lo bastante grande como para que descartar
+ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10955,7 +10934,7 @@ escrita.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11007,8 +10986,8 @@ una cifra de tiempo de pared poco fiable en este entorno.</p>
 <td><code>ddl_lab_sorted</code></td>
 </tr>
 <tr>
-<td>Iceberg y Z-order (<code>web_sales_lab_sorted</code>)</td>
-<td><code>rewrite_data_files</code> con <code>zorder(...)</code> se intentó y quedó documentado, no ejecutado: dos limitaciones reales de Iceberg (tipo <code>DECIMAL</code> no soportado; conflicto con el <em>sort order</em> que ya declaró Trino)</td>
+<td>Iceberg y Z-order</td>
+<td>No se ejecuta: Trino no lo ofrece y <code>rewrite_data_files</code> de Spark no admite columnas <code>DECIMAL</code> ni la tabla con <em>sort order</em> declarado por Trino</td>
 <td>sección "Z-order" más arriba</td>
 </tr>
 </tbody>
@@ -11018,7 +10997,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11026,21 +11005,21 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"Lineas de venta vs pedidos distintos, iceberg.tcdm.web_sales:"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"Líneas de venta vs pedidos distintos, iceberg.tcdm.web_sales:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">resultado_trino</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s2">"records"</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Inventario de la tabla de laboratorio de ficheros pequeños:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"  antes de compactar:  "</span><span class="p">,</span> <span class="n">inventario_antes_compactar</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"  despues de compactar:"</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"  después de compactar:"</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"  snapshots antes de expirar:  "</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"  snapshots despues de expirar:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"  snapshots después de expirar:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11058,7 +11037,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11070,7 +11049,7 @@ ningún catálogo—.</p>
 <span class="w">    </span><span class="sd">'''Devuelve la ruta HDFS del metadata.json vigente de una tabla Iceberg.</span>
 
 <span class="sd">    No depende del Hive Metastore para nada salvo para preguntarle a Trino</span>
-<span class="sd">    (que si puede leer la tabla) cual es su ubicacion en HDFS.</span>
+<span class="sd">    (que sí puede leer la tabla) cuál es su ubicación en HDFS.</span>
 <span class="sd">    '''</span>
     <span class="n">ddl_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SHOW CREATE TABLE </span><span class="si">{</span><span class="n">catalogo</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">esquema</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">ubicacion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ubicacion_de_tabla_iceberg</span><span class="p">(</span><span class="n">ddl_texto</span><span class="p">)</span>
@@ -11087,12 +11066,12 @@ ningún catálogo—.</p>
         <span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">listado</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">linea</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".metadata.json"</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">assert</span> <span class="n">ficheros_metadata</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"no se ha encontrado ningun metadata.json bajo </span><span class="si">{</span><span class="n">ubicacion</span><span class="si">}</span><span class="s2">/metadata"</span>
+    <span class="k">assert</span> <span class="n">ficheros_metadata</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"no se ha encontrado ningún metadata.json bajo </span><span class="si">{</span><span class="n">ubicacion</span><span class="si">}</span><span class="s2">/metadata"</span>
     <span class="k">return</span> <span class="n">ficheros_metadata</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">leer_tabla_iceberg_por_ruta</span><span class="p">(</span><span class="n">catalogo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">esquema</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tabla</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">'''Carga con Spark una tabla Iceberg por su metadata.json vigente, sin pasar por el catalogo.'''</span>
+<span class="w">    </span><span class="sd">'''Carga con Spark una tabla Iceberg por su metadata.json vigente, sin pasar por el catálogo.'''</span>
     <span class="n">ruta_metadata</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ruta_metadata_json_vigente</span><span class="p">(</span><span class="n">catalogo</span><span class="p">,</span> <span class="n">esquema</span><span class="p">,</span> <span class="n">tabla</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"iceberg"</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ruta_metadata</span><span class="p">)</span>
 
@@ -11106,7 +11085,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11116,16 +11095,16 @@ ningún catálogo—.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">filas_por_ruta</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_by_year_por_ruta</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 <span class="n">filas_por_catalogo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_by_year"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por ruta fisica:"</span><span class="p">,</span> <span class="n">filas_por_ruta</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por catalogo:  "</span><span class="p">,</span> <span class="n">filas_por_catalogo</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por ruta física:"</span><span class="p">,</span> <span class="n">filas_por_ruta</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por catálogo:  "</span><span class="p">,</span> <span class="n">filas_por_catalogo</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">filas_por_ruta</span> <span class="o">==</span> <span class="n">filas_por_catalogo</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Las dos vias de lectura devuelven el mismo resultado sobre iceberg.tcdm.web_sales_by_year."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Las dos vías de lectura devuelven el mismo resultado sobre iceberg.tcdm.web_sales_by_year."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11169,7 +11148,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11216,7 +11195,7 @@ oficiales del curso, como hemos hecho con el prefijo <code>web_sales_lab_</code>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11243,10 +11222,10 @@ declaramos al crear <code>iceberg.tcdm.web_sales_lab_sorted</code>? ¿Qué garan
 cada uno y qué no garantiza ninguno de los dos?</li>
 <li>¿Por qué Trino impide expirar snapshots con una retención de cero días
 por defecto? ¿Qué riesgo concreto evita ese límite de 7 días?</li>
-<li>El intento de Z-order sólo podía hacerse desde Spark con
+<li>Z-order sólo puede pedirse desde Spark con
 <code>CALL iceberg.system.rewrite_data_files(...)</code>, nunca desde Trino. ¿Por
-qué? ¿Qué dos errores reales se encontraron al intentarlo, y en qué se
-diferencian de una simple incompatibilidad de configuración?</li>
+qué? ¿Qué dos restricciones impiden demostrarlo en esta sesión, y qué tipo
+de consultas justificarían aplicarlo?</li>
 <li>Antes de compactar <code>iceberg.tcdm.web_sales_lab_smallfiles</code>, ¿qué problema
 concreto estabas resolviendo? ¿Cómo lo mediste, y cómo comprobaste que
 seguía existiendo el mismo resultado de negocio después de compactar?</li>
@@ -11255,13 +11234,16 @@ seguía existiendo el mismo resultado de negocio después de compactar?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=134">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión, ten preparadas estas evidencias:</p>
+<h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión tendrás una reunión individual breve con el
+profesor para revisar el trabajo de esta sesión. Esa reunión combina una
+demostración en vivo sobre tu propio ordenador y una memoria escrita breve.</p>
+<h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias:</p>
 <ol>
 <li>El <code>SHOW CREATE TABLE</code> de <code>iceberg.tcdm.web_sales</code> y de
 <code>iceberg.tcdm.web_sales_by_year</code>, con su ubicación efectiva bajo
@@ -11288,23 +11270,47 @@ con <code>date_dim</code>.</li>
 <li>Que sabes explicar, con tus propias palabras, la diferencia entre
 <code>ORDER BY</code>, un <em>sort order</em> de tabla y la ordenación local frente a
 global.</li>
-<li>Los dos errores reales que se encontraron al intentar
-<code>CALL iceberg.system.rewrite_data_files(...)</code> con <code>strategy =&gt; 'sort'</code> y
-<code>sort_order =&gt; 'zorder(...)'</code> sobre <code>iceberg.tcdm.web_sales_lab_sorted</code>
-(columna <code>DECIMAL</code> no soportada; conflicto con el <em>sort order</em> que ya
-declaró Trino), y por qué eso deja Z-order como ampliación documentada
-en vez de un paso ejecutado.</li>
+<li>Que sabes explicar qué es Z-order, desde qué motor se puede pedir y por
+qué esta sesión no lo ejecuta (columnas <code>DECIMAL</code> no admitidas; tabla con
+un <em>sort order</em> ya declarado).</li>
 <li>Una conclusión propia, de una o dos frases, sobre cuándo una optimización
 de las vistas en esta sesión ayuda de verdad y cuándo no merece la
 pena aplicarla en TPC-DS SF1.</li>
-<li>La confirmación de que las tablas y snapshots de laboratorio quedan
-limpiados al final de la sesión, tal como se describe a continuación.</li>
+<li>Que sabes qué tablas de laboratorio se borran después de la reunión y
+cuáles deben conservarse para S8, tal como se describe a continuación.</li>
 </ol>
+<h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
+no se limite a pegar capturas de las salidas anteriores: debe explicar con
+tus propias palabras la diferencia entre un fichero Parquet, una tabla Hive
+externa y una tabla Iceberg; qué aporta el catálogo y qué aporta el formato
+de tabla; qué es un snapshot y qué ocurre con los anteriores tras un
+<code>INSERT</code> o un <code>ALTER TABLE</code>; en qué se diferencia una partición oculta de
+Iceberg de una partición visible de Hive; y tu conclusión razonada sobre qué
+optimización de las vistas ayuda de verdad en SF1 y cuál no.</p>
+<h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una sentencia. Debes poder
+explicar:</p>
+<ul>
+<li>qué distingue un data lake de ficheros, un data lake catalogado y un
+lakehouse;</li>
+<li>qué metadatos mantiene Iceberg (<code>metadata.json</code>, manifests y snapshots) y
+qué permite cada uno;</li>
+<li>cómo funcionan la evolución de esquema y el viaje en el tiempo, y por qué
+no exigen reescribir los datos;</li>
+<li>qué es una transformación de partición oculta y qué cambia respecto a las
+columnas de partición de Hive;</li>
+<li>por qué la selección de columnas y los filtros se comprueban antes que
+cualquier otra optimización;</li>
+<li>el problema de los ficheros pequeños, la compactación y la expiración de
+snapshots con una política de retención;</li>
+<li>para qué sirven las estadísticas y por qué <code>ANALYZE</code> informa al
+planificador sin obligarlo a cambiar de plan;</li>
+<li>la diferencia entre <code>ORDER BY</code>, un <em>sort order</em> de tabla y Z-order.</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11314,7 +11320,8 @@ limpiados al final de la sesión, tal como se describe a continuación.</li>
 que un «ejecutar todo» de este notebook no las dispare por accidente. Las
 tablas de laboratorio de esta sesión —<code>web_sales_lab_evolution</code>,
 <code>web_sales_lab_smallfiles</code> y <code>web_sales_lab_sorted</code>— son recursos
-desechables: bórralas cuando termines. <strong>Nunca</strong> apliques el mismo
+desechables: consérvalas hasta la reunión de evidencias, que las necesita,
+y bórralas después. <strong>Nunca</strong> apliques el mismo
 razonamiento a <code>iceberg.tcdm.web_sales</code> ni a
 <code>iceberg.tcdm.web_sales_by_year</code>: son las dos tablas que reutilizará S8, y
 borrarlas o expirar sus snapshots obligaría a repetir esta sesión entera.</p>
@@ -11350,12 +11357,13 @@ borrarlas o expirar sus snapshots obligaría a repetir esta sesión entera.</p>
 </tbody>
 </table>
 <p>No confundas ese <code>down -v</code> del warehouse con el <code>down</code>/<code>volume rm</code> de S1
-(clúster Hadoop) o con el <code>down -v</code> de S3 (S3): cada Compose tiene su propio
+(clúster Hadoop) o con el <code>down -v</code> de la sesión 3 (RustFS): cada Compose
+tiene su propio
 volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=136">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11398,7 +11406,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

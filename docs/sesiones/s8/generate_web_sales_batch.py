@@ -13,7 +13,10 @@ WebHDFS, con `fsspec` y `PyArrow`, igual que los lectores de la sesión 2
 (`ws_bill_customer_sk`, `ws_bill_addr_sk`, `ws_item_sk`, `ws_sold_date_sk`)
 se calculan a partir de las tablas reales `customer`, `customer_address`,
 `item` y `date_dim` de `/datalake/raw/tpcds`, nunca a partir de rangos
-adivinados.
+adivinados. Las fechas de venta se eligen dentro del periodo que cubre el
+`web_sales` real (de su primera a su última fecha de venta, a partir de
+1998), de modo que las líneas generadas caen en los mismos años que las
+ventas ya existentes.
 
 Cada lote mezcla dos tipos de líneas:
 
@@ -191,17 +194,29 @@ def read_sk_bounds(
     return minimum, maximum
 
 
-def read_date_dim(arrow_fs: pafs.FileSystem, webhdfs: AbstractFileSystem) -> list[tuple[int, date]]:
-    """Leer la tabla completa `date_dim` como pares (d_date_sk, d_date).
+def read_sales_dates(
+    arrow_fs: pafs.FileSystem,
+    webhdfs: AbstractFileSystem,
+    sold_date_sk_bounds: tuple[int, int],
+) -> list[tuple[int, date]]:
+    """Leer de `date_dim` las fechas del periodo real de ventas.
 
-    `date_dim` es pequeña (73 049 filas en SF1): leerla entera permite
-    elegir, para cada línea generada, una fecha real ya materializada, en
-    lugar de fabricar una clave de fecha que no exista en la tabla.
+    Devuelve pares (d_date_sk, d_date) cuya clave está entre la primera y la
+    última `ws_sold_date_sk` de `web_sales`. `date_dim` cubre dos siglos
+    (73 049 fechas en SF1), pero las ventas web sólo ocupan unos pocos años a
+    partir de 1998: limitarse a ese periodo hace que las líneas generadas
+    caigan en los mismos años que las ventas reales, y elegir sólo fechas ya
+    materializadas evita fabricar una clave de fecha que no exista.
     """
 
+    first_sk, last_sk = sold_date_sk_bounds
     files: list[str] = list_data_files(webhdfs, RAW_DATE_DIM)
     table: pa.Table = pq.read_table(files, filesystem=arrow_fs, columns=["d_date_sk", "d_date"])
-    return list(zip(table["d_date_sk"].to_pylist(), table["d_date"].to_pylist()))
+    return [
+        (date_sk, sold_date)
+        for date_sk, sold_date in zip(table["d_date_sk"].to_pylist(), table["d_date"].to_pylist())
+        if first_sk <= date_sk <= last_sk
+    ]
 
 
 def read_existing_key_sample(
@@ -375,9 +390,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"[RESULTADO <- PyArrow] ca_address_sk: {addr_sk_bounds}")
     print(f"[RESULTADO <- PyArrow] i_item_sk: {item_sk_bounds}")
 
-    print("[ORDEN -> PyArrow] Leyendo date_dim completa para fechas reales.")
-    date_dim_rows: list[tuple[int, date]] = read_date_dim(arrow_fs, webhdfs)
-    print(f"[RESULTADO <- PyArrow] date_dim: {len(date_dim_rows)} fechas disponibles.")
+    print("[ORDEN -> PyArrow] Calculando el periodo real de ventas de web_sales.")
+    sold_date_sk_bounds: tuple[int, int] = read_sk_bounds(
+        arrow_fs, webhdfs, RAW_WEB_SALES, "ws_sold_date_sk"
+    )
+    date_dim_rows: list[tuple[int, date]] = read_sales_dates(arrow_fs, webhdfs, sold_date_sk_bounds)
+    if not date_dim_rows:
+        raise SystemExit("date_dim no contiene ninguna fecha del periodo de ventas de web_sales")
+    print(
+        f"[RESULTADO <- PyArrow] {len(date_dim_rows)} fechas de venta posibles, "
+        f"de {min(row[1] for row in date_dim_rows)} a {max(row[1] for row in date_dim_rows)}."
+    )
 
     print(
         "[ORDEN -> PyArrow] Muestreando pares (ws_order_number, ws_item_sk) "
