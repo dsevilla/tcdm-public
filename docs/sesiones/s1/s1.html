@@ -7816,13 +7816,25 @@ textarea,
 }
 
 .jp-Notebook .jp-RenderedHTMLCommon :not(pre) > code {
-  font-size: 0.9em;
+  font-size: 0.82em;
 }
 
 .jp-Notebook .jp-RenderedHTMLCommon pre,
 .jp-Notebook .jp-InputArea-editor pre,
 .jp-Notebook .jp-OutputArea-output pre {
   font-size: calc(var(--jp-code-font-size, 13px) * 1.44);
+}
+
+.jp-Notebook .jp-MarkdownCell .jp-RenderedHTMLCommon pre {
+  margin: 0 0 1em;
+  padding: 0.5em 0.7em;
+  border: 1px solid #e6dcc6;
+  border-radius: 4px;
+  background-color: #fbf7ee;
+}
+
+.jp-Notebook .jp-MarkdownCell .jp-RenderedHTMLCommon pre > code {
+  background-color: transparent;
 }
 </style>
 </head>
@@ -8055,25 +8067,6 @@ ellas.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> titulo
-# Sesión 1: HDFS, YARN y MapReduce
-- Por qué existe Big Data y qué problema resuelve MapReduce
-- HDFS, YARN y MapReduce: qué papel tiene cada pieza
-- Arrancamos un clúster real de cuatro máquinas simuladas con contenedores
-- Comprobamos HDFS y YARN con datos y trabajos reales
-- Ejecutamos WordCount y vemos dónde se calculó cada parte
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8097,24 +8090,6 @@ ellas.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> evaluacion
-# Cómo se evalúa esta sesión
-- Cada sesión termina con «Evidencias para la siguiente sesión»
-- Reunión individual breve con el profesor en una sesión posterior
-- Se muestra en vivo, en tu ordenador, lo que pide esa sección
-- Se entrega también una memoria breve (una o dos páginas)
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8139,24 +8114,6 @@ ellas.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Las tres piezas de Hadoop
-- HDFS guarda los ficheros como bloques replicados: el NameNode lleva los metadatos y los DataNodes el contenido
-- YARN reparte CPU y memoria: ResourceManager, NodeManagers y un ApplicationMaster por aplicación
-- MapReduce calcula sobre esos datos: map → *shuffle* → reduce
-- La idea que recorre la sesión: dónde están los datos (HDFS) no es dónde se ejecutan las tareas (YARN)
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8296,24 +8253,6 @@ YARN).</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# De dónde sale Hadoop
-- Big Data: volumen, velocidad y variedad; ninguna se resuelve comprando un ordenador más grande
-- Google publica GFS (2003) y MapReduce (2004); Hadoop los reimplementa como HDFS y MapReduce
-- YARN llega con Hadoop 2: separa los recursos del motor, y por eso Spark también podrá usarlos
-- Lo comprobaremos hoy: bloques grandes y replicados, y cómputo que va a donde están los datos
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8379,24 +8318,6 @@ nodo deja de responder.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=12">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# El mapa de tecnologías Big Data
-- Un catálogo para consultar, no para memorizar: diez áreas, de la búsqueda a la visualización
-- Almacenamiento y formatos que usa el curso: HDFS, S3 (RustFS), Parquet, Arrow e Iceberg
-- Procesamiento que usa el curso: Hadoop, Spark, Trino, DuckDB y Polars
-- Todo el laboratorio se ejecuta sobre Docker
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8537,24 +8458,6 @@ nodo deja de responder.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=14">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Por qué Hadoop asume que todo falla
-- Muchas máquinas baratas cuestan menos que pocas caras, pero fallan: con 1.000 nodos, un fallo al día
-- Los nodos fallan → HDFS replica los bloques y YARN relanza las tareas
-- La red es lenta → la computación va a los datos, no los datos a la computación
-- Programar en distribuido es difícil → el usuario sólo escribe `map()` y `reduce()`
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8658,24 +8561,6 @@ nodo deja de responder.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=16">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# Las piezas antes de tocarlas
-- HDFS guarda bloques replicados; YARN decide dónde se ejecutan las tareas
-- MapReduce reparte un cálculo en funciones map y reduce sobre esos bloques
-- Estas piezas nacieron para repartir datos y trabajo entre máquinas, no para comprar una más grande
-&gt; A partir de aquí se arranca un clúster real y se comprueba sobre él.
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8727,23 +8612,6 @@ en sesiones posteriores con Parquet/Arrow, Spark, Trino y tablas Iceberg.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=18">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Preparamos el entorno y conocemos el clúster
-- Comprobamos que Docker y Docker Compose funcionan en el equipo
-- El laboratorio simula 4 máquinas: `namenode`, `datanode1`, `datanode2`, `datanode3`
-- Vemos qué recursos anuncia cada contenedor y qué imágenes descarga Compose
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8904,24 +8772,6 @@ disponible.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=25">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# El clúster que vamos a usar
-- Cuatro contenedores: `namenode` (NameNode, ResourceManager y Timeline Server) y tres `datanodeN` (DataNode y NodeManager)
-- Límite de Docker ≠ memoria anunciada a YARN: 3072 MiB por DataNode, 2560 MiB para las aplicaciones
-- Dos imágenes ya construidas, con Hadoop 3.5.0 y Java 17; demonios como `hdadmin`, ejercicios como `luser`
-- HDFS ya trae `/user/luser`, `/datalake/raw`, `/datalake/silver`, `/datalake/gold` y `/warehouse`
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9106,24 +8956,6 @@ todos los contenedores están conectados a la misma red Docker
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Cómo se construyen las imágenes (referencia)
-- No hace falta reconstruirlas: esta parte explica de dónde sale lo que observarás en la sesión
-- Una imagen base (Ubuntu, Java, Hadoop y usuarios) y dos de servicio: `namenode-image` y `datanode-image`
-- La configuración y el formateo de HDFS se hacen al construir la imagen, no en `docker compose up`
-- `/inicio.sh` arranca los demonios como `hdadmin`; el entorno Python `/opt/tcdm/venv` sólo está en `namenode`
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9373,23 +9205,6 @@ nada es que la red ya existía.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=31">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# El entorno está listo para ser lanzado
-- Docker, Compose y el motor de contenedores responden correctamente
-- Conocemos los 4 contenedores, sus servicios y los recursos que anuncian a YARN
-- La red `hadoop-cluster` ya existe y conectará también servicios futuros (Trino, Hive Metastore)
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9414,23 +9229,6 @@ nada es que la red ya existía.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=32">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Arrancamos el clúster
-- Cuatro contenedores: `namenode`, `datanode1`, `datanode2`, `datanode3`
-- Cada uno representa una máquina distinta de un clúster real
-- Vamos a comprobar que Docker los levanta y que Hadoop los reconoce
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9802,24 +9600,6 @@ para localizar la aplicación ya finalizada.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=51">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# El clúster está vivo
-- 3 DataNodes replicando bloques, 3 NodeManagers ofreciendo recursos
-- El NameNode manda en el espacio de nombres; no guarda los datos
-- El ResourceManager decide dónde se ejecutan las tareas, no dónde viven los bloques
-&gt; A partir de aquí se usa ese clúster: primero HDFS, después MapReduce.
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9844,23 +9624,6 @@ para localizar la aplicación ya finalizada.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=52">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Exploramos el clúster como `luser`
-- Qué herramientas trae la imagen y desde dónde se resuelven
-- El espacio de nombres HDFS: `/user`, `/datalake`, `/warehouse`
-- Replicación, tamaño de bloque y su relación con los splits de MapReduce
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10230,23 +9993,6 @@ varios bloques que pueden almacenarse y procesarse en nodos diferentes.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=77">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# La configuración real de Hadoop
-- Las propiedades de cada fichero, tal y como se escribieron al construir la imagen
-- `core-site.xml`, `hdfs-site.xml`, `yarn-site.xml` y `mapred-site.xml`, fichero a fichero
-- Qué cambia entre `namenode` y un `datanodeN` en cada fichero
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10461,24 +10207,6 @@ recuperar el entorno», más adelante en esta sesión).</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=85">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# `yarn-site.xml`, recursos y servicios de YARN
-- ResourceManager en `namenode` y un NodeManager en cada `datanodeN`; `resourcemanager` y `timelineserver` son alias de red
-- Cada NodeManager anuncia 2 vcores y 2560 MiB; el planificador no concede contenedores mayores
-- La agregación de logs los copia a `/tmp/logs` de HDFS: se leen con `yarn logs -applicationId`
-- `mapreduce_shuffle` es el servicio auxiliar sin el que MapReduce no completa el *shuffle*
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10835,23 +10563,6 @@ Ambas formas de inspección son complementarias.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=95">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# La configuración explica lo ya observado
-- `fs.defaultFS=hdfs://namenode:9000/` explica por qué no hace falta indicar una URL al especificar un fichero en HDFS
-- `dfs.replication=3` y `dfs.blocksize=64m` son los valores que ya comprobamos con `getconf`
-- `mapreduce.framework.name=yarn` obliga a MapReduce a pedir recursos al clúster, no a ejecutarse en local
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10876,23 +10587,6 @@ Ambas formas de inspección son complementarias.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# Ficheros de verdad en HDFS
-- Creamos el área de trabajo `/user/luser/s1` y subimos ficheros locales
-- Copiamos, movemos, leemos y descargamos con `hdfs dfs`
-- Comprobamos bloques y réplicas con `du` y `fsck`
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11319,23 +11013,6 @@ triple del primero para estos ficheros, aunque sean muy pequeños.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=127">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# HDFS ya tiene datos propios
-- `/user/luser/s1/input` contiene tres ficheros replicados y verificados con `fsck`
-- `-put`, `-cp`, `-mv` y `-get` distinguen siempre entre ruta local y ruta HDFS
-- Con datos ya en HDFS, toca procesarlos: MapReduce
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11360,24 +11037,6 @@ triple del primero para estos ficheros, aunque sean muy pequeños.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=128">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> avance
-# El modelo MapReduce, antes de lanzarlo
-- `map(K1, V1) -&gt; list(K2, V2)`: convierte cada línea de entrada en pares intermedios
-- Hadoop agrupa esos pares por clave durante el *shuffle*
-- `reduce(K2, list(V2)) -&gt; (K3, list(V3))`: combina los valores de cada clave
-- WordCount aplicará este modelo con datos reales sobre el clúster
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11530,22 +11189,6 @@ qué motor reparte el trabajo entre las máquinas.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=132">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> pregunta
-- ¿En qué contenedor se ejecuta la orden `yarn jar ...`?
-- ¿Ese contenedor es el mismo que ejecuta las tareas `map` y `reduce`?
-- ¿Cómo se puede comprobar, después de lanzar el trabajo, dónde se ejecutó cada tarea?
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11876,25 +11519,6 @@ más frecuentes de todas las sesiones.</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=147">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">diapositiva</span> resumen
-# Sesión 1
-- HDFS separa metadatos (NameNode) de bloques (DataNodes) y los replica
-- YARN separa la gestión de recursos (ResourceManager/NodeManager) de la aplicación (ApplicationMaster)
-- MapReduce ejecuta map -&gt; shuffle -&gt; reduce sobre los datos, no al revés
-- `stop` y `down` conservan los datos HDFS (viven en volúmenes); sólo borrar los volúmenes devuelve el HDFS al estado de las imágenes
-&gt; Siguiente sesión: un dataset de negocio (TPC-DS) como ficheros Parquet en `/datalake/raw/tpcds`.
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
