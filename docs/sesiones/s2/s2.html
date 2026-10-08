@@ -7848,25 +7848,82 @@ textarea,
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Sesi%C3%B3n-2-%E2%80%94-Exploraci%C3%B3n-de-TPC-DS-en-Parquet-sobre-HDFS">Sesión 2 — Exploración de TPC-DS en Parquet sobre HDFS<a class="anchor-link" href="#Sesi%C3%B3n-2-%E2%80%94-Exploraci%C3%B3n-de-TPC-DS-en-Parquet-sobre-HDFS">¶</a></h1><p>En esta sesión se empieza a trabajar con un conjunto de datos de aspecto
-empresarial. El objetivo es separar
-tres ideas que a menudo se confunden:</p>
+<h1 id="Sesi%C3%B3n-2-%E2%80%94-Exploraci%C3%B3n-de-TPC-DS-en-Parquet-sobre-HDFS">Sesión 2 — Exploración de TPC-DS en Parquet sobre HDFS<a class="anchor-link" href="#Sesi%C3%B3n-2-%E2%80%94-Exploraci%C3%B3n-de-TPC-DS-en-Parquet-sobre-HDFS">¶</a></h1><p>En la sesión 1 se puso en marcha un clúster Hadoop y se comprobó que HDFS
+guarda ficheros y que YARN ejecuta trabajos, pero sólo con ficheros de
+prueba. En esta sesión el clúster recibe por primera vez datos con aspecto
+de empresa real —clientes, productos, ventas— y se aprende a guardarlos, a
+localizarlos y a consultarlos. Son los datos sobre los que trabajará el
+resto del curso.</p>
+<h3 id="Qu%C3%A9-datos-se-van-a-usar">Qué datos se van a usar<a class="anchor-link" href="#Qu%C3%A9-datos-se-van-a-usar">¶</a></h3><p>Para practicar hace falta un conjunto de datos grande, con relaciones entre
+tablas y que sea el mismo para todo el mundo. Los datos de una empresa real
+no se pueden repartir, así que se usa <strong>TPC-DS</strong>, un conjunto de datos
+sintético y estándar. Lo define el <em>Transaction Processing Performance
+Council</em> (TPC), el consorcio que publica las pruebas de rendimiento con las
+que se comparan las bases de datos; «DS» viene de <em>decision support</em>, los
+sistemas de apoyo a la toma de decisiones. TPC-DS describe una empresa de
+venta minorista que vende en tiendas físicas, por catálogo y por web, con
+sus clientes, sus productos, su calendario, sus ventas, sus devoluciones y
+su inventario: 24 tablas en total. No son datos reales, pero tienen la forma
+de los que analiza cualquier empresa, y se generan con un programa, de modo
+que todo el alumnado obtiene exactamente las mismas filas y puede comparar
+resultados. El tamaño se elige con un <em>factor de escala</em>: aquí se usa
+<strong>SF1</strong>, alrededor de 1 GB de datos sin comprimir, suficiente para notar las diferencias
+entre herramientas sin salir de un ordenador personal.</p>
+<p>Las direcciones de TPC-DS son inventadas y usan ciudades y estados de
+Estados Unidos. Para que las preguntas del tipo «¿en qué provincia se compra
+más?» se lean con naturalidad, se sustituyen por municipios españoles
+tomados de una fuente pública: la relación oficial de municipios del
+<strong>Instituto Nacional de Estadística (INE)</strong>. Este cruce sirve además para
+practicar lo más habitual en un proyecto de datos, que es combinar fuentes
+de origen y formato distintos: unas tablas generadas por programa y una hoja
+de cálculo publicada por un organismo.</p>
+<h3 id="D%C3%B3nde-y-c%C3%B3mo-se-guardan">Dónde y cómo se guardan<a class="anchor-link" href="#D%C3%B3nde-y-c%C3%B3mo-se-guardan">¶</a></h3><p>Los datos se guardan en HDFS, organizados como un <em><strong>data lake</strong></em>: un
+almacén de ficheros en el que cada fuente se conserva tal como llega y que
+se ordena en capas según lo elaborados que estén los datos. Esta sesión
+sólo rellena la primera capa, llamada <code>raw</code> («en bruto»), que en el clúster
+es el directorio <code>/datalake/raw</code>. Las capas siguientes, <code>silver</code> y <code>gold</code>,
+se construirán en sesiones posteriores a partir de estos mismos ficheros.
+La sección «Data lakes y arquitectura medallion» explica esta organización
+y por qué se hace así.</p>
+<p>Dentro de esa capa, cada fuente se guarda en el formato que le corresponde.
+La relación del INE se conserva como llega, en un CSV comprimido. Las tablas
+de TPC-DS se escriben en <strong>Parquet</strong>, el formato de fichero más extendido
+para analizar datos: guarda los valores por columnas, comprimidos y junto
+con su esquema, de manera que una consulta que sólo necesita tres columnas
+no tiene que leer las demás. Varias secciones de la sesión comprueban esa
+ventaja.</p>
+<h3 id="Con-qu%C3%A9-herramientas">Con qué herramientas<a class="anchor-link" href="#Con-qu%C3%A9-herramientas">¶</a></h3><p>Generar las tablas, cruzarlas con los municipios y escribir el resultado lo
+hace <strong>Trino</strong>, un motor de consultas SQL que sabe producir TPC-DS y leer y
+escribir en HDFS; se presenta en «Qué es Trino». Una vez escritos los
+ficheros, ya no hace falta Trino para leerlos: se abren directamente desde
+Python con tres bibliotecas, <strong>PyArrow</strong>, <strong>Polars</strong> y <strong>DuckDB</strong>, que
+acceden a HDFS a través de su interfaz HTTP (WebHDFS). Usar las tres sobre los mismos
+ficheros muestra que los datos no pertenecen a ninguna herramienta
+concreta. Con ellas se responden las primeras preguntas de negocio sobre
+las ventas: cuánto se vende, qué, cuándo y dónde.</p>
+<h3 id="El-hilo-de-la-sesi%C3%B3n">El hilo de la sesión<a class="anchor-link" href="#El-hilo-de-la-sesi%C3%B3n">¶</a></h3><p>El recorrido, en orden, es:</p>
 <ul>
-<li>los datos almacenados físicamente en un sistema distribuido;</li>
-<li>el formato de los ficheros que contienen esos datos;</li>
-<li>el catálogo que permite dar a esos ficheros un nombre de tabla y un
-esquema.</li>
+<li>conectar el notebook a un Jupyter que se ejecuta dentro del clúster;</li>
+<li>entender qué es un <em>data lake</em>, qué es Trino y qué contiene TPC-DS;</li>
+<li>arrancar los servicios que generan los datos y escribir las 24 tablas en
+la capa <code>raw</code>;</li>
+<li>localizar los ficheros en HDFS y ver cómo están repartidos;</li>
+<li>leerlos con PyArrow, Polars y DuckDB, seleccionando columnas y filtrando
+filas;</li>
+<li>responder con ellos preguntas de negocio sobre las ventas.</li>
 </ul>
-<p>El conjunto de datos combina TPC-DS SF1, generado de forma determinista,
-con la relación oficial de municipios del Instituto Nacional de Estadística
-(INE). La instantánea municipal se distribuye comprimida en <code>entorno/data/ine</code>;
-en HDFS se conserva como CSV comprimido en
-<code>/datalake/raw/ine/municipios</code> y las tablas de negocio adaptadas como Parquet
-en <code>/datalake/raw/tpcds</code>. Primero se leerán los ficheros directamente con
-WebHDFS, <code>fsspec</code>, PyArrow y Polars. Después se utilizará DuckDB como motor SQL
-local que lee esos mismos ficheros. En
-una sesión posterior se incorporará Spark y, más adelante, Iceberg,
-particiones y optimizaciones.</p>
+<p>A lo largo de ese recorrido conviene separar tres ideas que a menudo se
+confunden, porque cada herramienta de la sesión se ocupa de una distinta:</p>
+<ul>
+<li>los <strong>datos</strong> almacenados físicamente en un sistema distribuido (HDFS);</li>
+<li>el <strong>formato</strong> de los ficheros que contienen esos datos (Parquet, CSV);</li>
+<li>el <strong>catálogo</strong>, que da a esos ficheros un nombre de tabla y un esquema
+(aquí sólo aparece de forma temporal, mientras Trino escribe).</li>
+</ul>
+<p>Todavía no interviene ningún motor de cálculo distribuido: las lecturas se
+hacen desde un único proceso Python. Spark se incorporará en una sesión
+posterior y, más adelante, las capas <code>silver</code> y <code>gold</code>, un catálogo
+permanente y las tablas Iceberg.</p>
 <h2 id="Objetivos">Objetivos<a class="anchor-link" href="#Objetivos">¶</a></h2><p>Al terminar la sesión deberías poder:</p>
 <ul>
 <li>arrancar el clúster Hadoop y los servicios de catálogo que proporcionan
@@ -7915,15 +7972,7 @@ son relevantes para el examen final.</p>
 <blockquote>
 <p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>requests</code>, <code>trino</code>.
 Es la primera sesión cuyo kernel se ejecuta dentro de <code>namenode</code>, así que todos son nuevos respecto a S1. Se instalan en el kernel de <code>namenode</code> en la sección
-«Preparar Python»: una celda <code>%%writefile requirements.txt</code> crea
-el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
-<code>s2/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
-<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
-paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
-intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
-confirme que están; ejecuta
-esas celdas de todos modos: dejan explícito qué necesita la sesión y
-reparan el entorno si falta algo.</p>
+«Preparar Python».</p>
 </blockquote>
 </div>
 </div>
@@ -7983,9 +8032,12 @@ añade <code>s2/</code> y los ficheros de <code>entorno/</code> del warehouse, y
 de S1:</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno hadoop-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-hadoop-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
+<p><code>actualizar</code> trae la versión publicada sin tocar tu trabajo, como se explicó
+en «Obtener el material» de S1. Si responde <code>No rule to make target 'actualizar'</code>, tu copia es anterior a esa orden: ejecuta <code>git pull</code> una vez
+y repítela.</p>
 <p><code>-C entorno</code> hace que <code>make</code> use <code>entorno/Makefile</code> sin cambiar de
 directorio. El objetivo <code>hadoop-up</code> crea la red Docker compartida
 <code>hadoop-cluster</code> si todavía no existe y arranca <code>namenode</code> y los tres
@@ -8883,7 +8935,7 @@ el flujo desde Python hay que abrirlo con <code>gzip</code>.</p>
 esta sesión: PostgreSQL, Hive Metastore y Trino. Este notebook no puede
 arrancarlos —el contenedor no tiene acceso al Docker de tu equipo—, así que se
 arrancan <strong>desde una terminal de tu equipo</strong>, en la raíz de la distribución.
-Usa la terminal de <code>git pull</code> y <code>hadoop-up</code>, no la que ejecuta Jupyter, que
+Usa la terminal de <code>actualizar</code> y <code>hadoop-up</code>, no la que ejecuta Jupyter, que
 debe seguir abierta:</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno warehouse-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-warehouse-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up

@@ -21,7 +21,73 @@ S3_COMPOSE := docker compose -f compose-s3.yml
 HDFS_VOLUMES := tcdm-26-27-namenode-data tcdm-26-27-datanode1-data \
 	tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data
 
-.PHONY: network hadoop-up warehouse-up tpcds-init tpcds-size s3-up jupyter status stop down clean clean-hdfs
+.PHONY: actualizar network hadoop-up warehouse-up tpcds-init tpcds-size s3-up jupyter status stop down clean clean-hdfs
+
+# Trae la última versión publicada del material sin fusionar nada, para que
+# nunca haya conflictos que resolver. Sustituye a `git pull`, que se niega a
+# actualizar cuando se ha publicado una corrección de un fichero que ya se
+# había modificado en local (ejecutar un notebook lo modifica, porque guarda
+# sus salidas).
+#
+# Cada fichero modificado en local que también cambia en la versión nueva se
+# aparta como copia junto al original (s2/s2.ipynb pasa a
+# s2/s2.mio-<fecha>-<hora>.ipynb) y el original se sustituye por el publicado.
+# Lo mismo se hace con un fichero propio cuyo nombre coincida con uno que la
+# versión nueva añade. Los cambios locales en ficheros que la versión nueva no
+# toca se quedan como están. No se borra ni se sobrescribe ningún trabajo.
+actualizar:
+	@set -eu; \
+	cd "$$(git rev-parse --show-toplevel)"; \
+	remoto=$$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null) || { \
+		echo "ERROR: esta copia no sigue ninguna rama publicada; vuelve a clonar el material." >&2; \
+		exit 1; \
+	}; \
+	git fetch --quiet; \
+	if test -n "$$(git rev-list "$$remoto..HEAD")"; then \
+		echo "ERROR: esta copia tiene commits propios, así que no se puede avanzar sin fusionar." >&2; \
+		echo "Guarda tu trabajo en otra rama (git branch mi-trabajo) y vuelve a $$remoto con" >&2; \
+		echo "  git reset --keep $$remoto" >&2; \
+		exit 1; \
+	fi; \
+	if test -z "$$(git rev-list "HEAD..$$remoto")"; then \
+		echo "El material ya está actualizado."; \
+		exit 0; \
+	fi; \
+	marca=$$(date +%Y%m%d-%H%M%S); \
+	apartados=0; \
+	apartar() { \
+		case "$${2##*/}" in \
+			?*.*) copia="$${2%.*}.mio-$$marca.$${2##*.}" ;; \
+			*) copia="$$2.mio-$$marca" ;; \
+		esac; \
+		$$1 -- "$$2" "$$copia"; \
+		echo "  $$2 -> $$copia"; \
+		apartados=$$((apartados + 1)); \
+	}; \
+	lista=$$(mktemp); \
+	trap 'rm -f "$$lista"' EXIT; \
+	git diff --name-only HEAD > "$$lista"; \
+	while IFS= read -r fichero; do \
+		git diff --quiet HEAD "$$remoto" -- "$$fichero" && continue; \
+		if git cat-file -e "HEAD:$$fichero" 2>/dev/null; then \
+			if test -e "$$fichero"; then apartar "cp -p" "$$fichero"; fi; \
+			git checkout --quiet HEAD -- "$$fichero"; \
+		else \
+			git rm --cached --quiet -- "$$fichero"; \
+			apartar mv "$$fichero"; \
+		fi; \
+	done < "$$lista"; \
+	git diff --name-only --diff-filter=A HEAD "$$remoto" > "$$lista"; \
+	while IFS= read -r fichero; do \
+		test -e "$$fichero" || continue; \
+		apartar mv "$$fichero"; \
+	done < "$$lista"; \
+	git merge --ff-only --quiet "$$remoto"; \
+	echo "Material actualizado a la última versión publicada."; \
+	if test "$$apartados" -gt 0; then \
+		echo "Se han apartado $$apartados fichero(s) tuyos (líneas de arriba): tu versión está en la"; \
+		echo "copia «.mio-$$marca» y el fichero original es ahora el publicado."; \
+	fi
 
 network:
 	docker network inspect hadoop-cluster >/dev/null 2>&1 || docker network create hadoop-cluster

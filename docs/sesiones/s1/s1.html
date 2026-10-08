@@ -7990,8 +7990,11 @@ Contiene un directorio por sesión (<code>s1/</code>, <code>s2/</code>, ...) y <
 ficheros Docker Compose y el <code>Makefile</code> del laboratorio. <code>entorno/</code> crece a
 medida que se publican sesiones: cada una trae sólo lo que necesita. Antes de
 empezar una sesión nueva, actualiza la copia desde la raíz:</p>
-<div class="highlight"><pre><span></span>git<span class="w"> </span>pull
+<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
 </pre></div>
+<p>Esta orden trae el material nuevo. Si habías modificado un fichero que
+también cambia en la versión publicada, guarda tu versión en una copia al
+lado (<code>s1/s1.ipynb</code> pasa a <code>s1/s1.mio-&lt;fecha&gt;-&lt;hora&gt;.ipynb</code>).</p>
 </div>
 </div>
 </div>
@@ -11689,7 +11692,7 @@ distribución:</p>
 <li><p>Actualiza el material; trae <code>s2/</code> y los ficheros de <code>entorno/</code> que añade
 esa sesión (el warehouse con Hive Metastore y Trino):</p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-git<span class="w"> </span>pull
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
 </pre></div>
 </li>
 <li><p>Comprueba que el clúster de esta sesión está en marcha. Si lo habías
@@ -11754,6 +11757,11 @@ ninguna es una celda de notebook.</p>
 </thead>
 <tbody>
 <tr>
+<td><code>make -C entorno actualizar</code></td>
+<td>Trae la última versión publicada del material. Si un fichero tuyo también cambia en ella, guarda tu versión en una copia <code>.mio-&lt;fecha&gt;-&lt;hora&gt;</code> y deja la publicada en su sitio</td>
+<td>Antes de empezar cada sesión</td>
+</tr>
+<tr>
 <td><code>make -C entorno hadoop-up</code></td>
 <td>Crea la red <code>hadoop-cluster</code> si falta y arranca <code>namenode</code> y los tres DataNodes. Si estaban parados, los reanuda; si ya funcionan, no hace nada</td>
 <td>Al empezar cualquier sesión. Equivale a las órdenes <code>docker network create</code> y <code>docker compose ... up -d</code> de esta sesión</td>
@@ -11761,7 +11769,7 @@ ninguna es una celda de notebook.</p>
 <tr>
 <td><code>make -C entorno warehouse-up</code></td>
 <td>Lo anterior y, además, PostgreSQL, Hive Metastore y Trino</td>
-<td>Desde la sesión 2; sus ficheros llegan con el <code>git pull</code> de esa sesión</td>
+<td>Desde la sesión 2; sus ficheros llegan al actualizar el material para esa sesión</td>
 </tr>
 <tr>
 <td><code>make -C entorno jupyter</code></td>

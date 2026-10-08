@@ -10,6 +10,33 @@ necesitan las sesiones ya publicadas; la correspondencia está en
 `SESIONES.txt`, que no se publica. Las órdenes de este documento se escriben
 desde la raíz de la distribución con `make -C entorno ...`.
 
+## Actualizar el material
+
+Cada sesión nueva, y cada corrección de una ya publicada, llega con una
+actualización del repositorio. Se trae con:
+
+```bash
+make -C entorno actualizar
+```
+
+Sustituye a `git pull`, que se niega a actualizar cuando se ha publicado una
+corrección de un fichero que ya se había modificado en local, cosa habitual
+porque ejecutar un notebook lo modifica (guarda sus salidas). `actualizar`
+no fusiona nada, así que nunca deja conflictos que resolver:
+
+- un fichero modificado en local que también cambia en la versión nueva se
+  aparta como copia junto al original (`s2/s2.ipynb` pasa a
+  `s2/s2.mio-<fecha>-<hora>.ipynb`) y el original se sustituye por el
+  publicado;
+- lo mismo ocurre con un fichero propio cuyo nombre coincida con uno que la
+  versión nueva añade;
+- los cambios locales en ficheros que la versión nueva no toca se quedan
+  como están.
+
+La orden lista los ficheros que aparta. El notebook publicado llega sin
+salidas: las de la ejecución anterior están en la copia. No actúa sobre una
+copia con commits propios: en ese caso lo indica y no cambia nada.
+
 ## Jupyter en `namenode`
 
 Desde S2 el kernel de Jupyter se ejecuta dentro de `namenode`. La imagen
