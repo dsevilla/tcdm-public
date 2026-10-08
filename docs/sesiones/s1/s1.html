@@ -8641,166 +8641,6 @@ en sesiones posteriores con Parquet/Arrow, Spark, Trino y tablas Iceberg.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Preparamos el entorno y conocemos el clúster</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Comprobamos que Docker y Docker Compose funcionan en el equipo</li><li style="margin:10px 0">El laboratorio simula 4 máquinas: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanode1</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanode2</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanode3</code></li><li style="margin:10px 0">Vemos qué recursos anuncia cada contenedor y qué imágenes descarga Compose</li></ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Antes-de-empezar">Antes de empezar<a class="anchor-link" href="#Antes-de-empezar">¶</a></h2><p>Se necesita Docker Engine o Docker Desktop con Docker Compose v2, iniciado y
-con capacidad para descargar las imágenes publicadas del curso. Para esta
-sesión basta con asignar al menos 8 GiB de memoria a Docker y detener otros
-contenedores que no sean necesarios. Los límites del Compose (4 GiB para
-<code>namenode</code> y 3 GiB por DataNode) son techos, no reservas: el clúster de S1
-usa bastante menos. Las sesiones con Spark, a partir de S4, se acercan más a
-esos límites y conviene subir la memoria de Docker hacia 14 GiB si el equipo
-lo permite.</p>
-<p>Las celdas de este notebook suponen que Jupyter usa como directorio de
-trabajo el propio directorio del notebook (<code>s1/</code>), que es hermano de
-<code>entorno/</code> en la distribución de sesiones. Por eso las rutas del entorno
-se escriben como <code>../entorno/...</code>.</p>
-<h3 id="D%C3%B3nde-se-ejecuta-cada-orden">Dónde se ejecuta cada orden<a class="anchor-link" href="#D%C3%B3nde-se-ejecuta-cada-orden">¶</a></h3><p>En esta sesión el kernel de Jupyter se ejecuta <strong>en tu equipo</strong>, fuera del
-clúster. Casi todas las celdas tienen esta forma:</p>
-<div class="highlight"><pre><span></span>!docker exec namenode su - luser -c 'hdfs dfs -ls /'
-│ │           │        │            └─ orden que se ejecuta en el contenedor
-│ │           │        └─ como el usuario luser, con su entorno de login
-│ │           │           (PATH con hdfs, yarn, java...)
-│ │           └─ dentro del contenedor namenode
-│ └─ el cliente Docker de tu equipo entra en un contenedor
-└─ Jupyter pasa el resto de la línea a una shell de tu equipo
-</pre></div>
-<p>Por tanto hay tres niveles:</p>
-<table>
-<thead>
-<tr>
-<th>Nivel</th>
-<th>Ejemplo</th>
-<th>Dónde se ejecuta</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Shell de tu equipo</td>
-<td><code>!docker compose -f ../entorno/compose-hadoop-cluster.yml ps</code></td>
-<td>En tu equipo; sólo necesita el cliente Docker</td>
-</tr>
-<tr>
-<td>Contenedor</td>
-<td><code>!docker exec namenode ...</code></td>
-<td>Dentro de <code>namenode</code> (o del <code>datanodeN</code> que se indique)</td>
-</tr>
-<tr>
-<td>Usuario del contenedor</td>
-<td><code>su - hdadmin -c '...'</code> o <code>su - luser -c '...'</code></td>
-<td><code>hdadmin</code> administra los demonios; <code>luser</code> trabaja con los datos</td>
-</tr>
-</tbody>
-</table>
-<p><code>hdfs</code>, <code>yarn</code> o <code>java</code> no están instalados en tu equipo: sólo existen
-dentro de los contenedores. Por eso <code>!hdfs dfs -ls /</code> a secas falla en esta
-sesión. A partir de S2 el kernel se ejecutará dentro de <code>namenode</code> y la misma
-orden se escribirá sin <code>docker exec</code>.</p>
-<h3 id="Comprobar-el-cliente-Docker">Comprobar el cliente Docker<a class="anchor-link" href="#Comprobar-el-cliente-Docker">¶</a></h3><p>La salida debe identificar una versión de Docker. Esto sólo confirma que
-existe el cliente; todavía no demuestra que el motor de contenedores esté en
-ejecución.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=20">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>--version
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Comprobar-Docker-Compose">Comprobar Docker Compose<a class="anchor-link" href="#Comprobar-Docker-Compose">¶</a></h3><p>El clúster está descrito como un conjunto de servicios coordinados que se
-gestionan con el complemento Compose v2, invocado como parte de la orden
-<code>docker</code>. Se espera una salida similar a <code>Docker Compose version v...</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>compose<span class="w"> </span>version
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Comprobar-el-motor-de-contenedores">Comprobar el motor de contenedores<a class="anchor-link" href="#Comprobar-el-motor-de-contenedores">¶</a></h3><p>Esta orden contacta con el daemon de Docker y muestra información del equipo
-y de los recursos que administra. Si aparece un error como <em>Cannot connect to
-the Docker daemon</em>, hay que iniciar Docker Desktop o el servicio Docker antes
-de continuar: repetir las celdas de Hadoop no soluciona un daemon que no está
-disponible.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>info
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=25">
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
 <h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El clúster que vamos a usar</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Cuatro contenedores: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code> (NameNode, ResourceManager y Timeline Server) y tres <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanodeN</code> (DataNode y NodeManager)</li><li style="margin:10px 0">Límite de Docker ≠ memoria anunciada a YARN: 3072 MiB por DataNode, 2560 MiB para las aplicaciones</li><li style="margin:10px 0">Dos imágenes ya construidas, con Hadoop 3.5.0 y Java 17; demonios como <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdadmin</code>, ejercicios como <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">luser</code></li><li style="margin:10px 0">HDFS ya trae <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/silver</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/gold</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/warehouse</code></li></ul>
 </div>
 </div>
@@ -8808,7 +8648,7 @@ disponible.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8958,7 +8798,7 @@ todos los contenedores están conectados a la misma red Docker
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=20">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8983,7 +8823,7 @@ todos los contenedores están conectados a la misma red Docker
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9175,8 +9015,180 @@ la etiqueta <code>26-27</code>.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=22">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancamos el clúster</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Comprobamos que Docker y Docker Compose funcionan en el equipo</li><li style="margin:10px 0">Preparamos la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code> y levantamos los cuatro contenedores</li><li style="margin:10px 0">Vamos a comprobar que Docker los levanta y que Hadoop los reconoce</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Arrancar-el-cl%C3%BAster">Arrancar el clúster<a class="anchor-link" href="#Arrancar-el-cl%C3%BAster">¶</a></h2><p>Arrancar el clúster lleva tres pasos: comprobar que Docker funciona en tu
+equipo, preparar la red compartida y levantar los cuatro contenedores.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Antes-de-empezar">Antes de empezar<a class="anchor-link" href="#Antes-de-empezar">¶</a></h3><p>Se necesita Docker Engine o Docker Desktop con Docker Compose v2, iniciado y
+con capacidad para descargar las imágenes publicadas del curso. Para esta
+sesión basta con asignar al menos 8 GiB de memoria a Docker y detener otros
+contenedores que no sean necesarios. Los límites del Compose (4 GiB para
+<code>namenode</code> y 3 GiB por DataNode) son techos, no reservas: el clúster de S1
+usa bastante menos. Las sesiones con Spark, a partir de S4, se acercan más a
+esos límites y conviene subir la memoria de Docker hacia 14 GiB si el equipo
+lo permite.</p>
+<p>Las celdas de este notebook suponen que Jupyter usa como directorio de
+trabajo el propio directorio del notebook (<code>s1/</code>), que es hermano de
+<code>entorno/</code> en la distribución de sesiones. Por eso las rutas del entorno
+se escriben como <code>../entorno/...</code>.</p>
+<h4 id="D%C3%B3nde-se-ejecuta-cada-orden">Dónde se ejecuta cada orden<a class="anchor-link" href="#D%C3%B3nde-se-ejecuta-cada-orden">¶</a></h4><p>En esta sesión el kernel de Jupyter se ejecuta <strong>en tu equipo</strong>, fuera del
+clúster. Casi todas las celdas tienen esta forma:</p>
+<div class="highlight"><pre><span></span>!docker exec namenode su - luser -c 'hdfs dfs -ls /'
+│ │           │        │            └─ orden que se ejecuta en el contenedor
+│ │           │        └─ como el usuario luser, con su entorno de login
+│ │           │           (PATH con hdfs, yarn, java...)
+│ │           └─ dentro del contenedor namenode
+│ └─ el cliente Docker de tu equipo entra en un contenedor
+└─ Jupyter pasa el resto de la línea a una shell de tu equipo
+</pre></div>
+<p>Por tanto hay tres niveles:</p>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>Ejemplo</th>
+<th>Dónde se ejecuta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shell de tu equipo</td>
+<td><code>!docker compose -f ../entorno/compose-hadoop-cluster.yml ps</code></td>
+<td>En tu equipo; sólo necesita el cliente Docker</td>
+</tr>
+<tr>
+<td>Contenedor</td>
+<td><code>!docker exec namenode ...</code></td>
+<td>Dentro de <code>namenode</code> (o del <code>datanodeN</code> que se indique)</td>
+</tr>
+<tr>
+<td>Usuario del contenedor</td>
+<td><code>su - hdadmin -c '...'</code> o <code>su - luser -c '...'</code></td>
+<td><code>hdadmin</code> administra los demonios; <code>luser</code> trabaja con los datos</td>
+</tr>
+</tbody>
+</table>
+<p><code>hdfs</code>, <code>yarn</code> o <code>java</code> no están instalados en tu equipo: sólo existen
+dentro de los contenedores. Por eso <code>!hdfs dfs -ls /</code> a secas falla en esta
+sesión. A partir de S2 el kernel se ejecutará dentro de <code>namenode</code> y la misma
+orden se escribirá sin <code>docker exec</code>.</p>
+<h4 id="Comprobar-el-cliente-Docker">Comprobar el cliente Docker<a class="anchor-link" href="#Comprobar-el-cliente-Docker">¶</a></h4><p>La salida debe identificar una versión de Docker. Esto sólo confirma que
+existe el cliente; todavía no demuestra que el motor de contenedores esté en
+ejecución.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>--version
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Comprobar-Docker-Compose">Comprobar Docker Compose<a class="anchor-link" href="#Comprobar-Docker-Compose">¶</a></h4><p>El clúster está descrito como un conjunto de servicios coordinados que se
+gestionan con el complemento Compose v2, invocado como parte de la orden
+<code>docker</code>. Se espera una salida similar a <code>Docker Compose version v...</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>compose<span class="w"> </span>version
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Comprobar-el-motor-de-contenedores">Comprobar el motor de contenedores<a class="anchor-link" href="#Comprobar-el-motor-de-contenedores">¶</a></h4><p>Esta orden contacta con el daemon de Docker y muestra información del equipo
+y de los recursos que administra. Si aparece un error como <em>Cannot connect to
+the Docker daemon</em>, hay que iniciar Docker Desktop o el servicio Docker antes
+de continuar: repetir las celdas de Hadoop no soluciona un daemon que no está
+disponible.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>info
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9192,7 +9204,7 @@ reanudar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9253,13 +9265,13 @@ reanudar.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Preparar-la-red-del-laboratorio">Preparar la red del laboratorio<a class="anchor-link" href="#Preparar-la-red-del-laboratorio">¶</a></h2><p>El fichero Compose declara <code>hadoop-cluster</code> como una <strong>red externa</strong>. Esto
+<h3 id="Preparar-la-red-del-laboratorio">Preparar la red del laboratorio<a class="anchor-link" href="#Preparar-la-red-del-laboratorio">¶</a></h3><p>El fichero Compose declara <code>hadoop-cluster</code> como una <strong>red externa</strong>. Esto
 hace que su ciclo de vida sea independiente del clúster Hadoop y permitirá
 conectar más adelante otros contenedores —Trino, PostgreSQL, Hive
 Metastore— sin incluirlos en el mismo fichero Compose.</p>
@@ -9270,7 +9282,7 @@ nada es que la red ya existía.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9284,7 +9296,7 @@ nada es que la red ya existía.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9308,30 +9320,6 @@ nada es que la red ya existía.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34">
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancamos el clúster</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Cuatro contenedores: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanode1</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanode2</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">datanode3</code></li><li style="margin:10px 0">Cada uno representa una máquina distinta de un clúster real</li><li style="margin:10px 0">Vamos a comprobar que Docker los levanta y que Hadoop los reconoce</li></ul>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -9339,7 +9327,7 @@ nada es que la red ya existía.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Arrancar-el-cl%C3%BAster">Arrancar el clúster<a class="anchor-link" href="#Arrancar-el-cl%C3%BAster">¶</a></h2><p>La siguiente orden lee el fichero Compose, descarga las imágenes que falten
+<h3 id="Levantar-los-contenedores">Levantar los contenedores<a class="anchor-link" href="#Levantar-los-contenedores">¶</a></h3><p>La siguiente orden lee el fichero Compose, descarga las imágenes que falten
 en el equipo y crea los cuatro contenedores. <code>-d</code> (<em>detached</em>) los deja en
 segundo plano, de modo que la celda termina en cuanto están creados. La
 primera ejecución puede tardar varios minutos, porque tiene que descargar
