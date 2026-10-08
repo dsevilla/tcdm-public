@@ -8260,6 +8260,11 @@ contrato claro sobre lo que contiene:</p>
 </tr>
 </tbody>
 </table>
+<p>La figura muestra cómo quedan esas capas en el <em>data lake</em> del curso: cada
+una es un directorio de HDFS, y los datos están en los ficheros que contiene.
+<code>raw</code> es lo que escribe esta sesión; <code>silver</code> y <code>gold</code> se construyen en la
+sesión 5.</p>
+<p align="center" style="text-align: center;"><img alt="Un data lake con arquitectura medallion: las fuentes (TPC-DS y el Excel del INE) se ingieren en /datalake/raw, con un directorio por tabla y sus fragmentos Parquet; silver guarda web_sales particionado en directorios sold_year y sold_month; gold guarda el agregado web_sales_by_year en un único fichero Parquet" src="https://dsevilla.github.io/tcdm-public/figs/datalake-medallion.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="960"/></p>
 <p>Tres ideas quedan sujetas a esta separación:</p>
 <ul>
 <li><strong>Cada capa tiene un único responsable de su contrato.</strong> Quien escribe
@@ -9963,10 +9968,6 @@ estable aunque cambie el orden de lectura de las hojas.</li>
 <span class="n">municipalities</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">municipalities</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
 </pre></div>
-<p>El código completo —descarga, lectura, comprobación y reescritura de la
-instantánea— vive en <code>s2/regenerate_ine_municipios.py</code>; <code>--check</code> compara su
-resultado contra la instantánea ya versionada sin escribirla, que es como se
-comprobó que esta lectura con polars reproduce exactamente <code>entorno/data/ine</code>.</p>
 <p>Este bloque es ilustrativo: no se ejecuta al trabajar con la
 instantánea que ya proporciona <code>entorno/data/ine</code>.</p>
 </div>
@@ -14009,7 +14010,7 @@ declarará una copia relacional con restricciones en DuckDB. Fuente:
 <h3 id="Diagramas-de-referencia-del-esquema">Diagramas de referencia del esquema<a class="anchor-link" href="#Diagramas-de-referencia-del-esquema">¶</a></h3><p>Los tres diagramas siguientes resumen visualmente las 24 tablas descritas en
 el resto de este apéndice: qué tablas son dimensiones y cuáles son hechos, cuál
 es la clave primaria de cada una y cómo se relacionan mediante claves ajenas.
-Se generan con <code>s2/generate_tpcds_diagrams.py</code> (Graphviz <code>dot</code> + matplotlib) a
+Se generan con Graphviz <code>dot</code> y matplotlib a
 partir de los mismos datos que las tablas Markdown de abajo, y las imágenes
 PNG se publican en las páginas del curso, que es de donde las toma este
 notebook; también puedes abrirlas sueltas o a mayor resolución.</p>
