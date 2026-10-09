@@ -316,6 +316,13 @@ no sufre ninguna regresión (creación/lectura de tablas Hive e Iceberg,
 antes para HMS `4.0.x` es específico de esa versión y no aparece en `3.1.3`
 (comprobado ejecutando `ANALYZE` tres veces seguidas sobre la misma tabla).
 
+El entrypoint de `apache/hive:3.1.3` ejecuta siempre
+`schematool -initSchema`, que falla con `relation "BUCKETING_COLS" already
+exists` cuando el esquema ya está en el volumen de PostgreSQL, es decir, en
+cualquier arranque posterior al primero. Por eso la imagen del curso antepone
+`hive-metastore/entrypoint-tcdm.sh`, que consulta `schematool -info` y, si el
+esquema existe, arranca con `IS_RESUME=true` para no reinicializarlo.
+
 La rama 3.x del proyecto Hive recibe parches de seguridad igual que cualquier
 rama mantenida, y `apache/hive:3.1.3` sigue siendo la imagen oficial del
 proyecto para esa versión. Su JDK empaquetado es más antiguo que el Java 21

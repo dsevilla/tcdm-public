@@ -7861,7 +7861,8 @@ sintético y estándar. Lo define el <em>Transaction Processing Performance
 Council</em> (TPC), el consorcio que publica las pruebas de rendimiento con las
 que se comparan las bases de datos; «DS» viene de <em>decision support</em>, los
 sistemas de apoyo a la toma de decisiones. TPC-DS describe una empresa de
-venta minorista que vende en tiendas físicas, por catálogo y por web, con
+venta minorista que vende en tiendas físicas, por catálogo (pedidos por
+teléfono, atendidos desde un centro de llamadas) y por web, con
 sus clientes, sus productos, su calendario, sus ventas, sus devoluciones y
 su inventario: 24 tablas en total. No son datos reales, pero tienen la forma
 de los que analiza cualquier empresa, y se generan con un programa, de modo
@@ -8135,6 +8136,7 @@ El alias <code>%%diapositiva</code> permite mantener en español los tipos usado
 <li><strong>A continuación</strong> (<code>avance</code>): anuncia el contenido de la parte siguiente, para saber en qué punto del programa estamos.</li>
 <li><strong>Recapitulación</strong> (<code>resumen</code>): condensa la parte anterior en puntos clave para recordarlos y revisarlos después.</li>
 <li><strong>Pregunta guía</strong> (<code>pregunta</code>): plantea cuestiones que orientan lo que viene a continuación; conviene intentar responderlas antes de seguir.</li>
+<li><strong>Actividades</strong> (<code>actividades</code>): propone ejercicios para practicar por tu cuenta lo que acabas de ver.</li>
 <li><strong>Evaluación de la sesión</strong> (<code>evaluacion</code>): recuerda cómo se evalúa el trabajo de esta sesión.</li>
 </ul>
 </div>
@@ -8170,6 +8172,7 @@ El alias <code>%%diapositiva</code> permite mantener en español los tipos usado
 <span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"avance"</span><span class="p">,</span> <span class="s2">"A continuación"</span><span class="p">,</span> <span class="s2">"#174f7a"</span><span class="p">)</span>
 <span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"resumen"</span><span class="p">,</span> <span class="s2">"Recapitulación"</span><span class="p">,</span> <span class="s2">"#a54467"</span><span class="p">)</span>
 <span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"pregunta"</span><span class="p">,</span> <span class="s2">"Pregunta guía"</span><span class="p">,</span> <span class="s2">"#0c304d"</span><span class="p">)</span>
+<span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"actividades"</span><span class="p">,</span> <span class="s2">"Actividades"</span><span class="p">,</span> <span class="s2">"#2f6f4f"</span><span class="p">)</span>
 <span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span><span class="s2">"evaluacion"</span><span class="p">,</span> <span class="s2">"Evaluación de la sesión"</span><span class="p">,</span> <span class="s2">"#b3701a"</span><span class="p">)</span>
 <span class="n">jnbs</span><span class="o">.</span><span class="n">register_slide_type</span><span class="p">(</span>
     <span class="s2">"titulo"</span><span class="p">,</span>
@@ -8501,7 +8504,7 @@ levanta junto con el resto de servicios del laboratorio.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">TPC-DS y la escala SF1</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Una empresa minorista que vende en tiendas, por catálogo y por web</li><li style="margin:10px 0">Dimensiones (clientes, productos, fechas) y hechos (ventas, devoluciones), unidos por claves surrogadas</li><li style="margin:10px 0">SF1 ≈ 1 GB sin comprimir: 261 MiB en Parquet, 783 MiB con tres réplicas HDFS</li><li style="margin:10px 0">24 tablas y unos 19,6 millones de filas: suficiente para notar la lectura selectiva</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">TPC-DS y la escala SF1</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Una empresa minorista que vende en tiendas, por catálogo (por teléfono) y por web</li><li style="margin:10px 0">Dimensiones (clientes, productos, fechas) y hechos (ventas, devoluciones), unidos por claves surrogadas</li><li style="margin:10px 0">SF1 ≈ 1 GB sin comprimir: 261 MiB en Parquet, 783 MiB con tres réplicas HDFS</li><li style="margin:10px 0">24 tablas y unos 19,6 millones de filas: suficiente para notar la lectura selectiva</li></ul>
 </div>
 </div>
 </div>
@@ -8515,8 +8518,9 @@ levanta junto con el resto de servicios del laboratorio.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="TPC-DS-y-la-escala-SF1">TPC-DS y la escala SF1<a class="anchor-link" href="#TPC-DS-y-la-escala-SF1">¶</a></h2><p>TPC-DS es un benchmark de apoyo a sistemas analíticos. Modela una empresa de
-venta minorista que vende productos a través de tiendas físicas, catálogos y
-una web. Incluye tablas de dimensiones, como clientes, productos, fechas y
+venta minorista que vende productos a través de tiendas físicas, catálogos
+(con pedidos por teléfono atendidos desde un centro de llamadas, <code>call_center</code>)
+y una web. Incluye tablas de dimensiones, como clientes, productos, fechas y
 tiendas, y tablas de hechos, como ventas y devoluciones. Las tablas de
 hechos contienen muchas filas y se relacionan con las dimensiones mediante
 claves surrogadas.</p>
@@ -12258,14 +12262,26 @@ arriba y <code>.plot.barh</code> las dibuja:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La tabla ordena esos diez clientes por pedidos y el gráfico, por importe:
-¿el cliente con más pedidos es también el que más ha comprado?</p>
+<p>La tabla ordena esos diez clientes por pedidos y el gráfico, por importe:</p>
+<blockquote>
+<p>¿el cliente con más pedidos es también el que más ha comprado?</p>
+</blockquote>
 <p>El resultado es determinista para la misma versión del generador y la
 misma escala, pero los nombres y los identificadores son sintéticos. No
 se debe interpretar que se ha identificado a una persona real, ni que el
 cliente con más líneas sea necesariamente el que tiene más pedidos:
 comprueba ambas métricas cambiando <code>count(DISTINCT web_sales.ws_order_number)</code> por
 <code>count(*)</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Provincia-con-m%C3%A1s-compras">Provincia con más compras<a class="anchor-link" href="#Provincia-con-m%C3%A1s-compras">¶</a></h3><p>Ahora añadimos la dirección de facturación. <code>ws_bill_addr_sk</code> lleva de cada
 línea de venta a su domicilio en <code>customer_address</code>, de donde se toman la
 provincia (<code>ca_county</code>) y su código (<code>ca_state</code>). <code>trim</code> descarta los
@@ -12273,7 +12289,7 @@ espacios que pudiera haber al final de esas dos columnas <code>char(n)</code>.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=150">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=151">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12303,7 +12319,7 @@ espacios que pudiera haber al final de esas dos columnas <code>char(n)</code>.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=151">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12321,7 +12337,7 @@ espacios que pudiera haber al final de esas dos columnas <code>char(n)</code>.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=153">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12343,7 +12359,7 @@ en <code>customer_address</code> existen en la fuente pública.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=153">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=154">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12401,7 +12417,7 @@ en <code>customer_address</code> existen en la fuente pública.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12412,7 +12428,7 @@ de venta. La consulta devuelve una fila por hora del día.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=155">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12440,7 +12456,7 @@ de venta. La consulta devuelve una fila por hora del día.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=157">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12456,7 +12472,7 @@ de venta. La consulta devuelve una fila por hora del día.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12468,25 +12484,34 @@ es la representación numérica de la hora completa y no la clave que
 utiliza <code>web_sales</code>. El resultado permite observar si las compras están
 concentradas en determinadas horas y comparar el número de pedidos con el
 importe total.</p>
-<h3 id="Actividades-de-los-casos-de-uso">Actividades de los casos de uso<a class="anchor-link" href="#Actividades-de-los-casos-de-uso">¶</a></h3><ul>
-<li>Ejecuta las tres consultas y guarda la primera fila de cada resultado.</li>
-<li>Repite la consulta del cliente contando líneas en vez de pedidos
-distintos. Explica por qué el orden de los clientes puede cambiar.</li>
-<li>Cambia el nivel geográfico de provincia (<code>ca_county</code>) a municipio
-(<code>ca_city</code>). Compara el número de grupos.</li>
-<li>Comprueba en la tabla <code>ine_municipios</code> que el código <code>ca_state</code> coincide
-con la provincia de tres municipios del resultado.</li>
-<li>Explica por qué <code>ca_zip</code> y <code>ca_gmt_offset</code> no se pueden atribuir al INE con
-la fuente utilizada.</li>
-<li>En la distribución horaria añade <code>t_am_pm</code>, <code>t_shift</code> o <code>t_meal_time</code> al
-<code>GROUP BY</code>. Explica qué información aporta cada dimensión.</li>
-<li>Comprueba que seleccionar solo las columnas necesarias reduce el esquema
-que se transporta y evita leer datos que la pregunta no utiliza.</li>
-</ul>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=158">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=159">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #2f6f4f;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia las consultas y compara</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Ejecuta las tres consultas y guarda la primera fila de cada resultado</li><li style="margin:10px 0">Cuenta líneas en vez de pedidos distintos: ¿por qué cambia el orden de los clientes?</li><li style="margin:10px 0">Baja de provincia (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ca_county</code>) a municipio (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ca_city</code>) y compara el número de grupos</li><li style="margin:10px 0">Comprueba en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ine_municipios</code> que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ca_state</code> coincide con la provincia de tres municipios</li><li style="margin:10px 0">¿Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ca_zip</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ca_gmt_offset</code> no se pueden atribuir al INE?</li><li style="margin:10px 0">Añade <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">t_am_pm</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">t_shift</code> o <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">t_meal_time</code> al <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GROUP BY</code> horario: ¿qué aporta cada una?</li><li style="margin:10px 0">Selecciona sólo las columnas necesarias: ¿qué esquema se transporta y qué datos no se leen?</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=160">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -12510,7 +12535,7 @@ que se transporta y evita leer datos que la pregunta no utiliza.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=159">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=161">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -12535,7 +12560,7 @@ que se transporta y evita leer datos que la pregunta no utiliza.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=160">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=162">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12593,7 +12618,7 @@ consulta permanece visible:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=161">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=163">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12614,7 +12639,7 @@ consulta permanece visible:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=162">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=164">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12648,7 +12673,7 @@ consulta permanece visible:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=163">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=165">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12668,7 +12693,7 @@ procesamiento distribuido.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=164">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=166">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -12693,7 +12718,7 @@ procesamiento distribuido.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=165">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12781,7 +12806,7 @@ Las listas <code>item_urls</code>, <code>date_urls</code>, <code>customer_urls</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=166">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12800,7 +12825,7 @@ Las listas <code>item_urls</code>, <code>date_urls</code>, <code>customer_urls</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12854,7 +12879,7 @@ datos delante:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=170">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12881,7 +12906,7 @@ datos delante:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=171">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12895,7 +12920,7 @@ nombre del canal se escribe como una constante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=170">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=172">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12907,7 +12932,7 @@ nombre del canal se escribe como una constante.</p>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    SELECT</span>
 <span class="sd">        'tienda' AS canal,</span>
-<span class="sd">        count(*) AS lineas,</span>
+<span class="sd">        count(*) AS líneas,</span>
 <span class="sd">        sum(ss_quantity) AS unidades,</span>
 <span class="sd">        sum(ss_ext_sales_price) AS ventas</span>
 <span class="sd">    FROM read_parquet(?)</span>
@@ -12927,7 +12952,7 @@ nombre del canal se escribe como una constante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=171">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=173">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12944,15 +12969,25 @@ nombre del canal se escribe como una constante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=172">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=174">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La columna <code>lineas</code> debe coincidir con el número de filas de cada hecho
+<p>La columna <code>líneas</code> debe coincidir con el número de filas de cada hecho
 que aparece en la tabla de «TPC-DS y la escala SF1». Es una comprobación
 barata de que se están leyendo todos los fragmentos de cada tabla.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Qu%C3%A9-categor%C3%ADas-y-qu%C3%A9-productos-se-venden-m%C3%A1s">Qué categorías y qué productos se venden más<a class="anchor-link" href="#Qu%C3%A9-categor%C3%ADas-y-qu%C3%A9-productos-se-venden-m%C3%A1s">¶</a></h3><p>El «qué» de una venta está en <code>item</code>, a la que apuntan <code>ss_item_sk</code>,
 <code>cs_item_sk</code> y <code>ws_item_sk</code>. Cada fila describe un producto y lo clasifica
 en tres niveles, de más general a más concreto: categoría (<code>i_category</code>),
@@ -12964,7 +12999,7 @@ cada nivel, porque ese es el número de filas que devolverá cada
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=173">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=176">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12977,7 +13012,7 @@ cada nivel, porque ese es el número de filas que devolverá cada
 <span class="sd">    SELECT</span>
 <span class="sd">        count(*) AS filas,</span>
 <span class="sd">        count(DISTINCT i_item_id) AS identificadores,</span>
-<span class="sd">        count(DISTINCT i_category) AS categorias,</span>
+<span class="sd">        count(DISTINCT i_category) AS categorías,</span>
 <span class="sd">        count(DISTINCT i_class) AS clases,</span>
 <span class="sd">        count(DISTINCT i_brand) AS marcas</span>
 <span class="sd">    FROM read_parquet(?)</span>
@@ -12991,7 +13026,7 @@ cada nivel, porque ese es el número de filas que devolverá cada
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=174">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13006,7 +13041,7 @@ resultado se lee de un vistazo:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=175">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=178">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13017,13 +13052,13 @@ resultado se lee de un vistazo:</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">sales_by_item_category</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    SELECT</span>
-<span class="sd">        trim(item.i_category) AS categoria,</span>
+<span class="sd">        trim(item.i_category) AS categoría,</span>
 <span class="sd">        sum(store_sales.ss_quantity) AS unidades,</span>
 <span class="sd">        sum(store_sales.ss_ext_sales_price) AS ventas</span>
 <span class="sd">    FROM read_parquet(?) AS store_sales</span>
 <span class="sd">    JOIN read_parquet(?) AS item</span>
 <span class="sd">        ON store_sales.ss_item_sk = item.i_item_sk</span>
-<span class="sd">    GROUP BY categoria</span>
+<span class="sd">    GROUP BY categoría</span>
 <span class="sd">    ORDER BY ventas DESC</span>
 <span class="sd">    """</span><span class="p">,</span>
     <span class="p">[</span><span class="n">store_sales_urls</span><span class="p">,</span> <span class="n">item_urls</span><span class="p">],</span>
@@ -13034,7 +13069,7 @@ resultado se lee de un vistazo:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=176">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=179">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13043,7 +13078,7 @@ resultado se lee de un vistazo:</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">category_sales</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">sales_by_item_category</span><span class="o">.</span><span class="n">fillna</span><span class="p">({</span><span class="s2">"categoria"</span><span class="p">:</span> <span class="s2">"(sin categoría)"</span><span class="p">})</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"categoria"</span><span class="p">)[</span><span class="s2">"ventas"</span><span class="p">]</span>
+    <span class="n">sales_by_item_category</span><span class="o">.</span><span class="n">fillna</span><span class="p">({</span><span class="s2">"categoría"</span><span class="p">:</span> <span class="s2">"(sin categoría)"</span><span class="p">})</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"categoría"</span><span class="p">)[</span><span class="s2">"ventas"</span><span class="p">]</span>
     <span class="o">/</span> <span class="mi">1_000_000</span>
 <span class="p">)</span>
 <span class="n">category_sales</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Ventas en tienda por categoría (millones)"</span><span class="p">)</span>
@@ -13054,7 +13089,7 @@ resultado se lee de un vistazo:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=180">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13072,7 +13107,7 @@ significado.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=178">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=181">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13085,7 +13120,7 @@ significado.</p>
 <span class="sd">    SELECT</span>
 <span class="sd">        item.i_item_sk,</span>
 <span class="sd">        trim(item.i_product_name) AS producto,</span>
-<span class="sd">        trim(item.i_category) AS categoria,</span>
+<span class="sd">        trim(item.i_category) AS categoría,</span>
 <span class="sd">        sum(store_sales.ss_quantity) AS unidades,</span>
 <span class="sd">        sum(store_sales.ss_ext_sales_price) AS ventas</span>
 <span class="sd">    FROM read_parquet(?) AS store_sales</span>
@@ -13104,7 +13139,7 @@ significado.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=179">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=182">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13127,7 +13162,7 @@ modo que lo primero es ver qué periodo cubren realmente las ventas:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=180">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=183">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13143,7 +13178,7 @@ modo que lo primero es ver qué periodo cubren realmente las ventas:</p>
 <span class="sd">        date_dim.d_year,</span>
 <span class="sd">        count(*) AS lineas,</span>
 <span class="sd">        min(date_dim.d_date) AS primera,</span>
-<span class="sd">        max(date_dim.d_date) AS ultima</span>
+<span class="sd">        max(date_dim.d_date) AS última</span>
 <span class="sd">    FROM read_parquet(?) AS store_sales</span>
 <span class="sd">    JOIN read_parquet(?) AS date_dim</span>
 <span class="sd">        ON store_sales.ss_sold_date_sk = date_dim.d_date_sk</span>
@@ -13161,7 +13196,7 @@ modo que lo primero es ver qué periodo cubren realmente las ventas:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=181">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13175,7 +13210,7 @@ sólo por <code>d_moy</code> para ver la estacionalidad. Las líneas sin fecha
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=182">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=185">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13205,7 +13240,7 @@ sólo por <code>d_moy</code> para ver la estacionalidad. Las líneas sin fecha
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=183">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=186">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13222,7 +13257,7 @@ sólo por <code>d_moy</code> para ver la estacionalidad. Las líneas sin fecha
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=187">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13244,7 +13279,7 @@ ventana <code>row_number() OVER (PARTITION BY mes ORDER BY unidades DESC)</code>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=185">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=188">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13259,7 +13294,7 @@ ventana <code>row_number() OVER (PARTITION BY mes ORDER BY unidades DESC)</code>
 <span class="sd">            date_dim.d_moy AS mes,</span>
 <span class="sd">            item.i_item_sk,</span>
 <span class="sd">            trim(item.i_product_name) AS producto,</span>
-<span class="sd">            trim(item.i_category) AS categoria,</span>
+<span class="sd">            trim(item.i_category) AS categoría,</span>
 <span class="sd">            sum(store_sales.ss_quantity) AS unidades</span>
 <span class="sd">        FROM read_parquet(?) AS store_sales</span>
 <span class="sd">        JOIN read_parquet(?) AS date_dim</span>
@@ -13275,35 +13310,45 @@ ventana <code>row_number() OVER (PARTITION BY mes ORDER BY unidades DESC)</code>
 <span class="sd">            row_number() OVER (</span>
 <span class="sd">                PARTITION BY mes</span>
 <span class="sd">                ORDER BY unidades DESC, i_item_sk</span>
-<span class="sd">            ) AS posicion</span>
+<span class="sd">            ) AS posición</span>
 <span class="sd">        FROM unidades_por_mes</span>
 <span class="sd">    )</span>
-<span class="sd">    SELECT mes, producto, categoria, unidades</span>
+<span class="sd">    SELECT mes, producto, categoría, unidades</span>
 <span class="sd">    FROM clasificados</span>
-<span class="sd">    WHERE posicion = 1</span>
+<span class="sd">    WHERE posición = 1</span>
 <span class="sd">    ORDER BY mes</span>
 <span class="sd">    """</span><span class="p">,</span>
     <span class="p">[</span><span class="n">store_sales_urls</span><span class="p">,</span> <span class="n">date_urls</span><span class="p">,</span> <span class="n">item_urls</span><span class="p">],</span>
 <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
 
 <span class="k">for</span> <span class="n">month</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">top_item_by_month</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"mes=</span><span class="si">{</span><span class="n">month</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2"> producto=</span><span class="si">{</span><span class="n">product</span><span class="si">}</span><span class="s2"> categoria=</span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2"> unidades=</span><span class="si">{</span><span class="n">units</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"mes=</span><span class="si">{</span><span class="n">month</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2"> producto=</span><span class="si">{</span><span class="n">product</span><span class="si">}</span><span class="s2"> categoría=</span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2"> unidades=</span><span class="si">{</span><span class="n">units</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=186">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=189">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Sale una fila por mes. El filtro <code>posicion = 1</code> va en una consulta
+<p>Sale una fila por mes. El filtro <code>posición = 1</code> va en una consulta
 exterior porque <code>WHERE</code> se evalúa antes que las funciones de ventana: en
-el mismo <code>SELECT</code> que calcula <code>posicion</code> todavía no se puede filtrar por
+el mismo <code>SELECT</code> que calcula <code>posición</code> todavía no se puede filtrar por
 ella.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=190">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Qu%C3%A9-producto-se-vende-m%C3%A1s-en-cada-provincia">Qué producto se vende más en cada provincia<a class="anchor-link" href="#Qu%C3%A9-producto-se-vende-m%C3%A1s-en-cada-provincia">¶</a></h3><p>El «dónde» admite dos lecturas en <code>store_sales</code>, y son columnas distintas:</p>
 <ul>
 <li><code>ss_store_sk</code> apunta a <code>store</code>: la provincia de la tienda en la que se
@@ -13320,7 +13365,7 @@ porque hay nombres que se repiten en provincias distintas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=187">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=191">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13356,15 +13401,15 @@ porque hay nombres que se repiten en provincias distintas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=188">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=192">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><code>count(columna)</code> no cuenta los nulos: la diferencia entre <code>lineas</code> y
-<code>con_direccion</code> son las ventas sin dirección. Un <code>JOIN</code> interior las deja
-fuera; es correcto para esta pregunta, pero significa que la suma por
+<code>con_direccion</code> son las ventas sin dirección. Un <code>JOIN</code> interior las dejaría
+fuera; es correcto para esta pregunta, pero significaría que la suma por
 provincias no llega al total del canal.</p>
 <p>La consulta es la del producto más vendido de cada mes cambiando la
 partición: en lugar del mes, la provincia. Se muestran las diez provincias
@@ -13373,7 +13418,7 @@ fila por provincia.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=189">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=193">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13388,7 +13433,7 @@ fila por provincia.</p>
 <span class="sd">            trim(customer_address.ca_county) AS provincia,</span>
 <span class="sd">            item.i_item_sk,</span>
 <span class="sd">            trim(item.i_product_name) AS producto,</span>
-<span class="sd">            trim(item.i_category) AS categoria,</span>
+<span class="sd">            trim(item.i_category) AS categoría,</span>
 <span class="sd">            sum(store_sales.ss_quantity) AS unidades</span>
 <span class="sd">        FROM read_parquet(?) AS store_sales</span>
 <span class="sd">        JOIN read_parquet(?) AS customer_address</span>
@@ -13403,12 +13448,12 @@ fila por provincia.</p>
 <span class="sd">            row_number() OVER (</span>
 <span class="sd">                PARTITION BY provincia</span>
 <span class="sd">                ORDER BY unidades DESC, i_item_sk</span>
-<span class="sd">            ) AS posicion</span>
+<span class="sd">            ) AS posición</span>
 <span class="sd">        FROM unidades_por_provincia</span>
 <span class="sd">    )</span>
-<span class="sd">    SELECT provincia, producto, categoria, unidades</span>
+<span class="sd">    SELECT provincia, producto, categoría, unidades</span>
 <span class="sd">    FROM clasificados</span>
-<span class="sd">    WHERE posicion = 1</span>
+<span class="sd">    WHERE posición = 1</span>
 <span class="sd">    ORDER BY unidades DESC, provincia</span>
 <span class="sd">    LIMIT 10</span>
 <span class="sd">    """</span><span class="p">,</span>
@@ -13421,7 +13466,7 @@ fila por provincia.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=190">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=194">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13441,7 +13486,7 @@ una segunda consulta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=191">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=195">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13472,7 +13517,7 @@ una segunda consulta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=192">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=196">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13488,7 +13533,7 @@ compran realmente en este canal:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=193">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=197">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13512,7 +13557,7 @@ compran realmente en este canal:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=194">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=198">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13529,7 +13574,7 @@ de venta y el recuento de clientes sería incorrecto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=195">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=199">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13583,7 +13628,7 @@ de venta y el recuento de clientes sería incorrecto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=196">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=200">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13604,7 +13649,7 @@ lugares»; se consulta como una tabla más, junto a los Parquet.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=197">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=201">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13648,7 +13693,7 @@ lugares»; se consulta como una tabla más, junto a los Parquet.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=198">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=202">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13663,27 +13708,34 @@ lugares son reales; cuánta gente vive en cada uno, no.</p>
 <p>Es la precaución que hay que tener con cualquier dato derivado: antes de
 interpretar un resultado conviene saber cómo se construyó la columna por
 la que se agrupa.</p>
-<h3 id="Actividades-de-las-primeras-preguntas">Actividades de las primeras preguntas<a class="anchor-link" href="#Actividades-de-las-primeras-preguntas">¶</a></h3><ul>
-<li>Ordena la clasificación de productos por <code>ventas</code> en lugar de por
-<code>unidades</code>. ¿Cuántos de los diez primeros se mantienen?</li>
-<li>Repite la clasificación de categorías con <code>web_sales</code> (<code>ws_item_sk</code>,
-<code>ws_quantity</code>, <code>ws_ext_sales_price</code>). ¿Cambia el orden respecto a la
-tienda?</li>
-<li>Añade <code>d_year</code> al <code>GROUP BY</code> de las ventas por mes y quita el filtro de
-años. Localiza la fila de 2003 y explica por qué se había excluido.</li>
-<li>Cambia <code>posicion = 1</code> por <code>posicion &lt;= 3</code> para obtener los tres
-productos más vendidos de cada mes.</li>
-<li>En la consulta por provincia, sustituye el producto por la categoría.
-¿Hay una categoría que domine en casi todas las provincias?</li>
-<li>Baja el reparto de clientes de provincia (<code>ca_county</code>) a municipio
-(<code>ca_city</code>). ¿Cuántos clientes tiene el municipio con más clientes?</li>
-<li>Explica qué fuente habría que añadir al <em>data lake</em> para calcular
-clientes por cada mil habitantes y por qué clave se uniría.</li>
-</ul>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=199">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=203">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #2f6f4f;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el criterio y mira qué se mantiene</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Ordena la clasificación de productos por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ventas</code>: ¿cuántos de los diez primeros se mantienen?</li><li style="margin:10px 0">Repite la de categorías con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code>: ¿cambia el orden respecto a la tienda?</li><li style="margin:10px 0">Quita el filtro de años y añade <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">d_year</code>: localiza 2003 y explica por qué se excluyó</li><li style="margin:10px 0">Usa <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">posicion &lt;= 3</code> para obtener los tres productos más vendidos de cada mes</li><li style="margin:10px 0">Por provincia, sustituye el producto por la categoría: ¿domina alguna?</li><li style="margin:10px 0">Baja el reparto de clientes a municipio (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ca_city</code>): ¿cuántos tiene el que más?</li><li style="margin:10px 0">¿Qué fuente añadirías al <em>data lake</em> para calcular clientes por cada mil habitantes y por qué clave se uniría?</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=204">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -13707,7 +13759,7 @@ clientes por cada mil habitantes y por qué clave se uniría.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=200">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=205">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -13732,7 +13784,7 @@ clientes por cada mil habitantes y por qué clave se uniría.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=201">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=206">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13743,7 +13795,7 @@ que selecciona pocas columnas con otra que utiliza <code>SELECT *</code>:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=202">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=207">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13760,13 +13812,13 @@ que selecciona pocas columnas con otra que utiliza <code>SELECT *</code>:</p>
 <span class="sd">    """</span><span class="p">,</span>
     <span class="p">[</span><span class="n">date_urls</span><span class="p">],</span>
 <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=203">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=208">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13783,14 +13835,14 @@ que selecciona pocas columnas con otra que utiliza <code>SELECT *</code>:</p>
 <span class="sd">    """</span><span class="p">,</span>
     <span class="p">[</span><span class="n">date_urls</span><span class="p">],</span>
 <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">plan_select_all</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan_select_all</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=204">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=209">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13805,7 +13857,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=205">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=210">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -13829,7 +13881,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=206">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=211">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -13854,7 +13906,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=207">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=212">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13883,7 +13935,7 @@ metadatos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=208">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=213">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13919,7 +13971,7 @@ de entrada y explica el mensaje de error.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=209">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=214">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13945,7 +13997,7 @@ al ejecutarse este kernel dentro del propio contenedor:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=210">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=215">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13960,7 +14012,7 @@ al ejecutarse este kernel dentro del propio contenedor:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=211">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=216">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13982,7 +14034,7 @@ descomprimido en memoria.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=212">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=217">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -14007,7 +14059,7 @@ descomprimido en memoria.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=213">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=218">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14093,7 +14145,7 @@ a leer los ficheros. Se debe reservar <code>make -C entorno clean-hdfs</code> y 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=214">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=219">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14175,7 +14227,7 @@ un catálogo y cómo la utilizan el metastore e Iceberg.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=215">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=220">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14201,7 +14253,7 @@ declarará una copia relacional con restricciones en DuckDB. Fuente:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=216">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=221">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14232,7 +14284,7 @@ porque cada fila enlaza con casi todas las dimensiones del modelo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=217">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=222">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14243,7 +14295,7 @@ porque cada fila enlaza con casi todas las dimensiones del modelo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=218">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=223">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14435,7 +14487,7 @@ semana, información fiscal y marcas como festivo, fin de semana o año actual.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=219">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=224">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14519,7 +14571,7 @@ comida. Se utiliza junto con <code>date_dim</code> para analizar ventas por mome
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=220">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=225">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14675,7 +14727,7 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=221">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=226">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14808,7 +14860,7 @@ benchmark.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=222">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=227">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14910,7 +14962,7 @@ e incluye también el desplazamiento horario y el tipo de ubicación.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=223">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=228">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14989,7 +15041,7 @@ dependientes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=224">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=229">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15043,7 +15095,7 @@ compra, número de dependientes y vehículos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=225">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=230">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15084,7 +15136,7 @@ compra, número de dependientes y vehículos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=226">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=231">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15285,7 +15337,7 @@ porcentaje de impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=227">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=232">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15392,7 +15444,7 @@ porcentaje de impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=228">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=233">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15602,7 +15654,7 @@ superficie, dirección, mercado, división y empresa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=229">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=234">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15680,7 +15732,7 @@ número de catálogo, página, descripción y tipo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=230">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=235">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15820,7 +15872,7 @@ conservarse al escribir SQL contra esta tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=231">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=236">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15862,7 +15914,7 @@ devoluciones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=232">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=237">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15921,7 +15973,7 @@ devoluciones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=233">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=238">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16029,7 +16081,7 @@ contenido y publicidad.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=234">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=239">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16209,7 +16261,7 @@ apertura y cierre.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=235">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=240">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16223,7 +16275,7 @@ para agregaciones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=236">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=241">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16386,7 +16438,7 @@ beneficio.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=237">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=242">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16615,7 +16667,7 @@ modo de envío, almacén, producto y promoción.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=238">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=243">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16843,7 +16895,7 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=239">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=244">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16987,7 +17039,7 @@ impuestos, comisiones, gastos de envío y pérdida neta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=240">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=245">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -17173,7 +17225,7 @@ devuelve como al centro de llamadas, página, transporte, almacén y motivo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=241">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=246">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -17341,7 +17393,7 @@ relaciones de cliente, domicilio, producto y pedido.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=242">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=247">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

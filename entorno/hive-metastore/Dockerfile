@@ -10,4 +10,7 @@ FROM ${HIVE_IMAGE}
 
 USER root
 COPY --from=postgresql-jdbc --chown=hive:hive /postgresql.jar /opt/hive/lib/postgres.jar
+COPY --chmod=755 entrypoint-tcdm.sh /entrypoint-tcdm.sh
 USER hive
+
+ENTRYPOINT ["/entrypoint-tcdm.sh"]
