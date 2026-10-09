@@ -7848,50 +7848,63 @@ textarea,
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Sesi%C3%B3n-3-%E2%80%94-Un-data-lake-sobre-almacenamiento-S3-compatible">Sesión 3 — Un data lake sobre almacenamiento S3-compatible<a class="anchor-link" href="#Sesi%C3%B3n-3-%E2%80%94-Un-data-lake-sobre-almacenamiento-S3-compatible">¶</a></h1><p>En la sesión anterior trabajamos con ficheros Parquet almacenados en HDFS.
-Ahora conservaremos el mismo formato y el mismo conjunto de datos (TPC-DS
-SF1), pero cambiaremos el sistema de almacenamiento: los objetos se
-guardarán en un servicio compatible con la API de Amazon S3.</p>
-<p>El objetivo es aprender qué cambia al pasar de un sistema de ficheros
-distribuido a un almacenamiento de objetos, y qué partes del código pueden
-mantenerse al migrar posteriormente a Amazon S3 real. La sesión construye
-un <strong>data lake sobre S3</strong>: conserva los Parquet como objetos bajo prefijos.
-Las sesiones 6 y 7 añadirán la gestión de tablas, esquemas y snapshots para
-construir un <em>lakehouse</em>.</p>
+<h1 id="Sesi%C3%B3n-3-%E2%80%94-Un-data-lake-sobre-almacenamiento-S3-compatible">Sesión 3 — Un data lake sobre almacenamiento S3-compatible<a class="anchor-link" href="#Sesi%C3%B3n-3-%E2%80%94-Un-data-lake-sobre-almacenamiento-S3-compatible">¶</a></h1><p>En la sesión 2 los Parquet de TPC-DS quedaron en HDFS, y HDFS vive en los
+mismos nodos que hacen el cómputo: para tener más disco hay que añadir
+máquinas al clúster, y con el clúster apagado los datos no están accesibles.
+Fuera de un centro de datos propio, lo habitual hoy es otra cosa: los
+ficheros del data lake se guardan en un <strong>almacenamiento de objetos</strong> y los
+motores de cómputo —Spark, Trino, DuckDB— se arrancan cuando hacen falta,
+leen de ahí y se apagan. Almacenamiento y cómputo se dimensionan y se pagan
+por separado.</p>
+<p>La interfaz que ha acabado siendo común para ese almacenamiento es la API
+HTTP de Amazon S3. La ofrecen también servicios que no son de Amazon
+—MinIO, Ceph, Cloudflare R2 o el RustFS de este laboratorio—, y casi
+cualquier lector de Parquet sabe hablarla. Por eso esta sesión conserva
+todo lo de S2 —el mismo TPC-DS SF1, los mismos ficheros Parquet y las
+mismas tres bibliotecas— y cambia una sola cosa: dónde están los bytes y
+cómo se piden. Lo que resulte distinto al leerlos se deberá al
+almacenamiento, no al dato.</p>
+<p>No hace falta una cuenta de AWS: el laboratorio arranca un servicio local
+que implementa esa API, y al final se ve qué habría que cambiar para
+apuntar a Amazon S3.</p>
 <h2 id="Objetivos">Objetivos<a class="anchor-link" href="#Objetivos">¶</a></h2><p>Al terminar la sesión deberías poder:</p>
 <ul>
-<li>explicar la diferencia entre un bloque HDFS y un objeto S3;</li>
-<li>distinguir un bucket, una clave de objeto y un prefijo;</li>
-<li>arrancar y detener un almacenamiento S3 local sin modificar el clúster
-Hadoop;</li>
-<li>utilizar la API estándar de AWS para listar buckets, consultar objetos y
-leer una parte de un objeto;</li>
-<li>copiar los Parquet deterministas de TPC-DS SF1 desde HDFS hasta S3;</li>
-<li>leer los mismos Parquet desde S3 con PyArrow, Polars y DuckDB;</li>
-<li>parametrizar un programa para usar RustFS local o Amazon S3 real;</li>
-<li>borrar y regenerar el data lake sin confundir sus datos con los del
-warehouse HDFS.</li>
+<li>explicar por qué un data lake suele guardarse en un almacenamiento de
+objetos y qué se gana al separarlo del cómputo;</li>
+<li>distinguir un bucket, una clave de objeto y un prefijo, y explicar por
+qué un prefijo no es un directorio;</li>
+<li>reconocer las operaciones de la API de S3 —listar, <code>PUT</code>, <code>HEAD</code>, <code>GET</code>
+completo o por rango, <code>DELETE</code>— y usarlas con boto3;</li>
+<li>copiar los Parquet de TPC-DS SF1 desde HDFS hasta un bucket;</li>
+<li>explicar por qué un lector de Parquet no necesita descargar el objeto
+entero;</li>
+<li>leer los mismos Parquet desde S3 con PyArrow, Polars y DuckDB, y decir
+por qué camino llega cada una a la API;</li>
+<li>señalar qué cambia en la configuración para usar Amazon S3 real;</li>
+<li>borrar y regenerar el data lake S3 sin tocar los datos de HDFS.</li>
 </ul>
 <blockquote>
 <p><strong>Dónde se ejecuta este notebook.</strong> Igual que en la sesión 2, Jupyter se
-ejecuta directamente en <code>namenode</code> (como <code>luser</code>). Las celdas ejecutables acceden a HDFS, WebHDFS y RustFS por
-la red del laboratorio. Las órdenes que necesitan el Docker del host
-(arrancar o detener contenedores, <code>make</code>, <code>docker compose</code>) se muestran
-como texto para ejecutarlas en una terminal de tu equipo, no como celdas:
-el kernel de este notebook no tiene el socket de Docker.</p>
+ejecuta directamente en <code>namenode</code> (como <code>luser</code>). Las celdas ejecutables
+acceden a HDFS y a RustFS por la red del laboratorio. Las órdenes que
+necesitan el Docker del host (arrancar o detener contenedores, <code>make</code>,
+<code>docker compose</code>) se muestran como texto para ejecutarlas en una terminal
+de tu equipo, no como celdas: el kernel de este notebook no tiene el
+socket de Docker.</p>
 </blockquote>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>boto3</code>, <code>aiobotocore</code>, <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>s3fs</code>.
-Respecto a S2 añade <code>boto3</code>, <code>aiobotocore</code>, <code>s3fs</code>. Se instalan en el kernel de <code>namenode</code> en la sección
-«Instalar las dependencias de la sesión en este kernel»: una celda <code>%%writefile requirements.txt</code> crea
-el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
-<code>s3/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>boto3</code>,
+<code>aiobotocore</code>, <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code> y <code>s3fs</code>. Respecto a
+S2 añade <code>boto3</code>, <code>aiobotocore</code> y <code>s3fs</code>, que se presentan en «Las
+bibliotecas que hablan con S3». Se instalan en el kernel de <code>namenode</code> en
+esa misma sección: una celda <code>%%writefile requirements.txt</code> crea el
+fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de <code>s3/</code>
+está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
 <code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
 paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
 intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
-confirme que están; ejecuta
-esas celdas de todos modos: dejan explícito qué necesita la sesión y
-reparan el entorno si falta algo.</p>
+confirme que están. Ejecuta esas celdas de todos modos: dejan explícito
+qué necesita la sesión y reparan el entorno si falta algo.</p>
 </blockquote>
 </div>
 </div>
@@ -7905,15 +7918,11 @@ reparan el entorno si falta algo.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Diapositivas-de-la-sesi%C3%B3n">Diapositivas de la sesión<a class="anchor-link" href="#Diapositivas-de-la-sesi%C3%B3n">¶</a></h3><p>Las diapositivas se generan con el paquete <a href="https://github.com/dsevilla/jupyter-notebook-slide"><code>jupyter-notebook-slide</code></a>.
 El alias <code>%%diapositiva</code> permite mantener en español los tipos usados en la sesión y produce la misma salida HTML en Jupyter, Colab y la referencia HTML publicada.</p>
-<p>En cada sesión encontrarás varios tipos de diapositivas que te ayudarán a seguir el hilo:</p>
-<ul>
-<li><strong>Sección</strong> (<code>titulo</code>): abre la sesión y resume qué vamos a ver y qué haremos.</li>
-<li><strong>A continuación</strong> (<code>avance</code>): anuncia el contenido de la parte siguiente, para saber en qué punto del programa estamos.</li>
-<li><strong>Recapitulación</strong> (<code>resumen</code>): condensa la parte anterior en puntos clave para recordarlos y revisarlos después.</li>
-<li><strong>Pregunta guía</strong> (<code>pregunta</code>): plantea cuestiones que orientan lo que viene a continuación; conviene intentar responderlas antes de seguir.</li>
-<li><strong>Actividades</strong> (<code>actividades</code>): propone ejercicios para practicar por tu cuenta lo que acabas de ver.</li>
-<li><strong>Evaluación de la sesión</strong> (<code>evaluacion</code>): recuerda cómo se evalúa el trabajo de esta sesión.</li>
-</ul>
+<p>La celda siguiente instala y configura ese paquete: ejecútala una vez por
+sesión de kernel, antes que cualquier celda <code>%%diapositiva</code>. Si no, esas
+celdas fallan con <code>UsageError: Cell magic %%diapositiva not found</code>. Las
+diapositivas acompañan la explicación; el trabajo práctico no depende de
+ellas.</p>
 </div>
 </div>
 </div>
@@ -8059,7 +8068,7 @@ versión nueva.</p>
      font-size:26px;line-height:1.42;
      display:flex;flex-direction:column;justify-content:center;
      text-align:left;overflow:hidden">
-<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 3: un data lake sobre almacenamiento S3-compatible</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Mismo TPC-DS SF1 y mismo Parquet: cambia el almacenamiento, de bloques HDFS a objetos S3</li><li style="margin:10px 0">Arrancamos RustFS, un servicio local compatible con la API de Amazon S3</li><li style="margin:10px 0">Copiamos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS a un bucket con boto3</li><li style="margin:10px 0">Leemos los mismos objetos con PyArrow, Polars y DuckDB y comparamos los resultados</li><li style="margin:10px 0">Vemos qué habría que cambiar para usar Amazon S3 real</li></ul></div>
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 3: un data lake sobre almacenamiento S3-compatible</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué los data lakes se guardan hoy en un almacén de objetos, separado del cómputo</li><li style="margin:10px 0">La API de S3 vista petición a petición con boto3: bucket, clave, prefijo y lecturas por rango</li><li style="margin:10px 0">Copiamos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS a un bucket de RustFS, el servicio S3 local del laboratorio</li><li style="margin:10px 0">Leemos los mismos Parquet con PyArrow, Polars y DuckDB: cambia el camino, no el resultado</li><li style="margin:10px 0">Qué habría que cambiar para usar Amazon S3 real</li></ul></div>
 </div>
 </div>
 </div>
@@ -8083,7 +8092,7 @@ versión nueva.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#b3701a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Evaluación de la sesión</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cómo se evalúa esta sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Reunión individual breve con el profesor en una sesión posterior</li><li style="margin:10px 0">Se muestra en vivo, en tu ordenador: el bucket con los Parquet copiados, la comprobación de la API S3 y las tres lecturas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim</code> desde S3</li><li style="margin:10px 0">Se entrega también una memoria breve (una o dos páginas)</li><li style="margin:10px 0">No hace falta memorizar órdenes: sí explicar qué cambia entre HDFS y un almacenamiento de objetos</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cómo se evalúa esta sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Reunión individual breve con el profesor en una sesión posterior</li><li style="margin:10px 0">Se muestra en vivo, en tu ordenador: el bucket con los Parquet copiados, la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> leída por rango y las tres lecturas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim</code> desde S3</li><li style="margin:10px 0">Se entrega también una memoria breve (una o dos páginas)</li><li style="margin:10px 0">No hace falta memorizar órdenes: sí explicar qué cambia entre HDFS y un almacenamiento de objetos</li></ul>
 </div>
 </div>
 </div>
@@ -8107,7 +8116,7 @@ versión nueva.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">De rutas HDFS a claves de objeto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs:///datalake/raw/tpcds/date_dim/...</code> pasa a ser <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/date_dim/...</code></li><li style="margin:10px 0">Bucket, clave y prefijo: los «directorios» son sólo texto dentro de la clave</li><li style="margin:10px 0">HDFS ofrece un sistema de ficheros con bloques replicados; S3, objetos y operaciones HTTP (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PUT</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">HEAD</code>, listar por prefijo)</li><li style="margin:10px 0">Los Parquet no cambian al copiarlos; RustFS es el servicio S3 local del laboratorio</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">De rutas HDFS a claves de objeto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">HDFS une almacenamiento y cómputo en los mismos nodos; un almacén de objetos los separa</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs:///datalake/raw/tpcds/date_dim/...</code> pasa a ser <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/date_dim/...</code></li><li style="margin:10px 0">Bucket, clave y prefijo: los «directorios» son sólo texto dentro de la clave</li><li style="margin:10px 0">Un objeto se escribe entero y se lee entero o por rangos; no se modifica ni se renombra</li></ul>
 </div>
 </div>
 </div>
@@ -8120,39 +8129,73 @@ versión nueva.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Del-data-lake-HDFS-al-data-lake-S3">Del data lake HDFS al data lake S3<a class="anchor-link" href="#Del-data-lake-HDFS-al-data-lake-S3">¶</a></h2><p>En S2 los datos se encontraban en una ruta del espacio de nombres HDFS:</p>
+<h2 id="De-un-sistema-de-ficheros-a-un-almac%C3%A9n-de-objetos">De un sistema de ficheros a un almacén de objetos<a class="anchor-link" href="#De-un-sistema-de-ficheros-a-un-almac%C3%A9n-de-objetos">¶</a></h2><p>En S2 los datos estaban en una ruta del espacio de nombres de HDFS:</p>
 <div class="highlight"><pre><span></span>hdfs:///datalake/raw/tpcds/date_dim/part-...
 </pre></div>
-<p>En S3 se guardarán en un bucket y una clave de objeto:</p>
+<p>En S3 estarán en un <strong>bucket</strong> y, dentro de él, bajo una <strong>clave</strong>:</p>
 <div class="highlight"><pre><span></span>s3://tcdm-datalake/raw/tpcds/date_dim/part-...
+     └─ bucket ──┘ └────────── clave ──────────┘
 </pre></div>
-<p>Se conserva así la misma arquitectura <em>medallion</em>: <code>raw</code> identifica la
-capa, <code>tpcds</code> la fuente y <code>date_dim</code> la tabla. Esta sesión solo escribe en
-<code>raw/</code>: las sesiones 5 a 7 añaden las capas <code>silver/</code> y <code>gold/</code>, pero lo
-hacen sobre HDFS, no sobre este bucket. Aquí se observa el patrón de
-prefijos por capa, no un data lake S3 con las tres capas completas.</p>
-<p>La apariencia de directorios es una convención: S3 no necesita crear un
-directorio <code>date_dim</code>, el texto separado por <code>/</code> forma parte de la clave del
-objeto. Esto tiene consecuencias prácticas:</p>
-<ul>
-<li>HDFS ofrece operaciones de sistema de ficheros, permisos y bloques
-replicados entre DataNodes;</li>
-<li>S3 ofrece objetos identificados por claves dentro de buckets y operaciones
-HTTP, como <code>GET</code>, <code>PUT</code>, <code>HEAD</code> y listados por prefijo;</li>
-<li>una herramienta puede mostrar una jerarquía de carpetas aunque el servicio
-sólo esté almacenando nombres de objetos;</li>
-<li>la consistencia, las operaciones de renombrado y la gestión de permisos no
-deben suponerse idénticas a las de HDFS.</li>
-</ul>
-<p>Los ficheros Parquet no cambian al copiarlos: siguen teniendo su esquema,
-metadatos y firma <code>PAR1</code>, pero ahora el lector los obtiene mediante la API de
-objetos. El prefijo agrupa <em>lógicamente</em> la colección de objetos Parquet que
-corresponde a <code>date_dim</code>: no hay ningún directorio físico, solo objetos cuya
-clave comparte ese mismo texto de prefijo.</p>
-<h2 id="El-servicio-local-RustFS">El servicio local RustFS<a class="anchor-link" href="#El-servicio-local-RustFS">¶</a></h2><p>Se usa RustFS como almacenamiento S3-compatible local: permite trabajar con
-clientes estándar de AWS mediante un servicio aislado conectado a la red del
-laboratorio. El Compose de esta sesión está en
-<code>entorno/compose-s3.yml</code> y contiene únicamente:</p>
+<p>Se conserva la misma organización <em>medallion</em>: <code>raw</code> identifica la capa,
+<code>tpcds</code> la fuente y <code>date_dim</code> la tabla. Pero ya no son directorios. Un
+bucket es un espacio plano de objetos, y la clave es una cadena de texto en
+la que <code>/</code> es un carácter más. Lo que parece una carpeta es un <strong>prefijo</strong>:
+el principio que comparten las claves de varios objetos. Nadie crea
+<code>raw/tpcds/date_dim/</code>; existe mientras haya algún objeto cuya clave empiece
+así.</p>
+<p>Esa diferencia no es de nombres. Cambia qué operaciones existen y cuánto
+cuestan:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>HDFS</th>
+<th>Almacén de objetos (S3)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unidad</td>
+<td>Fichero partido en bloques replicados entre DataNodes</td>
+<td>Objeto: se escribe entero y, para cambiarlo, se sustituye entero</td>
+</tr>
+<tr>
+<td>Nombre</td>
+<td>Ruta en un árbol que mantiene el NameNode</td>
+<td>Clave dentro de un bucket</td>
+</tr>
+<tr>
+<td>Directorios</td>
+<td>Existen: se crean, se listan y se borran</td>
+<td>No existen: se lista por prefijo</td>
+</tr>
+<tr>
+<td>Renombrar</td>
+<td>Cambio de metadatos en el NameNode, atómico</td>
+<td>No existe: copiar cada objeto y borrar el original</td>
+</tr>
+<tr>
+<td>Acceso</td>
+<td>Protocolo propio de Hadoop, o WebHDFS</td>
+<td>Peticiones HTTP: <code>PUT</code>, <code>GET</code>, <code>HEAD</code>, <code>DELETE</code> y listar</td>
+</tr>
+<tr>
+<td>Dónde vive</td>
+<td>En los discos de los nodos del clúster</td>
+<td>En un servicio aparte, que no ejecuta cómputo</td>
+</tr>
+</tbody>
+</table>
+<p>Los Parquet no cambian al copiarlos: conservan su esquema, sus metadatos y
+su firma <code>PAR1</code>. Cambia cómo los obtiene un lector. Y la falta de un
+renombrado barato volverá a aparecer más adelante: es una de las razones
+por las que escribir tablas sobre un almacén de objetos pide algo más que
+directorios, y ese algo es un formato de tabla.</p>
+<h2 id="RustFS:-la-API-de-S3-sin-una-cuenta-de-AWS">RustFS: la API de S3 sin una cuenta de AWS<a class="anchor-link" href="#RustFS:-la-API-de-S3-sin-una-cuenta-de-AWS">¶</a></h2><p>Como la API de S3 es un protocolo y no un producto, se puede practicar con
+cualquier servicio que la implemente. El laboratorio usa RustFS, que
+arranca en un contenedor y guarda los objetos en un volumen Docker. El
+Compose de esta sesión está en <code>entorno/compose-s3.yml</code> y contiene
+únicamente:</p>
 <table>
 <thead>
 <tr>
@@ -8169,7 +8212,7 @@ laboratorio. El Compose de esta sesión está en
 </tr>
 <tr>
 <td><code>bucket-setup-s3</code></td>
-<td>Crea el bucket si todavía no existe</td>
+<td>Crea el bucket <code>tcdm-datalake</code> si todavía no existe</td>
 <td>No, termina correctamente</td>
 </tr>
 <tr>
@@ -8179,12 +8222,12 @@ laboratorio. El Compose de esta sesión está en
 </tr>
 </tbody>
 </table>
-<p>El servicio usa un volumen Docker (<code>tcdm-26-27-rustfs-s3-data</code>). Detener los
-contenedores no borra los objetos; <code>down -v</code>, en cambio, elimina también ese
-volumen y debe reservarse para regenerar completamente el ejercicio.</p>
+<p>El volumen (<code>tcdm-26-27-rustfs-s3-data</code>) hace que detener los contenedores
+no borre los objetos; <code>down -v</code>, en cambio, elimina también ese volumen y
+debe reservarse para regenerar completamente el ejercicio.</p>
 <p>Las credenciales del Compose (<code>tcdm_student</code> / <code>tcdm_student_secret</code>) son
-específicas del laboratorio local. Con ellas se comprueban el protocolo S3 y
-el flujo de datos entre HDFS, RustFS y los lectores de la sesión.</p>
+específicas del laboratorio local. Con ellas se ejercitan el mismo
+protocolo y las mismas bibliotecas que se usarían contra Amazon S3.</p>
 </div>
 </div>
 </div>
@@ -8289,9 +8332,9 @@ DataNode ni un NodeManager: es simplemente otro servicio accesible desde
 </table>
 <p>Desde dentro de <code>namenode</code> (donde corre este notebook), el servicio se
 alcanza por su nombre DNS interno, <code>rustfs</code>, en el puerto <code>9000</code> — no por
-<code>localhost</code>. La consola web es una ayuda visual; las operaciones
-reproducibles de esta sesión se hacen con boto3, porque es la misma
-interfaz que se podrá reutilizar con AWS real.</p>
+<code>localhost</code>. La consola web es una ayuda visual; las operaciones de esta
+sesión se hacen desde el notebook, con las mismas bibliotecas que se
+usarían contra AWS.</p>
 <p>Comprueba desde este notebook que el clúster Hadoop sigue respondiendo (esto
 sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 </div>
@@ -8329,7 +8372,7 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Antes: traer los programas de la sesión, instalar dependencias y fijar endpoint y credenciales con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%env</code></li><li style="margin:10px 0">Cada fichero fluye de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -cat</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">upload_fileobj</code>, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code> del bucket: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 24 tablas y al menos 24 objetos</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con WebHDFS</li><li style="margin:10px 0">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul>
 </div>
 </div>
 </div>
@@ -8342,62 +8385,38 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Traer-los-programas-de-la-sesi%C3%B3n-al-kernel">Traer los programas de la sesión al kernel<a class="anchor-link" href="#Traer-los-programas-de-la-sesi%C3%B3n-al-kernel">¶</a></h2><p>Este notebook se ejecuta dentro de <code>namenode</code>, igual que en S2, y ese
-contenedor no monta el directorio <code>s3/</code> de tu distribución local: los cuatro programas de la sesión (<code>check_s3_api.py</code>,
-<code>read_s3_pyarrow.py</code>, <code>read_s3_polars.py</code>, <code>read_s3_duckdb.py</code>) todavía no
-existen en el directorio de trabajo del kernel. <code>requirements.txt</code> se crea
-más abajo con <code>%%writefile</code>, como en S2. La siguiente celda los descarga del repositorio público
-<code>dsevilla/tcdm-public</code> (rama <code>26-27</code>), igual que S2 descarga la instantánea
-del INE.</p>
+<h2 id="Las-bibliotecas-que-hablan-con-S3">Las bibliotecas que hablan con S3<a class="anchor-link" href="#Las-bibliotecas-que-hablan-con-S3">¶</a></h2><p>S3 no se monta como un disco: se le hacen peticiones HTTP firmadas con unas
+credenciales. Nadie escribe esas peticiones a mano; se usa una biblioteca
+que las construye. En esta sesión hay tres, y conviene saber cuál es cuál
+porque cada lector de Parquet se apoya en una distinta:</p>
+<ul>
+<li><strong>boto3</strong> es el SDK oficial de AWS para Python. Su cliente de S3 tiene un
+método por cada operación de la API (<code>list_objects_v2</code> es la operación
+<code>ListObjectsV2</code>, <code>get_object</code> es <code>GetObject</code>…) y devuelve la respuesta del
+servicio como un diccionario. Es la forma más directa de ver qué ofrece
+la API, y la usaremos para explorarla y para copiar los datos.</li>
+<li><strong>s3fs</strong> presenta S3 con la interfaz de ficheros de <code>fsspec</code>, la misma
+con la que S2 habló con WebHDFS: <code>glob</code>, <code>open</code>, <code>info</code>. Por debajo usa
+<code>aiobotocore</code>, la variante asíncrona del mismo SDK. Gracias a ella el
+código de PyArrow y de Polars de S2 sirve aquí cambiando sólo el
+filesystem.</li>
+<li><strong><code>httpfs</code></strong> es una extensión de DuckDB con su propio cliente HTTP y S3,
+escrito dentro del motor. No usa el SDK de AWS.</li>
+</ul>
+<div class="highlight"><pre><span></span>boto3 ──────────────────► botocore ────┐
+PyArrow, Polars ► s3fs ► aiobotocore ──┼─► API de S3 (HTTP) ► RustFS o Amazon S3
+DuckDB ► httpfs ───────────────────────┘
+</pre></div>
+<p><code>requirements.txt</code> fija versiones de <code>boto3</code> y <code>aiobotocore</code> que comparten
+la misma versión de <code>botocore</code>, para que la instalación sea reproducible.
+La celda siguiente crea el fichero dentro de <code>namenode</code> con <code>%%writefile</code>,
+y la posterior instala las dependencias con <code>%pip</code> en el intérprete del
+kernel. Como en S2, la imagen ya las trae y lo normal es que <code>%pip</code> sólo
+confirme que están.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
-
-<span class="n">SESSION_FILES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"check_s3_api.py"</span><span class="p">,</span>
-    <span class="s2">"read_s3_pyarrow.py"</span><span class="p">,</span>
-    <span class="s2">"read_s3_polars.py"</span><span class="p">,</span>
-    <span class="s2">"read_s3_duckdb.py"</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/s3"</span>
-
-<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">SESSION_FILES</span><span class="p">:</span>
-    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="s2">"Mozilla/5.0"</span><span class="p">})</span>
-    <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
-        <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Descargados </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">SESSION_FILES</span><span class="p">)</span><span class="si">}</span><span class="s2"> ficheros de la sesión al directorio de trabajo del kernel"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">Instalar las dependencias de la sesión en este kernel<a class="anchor-link" href="#Instalar-las-dependencias-de-la-sesi%C3%B3n-en-este-kernel">¶</a></h2><p>A partir de aquí todo se ejecuta desde este mismo notebook. La celda
-siguiente crea <a href="requirements.txt"><code>requirements.txt</code></a> con <code>%%writefile</code>
-dentro de <code>namenode</code>, y la posterior instala sus dependencias con <code>%pip</code> en
-el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
-<code>%pip</code> sólo confirme que están.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8425,7 +8444,7 @@ el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=17">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8440,22 +8459,56 @@ el intérprete del kernel. Como en S2, la imagen ya las trae y lo normal es que
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><code>requirements.txt</code> fija versiones compatibles de <code>boto3</code>, <code>aiobotocore</code>,
-<code>fsspec</code> y <code>s3fs</code> para que la instalación sea reproducible.</p>
-<p>Las credenciales y el endpoint de RustFS se fijan una sola vez para el resto
-del notebook mediante variables de entorno del kernel (<code>%env</code> las deja
-disponibles tanto para celdas Python como para las celdas <code>!</code> que lanzan los
-programas de esta sesión como subprocesos):</p>
+<h2 id="Endpoint-y-credenciales:-variables-AWS_*">Endpoint y credenciales: variables <code>AWS_*</code><a class="anchor-link" href="#Endpoint-y-credenciales:-variables-AWS_*">¶</a></h2><p>Un cliente de S3 necesita saber tres cosas: a qué servidor hablar, con qué
+credenciales firmar las peticiones y en qué región está el bucket. El SDK
+de AWS las busca, entre otros sitios, en variables de entorno con nombres
+fijos. Es la forma habitual de configurarlo, porque deja las credenciales
+fuera del código: el mismo programa funciona contra otro servicio
+cambiando el entorno, sin tocar una línea.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Qué indica</th>
+<th>Valor en el laboratorio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AWS_ENDPOINT_URL</code></td>
+<td>A qué servidor se envían las peticiones</td>
+<td><code>http://rustfs:9000</code>, el contenedor de RustFS</td>
+</tr>
+<tr>
+<td><code>AWS_ACCESS_KEY_ID</code></td>
+<td>Identificador de la credencial</td>
+<td><code>tcdm_student</code></td>
+</tr>
+<tr>
+<td><code>AWS_SECRET_ACCESS_KEY</code></td>
+<td>Secreto con el que se firman las peticiones</td>
+<td><code>tcdm_student_secret</code></td>
+</tr>
+<tr>
+<td><code>AWS_DEFAULT_REGION</code></td>
+<td>Región del bucket</td>
+<td><code>us-east-1</code>; RustFS no distingue regiones, pero la firma de cada petición incluye una</td>
+</tr>
+</tbody>
+</table>
+<p>Contra Amazon S3 no se define <code>AWS_ENDPOINT_URL</code>: el SDK deduce el servidor
+a partir de la región. <code>%env</code> fija las variables en el proceso del kernel,
+así que valen para todas las celdas que siguen:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8467,7 +8520,48 @@ programas de esta sesión como subprocesos):</p>
 <span class="o">%</span><span class="n">env</span> <span class="n">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="n">tcdm_student</span>
 <span class="o">%</span><span class="n">env</span> <span class="n">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="n">tcdm_student_secret</span>
 <span class="o">%</span><span class="n">env</span> <span class="n">AWS_DEFAULT_REGION</span><span class="o">=</span><span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span>
-<span class="o">%</span><span class="n">env</span> <span class="n">AWS_S3_ADDRESSING_STYLE</span><span class="o">=</span><span class="n">path</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="La-API-de-S3,-petici%C3%B3n-a-petici%C3%B3n">La API de S3, petición a petición<a class="anchor-link" href="#La-API-de-S3,-petici%C3%B3n-a-petici%C3%B3n">¶</a></h2><p>Antes de copiar 24 tablas conviene ver la API con un solo objeto, porque
+todo lo demás —la copia, los lectores de Parquet— son combinaciones de
+estas pocas operaciones.</p>
+<p><code>boto3.client("s3")</code> crea el cliente. No recibe ni servidor ni
+credenciales: los toma de las variables que se acaban de fijar. La primera
+petición, <code>list_buckets</code>, sirve además de comprobación: si falla con un
+error de conexión, RustFS no está arrancado; ejecuta
+<code>make -C entorno s3-up</code> en una terminal de tu equipo y repite la celda.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">botocore.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseClient</span>
+
+<span class="n">s3</span><span class="p">:</span> <span class="n">BaseClient</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Servidor al que habla el cliente: </span><span class="si">{</span><span class="n">s3</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">endpoint_url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">buckets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">bucket</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">bucket</span> <span class="ow">in</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_buckets</span><span class="p">()[</span><span class="s2">"Buckets"</span><span class="p">]]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Buckets: </span><span class="si">{</span><span class="n">buckets</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="s2">"tcdm-datalake"</span> <span class="ow">in</span> <span class="n">buckets</span>
+<span class="p">),</span> <span class="s2">"No existe el bucket tcdm-datalake: revisa `make -C entorno s3-up`"</span>
 </pre></div>
 </div>
 </div>
@@ -8480,10 +8574,9 @@ programas de esta sesión como subprocesos):</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Antes de copiar nada comprobamos que RustFS responde y que el bucket
-existe. Si esta celda falla con un error de conexión, RustFS no está
-arrancado: ejecuta <code>make -C entorno s3-up</code> en una terminal de tu equipo y
-repítela.</p>
+<h3 id="Escribir-un-objeto">Escribir un objeto<a class="anchor-link" href="#Escribir-un-objeto">¶</a></h3><p><code>put_object</code> envía un <code>PUT</code> con el contenido completo. No hay que crear
+antes <code>pruebas/</code> ni <code>pruebas/saludos/</code>: la clave es una sola cadena, y las
+barras forman parte de ella.</p>
 </div>
 </div>
 </div>
@@ -8495,20 +8588,11 @@ repítela.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">S3_BUCKET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"tcdm-datalake"</span>
+<span class="n">TEST_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pruebas/saludos/hola.txt"</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
-
-<span class="n">buckets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">bucket</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">bucket</span> <span class="ow">in</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">])</span><span class="o">.</span><span class="n">list_buckets</span><span class="p">()[</span>
-        <span class="s2">"Buckets"</span>
-    <span class="p">]</span>
-<span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Buckets en RustFS: </span><span class="si">{</span><span class="n">buckets</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="s2">"tcdm-datalake"</span> <span class="ow">in</span> <span class="n">buckets</span>
-<span class="p">),</span> <span class="s2">"No existe el bucket tcdm-datalake: revisa `make -C entorno s3-up`"</span>
+<span class="n">s3</span><span class="o">.</span><span class="n">put_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">,</span> <span class="n">Body</span><span class="o">=</span><span class="sa">b</span><span class="s2">"Hola, S3</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Creado s3://</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">TEST_KEY</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8521,45 +8605,16 @@ repítela.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Crear-el-data-lake-S3-a-partir-de-HDFS">Crear el data lake S3 a partir de HDFS<a class="anchor-link" href="#Crear-el-data-lake-S3-a-partir-de-HDFS">¶</a></h2><p>El propio notebook copia ahora los datos. Así, al ejecutar las celdas en
-orden se parte del estado final de S2 y se obtiene exactamente el estado que
-necesita el resto de esta sesión. El flujo de cada fichero es equivalente a</p>
-<div class="highlight"><pre><span></span>hdfs dfs -cat fichero.parquet
-        │ flujo binario
-        ▼
-boto3.upload_fileobj(...) -&gt; s3://tcdm-datalake/raw/tpcds/tabla/fichero
-</pre></div>
-<p>La celda de copia enumera recursivamente con
-<code>hdfs dfs -ls -R</code> y filtra las líneas que
-empiezan por <code>-</code> (ficheros, no directorios) excluyendo <code>_SUCCESS</code>:</p>
-<div class="highlight"><pre><span></span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-R<span class="w"> </span>/datalake/raw/tpcds<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">'$1 ~ /^-/ &amp;&amp; $NF !~ /\/_SUCCESS$/ { print $NF }'</span>
-</pre></div>
-<p>Para cada ruta, <code>hdfs dfs -cat</code> entrega un flujo binario a <code>boto3</code>; el
-fichero no pasa por el disco local ni por el host. Antes de subir se elimina
-sólo el prefijo <code>raw/tpcds/</code> del bucket para que repetir el notebook produzca
-el mismo conjunto de objetos y no conserve fragmentos de una ejecución
-anterior. HDFS permanece intacto: sigue siendo la fuente <code>raw</code> creada en S2.</p>
+<h3 id="Listar:-prefijos-y-%C2%ABcarpetas%C2%BB">Listar: prefijos y «carpetas»<a class="anchor-link" href="#Listar:-prefijos-y-%C2%ABcarpetas%C2%BB">¶</a></h3><p>La única forma de saber qué hay en un bucket es listar claves. <code>Prefix</code>
+limita el listado a las que empiezan por un texto. Si además se indica
+<code>Delimiter="/"</code>, el servicio agrupa las claves por lo que hay hasta la
+barra siguiente y devuelve esos grupos como <code>CommonPrefixes</code>: son las
+«carpetas» que muestran la consola web y las herramientas, calculadas en
+el momento de listar.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Copiar-los-Parquet-desde-HDFS-con-la-API-S3">Copiar los Parquet desde HDFS con la API S3<a class="anchor-link" href="#Copiar-los-Parquet-desde-HDFS-con-la-API-S3">¶</a></h3><p>La copia se implementa aquí, de forma visible. <code>subprocess</code> sólo abre el
-lector nativo de HDFS; la enumeración, la elección de claves y las llamadas
-a S3 pertenecen a esta celda. <code>upload_fileobj</code> consume la salida de
-<code>hdfs dfs -cat</code> como un flujo y evita crear una copia local intermedia.</p>
-<p>La salida esperada indica 24 tablas y al menos 24 objetos. Puede haber más
-de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8567,17 +8622,149 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">run</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+<span class="n">by_prefix</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="s2">"pruebas/"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Claves que empiezan por pruebas/:"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">by_prefix</span><span class="p">[</span><span class="s2">"Contents"</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'Key'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'Size'</span><span class="p">]</span><span class="si">}</span><span class="s2"> bytes)"</span><span class="p">)</span>
+
+<span class="n">top_level</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Prefijos comunes en la raíz del bucket:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">prefix</span><span class="p">[</span><span class="s2">"Prefix"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">top_level</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CommonPrefixes"</span><span class="p">,</span> <span class="p">[])])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>pruebas/</code> aparece entre los prefijos comunes sin que nadie lo haya creado.
+Si ya habías ejecutado antes este notebook, verás también <code>raw/</code>.</p>
+<h3 id="Metadatos-y-lectura-por-rango">Metadatos y lectura por rango<a class="anchor-link" href="#Metadatos-y-lectura-por-rango">¶</a></h3><p><code>head_object</code> devuelve los metadatos de un objeto —tamaño, fecha, <code>ETag</code>—
+sin transferir su contenido. <code>get_object</code> lo descarga, y con <code>Range</code> sólo
+los bytes que se piden. Esa lectura parcial es la operación de la que
+depende todo lo que viene después.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">metadata</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"ContentLength"</span><span class="p">,</span> <span class="s2">"ETag"</span><span class="p">,</span> <span class="s2">"LastModified"</span><span class="p">)})</span>
+
+<span class="n">whole</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">first_bytes</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">,</span> <span class="n">Range</span><span class="o">=</span><span class="s2">"bytes=0-3"</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Objeto completo: </span><span class="si">{</span><span class="n">whole</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Bytes 0 a 3:     </span><span class="si">{</span><span class="n">first_bytes</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Borrar">Borrar<a class="anchor-link" href="#Borrar">¶</a></h3><p>No existe una operación para modificar parte de un objeto ni para
+renombrarlo: se sustituye entero con otro <code>PUT</code>, o se borra. Al borrar el
+único objeto que empezaba por <code>pruebas/</code>, el prefijo deja de aparecer:
+nunca fue un directorio.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">s3</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)</span>
+
+<span class="n">after_delete</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Prefijos comunes en la raíz del bucket:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">prefix</span><span class="p">[</span><span class="s2">"Prefix"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">after_delete</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CommonPrefixes"</span><span class="p">,</span> <span class="p">[])])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero fluye de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -cat</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">upload_fileobj</code>, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 24 tablas y los mismos ficheros que en HDFS</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Copiar-raw/tpcds-de-HDFS-al-bucket">Copiar <code>raw/tpcds</code> de HDFS al bucket<a class="anchor-link" href="#Copiar-raw/tpcds-de-HDFS-al-bucket">¶</a></h2><p>Con esas operaciones ya se puede construir el data lake S3. No se generan
+los datos de nuevo: se parte del estado que dejó S2 en HDFS y se copia
+fichero a fichero, de modo que los Parquet de S3 sean byte a byte los
+mismos y cualquier diferencia posterior sólo pueda venir del
+almacenamiento.</p>
+<p>En un clúster real esta copia la haría una herramienta distribuida, como
+<code>hadoop distcp</code>, que reparte el trabajo entre los nodos. Aquí son unos
+cientos de megabytes y se hace con un bucle visible, para que se vea cada
+paso: qué ficheros hay, qué clave recibe cada uno y qué petición lo sube.</p>
+<p>El primer paso es saber qué hay que copiar. <code>hdfs dfs -ls -R</code> lista el
+árbol completo; se conservan las líneas que empiezan por <code>-</code> (ficheros, no
+directorios) y se descarta el marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">run</span>
 
 <span class="n">HDFS_ROOT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds"</span>
-<span class="n">S3_BUCKET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"tcdm-datalake"</span>
 <span class="n">S3_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"raw/tpcds"</span>
 
-<span class="n">listing</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
+<span class="n">hdfs_listing</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
     <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-ls"</span><span class="p">,</span> <span class="s2">"-R"</span><span class="p">,</span> <span class="n">HDFS_ROOT</span><span class="p">],</span>
     <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -8585,32 +8772,95 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
 <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
 <span class="n">hdfs_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
     <span class="n">fields</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">hdfs_listing</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">fields</span> <span class="o">:=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs_files</span><span class="p">}</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">hdfs_files</span><span class="p">,</span> <span class="s2">"S2 no dejó ficheros Parquet en HDFS"</span>
 
-<span class="n">s3</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">])</span>
-<span class="n">old_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">item</span><span class="p">[</span><span class="s2">"Key"</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">"list_objects_v2"</span><span class="p">)</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span>
-        <span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Contents"</span><span class="p">,</span> <span class="p">[])</span>
-<span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> ficheros Parquet de </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> tablas. Los tres primeros:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">hdfs_files</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Antes de subir nada se vacía el prefijo de destino, para que repetir el
+notebook deje siempre el mismo conjunto de objetos y no conserve restos de
+una ejecución anterior. Sólo se borra <code>raw/tpcds/</code> del bucket; HDFS no se
+toca.</p>
+<p>Un listado devuelve como mucho 1.000 claves por petición. Para recorrerlas
+todas, boto3 ofrece un <em>paginador</em> que repite la petición hasta agotar el
+prefijo. <code>list_keys</code> reúne ese recorrido porque se usará tres veces; el
+borrado va también por lotes, porque <code>delete_objects</code> admite hasta 1.000
+claves por llamada.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">list_keys</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">pages</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">"list_objects_v2"</span><span class="p">)</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">"Key"</span><span class="p">]</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pages</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Contents"</span><span class="p">,</span> <span class="p">[])]</span>
+
+
+<span class="n">old_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">list_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_keys</span><span class="p">),</span> <span class="mi">1000</span><span class="p">):</span>
     <span class="n">batch</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_keys</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1000</span><span class="p">]</span>
     <span class="n">s3</span><span class="o">.</span><span class="n">delete_objects</span><span class="p">(</span>
         <span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span>
         <span class="n">Delete</span><span class="o">=</span><span class="p">{</span><span class="s2">"Objects"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"Key"</span><span class="p">:</span> <span class="n">key</span><span class="p">}</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">],</span> <span class="s2">"Quiet"</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
     <span class="p">)</span>
-
-<span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">hdfs_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="n">relative_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">hdfs_path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span>
-    <span class="n">s3_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">relative_path</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Borrados </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">old_keys</span><span class="p">)</span><span class="si">}</span><span class="s2"> objetos de una ejecución anterior."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La copia propiamente dicha. La clave de cada objeto es la ruta HDFS con la
+raíz cambiada, así que la organización por capa, fuente y tabla se
+conserva:</p>
+<div class="highlight"><pre><span></span>/datalake/raw/tpcds/date_dim/&lt;fichero&gt;   →   raw/tpcds/date_dim/&lt;fichero&gt;
+</pre></div>
+<p><code>hdfs dfs -cat</code> escribe el fichero en su salida estándar y <code>upload_fileobj</code>
+lee de ahí: los bytes van de HDFS a S3 sin guardarse en el disco de
+<code>namenode</code>. <code>upload_fileobj</code> se encarga además de partir los ficheros
+grandes en trozos y subirlos como una carga <em>multipart</em>, que es como la API
+admite objetos mayores que una sola petición.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">hdfs_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">s3_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">hdfs_path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s1">/'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">process</span><span class="p">:</span> <span class="n">Popen</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-cat"</span><span class="p">,</span> <span class="n">hdfs_path</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
@@ -8626,45 +8876,15 @@ de un objeto por tabla si Trino decidió escribir varios fragmentos.</p>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"hdfs dfs -cat falló para </span><span class="si">{</span><span class="n">hdfs_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">return_code</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">position</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="n">uploaded_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">item</span><span class="p">[</span><span class="s2">"Key"</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">"list_objects_v2"</span><span class="p">)</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span>
-        <span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Contents"</span><span class="p">,</span> <span class="p">[])</span>
-<span class="p">]</span>
+<span class="n">uploaded_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">list_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">uploaded_keys</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Copiadas </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> piezas Parquet de </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> tablas."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Copiados </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">uploaded_keys</span><span class="p">)</span><span class="si">}</span><span class="s2"> ficheros Parquet de </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> tablas."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Hay dos formas de ver el resultado sin escribir más Python, ambas
-opcionales:</p>
-<ul>
-<li><p>abre la consola de RustFS en <a href="http://localhost:9001">http://localhost:9001</a>, entra con
-<code>tcdm_student</code> / <code>tcdm_student_secret</code> y navega por el bucket
-<code>tcdm-datalake</code> hasta <code>raw/tpcds/</code>;</p>
-</li>
-<li><p>en una terminal de tu equipo, lista el prefijo con el cliente de AWS del
-contenedor <code>s3-client</code>, que ya tiene configurados el endpoint y las
-credenciales:</p>
-<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tcdm-s3-client<span class="w"> </span>aws<span class="w"> </span>s3<span class="w"> </span>ls<span class="w"> </span>s3://tcdm-datalake/raw/tpcds/
-</pre></div>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8682,13 +8902,13 @@ credenciales:</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0">La copia ha usado sólo la API S3 estándar (boto3), configurada con variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code></li><li style="margin:10px 0">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0">La copia ha usado sólo operaciones de la API: listar, borrar y subir</li><li style="margin:10px 0">No se ha creado ningún directorio: la organización está en las claves</li><li style="margin:10px 0">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8706,167 +8926,8 @@ credenciales:</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Pregunta guía</div>
-<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Algunos objetos no terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>: ¿cómo puede saber un lector que lo son?</li><li style="margin:10px 0">¿Hace falta descargar el objeto completo para comprobarlo?</li></ul>
+<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Algunos objetos no terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>: ¿cómo puede saber un lector que lo son?</li><li style="margin:10px 0">Para leer dos columnas de una tabla, ¿hace falta descargar sus objetos completos?</li></ul>
 </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Comprobar-la-API-de-AWS-con-boto3">Comprobar la API de AWS con boto3<a class="anchor-link" href="#Comprobar-la-API-de-AWS-con-boto3">¶</a></h2><p><a href="check_s3_api.py"><code>check_s3_api.py</code></a> muestra las operaciones básicas de un
-cliente S3 estándar: <code>list_buckets()</code>, <code>list_objects_v2()</code>, <code>head_object()</code> y
-<code>get_object(Range="bytes=0-3")</code>. Se ejecuta como los demás scripts de la
-sesión, con <code>python</code>, sin ningún <code>docker exec</code> por delante — el nombre DNS
-<code>rustfs</code> ya resuelve porque este kernel vive en la misma red que el
-contenedor.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="n">check_s3_api</span><span class="o">.</span><span class="n">py</span> <span class="n">tcdm</span><span class="o">-</span><span class="n">datalake</span> <span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span> <span class="o">--</span><span class="n">minimum</span><span class="o">-</span><span class="n">objects</span> <span class="mi">1</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El programa termina imprimiendo <code>TCDM_S3_API_OK</code> después de comprobar que
-la respuesta de <code>get_object(Range=...)</code> es exactamente <code>b'PAR1'</code>: confirma
-que el objeto remoto comienza con la firma de Parquet y que el acceso por
-rangos HTTP funciona, sin haber descargado el objeto completo.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=31">
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres lectores para los mismos objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">PyArrow: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> adaptado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FSSpecHandler</code></li><li style="margin:10px 0">Polars: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> abre cada objeto como flujo binario y se concatenan los fragmentos</li><li style="margin:10px 0">DuckDB: su extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code> habla directamente con la API S3</li><li style="margin:10px 0">Los tres deben dar la misma firma que en S2: filas, claves no nulas, mínimo, máximo y suma</li></ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Explorar-con-PyArrow">Explorar con PyArrow<a class="anchor-link" href="#Explorar-con-PyArrow">¶</a></h2><p><a href="read_s3_pyarrow.py"><code>read_s3_pyarrow.py</code></a> utiliza <code>s3fs</code> (que implementa el
-acceso S3 mediante el SDK de AWS) y adapta ese filesystem a PyArrow mediante
-<code>FSSpecHandler</code>:</p>
-<div class="highlight"><pre><span></span>PyArrow Parquet
-      │
-      ▼
-FSSpecHandler
-      │
-      ▼
-s3fs → botocore → API S3
-</pre></div>
-<p>El patrón de búsqueda de objetos termina en <code>/*</code>, no en <code>/*.parquet</code>: algunos
-escritores de Trino generan ficheros Parquet sin esa extensión, y siguen
-siendo reconocibles por la firma binaria <code>PAR1</code>. Por eso el programa enumera
-los objetos del prefijo y excluye explícitamente <code>_SUCCESS</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># Qué significa cada columna de date_dim, la tabla que leen los tres lectores.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">date_dim</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="n">read_s3_pyarrow</span><span class="o">.</span><span class="n">py</span> <span class="n">tcdm</span><span class="o">-</span><span class="n">datalake</span> <span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span> \
-  <span class="o">--</span><span class="n">key</span><span class="o">-</span><span class="n">column</span> <span class="n">d_date_sk</span> <span class="o">--</span><span class="n">expected</span><span class="o">-</span><span class="n">rows</span> <span class="mi">73049</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El programa lista las claves Parquet, lee todos los fragmentos, imprime el
-esquema y cinco filas, y calcula filas, claves no nulas, mínimo, máximo y
-suma de la clave. Esas cinco medidas deben coincidir exactamente con las
-obtenidas al leer la misma tabla desde HDFS en S2: el almacenamiento cambió,
-el contenido no.</p>
-<h2 id="Explorar-con-Polars">Explorar con Polars<a class="anchor-link" href="#Explorar-con-Polars">¶</a></h2><p><a href="read_s3_polars.py"><code>read_s3_polars.py</code></a> usa el mismo <code>s3fs</code> para localizar
-los objetos, abre cada fichero como flujo binario y lo entrega a
-<code>polars.read_parquet()</code>, concatenando los fragmentos en un único DataFrame.
-Esa concatenación facilita el ejercicio, pero reúne todas las filas en
-memoria; más adelante se usarán lecturas <em>lazy</em> y Spark para colecciones
-mayores (sesión 4).</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="n">read_s3_polars</span><span class="o">.</span><span class="n">py</span> <span class="n">tcdm</span><span class="o">-</span><span class="n">datalake</span> <span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span> \
-  <span class="o">--</span><span class="n">key</span><span class="o">-</span><span class="n">column</span> <span class="n">d_date_sk</span> <span class="o">--</span><span class="n">expected</span><span class="o">-</span><span class="n">rows</span> <span class="mi">73049</span>
-</pre></div>
 </div>
 </div>
 </div>
@@ -8878,12 +8939,8 @@ mayores (sesión 4).</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Explorar-con-DuckDB">Explorar con DuckDB<a class="anchor-link" href="#Explorar-con-DuckDB">¶</a></h2><p>DuckDB puede consultar Parquet sin crear una tabla permanente. Su extensión
-nativa <code>httpfs</code> accede directamente a la API S3.
-<a href="read_s3_duckdb.py"><code>read_s3_duckdb.py</code></a> carga la extensión, configura un
-secreto S3 con el endpoint, las credenciales y el estilo de URL, y consulta
-directamente URLs <code>s3://</code> — el contenido sigue siendo el mismo Parquet, y el
-endpoint puede ser RustFS local o Amazon S3.</p>
+<h2 id="Qu%C3%A9-ha-quedado-en-el-bucket">Qué ha quedado en el bucket<a class="anchor-link" href="#Qu%C3%A9-ha-quedado-en-el-bucket">¶</a></h2><p>El mismo listado con <code>Delimiter</code> que antes mostró <code>pruebas/</code> enseña ahora
+las tablas: un prefijo común por cada una.</p>
 </div>
 </div>
 </div>
@@ -8895,8 +8952,12 @@ endpoint puede ser RustFS local o Amazon S3.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">python</span> <span class="n">read_s3_duckdb</span><span class="o">.</span><span class="n">py</span> <span class="n">tcdm</span><span class="o">-</span><span class="n">datalake</span> <span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span> \
-  <span class="o">--</span><span class="n">key</span><span class="o">-</span><span class="n">column</span> <span class="n">d_date_sk</span> <span class="o">--</span><span class="n">expected</span><span class="o">-</span><span class="n">rows</span> <span class="mi">73049</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">tables</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
+<span class="n">table_prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span><span class="p">[</span><span class="s2">"Prefix"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[</span><span class="s2">"CommonPrefixes"</span><span class="p">]]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span><span class="si">}</span><span class="s2"> prefijos de tabla:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">table_prefixes</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span>
 </pre></div>
 </div>
 </div>
@@ -8909,24 +8970,10 @@ endpoint puede ser RustFS local o Amazon S3.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La consulta conceptual detrás del programa es:</p>
-<div class="highlight"><pre><span></span><span class="k">DESCRIBE</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">read_parquet</span><span class="p">([...]);</span>
-<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">read_parquet</span><span class="p">([...])</span><span class="w"> </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
-<span class="k">SELECT</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w"> </span><span class="k">min</span><span class="p">(</span><span class="n">d_date_sk</span><span class="p">),</span><span class="w"> </span><span class="k">max</span><span class="p">(</span><span class="n">d_date_sk</span><span class="p">),</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="n">d_date_sk</span><span class="p">)</span>
-<span class="k">FROM</span><span class="w"> </span><span class="n">read_parquet</span><span class="p">([...]);</span>
-</pre></div>
-<p>Aquí el catálogo no sabe nada de <code>date_dim</code>: DuckDB recibe directamente la
-lista de objetos Parquet (obtenida con <code>list_objects_v2</code>), y la lectura la
-realiza <code>httpfs</code>, no <code>s3fs</code>.</p>
-<h2 id="Comparar-los-resultados">Comparar los resultados<a class="anchor-link" href="#Comparar-los-resultados">¶</a></h2><p>Las tres herramientas deben producir la misma firma
-<code>(filas, claves_no_nulas, mínimo, máximo, suma)</code>: PyArrow entrega una
-representación columnar explícita, Polars construye un DataFrame y DuckDB
-ejecuta un plan SQL, pero las tres terminan leyendo los mismos objetos
-Parquet. Si alguna difiere, sospecha primero de qué prefijo o bucket se está
-consultando antes de sospechar del propio dato.</p>
-<p>Una lectura selectiva por columnas (posible porque Parquet es columnar)
-reduce los bytes que deben decodificarse, aunque el objeto completo viva en
-S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
+<p>Dentro de una tabla, los objetos son los ficheros que escribió Trino en S2.
+Compara los de <code>date_dim</code> en el bucket con el directorio de HDFS del que
+salieron: mismos nombres y mismos tamaños. En HDFS aparece además
+<code>_SUCCESS</code>, que no se copió.</p>
 </div>
 </div>
 </div>
@@ -8938,82 +8985,72 @@ S3. Esta celda sí es Python nativo del kernel, no un script externo:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">s3fs</span>
-
-<span class="n">filesystem</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">(</span>
-    <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"endpoint_url"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">]}</span>
-<span class="p">)</span>
-<span class="n">date_fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">filesystem</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"tcdm-datalake/raw/tpcds/date_dim/*"</span><span class="p">))</span>
-<span class="k">assert</span> <span class="n">date_fragments</span><span class="p">,</span> <span class="s2">"No hay fragmentos de date_dim en S3"</span>
-<span class="k">with</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">date_fragments</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
-    <span class="n">sample</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"d_date"</span><span class="p">,</span> <span class="s2">"d_year"</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">date_dim_objects</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
+    <span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/date_dim/"</span>
+<span class="p">)[</span><span class="s2">"Contents"</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">date_dim_objects</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'Size'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> bytes  </span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'Key'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La celda obtiene el nombre real del primer fragmento: el número y los nombres
-de los ficheros por tabla no están garantizados, sólo el contenido lógico.
-Más adelante se combinará esta propiedad con filtros y
-particiones en Spark, Trino e Iceberg (sesiones 4 a 8).</p>
+<h3 id="Un-Parquet-se-reconoce-y-se-lee-por-rangos">Un Parquet se reconoce y se lee por rangos<a class="anchor-link" href="#Un-Parquet-se-reconoce-y-se-lee-por-rangos">¶</a></h3><p>Los nombres no terminan en <code>.parquet</code>, y no hace falta: un fichero Parquet
+empieza y acaba con los cuatro bytes <code>PAR1</code>. Justo antes de la firma final
+hay un entero de cuatro bytes con el tamaño del <strong>pie</strong>, el bloque de
+metadatos que cierra el fichero: el esquema y, para cada columna, en qué
+posición empiezan sus datos y cuánto ocupan.</p>
+<div class="highlight"><pre><span></span>PAR1 │ datos de las columnas │ pie (metadatos) │ tamaño del pie │ PAR1
+</pre></div>
+<p>Con tres peticiones se comprueba todo eso sin descargar el objeto: un
+<code>HEAD</code> para conocer su tamaño y dos <code>GET</code> por rango, uno de los cuatro
+primeros bytes y otro de los ocho últimos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=42">
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #a54467;
-     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres caminos, la misma firma</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">get_object(Range="bytes=0-3")</code> devuelve <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> sin descargar el objeto entero</li><li style="margin:10px 0">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: el resultado numérico coincide</li><li style="margin:10px 0">Leer sólo algunas columnas reduce los bytes que hay que decodificar</li><li style="margin:10px 0">No hay catálogo: cada lector recibe la lista de objetos del prefijo</li></ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=43">
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del laboratorio a Amazon S3 real</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Los cuatro programas se configuran con variables estándar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>, nada propio de RustFS</li><li style="margin:10px 0">Cambian el endpoint, las credenciales, la región y el estilo de direccionamiento (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">path</code> → <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">virtual</code>)</li><li style="margin:10px 0">El código de los programas no cambia</li></ul>
-</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">first_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">date_dim_objects</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"Key"</span><span class="p">]</span>
+<span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">first_key</span><span class="p">)[</span><span class="s2">"ContentLength"</span><span class="p">]</span>
+
+<span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">first_key</span><span class="p">,</span> <span class="n">Range</span><span class="o">=</span><span class="s2">"bytes=0-3"</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">last_eight</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"bytes=</span><span class="si">{</span><span class="n">size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">8</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
+<span class="n">tail</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">first_key</span><span class="p">,</span> <span class="n">Range</span><span class="o">=</span><span class="n">last_eight</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">footer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">tail</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="s2">"little"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Objeto: </span><span class="si">{</span><span class="n">first_key</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> bytes)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Primeros 4 bytes: </span><span class="si">{</span><span class="n">head</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Últimos 4 bytes:  </span><span class="si">{</span><span class="n">tail</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"El pie de metadatos ocupa </span><span class="si">{</span><span class="n">footer_size</span><span class="si">}</span><span class="s2"> bytes"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">head</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"PAR1"</span> <span class="ow">and</span> <span class="n">tail</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"PAR1"</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -9025,61 +9062,27 @@ particiones en Spark, Trino e Iceberg (sesiones 4 a 8).</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Configuraci%C3%B3n-local-y-configuraci%C3%B3n-AWS">Configuración local y configuración AWS<a class="anchor-link" href="#Configuraci%C3%B3n-local-y-configuraci%C3%B3n-AWS">¶</a></h2><p>Los cuatro programas de esta sesión leen su configuración mediante
-variables estándar del SDK de AWS, no mediante nada propio de RustFS:</p>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>RustFS local</th>
-<th>Amazon S3</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AWS_ENDPOINT_URL</code></td>
-<td><code>http://rustfs:9000</code> dentro de Docker</td>
-<td>normalmente no se define</td>
-</tr>
-<tr>
-<td><code>AWS_ACCESS_KEY_ID</code></td>
-<td><code>tcdm_student</code></td>
-<td>credencial IAM del laboratorio o rol</td>
-</tr>
-<tr>
-<td><code>AWS_SECRET_ACCESS_KEY</code></td>
-<td>secreto local del Compose</td>
-<td>secreto temporal o rol IAM</td>
-</tr>
-<tr>
-<td><code>AWS_SESSION_TOKEN</code></td>
-<td>no se define</td>
-<td>token temporal del laboratorio, si existe</td>
-</tr>
-<tr>
-<td><code>AWS_DEFAULT_REGION</code></td>
-<td><code>us-east-1</code></td>
-<td>región del bucket</td>
-</tr>
-<tr>
-<td><code>AWS_S3_ADDRESSING_STYLE</code></td>
-<td><code>path</code> dentro de Docker</td>
-<td>preferentemente <code>virtual</code></td>
-</tr>
-</tbody>
-</table>
-<p><code>AWS_S3_ADDRESSING_STYLE</code> no es una variable que boto3 o el CLI de AWS lean
-de forma nativa: son los cuatro programas de esta sesión los que la leen
-con <code>os.environ.get(...)</code> y la pasan explícitamente a
-<code>Config(s3={'addressing_style': ...})</code>. Aquí hace falta <code>path</code> porque
-<code>tcdm-datalake</code> no es un nombre resoluble por DNS fuera del laboratorio; en
-Amazon S3 real, <code>virtual</code> —el estilo recomendado hoy por AWS— sí resolvería
-correctamente <code>tcdm-datalake.s3.&lt;región&gt;.amazonaws.com</code>, siempre que el
-bucket exista en esa región.</p>
-<p>Migrar a AWS real consiste en cambiar los valores de <code>%env</code> de más arriba
-(eliminando <code>AWS_ENDPOINT_URL</code>, usando credenciales IAM reales y
-<code>AWS_S3_ADDRESSING_STYLE=virtual</code>) y el nombre del bucket; el código de los
-cuatro programas no cambia.</p>
+<p>Así trabaja un lector de Parquet sobre un almacén de objetos: pide el final
+del objeto, lee el pie y, sabiendo ya dónde está cada columna, pide sólo
+los rangos que necesita. Por eso un formato columnar y un almacenamiento
+que ofrece <code>GET</code> por rango encajan bien: una consulta sobre dos columnas
+no tiene por qué transferir las demás. Los lectores que vienen a
+continuación se apoyan en esto sin que haya que escribirlo; el que más lo
+aprovecha es DuckDB, que decide qué rangos pedir a partir de la consulta.</p>
+<p>Hay dos formas más de ver el resultado de la copia, ambas opcionales:</p>
+<ul>
+<li><p>abre la consola de RustFS en <a href="http://localhost:9001">http://localhost:9001</a>, entra con
+<code>tcdm_student</code> / <code>tcdm_student_secret</code> y navega por el bucket
+<code>tcdm-datalake</code> hasta <code>raw/tpcds/</code>: las carpetas que muestra son los
+prefijos comunes de antes;</p>
+</li>
+<li><p>en una terminal de tu equipo, lista el prefijo con el cliente de AWS del
+contenedor <code>s3-client</code>, que ya tiene configurados el endpoint y las
+credenciales:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tcdm-s3-client<span class="w"> </span>aws<span class="w"> </span>s3<span class="w"> </span>ls<span class="w"> </span>s3://tcdm-datalake/raw/tpcds/
+</pre></div>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -9096,12 +9099,12 @@ cuatro programas no cambia.</p>
      min-height:420px;margin:20px auto;padding:34px 46px;
      background:#eaf2f8;color:#1f2933;
      border:1px solid #c9d6e1;
-     border-top:10px solid #a54467;
+     border-top:10px solid #174f7a;
      border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
-<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un objeto S3 es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0">Parametrizar endpoint y credenciales permite pasar de RustFS a Amazon S3 sin tocar el código</li><li style="margin:10px 0">Sigue siendo un data lake de ficheros: sin catálogo, esquemas gestionados ni snapshots</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres lectores para los mismos objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> da a S3 la interfaz <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> de S2: el código de PyArrow y Polars cambia sólo de filesystem</li><li style="margin:10px 0">DuckDB llega por su extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>, con su propia configuración</li><li style="margin:10px 0">Las tres deben dar el mismo resumen que en S2: filas, claves no nulas, mínimo, máximo y suma</li></ul>
 </div>
 </div>
 </div>
@@ -9109,6 +9112,515 @@ cuatro programas no cambia.</p>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Leer-los-mismos-Parquet-desde-S3">Leer los mismos Parquet desde S3<a class="anchor-link" href="#Leer-los-mismos-Parquet-desde-S3">¶</a></h2><p>En S2 las tres bibliotecas leían de HDFS a través de un filesystem de
+<code>fsspec</code> para WebHDFS. <code>fsspec</code> existe precisamente para que el código que
+lee no dependa de dónde están los ficheros: basta con otro filesystem que
+ofrezca las mismas operaciones. Para S3 ese filesystem es <code>s3fs</code>.</p>
+<p>La tabla es otra vez <code>date_dim</code>, para poder comparar con S2 sin que cambie
+nada más que el almacenamiento:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="c1"># Qué significa cada columna de date_dim, la tabla que leen los tres lectores.</span>
+<span class="o">%</span><span class="n">esquema</span> <span class="n">date_dim</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>S3FileSystem()</code> tampoco recibe servidor ni credenciales: los toma de las
+mismas variables <code>AWS_*</code>. Las rutas que maneja tienen la forma
+<code>bucket/clave</code>. Como al copiar se dejó fuera <code>_SUCCESS</code>, todo lo que hay
+bajo el prefijo es Parquet y no hay nada que filtrar:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">s3fs</span>
+
+<span class="n">object_store</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">()</span>
+<span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_store</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/date_dim/*"</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">files</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">files</span><span class="p">,</span> <span class="s2">"No hay objetos de date_dim en el bucket: ejecuta antes la copia"</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="PyArrow">PyArrow<a class="anchor-link" href="#PyArrow">¶</a></h3><p>Es la celda de S2 con <code>object_store</code> donde antes estaba <code>webhdfs</code>:
+<code>FSSpecHandler</code> adapta cualquier filesystem de <code>fsspec</code> a la interfaz que
+espera Arrow, y <code>read_table</code> lee los fragmentos de <code>files</code>. Igual que
+entonces, después del esquema se muestra la primera fila y se calcula un
+resumen de la clave <code>d_date_sk</code>: filas, valores no nulos, mínimo, máximo y
+suma.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.compute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.fs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pafs</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
+
+<span class="n">arrow_fs</span><span class="p">:</span> <span class="n">pafs</span><span class="o">.</span><span class="n">FileSystem</span> <span class="o">=</span> <span class="n">pafs</span><span class="o">.</span><span class="n">PyFileSystem</span><span class="p">(</span><span class="n">pafs</span><span class="o">.</span><span class="n">FSSpecHandler</span><span class="p">(</span><span class="n">object_store</span><span class="p">))</span>
+<span class="n">arrow_table</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">Table</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">filesystem</span><span class="o">=</span><span class="n">arrow_fs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">arrow_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+
+<span class="n">first_row</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to_pylist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Primera fila:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">first_row</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">key_values</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">ChunkedArray</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="p">[</span><span class="s2">"d_date_sk"</span><span class="p">]</span>
+<span class="n">arrow_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">arrow_table</span><span class="o">.</span><span class="n">num_rows</span><span class="p">,</span>
+    <span class="n">pc</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
+    <span class="n">pc</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
+    <span class="n">pc</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
+    <span class="n">pc</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">key_values</span><span class="p">)</span><span class="o">.</span><span class="n">as_py</span><span class="p">(),</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">pyarrow-s3</span><span class="se">\t</span><span class="s2">date_dim</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">arrow_summary</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Polars">Polars<a class="anchor-link" href="#Polars">¶</a></h3><p>Polars tampoco cambia: abre cada objeto como un flujo binario con
+<code>object_store.open(path, "rb")</code> y se lo entrega a <code>pl.read_parquet</code>,
+concatenando los fragmentos. Reunir así la tabla en memoria sirve para una
+dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">object_store</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+        <span class="n">fragments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">stream</span><span class="p">))</span>
+<span class="n">polars_table</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fragments</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">polars_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+
+<span class="n">key_column</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">polars_table</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">"d_date_sk"</span><span class="p">)</span>
+<span class="n">polars_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">polars_table</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+    <span class="n">key_column</span><span class="o">.</span><span class="n">len</span><span class="p">()</span> <span class="o">-</span> <span class="n">key_column</span><span class="o">.</span><span class="n">null_count</span><span class="p">(),</span>
+    <span class="n">key_column</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+    <span class="n">key_column</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+    <span class="n">key_column</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">polars-s3</span><span class="se">\t</span><span class="s2">date_dim</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">polars_summary</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="DuckDB">DuckDB<a class="anchor-link" href="#DuckDB">¶</a></h3><p>DuckDB sí cambia de camino. En S2 se le registró el filesystem de <code>fsspec</code>;
+aquí se usa su extensión <code>httpfs</code>, que entiende directamente las URL
+<code>s3://</code>. Es lo habitual con DuckDB sobre un almacén de objetos, porque el
+motor decide por sí mismo qué rangos de cada objeto pedir.</p>
+<p>Como <code>httpfs</code> no usa el SDK de AWS, hay que darle la configuración en su
+propio formato, un <em>secreto</em> de tipo <code>s3</code>. Las credenciales y la región se
+toman de las mismas variables de entorno. Tres campos son propios de un
+servicio que no es Amazon S3:</p>
+<ul>
+<li><code>ENDPOINT</code>, el servidor, sin <code>http://</code>;</li>
+<li><code>USE_SSL false</code>, porque RustFS escucha en HTTP y no en HTTPS;</li>
+<li><code>URL_STYLE 'path'</code>, para que el bucket vaya en la ruta de la URL
+(<code>http://rustfs:9000/tcdm-datalake/...</code>) y no en el nombre del servidor
+(<code>http://tcdm-datalake.rustfs:9000/...</code>), que nadie resolvería. boto3 y
+<code>s3fs</code> eligen ese estilo por su cuenta cuando se les indica un servidor
+propio.</li>
+</ul>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">duckdb</span>
+
+<span class="n">connection</span><span class="p">:</span> <span class="n">duckdb</span><span class="o">.</span><span class="n">DuckDBPyConnection</span> <span class="o">=</span> <span class="n">duckdb</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"INSTALL httpfs"</span><span class="p">)</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"LOAD httpfs"</span><span class="p">)</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    CREATE OR REPLACE SECRET tcdm_s3 (</span>
+<span class="sd">        TYPE s3,</span>
+<span class="sd">        KEY_ID ?,</span>
+<span class="sd">        SECRET ?,</span>
+<span class="sd">        REGION ?,</span>
+<span class="sd">        ENDPOINT ?,</span>
+<span class="sd">        URL_STYLE 'path',</span>
+<span class="sd">        USE_SSL false</span>
+<span class="sd">    )</span>
+<span class="sd">    """</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ACCESS_KEY_ID"</span><span class="p">],</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_SECRET_ACCESS_KEY"</span><span class="p">],</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_DEFAULT_REGION"</span><span class="p">],</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">]</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"http://"</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"DuckDB configurado para leer s3:// desde"</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>A partir de aquí es el SQL de S2 con otras URL. <code>read_parquet</code> recibe la
+lista de objetos, y el resumen se calcula como una agregación:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"s3://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+
+<span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE SELECT * FROM read_parquet(?)"</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">urls</span><span class="p">])</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    SELECT count(*), count(d_date_sk), min(d_date_sk), max(d_date_sk), sum(d_date_sk)</span>
+<span class="sd">    FROM read_parquet(?)</span>
+<span class="sd">    """</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">urls</span><span class="p">],</span>
+<span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">duckdb_summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">duckdb-s3</span><span class="se">\t</span><span class="s2">date_dim</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">duckdb_summary</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Comparar-los-resultados">Comparar los resultados<a class="anchor-link" href="#Comparar-los-resultados">¶</a></h3><p>Las tres líneas <code>TCDM_SUMMARY</code> deben tener las mismas cinco cifras, aunque
+PyArrow y Polars hayan llegado por <code>s3fs</code> y DuckDB por <code>httpfs</code>. Y deben
+coincidir con las que obtuviste en S2 leyendo <code>date_dim</code> desde HDFS: el
+almacenamiento ha cambiado, el contenido no. Si alguna difiere, sospecha
+antes del bucket o del prefijo que se está leyendo que del dato.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="k">assert</span> <span class="n">arrow_summary</span> <span class="o">==</span> <span class="n">polars_summary</span> <span class="o">==</span> <span class="n">duckdb_summary</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">arrow_summary</span><span class="p">,</span>
+    <span class="n">polars_summary</span><span class="p">,</span>
+    <span class="n">duckdb_summary</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="n">arrow_summary</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">73_049</span><span class="p">,</span> <span class="n">arrow_summary</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Los tres lectores coinciden:"</span><span class="p">,</span> <span class="n">arrow_summary</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Leer-s%C3%B3lo-lo-necesario">Leer sólo lo necesario<a class="anchor-link" href="#Leer-s%C3%B3lo-lo-necesario">¶</a></h3><p>Todo lo que S2 hizo con SQL sobre HDFS funciona igual sobre el bucket. La
+consulta siguiente usa dos de las 28 columnas de <code>date_dim</code> y filtra por
+año. DuckDB lee el pie de cada objeto, como se hizo a mano más arriba, y
+con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    SELECT d_year, count(*) AS dias, count(*) FILTER (WHERE d_holiday = 'Y') AS festivos</span>
+<span class="sd">    FROM read_parquet(?)</span>
+<span class="sd">    WHERE d_year BETWEEN 1998 AND 2002</span>
+<span class="sd">    GROUP BY d_year</span>
+<span class="sd">    ORDER BY d_year</span>
+<span class="sd">    """</span><span class="p">,</span>
+    <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">urls</span><span class="p">],</span>
+<span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La consulta no nombra ninguna tabla: recibe una lista de objetos. Nada en
+el bucket dice que esos objetos formen <code>date_dim</code>, ni qué columnas tienen,
+salvo sus propias claves y sus pies. Es la misma situación que en S2 con
+los directorios de HDFS, y cambiar de almacenamiento no la resuelve.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=63">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #2f6f4f;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia de prefijo, de tabla y de lector</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Lista con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Delimiter="/"</code> el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/</code>: ¿qué «carpetas» aparecen y quién las ha creado?</li><li style="margin:10px 0">Repite la lectura de la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> y del tamaño del pie con un objeto de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code></li><li style="margin:10px 0">Lee <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> desde S3 con DuckDB y cuenta los productos por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">i_category</code></li><li style="margin:10px 0">Lee sólo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit</code> de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> con PyArrow: ¿cuántas filas salen?</li><li style="margin:10px 0">Suma el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Size</code> de los objetos de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store_sales</code> y compáralo con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -du -s</code> de esa tabla</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres caminos, el mismo resumen</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un Parquet empieza y acaba con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code>; su pie dice dónde está cada columna</li><li style="margin:10px 0">Con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code> por rango, un lector trae el pie y sólo las columnas que necesita</li><li style="margin:10px 0">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: las cinco cifras coinciden, y son las de S2</li><li style="margin:10px 0">Sigue sin haber catálogo: cada lector recibe la lista de objetos del prefijo</li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #174f7a;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del laboratorio a Amazon S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El código no nombra RustFS: servidor y credenciales están en las variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code></li><li style="margin:10px 0">Contra AWS cambian las credenciales y la región, y desaparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_ENDPOINT_URL</code></li><li style="margin:10px 0">DuckDB necesita además otro secreto: sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ENDPOINT</code>, con HTTPS y estilo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">vhost</code></li></ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Del-laboratorio-a-Amazon-S3">Del laboratorio a Amazon S3<a class="anchor-link" href="#Del-laboratorio-a-Amazon-S3">¶</a></h2><p>Nada de lo ejecutado menciona RustFS salvo los valores de las variables.
+Para repetir la sesión contra un bucket de Amazon S3 cambiaría esto:</p>
+<table>
+<thead>
+<tr>
+<th>Qué</th>
+<th>RustFS local</th>
+<th>Amazon S3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AWS_ENDPOINT_URL</code></td>
+<td><code>http://rustfs:9000</code></td>
+<td>no se define: el SDK usa el servidor de la región</td>
+</tr>
+<tr>
+<td><code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
+<td>las del Compose</td>
+<td>credenciales de un usuario o un rol de IAM</td>
+</tr>
+<tr>
+<td><code>AWS_SESSION_TOKEN</code></td>
+<td>no se define</td>
+<td>obligatoria si las credenciales son temporales, como las de un laboratorio de AWS Academy</td>
+</tr>
+<tr>
+<td><code>AWS_DEFAULT_REGION</code></td>
+<td><code>us-east-1</code>, sin efecto</td>
+<td>la región en la que se creó el bucket</td>
+</tr>
+<tr>
+<td>Nombre del bucket</td>
+<td><code>tcdm-datalake</code></td>
+<td>uno propio: los nombres son únicos en todo AWS</td>
+</tr>
+<tr>
+<td>Secreto de DuckDB</td>
+<td><code>ENDPOINT</code>, <code>USE_SSL false</code>, <code>URL_STYLE 'path'</code></td>
+<td>sin esos tres campos; por ejemplo, <code>CREATE SECRET (TYPE s3, PROVIDER credential_chain)</code>, que toma las credenciales del entorno</td>
+</tr>
+</tbody>
+</table>
+<p>Las celdas de boto3, <code>s3fs</code>, PyArrow y Polars no cambiarían. Tampoco el
+SQL de DuckDB, sólo su secreto.</p>
+<p>El estilo de las URL merece una frase. Amazon S3 pone el bucket en el
+nombre del servidor (<code>tcdm-datalake.s3.us-east-1.amazonaws.com</code>), lo que
+exige que ese nombre exista en el DNS. En un servicio local no existe, y
+por eso el bucket va en la ruta (<code>rustfs:9000/tcdm-datalake</code>). Es una
+diferencia de despliegue, no de la API: las operaciones y las respuestas
+son las mismas.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<div style="box-sizing:border-box;width:100%;max-width:960px;
+     min-height:420px;margin:20px auto;padding:34px 46px;
+     background:#eaf2f8;color:#1f2933;
+     border:1px solid #c9d6e1;
+     border-top:10px solid #a54467;
+     border-radius:10px;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;
+     font-size:26px;line-height:1.42;
+     text-align:left;overflow:hidden">
+<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9149,27 +9661,31 @@ Compose de S3), aunque conserva el HDFS por el motivo anterior.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Preguntas-para-interpretar-la-experiencia">Preguntas para interpretar la experiencia<a class="anchor-link" href="#Preguntas-para-interpretar-la-experiencia">¶</a></h2><ul>
-<li>¿Qué información reside en la clave de un objeto S3 que en HDFS estaría
-repartida entre el espacio de nombres del NameNode y los bloques de los
-DataNodes?</li>
-<li>¿Por qué un objeto Parquet sin extensión <code>.parquet</code> sigue siendo un
-Parquet válido, y cómo lo comprueban los lectores de esta sesión?</li>
-<li>¿Qué diferencia hay entre que un fichero fluya de HDFS a S3 como un flujo
-(de <code>hdfs dfs -cat</code> a <code>upload_fileobj</code>, como en esta sesión) y que se copie
-primero al disco del host?</li>
-<li>¿Qué parte de la configuración de los cuatro programas cambiaría, y qué
-parte no, al apuntar a un bucket real de Amazon S3 en vez de a RustFS?</li>
-<li>¿Por qué <code>s3fs</code>/PyArrow/Polars y <code>httpfs</code>/DuckDB pueden dar exactamente el
-mismo resultado numérico usando dos caminos de acceso distintos?</li>
-<li>¿Qué le falta a esta sesión para poder llamarse <em>lakehouse</em> en vez de
-<em>data lake sobre S3</em>?</li>
+<li>¿Qué se gana al guardar los datos en un servicio distinto de las máquinas
+que los procesan, y qué se pierde respecto a tenerlos en los DataNodes?</li>
+<li>Al borrar <code>pruebas/saludos/hola.txt</code>, el prefijo <code>pruebas/</code> dejó de
+aparecer en el listado. ¿Qué habría pasado en HDFS al borrar el único
+fichero de un directorio?</li>
+<li>En HDFS, renombrar un directorio con mil ficheros es una operación. ¿En
+cuántas peticiones se convertiría en S3?</li>
+<li>¿Por qué un objeto sin extensión <code>.parquet</code> sigue siendo un Parquet
+válido, y con qué peticiones lo has comprobado?</li>
+<li>Para responder a la consulta por años, ¿qué partes de cada objeto de
+<code>date_dim</code> ha tenido que pedir DuckDB y cuáles no?</li>
+<li>¿Qué diferencia hay entre que un fichero fluya de HDFS a S3 (de
+<code>hdfs dfs -cat</code> a <code>upload_fileobj</code>, como en esta sesión) y que se copie
+primero al disco de <code>namenode</code>?</li>
+<li>¿Por qué PyArrow y Polars, por <code>s3fs</code>, y DuckDB, por <code>httpfs</code>, dan
+exactamente el mismo resumen usando dos clientes distintos?</li>
+<li>¿Qué habría que cambiar, y qué no, para ejecutar este notebook contra un
+bucket de Amazon S3?</li>
 </ul>
 <h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión tendrás una reunión individual breve con el
 profesor para revisar el trabajo de esta sesión. Esa reunión combina una
@@ -9178,39 +9694,41 @@ Mantén RustFS y su bucket disponibles hasta entonces.</p>
 <h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparado y a mano, funcionando en tu propio equipo:</p>
 <ol>
 <li>El bucket <code>tcdm-datalake</code> con los objetos bajo <code>raw/tpcds/</code>, en la
-consola de RustFS (<a href="http://localhost:9001">http://localhost:9001</a>) o en la salida de la celda de
-copia.</li>
-<li>El final de esa celda de copia: el número de piezas Parquet copiadas de
-las 24 tablas.</li>
-<li>La salida de <code>check_s3_api.py</code>, terminada en <code>TCDM_S3_API_OK</code>: la firma
-<code>PAR1</code> leída con una petición por rango, sin descargar el objeto.</li>
+consola de RustFS (<a href="http://localhost:9001">http://localhost:9001</a>) o en la salida de la celda
+que lista los 24 prefijos de tabla.</li>
+<li>El final de la celda de copia: el número de ficheros Parquet copiados
+de las 24 tablas.</li>
+<li>La salida de la celda que lee por rango un objeto de <code>date_dim</code>: la
+firma <code>PAR1</code> al principio y al final y el tamaño del pie, obtenidos sin
+descargar el objeto.</li>
 <li>Las tres líneas <code>TCDM_SUMMARY</code> (<code>pyarrow-s3</code>, <code>polars-s3</code> y <code>duckdb-s3</code>)
 de <code>date_dim</code>, iguales entre sí y a las que obtuviste en S2 leyendo desde
 HDFS (73.049 filas).</li>
-<li>Que sabes señalar qué variables <code>AWS_*</code> habría que cambiar para usar un
-bucket real de Amazon S3 y cuáles no.</li>
+<li>Que sabes señalar qué variables <code>AWS_*</code> y qué campos del secreto de
+DuckDB habría que cambiar para usar un bucket real de Amazon S3, y qué
+celdas no cambiarían.</li>
 </ol>
 <h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
-no se limite a pegar capturas de las órdenes anteriores: debe explicar con
-tus propias palabras la diferencia entre un bloque HDFS y un objeto S3; qué
-son un bucket, una clave y un prefijo, y por qué un prefijo no es un
-directorio; por qué los tres lectores obtienen el mismo resultado que en S2
-aunque haya cambiado el almacenamiento; y qué le falta a este data lake para
-poder llamarse <em>lakehouse</em>.</p>
+no se limite a pegar capturas de las salidas anteriores: debe explicar con
+tus propias palabras por qué un data lake se guarda en un almacén de
+objetos; qué son un bucket, una clave y un prefijo, y por qué un prefijo no
+es un directorio; cómo lee un programa dos columnas de un Parquet sin
+descargar el objeto; y por qué los tres lectores obtienen el mismo
+resultado que en S2 aunque haya cambiado el almacenamiento.</p>
 <h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una orden. Debes poder
 explicar:</p>
 <ul>
-<li>qué ofrece un almacenamiento de objetos —objetos identificados por una
-clave dentro de un bucket, operaciones HTTP, lecturas por rango— frente a
-un sistema de ficheros distribuido como HDFS, con bloques, réplicas y un
-espacio de nombres;</li>
+<li>qué ofrece un almacenamiento de objetos —objetos enteros identificados
+por una clave dentro de un bucket, operaciones HTTP, lecturas por rango—
+frente a un sistema de ficheros distribuido como HDFS, con bloques,
+réplicas, directorios y renombrado;</li>
 <li>por qué el formato Parquet es independiente de dónde se guarden los
-ficheros, y cómo se reconoce un Parquet sin fiarse de su extensión;</li>
+ficheros, cómo se reconoce uno sin fiarse de su extensión y para qué
+sirve su pie;</li>
 <li>qué papel tienen boto3, <code>s3fs</code> y la extensión <code>httpfs</code> de DuckDB, y por
 qué caminos distintos devuelven el mismo dato;</li>
-<li>qué hay que parametrizar —endpoint, credenciales, región y estilo de
-direccionamiento— para que un mismo programa funcione con RustFS y con
-Amazon S3.</li>
+<li>qué hay que configurar —servidor, credenciales, región y estilo de las
+URL— para que el mismo código funcione con RustFS y con Amazon S3.</li>
 </ul>
 <h2 id="Continuaci%C3%B3n-del-curso">Continuación del curso<a class="anchor-link" href="#Continuaci%C3%B3n-del-curso">¶</a></h2><p>Con HDFS y el almacenamiento de objetos sirviendo el mismo dataset TPC-DS
 SF1 en el mismo formato Parquet, la sesión 4 introduce Spark como motor de

@@ -8,8 +8,8 @@ Iceberg `iceberg.tcdm.web_sales` creada en S7. Spark Structured Streaming
 recoge esos ficheros desde esa ruta con su fuente de ficheros Parquet.
 
 El programa no depende de Spark ni de PySpark: habla con HDFS únicamente por
-WebHDFS, con `fsspec` y `PyArrow`, igual que los lectores de la sesión 2
-(`read_parquet_pyarrow.py`). Los rangos de claves surrogadas
+WebHDFS, con `fsspec` y `PyArrow`, igual que las lecturas de la sesión 2.
+Los rangos de claves surrogadas
 (`ws_bill_customer_sk`, `ws_bill_addr_sk`, `ws_item_sk`, `ws_sold_date_sk`)
 se calculan a partir de las tablas reales `customer`, `customer_address`,
 `item` y `date_dim` de `/datalake/raw/tpcds`, nunca a partir de rangos
