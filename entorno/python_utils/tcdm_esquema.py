@@ -342,7 +342,10 @@ _magic.__doc__ = __doc__
 
 def load_ipython_extension(ipython: InteractiveShell) -> None:
     """Registra `%esquema` y `%%esquema`; lo llama `%load_ext tcdm_esquema`."""
-    ipython.register_magic_function(_magic, magic_kind="line_cell", magic_name="esquema")
+    # Se registra en el gestor de magias y no con `ipython.register_magic_function`,
+    # que hace lo mismo pero está declarado con la firma del método del gestor:
+    # un comprobador de tipos toma ahí la función por `self` y echa en falta `func`.
+    ipython.magics_manager.register_function(_magic, magic_kind="line_cell", magic_name="esquema")
 
 
 def parse_arguments(argv: Sequence[str] | None = None) -> Arguments:
