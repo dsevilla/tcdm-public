@@ -8,15 +8,17 @@ apéndice cada vez que una consulta usa una tabla que no se recuerda:
     %load_ext tcdm_esquema
 
     %esquema                        las 24 tablas, con su papel y descripción
-    %esquema web_sales              la tabla completa, con todas sus columnas
+    %esquema web_sales              la tabla completa, con todas sus columnas y,
+                                    si es de hechos, su diagrama entidad-relación
     %esquema web_sales date         las columnas de web_sales que contienen «date»
     %esquema ws_sold_date_sk        esa columna y ninguna otra
     %esquema item_sk                todas las columnas «item_sk», tabla a tabla
     %esquema web_sales customer     varias tablas seguidas
 
 `%%esquema` hace lo mismo con una tabla, columna o filtro por línea, y
-admite comentarios con `#`. Desde Python, `esquema("web_sales", "date")`
-devuelve el mismo resultado.
+admite comentarios con `#`. `%schema` y `%%schema` son alias, con el nombre
+en inglés. Desde Python, `esquema("web_sales", "date")` devuelve el mismo
+resultado.
 
 El kernel de las sesiones se ejecuta en `namenode`, que no ve la copia local
 de la distribución: el apéndice se descarga del repositorio público
@@ -61,6 +63,12 @@ SECTIONS: Final[dict[str, Role]] = {
 }
 TABLE_HEADING: Final[re.Pattern[str]] = re.compile(r"^#### `(\w+)`\s*$")
 FOREIGN_KEY: Final[re.Pattern[str]] = re.compile(r"^FK → (\w+)\.(\w+)$")
+# La figura de una tabla es un párrafo HTML con una imagen, como el resto de
+# figuras de los notebooks.
+FIGURE: Final[re.Pattern[str]] = re.compile(r'^<p\b.*<img src="([^"]+)"')
+# Diagrama entidad-relación de cada tabla de hechos; los dibuja
+# `addendum/figuras/generate_tpcds_diagrams.py` y se publican con las páginas.
+ER_FIGURE_URL: Final[str] = "https://dsevilla.github.io/tcdm-public/figs/tpcds_er_{table}.svg"
 PRIMARY_KEY: Final[re.Pattern[str]] = re.compile(r"^PK(?: \((\d+)/(\d+)\))?$")
 EXPECTED_TABLES: Final[dict[Role, int]] = {"dimensión": 17, "hecho": 7}
 PLAIN_KEYS: Final[frozenset[str]] = frozenset({"BK", "—"})
@@ -105,6 +113,8 @@ class Table:
     name: str
     role: Role
     description: str = ""
+    # El párrafo HTML de su diagrama, tal como está en el apéndice.
+    figure: str | None = None
     header: list[str] = field(default_factory=list)
     columns: list[Column] = field(default_factory=list)
 
@@ -165,8 +175,12 @@ def parse_appendix(cells: Sequence[str]) -> Schema:
 
 def _parse_table(name: str, role: Role, lines: Sequence[str]) -> Table:
     rows: list[str] = [line for line in lines if line.startswith("|")]
-    prose: list[str] = [line for line in lines if not line.startswith("|")]
+    figures: list[str] = [line for line in lines if FIGURE.match(line)]
+    prose: list[str] = [line for line in lines if not line.startswith("|") and line not in figures]
     table: Table = Table(name, role, description=" ".join(" ".join(prose).split()), header=rows[:2])
+    if len(figures) > 1:
+        raise SchemaError(f"`{name}` tiene {len(figures)} figuras y sólo se espera una.")
+    table.figure = figures[0] if figures else None
     for row in rows[2:]:
         cells: list[str] = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) != 4:
@@ -193,9 +207,21 @@ def check_schema(tables: Schema) -> list[str]:
             problems.append(f"`{table.name}` repite alguna columna.")
         if not table.primary_key:
             problems.append(f"`{table.name}` no marca ninguna columna como PK.")
+        problems.extend(_check_figure(table))
         for column in table.columns:
             problems.extend(_check_column(tables, table, column))
     return problems
+
+
+def _check_figure(table: Table) -> list[str]:
+    """Cada tabla de hechos muestra su diagrama entidad-relación, y sólo ellas."""
+    expected: str = ER_FIGURE_URL.format(table=table.name)
+    source: re.Match[str] | None = FIGURE.match(table.figure) if table.figure else None
+    if table.role == "hecho" and (source is None or source[1] != expected):
+        return [f"`{table.name}` debe mostrar su diagrama entidad-relación, {expected}."]
+    if table.role == "dimensión" and source is not None:
+        return [f"`{table.name}` es una dimensión y no tiene diagrama entidad-relación."]
+    return []
 
 
 def _check_column(tables: Schema, table: Table, column: Column) -> list[str]:
@@ -299,7 +325,8 @@ def _table_markdown(table: Table, columns: Sequence[Column]) -> str:
     title: str = f"#### `{table.name}` — {table.role}"
     rows: list[str] = [*table.header, *(column.row for column in columns)]
     if len(columns) == len(table.columns):
-        return "\n".join([title, "", table.description, "", *rows])
+        figure: list[str] = [table.figure, ""] if table.figure else []
+        return "\n".join([title, "", table.description, "", *figure, *rows])
     return "\n".join([f"{title} ({len(columns)} de {len(table.columns)} columnas)", "", *rows])
 
 
@@ -341,11 +368,15 @@ _magic.__doc__ = __doc__
 
 
 def load_ipython_extension(ipython: InteractiveShell) -> None:
-    """Registra `%esquema` y `%%esquema`; lo llama `%load_ext tcdm_esquema`."""
+    """Registra `%esquema` y `%%esquema`, y sus alias `%schema` y `%%schema`.
+
+    Lo llama `%load_ext tcdm_esquema`.
+    """
     # Se registra en el gestor de magias y no con `ipython.register_magic_function`,
     # que hace lo mismo pero está declarado con la firma del método del gestor:
     # un comprobador de tipos toma ahí la función por `self` y echa en falta `func`.
-    ipython.magics_manager.register_function(_magic, magic_kind="line_cell", magic_name="esquema")
+    for name in ("esquema", "schema"):
+        ipython.magics_manager.register_function(_magic, magic_kind="line_cell", magic_name=name)
 
 
 def parse_arguments(argv: Sequence[str] | None = None) -> Arguments:

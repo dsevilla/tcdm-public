@@ -8212,7 +8212,7 @@ tal como está en el <a href="#apendice-tpcds-sf1">apéndice</a> de este noteboo
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
-<td>La tabla completa: su descripción y todas sus columnas</td>
+<td>La tabla completa: su descripción, su diagrama entidad-relación si es una tabla de hechos, y todas sus columnas</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales date</code></td>
@@ -8236,6 +8236,8 @@ tal como está en el <a href="#apendice-tpcds-sf1">apéndice</a> de este noteboo
 tabla, columna o filtro por línea. Lo encontrarás la primera vez que la
 sesión usa cada tabla; añade una celda de éstas donde te haga falta y bórrala
 después.</p>
+<p><code>%schema</code> y <code>%%schema</code> son los mismos comandos con su nombre en inglés:
+usa el que prefieras.</p>
 <p>La celda siguiente lo prepara: ejecútala una vez por sesión de kernel.
 Descarga <code>entorno/python_utils/tcdm_esquema.py</code> del repositorio público
 <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>), porque el kernel se ejecuta en
@@ -14834,6 +14836,8 @@ es la clave primaria de cada una y cómo se relacionan mediante claves ajenas.
 Se generan con matplotlib a partir de los mismos datos que las tablas
 Markdown de abajo y se publican en las páginas del curso, que es de donde
 las toma este notebook; también puedes abrirlas sueltas o a mayor resolución.</p>
+<p>Además, cada tabla de hechos lleva su diagrama entidad-relación en su
+propio apartado, más abajo, delante de su tabla de columnas.</p>
 <h4 id="Matriz-de-hechos-y-dimensiones">Matriz de hechos y dimensiones<a class="anchor-link" href="#Matriz-de-hechos-y-dimensiones">¶</a></h4><p>Con 24 tablas y más de 80 relaciones, un diagrama entidad-relación con
 flechas es ilegible. La matriz muestra lo mismo sin cruces: cada columna es
 una tabla de hechos, agrupadas por canal de venta, y cada fila una dimensión,
@@ -16848,6 +16852,19 @@ apertura y cierre.</p>
 tener muchas filas y muchas claves hacia dimensiones. Las columnas
 <code>_quantity</code>, <code>_price</code>, <code>_amount</code>, <code>_cost</code> y <code>_profit</code> son buenos candidatos
 para agregaciones.</p>
+<p>Cada tabla de hechos lleva, delante de sus columnas, un diagrama
+entidad-relación como los de la especificación TPC-DS: la tabla de hechos
+en el centro, con una flecha a cada dimensión a la que apunta, y desde esas
+dimensiones, en otro color, una flecha a cada dimensión a la que apuntan a
+su vez, como <code>customer</code> → <code>customer_address</code> o <code>household_demographics</code> →
+<code>income_band</code>. Esas segundas flechas indican qué más se puede alcanzar con
+un <code>JOIN</code> adicional. Cada flecha resume todas las claves ajenas entre dos
+tablas, y un número sobre ella dice cuántas son: <code>web_sales</code> apunta dos
+veces a <code>date_dim</code>, por la fecha de venta y la de envío. Los diagramas se
+dibujan a partir de las tablas de columnas de este apéndice. La relación de
+cada devolución con su venta no aparece en ellos, igual que en la
+especificación: está en la matriz de arriba. <code>%esquema</code> muestra también el
+diagrama cuando pides una tabla de hechos completa.</p>
 </div>
 </div>
 </div>
@@ -16861,6 +16878,7 @@ para agregaciones.</p>
 <h4 id="store_sales"><code>store_sales</code><a class="anchor-link" href="#store_sales">¶</a></h4><p>Contiene ventas realizadas en tiendas. Enlaza la fecha, hora, producto,
 cliente, domicilio, tienda y promoción con cantidades, precios, impuestos y
 beneficio.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de store_sales: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_store_sales.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
@@ -17024,6 +17042,7 @@ beneficio.</p>
 <h4 id="catalog_sales"><code>catalog_sales</code><a class="anchor-link" href="#catalog_sales">¶</a></h4><p>Contiene ventas realizadas mediante catálogo. Tiene relaciones con cliente,
 domicilios de facturación y envío, centro de llamadas, página del catálogo,
 modo de envío, almacén, producto y promoción.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de catalog_sales: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_catalog_sales.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
@@ -17252,6 +17271,7 @@ modo de envío, almacén, producto y promoción.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h4 id="web_sales"><code>web_sales</code><a class="anchor-link" href="#web_sales">¶</a></h4><p>Contiene ventas web y conecta cada pedido con cliente, domicilio, página,
 sitio, modo de envío, almacén, producto y promoción.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de web_sales: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_web_sales.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
@@ -17480,6 +17500,7 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h4 id="store_returns"><code>store_returns</code><a class="anchor-link" href="#store_returns">¶</a></h4><p>Registra devoluciones realizadas en tiendas, con cantidades, importes,
 impuestos, comisiones, gastos de envío y pérdida neta.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de store_returns: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_store_returns.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
@@ -17624,6 +17645,7 @@ impuestos, comisiones, gastos de envío y pérdida neta.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h4 id="catalog_returns"><code>catalog_returns</code><a class="anchor-link" href="#catalog_returns">¶</a></h4><p>Registra devoluciones de compras de catálogo y enlaza tanto al cliente que
 devuelve como al centro de llamadas, página, transporte, almacén y motivo.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de catalog_returns: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_catalog_returns.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
@@ -17810,6 +17832,7 @@ devuelve como al centro de llamadas, página, transporte, almacén y motivo.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h4 id="web_returns"><code>web_returns</code><a class="anchor-link" href="#web_returns">¶</a></h4><p>Registra devoluciones de compras web y añade la página web y el motivo a las
 relaciones de cliente, domicilio, producto y pedido.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de web_returns: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_web_returns.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
@@ -17979,6 +18002,7 @@ relaciones de cliente, domicilio, producto y pedido.</p>
 <h4 id="inventory"><code>inventory</code><a class="anchor-link" href="#inventory">¶</a></h4><p>Representa el inventario diario de cada producto en cada almacén. Es una
 tabla especialmente útil para observar el tamaño de SF1: combina fechas,
 productos y almacenes con la cantidad disponible.</p>
+<p align="center" style="text-align: center;"><img alt="Diagrama entidad-relación de inventory: la tabla de hechos en el centro, con flechas a las dimensiones a las que apunta y, desde ellas, a las dimensiones a las que apuntan a su vez" src="https://dsevilla.github.io/tcdm-public/figs/tpcds_er_inventory.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="760"/></p>
 <table>
 <thead>
 <tr>
