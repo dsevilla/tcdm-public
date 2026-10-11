@@ -107,11 +107,14 @@ En Windows conviene clonar dentro del sistema de ficheros de WSL2
 (`~/tcdm-public`) y no en `/mnt/c/...`: evita problemas de integración y la
 entrada/salida es mucho más rápida.
 
-Antes de empezar cada sesión nueva, actualiza la copia desde la raíz:
+Antes de empezar cada sesión nueva, actualiza el material desde la raíz:
 
 ```bash
-git pull
+make -C entorno actualizar
 ```
+
+La orden no pisa tu trabajo: si has modificado un fichero que también cambia en la
+versión nueva, lo aparta como copia `.mio-<fecha>-<hora>`.
 
 ## Abrir la sesión 1
 
