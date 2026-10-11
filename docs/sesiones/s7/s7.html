@@ -7876,10 +7876,11 @@ otra vez el Hive Metastore que ya conoces de S6— sigue siendo necesario para
 localizar la tabla, pero ya no es él quien define qué es la tabla: eso lo
 hace el formato Iceberg. Y una vez creada esa tabla, es donde mediremos qué
 compensa de verdad: particionado, estadísticas, compactación, ordenación
-física y, sólo como ampliación si resulta reproducible, Z-order.</p>
+física y Z-order, que aquí sólo se describe.</p>
 <blockquote>
 <p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>.
-No añade ningún paquete respecto a S6. Se instalan en el kernel de <code>namenode</code> en la sección
+No añade ningún paquete respecto a S6. El fichero incluye también las de S2 a S6,
+porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en la sección
 «Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
 el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
 <code>s7/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
@@ -8121,7 +8122,7 @@ asumir que siempre cambian la decisión del motor;</li>
 order</em> de tabla que describe cómo se organizan físicamente los datos
 escritos;</li>
 <li>valorar Z-order como técnica avanzada dependiente del motor y la versión,
-y saber cuándo documentarla en lugar de fingir una demostración;</li>
+y explicar por qué esta sesión la describe sin ejecutarla;</li>
 <li>mantener snapshots con una política explícita de retención y practicar su
 expiración únicamente sobre tablas de laboratorio;</li>
 <li>describir qué características convierten al conjunto en un lakehouse y
@@ -8678,6 +8679,9 @@ donde aplicaremos la transformación de partición oculta de Iceberg,
 mismo pedido puede tener varias líneas— y el CTAS que sigue no agrupa ni
 deduplica filas, así que esa clave permanece única después de crear la
 tabla.</p>
+<p>También copiamos <code>sold_year</code> y <code>sold_month</code>, pero en esta tabla ya no son
+columnas de partición: quedan como columnas normales, porque S8 agrega por
+año con <code>sold_year</code>.</p>
 </div>
 </div>
 </div>
@@ -8761,8 +8765,8 @@ ws_net_profit
 <p><code>WITH (partitioning = ARRAY['month(ws_sold_date)'])</code> es la sintaxis
 real que expone el conector Iceberg de Trino para declarar una
 transformación de partición: <code>month</code> deriva un valor de partición a partir
-de <code>ws_sold_date</code> en el momento de escribir, sin que tengamos que crear ni
-mantener nosotros mismos columnas auxiliares como <code>sold_year</code>/<code>sold_month</code>.
+de <code>ws_sold_date</code> en el momento de escribir, sin que la partición dependa de
+columnas auxiliares como <code>sold_year</code>/<code>sold_month</code>, que aquí son sólo datos.
 <a href="https://iceberg.apache.org/docs/latest/partitioning/">Particionado de Iceberg</a>
 recoge el resto de transformaciones disponibles (<code>year</code>, <code>day</code>, <code>hour</code>,
 <code>bucket</code>, <code>truncate</code>...).</p>
@@ -8952,8 +8956,8 @@ vistazo cuáles son desechables y cuáles no.</p>
 <h2 id="Observar-la-definici%C3%B3n-y-la-ubicaci%C3%B3n">Observar la definición y la ubicación<a class="anchor-link" href="#Observar-la-definici%C3%B3n-y-la-ubicaci%C3%B3n">¶</a></h2><p>No debemos suponer dónde ha quedado físicamente la tabla: el catálogo puede
 elegir un directorio con un sufijo único, como ya viste en S6 con
 <code>web_sales_by_year_managed_demo</code>. Lo confirmamos con <code>SHOW CREATE TABLE</code> y
-extraemos la ubicación real con una expresión regular, igual que
-comprobamos en Python en toda esta sesión.</p>
+extraemos la ubicación real con una expresión regular, para usarla
+después desde Python.</p>
 </div>
 </div>
 </div>
@@ -9827,9 +9831,9 @@ lector Iceberg —la misma opción nativa que usa Spark para cualquier tabla
 que soporte viajar en el tiempo, no una opción propia de Iceberg— apuntando
 siempre al mismo identificador de tabla del catálogo. Iceberg admite un
 identificador de snapshot o el nombre de una rama/etiqueta como valor de
-<code>versionAsOf</code>; las opciones <code>snapshot-id</code>/<code>as-of-timestamp</code> que definía el
-propio conector Iceberg han quedado obsoletas a favor de esta sintaxis
-común de Spark.</p>
+<code>versionAsOf</code>. El conector Iceberg tiene además sus propias opciones de
+lectura, <code>snapshot-id</code> y <code>as-of-timestamp</code>, que seleccionan lo mismo; aquí
+usamos la sintaxis común de Spark.</p>
 </div>
 </div>
 </div>
@@ -10494,8 +10498,8 @@ Trino</a> documenta este
 procedimiento; Spark ofrece la acción equivalente a través del procedimiento
 <code>rewrite_data_files</code> de su catálogo Iceberg —se cita más abajo, en la
 sección de Z-order, porque es la única de las dos vías que admite esa
-estrategia—. Aquí seguimos con Trino porque es el motor que ya ha creado y
-sincronizado esta tabla de laboratorio, y la compactación por tamaño
+estrategia—. Aquí seguimos con Trino porque es el motor que ha creado
+esta tabla de laboratorio, y la compactación por tamaño
 (<code>strategy =&gt; 'binpack'</code>, la que activa <code>EXECUTE optimize</code> sin más
 parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
@@ -11060,7 +11064,9 @@ expirar nada, y aplicarla primero sobre tablas de laboratorio;</li>
 como hemos hecho en cada sección de este notebook;</li>
 <li>comprobar que todos los motores que van a usar la tabla comparten
 realmente el mismo catálogo, y no dar por hecho que "compatible" significa
-"sin incompatibilidades conocidas entre versiones concretas";</li>
+"sin incompatibilidades conocidas entre versiones concretas" (el caso de
+este entorno está en <code>entorno/README.md</code>, sección «Versiones fijadas y
+compatibilidad»);</li>
 <li>separar las operaciones reversibles (compactar, reescribir manifests) de
 las que borran metadatos o datos (expirar snapshots, eliminar ficheros
 huérfanos);</li>
@@ -11106,8 +11112,8 @@ cada uno y qué no garantiza ninguno de los dos?</li>
 <li>¿Por qué Trino impide expirar snapshots con una retención de cero días
 por defecto? ¿Qué riesgo concreto evita ese límite de 7 días?</li>
 <li>Z-order sólo puede pedirse desde Spark con
-<code>CALL iceberg.system.rewrite_data_files(...)</code>, nunca desde Trino. ¿Por
-qué? ¿Qué dos restricciones impiden demostrarlo en esta sesión, y qué tipo
+<code>CALL iceberg.system.rewrite_data_files(...)</code>, no desde Trino.
+¿Qué dos restricciones impiden demostrarlo en esta sesión, y qué tipo
 de consultas justificarían aplicarlo?</li>
 <li>Antes de compactar <code>iceberg.tcdm.web_sales_lab_smallfiles</code>, ¿qué problema
 concreto estabas resolviendo? ¿Cómo lo mediste, y cómo comprobaste que
@@ -11280,10 +11286,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 <h2 id="Siguiente-paso">Siguiente paso<a class="anchor-link" href="#Siguiente-paso">¶</a></h2><p>S7 establece el modelo de lakehouse sobre la misma tabla que lo hace
 evolucionar y mide qué decisiones de particionado, tamaño de ficheros,
 estadísticas, ordenación y mantenimiento mejoran realmente las consultas —y
-cuáles no—. También ha dejado constancia de que "lakehouse" no es una
-propiedad binaria de un formato de tabla: las versiones de motor, cliente y
-catálogo se comprueban contra el clúster real, no se suponen compatibles
-porque «deberían» serlo.</p>
+cuáles no—.</p>
 <p>S8 cierra el recorrido incorporando ingesta continua: un proceso simulado
 generará nuevos pedidos que un trabajo de Spark Structured Streaming irá
 fusionando desde <em>raw</em> hacia <em>silver</em> y <em>gold</em> sobre esta misma tabla

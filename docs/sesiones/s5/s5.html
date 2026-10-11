@@ -8465,8 +8465,9 @@ venta más <code>ws_sold_date</code> (derivada) y las particiones <code>sold_yea
 <li>qué significa cada métrica del producto <code>gold</code>: pedidos distintos,
 líneas de venta y beneficio neto, sin confundir unas con otras;</li>
 <li>dónde vive el producto <code>gold</code> y qué columnas tiene: una fila por
-<code>sold_year</code> en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con esas tres
-métricas;</li>
+año en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con la columna <code>d_year</code>
+(el <code>sold_year</code> de <code>silver</code>, con el nombre que tiene el año en <code>date_dim</code>)
+y esas tres métricas;</li>
 <li>qué formato y compresión emplea: Parquet con la compresión por defecto
 de Spark;</li>
 <li>qué columnas se utilizan para particionar: <code>sold_year</code> y <code>sold_month</code>,
@@ -9974,7 +9975,7 @@ genérico:</p>
 <tr>
 <td>Gold</td>
 <td><code>/datalake/gold/tpcds/web_sales_by_year</code>, un único fichero</td>
-<td>Una fila por año distinto de <code>sold_year</code></td>
+<td>Una fila por año (<code>d_year</code>)</td>
 <td>Qué producto consume directamente una pregunta de negocio (pedidos, líneas y beneficio neto por año), sin que quien lo consulte tenga que repetir el <code>join</code> con <code>date_dim</code></td>
 </tr>
 </tbody>

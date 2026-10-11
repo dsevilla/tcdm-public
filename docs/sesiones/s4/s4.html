@@ -8990,8 +8990,8 @@ tiene en <code>web_sales</code>, y mostramos los diez clientes con más líneas.
 algunas claves nulas en las tablas de hechos, para simular datos de origen
 imperfectos, y <code>groupBy</code> reúne todos los nulos en un único grupo: sin el
 filtro, ese grupo <code>NULL</code> encabezaría la lista con más líneas que cualquier
-cliente real, como si fuera uno más. S2 hizo lo mismo con <code>is_valid</code> al
-contar pedidos por cliente con PyArrow.</p>
+cliente real, como si fuera uno más. S2 hizo lo mismo en «Cliente con más
+pedidos», con <code>WHERE ws_bill_customer_sk IS NOT NULL</code>.</p>
 <p>Aquí seguimos
 contando <strong>líneas</strong>, no pedidos: cada fila de <code>web_sales</code> es una línea de
 un pedido, y un mismo pedido puede tener varias líneas.</p>
@@ -10151,7 +10151,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 persistente, ni un esquema de catálogo, ni una tabla Hive. Es sólo una
 forma de escribir la misma consulta con SQL en lugar de con el API de
 DataFrames. Reproducimos aquí, en Spark SQL, las tres preguntas de negocio
-que S2 ya respondió con PyArrow, Polars y DuckDB sobre los mismos ficheros,
+que S2 ya respondió en SQL con DuckDB sobre los mismos ficheros,
 para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
@@ -10315,7 +10315,7 @@ usa <code>web_sales</code>.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Las tres consultas anteriores son equivalentes, columna a columna y clave a
-clave, a las que S2 resolvió con PyArrow, Polars y DuckDB. Lo único que ha
+clave, a las que S2 resolvió con DuckDB. Lo único que ha
 cambiado es el motor que las ejecuta y el hecho de que ahora puede
 distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
@@ -11490,7 +11490,9 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Ese resultado debe ser el mismo que calculó la sesión local en la sección
 de Spark SQL. Lo comprobamos fila a fila, con las filas que guardamos
-entonces en <code>sales_by_year_local_rows</code>:</p>
+entonces en <code>sales_by_year_local_rows</code>. Esa variable sólo existe si «Beneficio neto
+por año» se ejecutó en este mismo kernel: si lo has reiniciado, la celda siguiente
+falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta esa sección.</p>
 </div>
 </div>
 </div>

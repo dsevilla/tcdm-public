@@ -7848,7 +7848,7 @@ textarea,
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Sesi%C3%B3n-8-%E2%80%94-Ingesta-continua-con-Spark-Structured-Streaming">Sesión 8 — Ingesta continua con Spark Structured Streaming<a class="anchor-link" href="#Sesi%C3%B3n-8-%E2%80%94-Ingesta-continua-con-Spark-Structured-Streaming">¶</a></h1><p>Esta sesión cierra el recorrido iniciado en S2. El alumnado ya sabe leer y
+<h1 id="Sesi%C3%B3n-8-%E2%80%94-Ingesta-continua-con-Spark-Structured-Streaming">Sesión 8 — Ingesta continua con Spark Structured Streaming<a class="anchor-link" href="#Sesi%C3%B3n-8-%E2%80%94-Ingesta-continua-con-Spark-Structured-Streaming">¶</a></h1><p>Esta sesión cierra el recorrido iniciado en S2. Ya sabes leer y
 escribir Parquet con Spark, organizar un data lake en zonas <em>raw</em>/<em>silver</em>/
 <em>gold</em>, registrar tablas en un Metastore y gestionar una tabla Iceberg con
 snapshots, evolución y optimización medida. Todo ese trabajo, hasta ahora, ha
@@ -7863,12 +7863,14 @@ una pieza de infraestructura nueva y compleja para un beneficio docente
 pequeño en este punto del curso. En su lugar, un proceso simple simula la
 llegada periódica de pedidos nuevos escribiendo ficheros en la zona <em>raw</em>, y
 Spark Structured Streaming los recoge desde ahí con su propia fuente de
-ficheros: exactamente el mismo mecanismo de vigilancia de directorio que ya
-se ha usado en HDFS durante todo el curso, aplicado ahora de forma continua
+ficheros: la misma lectura de Parquet desde un directorio de HDFS que ya
+se ha usado durante todo el curso, repetida ahora de forma continua
 en vez de una sola vez.</p>
 <blockquote>
 <p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>, <code>fsspec</code>, <code>pyarrow</code>, <code>requests</code>.
-Respecto a S7 añade <code>fsspec</code>, <code>pyarrow</code>, <code>requests</code>. Se instalan en el kernel de <code>namenode</code> en la sección
+No añade ningún paquete respecto a S7: <code>fsspec</code>, <code>pyarrow</code> y <code>requests</code>, que usa el generador,
+ya venían de S2. El fichero incluye también las de S2 a S7, porque el notebook lo
+sobrescribe. Se instalan en el kernel de <code>namenode</code> en la sección
 «Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
 el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
 <code>s8/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
@@ -8626,7 +8628,8 @@ en vez de fallar más adelante con un error críptico de <code>MERGE INTO</code>
 <p>Por último, inspeccionamos el <code>CREATE TABLE</code> real de <code>iceberg.tcdm.web_sales</code>
 —esta vez con <code>spark.sql(...)</code>, el mismo catálogo que va a escribir en
 ella— para ver, sin adivinarlo, cómo particionó S7 la tabla. Debe aparecer
-una transformación oculta de Iceberg sobre <code>ws_sold_date</code> (por ejemplo,
+una transformación oculta de Iceberg sobre <code>ws_sold_date</code> (Spark la escribe
+<code>months(ws_sold_date)</code>; es la que en Trino se declaró como
 <code>month(ws_sold_date)</code>) en vez de columnas de partición visibles como las de
 la tabla Hive de S6.</p>
 </div>
@@ -8914,11 +8917,11 @@ insertada y una fila corregida por el mismo <code>MERGE</code>, en vez de adivin
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="La-consulta-de-streaming">La consulta de streaming<a class="anchor-link" href="#La-consulta-de-streaming">¶</a></h2><p>A diferencia de la lectura por lotes de S4/S5 (<code>spark.read.parquet(...)</code>),
-aquí declaramos el esquema del <code>readStream</code> a mano: Spark podría inferirlo
-leyendo una muestra, pero esa inferencia no es fiable en un flujo continuo
-—depende de qué ficheros haya presentes en cada arranque y puede cambiar
-entre ejecuciones—, así que se declara explícitamente en vez de encarecer
-y fragilizar el arranque. Declaramos el mismo esquema que ya construye el
+aquí declaramos el esquema del <code>readStream</code> a mano: con la fuente de
+ficheros, Spark lo exige por defecto. Podría inferirlo leyendo una muestra
+si se activa <code>spark.sql.streaming.schemaInference</code>, pero esa inferencia no
+es fiable en un flujo continuo —depende de qué ficheros haya presentes en
+cada arranque y puede cambiar entre ejecuciones—, así que no la usamos. Declaramos el mismo esquema que ya construye el
 generador, columna a columna.</p>
 </div>
 </div>
@@ -9866,9 +9869,9 @@ laboratorio: son la línea base con la que compararemos después del <code>MERGE
 <span class="w">    </span><span class="sd">'''Ubicación física real de una tabla del catálogo iceberg (Hive Metastore).</span>
 
 <span class="sd">    A diferencia de un catálogo hadoop, donde la ruta se puede calcular sin</span>
-<span class="sd">    preguntarle a nadie, aquí el Hive Metastore puede añadir un sufijo único</span>
-<span class="sd">    a la ubicación de cada tabla (como ya viste en S7 con</span>
-<span class="sd">    "SHOW CREATE TABLE"): hay que preguntárselo al catálogo con</span>
+<span class="sd">    preguntarle a nadie, aquí la ubicación depende del motor que creó la</span>
+<span class="sd">    tabla: Trino le añade un sufijo único (como ya viste en S7 con</span>
+<span class="sd">    "SHOW CREATE TABLE") y Spark no. Hay que preguntársela al catálogo con</span>
 <span class="sd">    "DESCRIBE TABLE EXTENDED", la versión Spark del mismo tipo de consulta.</span>
 <span class="sd">    '''</span>
     <span class="n">extended_rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Row</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DESCRIBE TABLE EXTENDED </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
@@ -9994,7 +9997,10 @@ tablas.</p>
 <p>Compara los dos listados posteriores al <code>MERGE</code> con los que tomamos antes:
 en <code>web_sales_lab_cow</code> deben aparecer ficheros de datos <strong>nuevos</strong> que
 sustituyen a los que contenían las tres filas corregidas (el resto de
-ficheros, los que no tenían ninguna fila afectada, se conservan igual). En
+ficheros, los que no tenían ninguna fila afectada, se conservan igual). Los
+ficheros sustituidos siguen apareciendo en el listado: el snapshot anterior
+todavía los referencia, como viste en S7, aunque la versión actual de la
+tabla ya sólo lea los nuevos. En
 <code>web_sales_lab_mor</code> los ficheros de datos originales deben seguir intactos y
 aparecer, además, uno o varios ficheros nuevos de un tipo distinto —
 ficheros de borrado (<em>delete files</em>), cuyo nombre termina en
@@ -10346,8 +10352,8 @@ datos de origen.</p>
 <h2 id="Qu%C3%A9-no-se-ha-visto-todav%C3%ADa">Qué no se ha visto todavía<a class="anchor-link" href="#Qu%C3%A9-no-se-ha-visto-todav%C3%ADa">¶</a></h2><p>Esta sesión no ha introducido:</p>
 <ul>
 <li>Kafka ni ningún otro sistema de mensajería: el generador simulado escribe
-ficheros directamente en HDFS, y <code>readStream</code> los recoge con la misma
-fuente de ficheros que ya se conocía de las sesiones por lotes;</li>
+ficheros directamente en HDFS, y <code>readStream</code> los recoge con su fuente de
+ficheros, sin ningún <em>broker</em> de por medio;</li>
 <li>procesamiento evento a evento ni garantías de latencia de segundos: Spark
 Structured Streaming, incluso en su modo de disparador más frecuente,
 sigue procesando micro-lotes, no eventos individuales;</li>
@@ -10444,8 +10450,8 @@ garantiza? ¿Qué evidencia de este notebook lo demuestra?</li>
 <li>¿Por qué el segundo <code>MERGE</code> de <code>foreachBatch</code> filtra por los años tocados
 por el micro-lote en vez de recalcular todo <code>iceberg.tcdm.web_sales_by_year</code>
 cada vez?</li>
-<li>¿Por qué Trino sólo implementa <em>merge-on-read</em> para escribir en Iceberg, y
-qué consecuencia tiene eso para una tabla que recibe muchos <code>MERGE</code>?</li>
+<li>Trino sólo implementa <em>merge-on-read</em> para escribir en Iceberg: ¿qué
+consecuencia tiene eso para una tabla que recibe muchos <code>MERGE</code>?</li>
 <li>¿Qué diferencia física observaste en HDFS entre <code>web_sales_lab_cow</code> y
 <code>web_sales_lab_mor</code> después del mismo <code>MERGE</code>? ¿Cuál de las dos tablas
 necesitaría antes una compactación, y por qué?</li>

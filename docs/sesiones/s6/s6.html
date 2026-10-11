@@ -7848,7 +7848,7 @@ textarea,
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Sesi%C3%B3n-6-%E2%80%94-Hive-Metastore,-tablas-Hive-y-Trino">Sesión 6 — Hive Metastore, tablas Hive y Trino<a class="anchor-link" href="#Sesi%C3%B3n-6-%E2%80%94-Hive-Metastore,-tablas-Hive-y-Trino">¶</a></h1><p>Esta sesión viene después de S5. El alumnado ya ha visto que una colección
+<h1 id="Sesi%C3%B3n-6-%E2%80%94-Hive-Metastore,-tablas-Hive-y-Trino">Sesión 6 — Hive Metastore, tablas Hive y Trino<a class="anchor-link" href="#Sesi%C3%B3n-6-%E2%80%94-Hive-Metastore,-tablas-Hive-y-Trino">¶</a></h1><p>Esta sesión viene después de S5. Ya has visto que una colección
 de Parquet puede organizarse en directorios particionados y que Spark puede
 leerlos directamente. Ahora se introduce la capa que proporciona nombres y
 metadatos compartidos a los motores.</p>
@@ -7874,7 +7874,8 @@ Trino utiliza esa información para planificar consultas. Ninguno de esos
 servicios se convierte por ello en DataNode o NodeManager.</p>
 <blockquote>
 <p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>.
-Respecto a S5 añade <code>trino</code>, <code>pandas</code>. Se instalan en el kernel de <code>namenode</code> en la sección
+No añade ningún paquete respecto a S5: <code>trino</code> y <code>pandas</code> ya venían de S2. El fichero incluye
+también las de S2 a S5, porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en la sección
 «Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
 el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
 <code>s6/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
@@ -8210,9 +8211,10 @@ notebook de S5.</p>
 o S5 (para <code>web_sales</code> en <code>silver</code> y <code>web_sales_by_year</code> en <code>gold</code>) antes de
 continuar. <code>/warehouse</code> ya existe desde que S1 preparó el NameNode: es la
 zona reservada para las tablas administradas por Hive e Iceberg, y hasta
-ahora ha estado vacía.</p>
+ahora sólo contiene el directorio vacío <code>tcdm.db</code>, que se creó al arrancar
+el warehouse.</p>
 <h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>Igual que en S4 y S5, el kernel de este notebook instala PySpark sobre sí
-mismo. Añadimos además el paquete <code>trino</code>, el cliente DB-API 2.0 con el que
+mismo. Usamos además el paquete <code>trino</code>, que ya instaló S2: el cliente DB-API 2.0 con el que
 hablaremos con Trino: no hay binario <code>trino</code> en <code>namenode</code> ni acceso al
 Docker del host, así que aquí no hay CLI de Trino: usamos el cliente
 Python. La celda siguiente recrea <code>requirements.txt</code> con <code>%%writefile</code> para
@@ -9737,8 +9739,7 @@ ficheros y filtrar después.</p>
 <p>Busca <code>PartitionFilters</code> en la sección del <code>Scan</code>: debe incluir la
 condición sobre <code>sold_year</code>/<code>sold_month</code>, la misma poda que ya viste en el
 plan de Trino.</p>
-<p>Un último aviso, coherente con el objetivo docente sobre cachés de
-metadatos: Spark guarda en memoria del driver la lista de particiones que ya
+<p>Un último aviso sobre las cachés de metadatos: Spark guarda en memoria del driver la lista de particiones que ya
 ha visto para una tabla externa. Si otro cliente —Trino, Hive o el propio
 <code>sync_partition_metadata</code>— añade particiones nuevas después de que Spark ya
 haya consultado la tabla en esta sesión, Spark no las verá hasta que se le
@@ -10206,7 +10207,10 @@ de tabla como Iceberg?</li>
 <h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión tendrás una reunión individual breve con el
 profesor para revisar el trabajo de esta sesión. Esa reunión combina una
 demostración en vivo sobre tu propio ordenador y una memoria escrita breve.</p>
-<h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias:</p>
+<h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias. El «antes» de la 2 y de la 5 sólo existe una vez
+por tabla: enseña las salidas que quedaron guardadas en el notebook o, para
+repetir el paso de 0 a N filas en vivo, vuelve a ejecutar desde «Registrar la
+versión particionada», que borra y recrea la definición.</p>
 <ol>
 <li>El <code>SHOW CREATE TABLE</code> de <code>tcdm.date_dim</code>, <code>tcdm.web_sales_silver</code> y
 <code>tcdm.web_sales_by_year_gold</code>, mostrando que las tres son tablas externas
@@ -10345,9 +10349,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 organización de Parquet, y que Spark y Trino pueden consultar exactamente la
 misma definición sin duplicar configuración. S7 introducirá Iceberg como
 formato de tabla para gestionar cambios, snapshots y particionado evolutivo,
-partiendo de la misma <code>tcdm.web_sales_silver</code> que se acaba de registrar aquí
-— sin presentar esa transición como un simple cambio de nombre en el
-catálogo.</p>
+partiendo de la misma <code>tcdm.web_sales_silver</code> que se acaba de registrar aquí.</p>
 </div>
 </div>
 </div>
