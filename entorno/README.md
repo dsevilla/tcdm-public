@@ -80,8 +80,10 @@ La sesión 3 añade un Compose independiente en `compose-s3.yml`: RustFS, la
 inicialización de un bucket y un contenedor AWS CLI. No contiene Trino ni un
 catálogo, porque en esa sesión se estudia primero el almacenamiento de
 objetos y los Parquet. El laboratorio posterior definido en `compose-trino.yml`
-añade Polaris, Spark, Trino e Iceberg sobre S3. No deben arrancarse dos
-laboratorios que publiquen el mismo puerto local `9000` o `8080` a la vez.
+añade Polaris, Spark, Trino e Iceberg sobre su propio RustFS. Ese RustFS no
+publica puertos en el equipo, así que puede convivir con el de S3. Lo que no
+debe arrancarse a la vez es el laboratorio HDFS (`compose-warehouse-hdfs.yml`)
+y el de Iceberg: ambos publican Trino en el `8080`.
 
 Para preparar la infraestructura S3 desde la raíz de la distribución:
 
@@ -406,7 +408,7 @@ Las versiones por defecto están en [.env.example](.env.example):
 | --- | --- | --- |
 | Trino | `trinodb/trino:483` | Misma versión fijada que el entorno HDFS |
 | Apache Polaris | `apache/polaris:1.7.0` | Catálogo Iceberg REST con guías oficiales para Trino y Spark |
-| RustFS | `rustfs/rustfs:1.0.0-beta.12` | Almacén S3-compatible; versión candidata validada por las pruebas del curso |
+| RustFS | `rustfs/rustfs:latest` | Almacén S3-compatible. `latest` no fija versión: la validación del curso (test 008 en CI, amd64) corresponde a la imagen que resolvió la última pipeline |
 | Spark | `apache/spark:4.1.3-scala2.13-java21-python3-ubuntu` | Cliente compatible con el runtime Iceberg 4.1/Scala 2.13 |
 | Apache Iceberg | `1.11.0` | Runtime publicado para Spark 4.1/Scala 2.13 |
 | AWS CLI auxiliar | `amazon/aws-cli:2.36.14` | Sólo crea el bucket local de las sesiones |
@@ -418,20 +420,20 @@ se podrá actualizar `SPARK_BASE_IMAGE` y la dependencia conjuntamente.
 
 ## Arranque
 
-Desde la raíz del repositorio:
+Desde la raíz de la distribución:
 
 ```bash
-cp 26-27/entorno/.env.example 26-27/entorno/.env
+cp entorno/.env.example entorno/.env
 docker network inspect hadoop-cluster >/dev/null 2>&1 || \
   docker network create hadoop-cluster
 
-docker compose -f 26-27/entorno/compose-hadoop-cluster.yml up -d
-docker compose -f 26-27/entorno/compose-trino.yml up -d --build
+docker compose -f entorno/compose-hadoop-cluster.yml up -d
+docker compose -f entorno/compose-trino.yml up -d --build
 ```
 
-El segundo comando inicia:
+El segundo comando (o `make -C entorno lakehouse-up`) inicia:
 
-- RustFS y el bucket `tcdm-iceberg`.
+- RustFS y el bucket `tcdm-iceberg`, sin puertos publicados en el equipo.
 - Polaris y el catálogo `quickstart_catalog`, con el namespace `demo`.
 - Trino con el catálogo Iceberg REST `iceberg`.
 - Un contenedor Spark preparado para Iceberg 1.11.0.
@@ -485,8 +487,6 @@ Interfaces locales:
 | YARN Timeline Server | <http://localhost:8188/applicationhistory/> |
 | Polaris REST | <http://localhost:8181> |
 | Polaris health/metrics | <http://localhost:8182> |
-| RustFS S3 | <http://localhost:9000> |
-| RustFS console | <http://localhost:9001> |
 | Spark UI, mientras haya una aplicación | <http://localhost:4040> |
 
 Las credenciales incluidas son sólo para el laboratorio local. Cambia el
@@ -550,16 +550,19 @@ bundle AWS para `S3FileIO`.
 
 ## Parada y borrado del laboratorio
 
+`make -C entorno stop`, `down` y `clean` paran también este laboratorio, con el
+mismo significado que para el resto de servicios.
+
 ```bash
-docker compose -f 26-27/entorno/compose-trino.yml down
-docker compose -f 26-27/entorno/compose-hadoop-cluster.yml down
+docker compose -f entorno/compose-trino.yml down
+docker compose -f entorno/compose-hadoop-cluster.yml down
 ```
 
 `down` conserva el volumen de RustFS. Para empezar de cero, eliminando las
 tablas y objetos del laboratorio:
 
 ```bash
-docker compose -f 26-27/entorno/compose-trino.yml down -v
+docker compose -f entorno/compose-trino.yml down -v
 ```
 
 ## Catálogos HTTP considerados
