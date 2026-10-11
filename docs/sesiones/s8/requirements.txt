@@ -1,19 +1,35 @@
-# Dependencias del kernel interactivo de la sesión 8 (Spark local con un
-# catálogo Iceberg de tipo hive, el mismo Hive Metastore que usa Trino). La
-# serie de PySpark aceptada por el curso es >4,<4.2, igual que en S4, S5, S6
-# y S7.
-pyspark>4,<4.2
-# Cliente DB-API 2.0 de Trino: se usa en las celdas de sólo lectura como
-# comprobación independiente de lo que Spark escribe directamente en
-# iceberg.tcdm.* dentro de foreachBatch (ver "Cómo configuramos el catálogo
-# Iceberg de Spark" en el notebook). Se fija la serie mayor para que el
-# tipado de columnas y la representación de valores no cambien entre
-# ejecuciones.
-trino>=0.330,<1
-pandas
-# generate_web_sales_batch.py habla con WebHDFS por fsspec y lee/escribe
-# Parquet con PyArrow, igual que los lectores de la sesión 2; requests es
-# la dependencia HTTP que usa fsspec para WebHDFS.
+# Dependencias de la sesión 8, acumulativas: incluyen las de S2 a S7.
+
+# De S2
+# WebHDFS de fsspec utiliza requests para sus peticiones HTTP.
+duckdb
+# DuckDB consulta modified() al registrar WebHDFS como filesystem.
 fsspec>=2026.2.0
+polars
 pyarrow
 requests
+# Cliente de Trino; se fija la serie mayor, igual que en S6-S8.
+trino>=0.330,<1
+# Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y
+# pandas dibuja con matplotlib.
+pandas
+matplotlib
+
+# De S3
+# Se utilizan únicamente APIs S3 estándar, de modo que el endpoint local se
+# puede sustituir por un bucket real de Amazon S3 sin cambiar las lecturas.
+# s3fs se usa en las lecturas de PyArrow y Polars; DuckDB usa httpfs.
+# boto3 y aiobotocore se fijan en versiones que comparten botocore 1.43.56.
+boto3==1.43.56
+aiobotocore==3.9.0
+# Esta versión de s3fs proporciona la consulta de metadatos `modified` que
+# utilizan los lectores de la sesión.
+s3fs>=2026.2.0
+
+# De S4
+# Spark en modo local y envío a YARN (S4-S8). La serie de PySpark aceptada
+# por el curso es >4,<4.2.
+pyspark>4,<4.2
+
+# generate_web_sales_batch.py habla con WebHDFS por fsspec y lee/escribe Parquet
+# con PyArrow; requests es la dependencia HTTP de fsspec. Ya están en el bloque de S2.
