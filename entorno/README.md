@@ -91,7 +91,7 @@ Para preparar la infraestructura S3 desde la raíz de la distribución:
 make s3-up
 ```
 
-Después se ejecuta `s3/s3.ipynb`. El notebook consume las 24 tablas que dejó
+Después se ejecuta `s3/s3.ipynb`. El notebook consume las 20 tablas que dejó
 S2 y realiza la copia bajo el prefijo `raw/tpcds` mediante
 `hdfs dfs -cat` y `boto3.upload_fileobj`, sin pasar los Parquet por el disco
 del host. Mantiene un prefijo por tabla, igual que la organización de HDFS.
@@ -198,7 +198,7 @@ Compose. Primero crea la red si no existe, después arranca Hadoop y finalmente
 PostgreSQL, el metastore y Trino.
 
 Después se ejecuta `s2/s2.ipynb` completo desde Jupyter. El notebook genera
-las 24 tablas de TPC-DS SF1 como Parquet y deja las fuentes preparadas para
+las 20 tablas de TPC-DS SF1 que usa el curso como Parquet y deja las fuentes preparadas para
 S3–S8.
 
 El objetivo siguiente se conserva como herramienta de infraestructura para
@@ -213,22 +213,22 @@ Tanto el notebook como el inicializador auxiliar combinan dos fuentes. Leen las 
 `tpcds.sf1` y publican en `/datalake/raw/ine/municipios` la instantánea gzip
 normalizada de la Relación de municipios y códigos a 1 de enero de 2026 del
 INE. Trino detecta la compresión por la extensión, registra temporalmente ese
-CSV y lo cruza con las cinco dimensiones
-que contienen direcciones: `customer_address`, `store`, `warehouse`,
-`call_center` y `web_site`. Los municipios, provincias, códigos provinciales y
+CSV y lo cruza con las cuatro dimensiones
+que contienen direcciones: `customer_address`, `store`, `warehouse`
+y `web_site`. Los municipios, provincias, códigos provinciales y
 el país se sustituyen por valores españoles; las claves de esas dimensiones y
 sus demás columnas no cambian.
 
-También corrigen la vigencia de las versiones. Cinco dimensiones (`item`,
-`store`, `call_center`, `web_page` y `web_site`) guardan varias versiones de
+También corrigen la vigencia de las versiones. Cuatro dimensiones (`item`,
+`store`, `web_page` y `web_site`) guardan varias versiones de
 cada objeto con sus fechas `rec_start_date` y `rec_end_date`, y el generador
 no enlaza siempre cada hecho con la versión vigente en su fecha: adelanta
 esas fechas un número distinto de días en cada dimensión y, en algunos
 hechos, no elige la versión por fecha. Una vista temporal,
 `vigencia_versiones`, deshace el adelanto y rellena las fechas de inicio
-vacías de `item`; con ella se corrigen las fechas de las cinco dimensiones
-y se reasignan a la versión vigente `ss_store_sk`, `sr_store_sk`,
-`cr_call_center_sk` y `wr_web_page_sk`. El marcador `_SUCCESS` de cada tabla
+vacías de `item`; con ella se corrigen las fechas de las cuatro dimensiones
+y se reasignan a la versión vigente `ss_store_sk`, `sr_store_sk`
+y `wr_web_page_sk`. El marcador `_SUCCESS` de cada tabla
 guarda las correcciones que lleva (`INE-2026`, `SCD2`, `INE-2026+SCD2` o
 vacío), y una tabla cuyo marcador no coincide se vuelve a generar.
 
@@ -248,8 +248,10 @@ escribe en la ubicación externa que recibe.
 El catálogo virtual de Trino también muestra la tabla técnica
 `dbgen_version`. El inicializador la excluye de forma intencionada: no es una
 tabla de negocio y su columna `time(3)` no es compatible con el escritor Hive
-que materializa estos Parquet. SF1 queda así formado por las 24 tablas de
-negocio del benchmark.
+que materializa estos Parquet. También excluye las cuatro tablas del canal
+de catálogo (`catalog_sales`, `catalog_returns`, `catalog_page` y
+`call_center`), que el curso no usa: de las 24 tablas de negocio del
+benchmark se materializan 20.
 Los nombres que genera Trino pueden no terminar en `.parquet`: el formato lo
 determinan el contenido y sus metadatos (un fichero Parquet comienza y termina
 con la firma `PAR1`), no la extensión.

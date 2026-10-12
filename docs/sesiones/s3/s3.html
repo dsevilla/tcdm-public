@@ -7948,7 +7948,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <tbody>
 <tr>
 <td><code>%esquema</code></td>
-<td>Las 24 tablas, con su papel y su descripción</td>
+<td>Las 20 tablas, con su papel y su descripción</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
@@ -8502,7 +8502,7 @@ así que valen para todas las celdas que siguen:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="La-API-de-S3,-petici%C3%B3n-a-petici%C3%B3n">La API de S3, petición a petición<a class="anchor-link" href="#La-API-de-S3,-petici%C3%B3n-a-petici%C3%B3n">¶</a></h2><p>Antes de copiar 24 tablas conviene ver la API con un solo objeto, porque
+<h2 id="La-API-de-S3,-petici%C3%B3n-a-petici%C3%B3n">La API de S3, petición a petición<a class="anchor-link" href="#La-API-de-S3,-petici%C3%B3n-a-petici%C3%B3n">¶</a></h2><p>Antes de copiar 20 tablas conviene ver la API con un solo objeto, porque
 todo lo demás —la copia, los lectores de Parquet— son combinaciones de
 estas pocas operaciones.</p>
 <p><code>boto3.client("s3")</code> crea el cliente. No recibe ni servidor ni
@@ -8695,7 +8695,7 @@ nunca fue un directorio.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero fluye de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -cat</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">upload_fileobj</code>, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 24 tablas y los mismos ficheros que en HDFS</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero fluye de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -cat</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">upload_fileobj</code>, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 20 tablas y los mismos ficheros que en HDFS</li></ul>
 </div>
 </div>
 </div>
@@ -8752,7 +8752,7 @@ directorios) y se descarta el marcador <code>_SUCCESS</code>, que no es un Parqu
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> ficheros Parquet de </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> tablas. Los tres primeros:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">hdfs_files</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8931,7 +8931,7 @@ las tablas: un prefijo común por cada una.</p>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span><span class="si">}</span><span class="s2"> prefijos de tabla:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">table_prefixes</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">24</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">20</span>
 </pre></div>
 </div>
 </div>
@@ -9670,9 +9670,9 @@ Mantén RustFS y su bucket disponibles hasta entonces.</p>
 <ol>
 <li>El bucket <code>tcdm-datalake</code> con los objetos bajo <code>raw/tpcds/</code>, en la
 consola de RustFS (<a href="http://localhost:9001">http://localhost:9001</a>) o en la salida de la celda
-que lista los 24 prefijos de tabla.</li>
+que lista los 20 prefijos de tabla.</li>
 <li>El final de la celda de copia: el número de ficheros Parquet copiados
-de las 24 tablas.</li>
+de las 20 tablas.</li>
 <li>La salida de la celda que lee por rango un objeto de <code>date_dim</code>: la
 firma <code>PAR1</code> al principio y al final y el tamaño del pie, obtenidos sin
 descargar el objeto.</li>

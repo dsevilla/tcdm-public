@@ -16,8 +16,13 @@ INE_MUNICIPALITIES_FILE="/opt/tcdm/data/ine/municipios-2026.csv.gz"
 # y las dos listas dicen qué corrección lleva cada una: la geografía del INE
 # y la vigencia de las versiones (dimensiones con rec_start_date y
 # rec_end_date, y hechos cuya clave se reasigna a la versión vigente).
-LOCALIZED_TABLES=' customer_address store warehouse call_center web_site '
-VERSIONED_TABLES=' item store call_center web_page web_site store_sales store_returns catalog_returns web_returns '
+LOCALIZED_TABLES=' customer_address store warehouse web_site '
+VERSIONED_TABLES=' item store web_page web_site store_sales store_returns web_returns '
+
+# Tablas del generador que no se materializan: dbgen_version describe el
+# generador (y su columna time(3) no la admite el escritor Hive que se usa
+# aquí), y el curso no usa el canal de catálogo.
+EXCLUDED_TABLES=' dbgen_version catalog_sales catalog_returns catalog_page call_center '
 
 # Contenido del marcador _SUCCESS de una tabla: las correcciones que lleva.
 success_marker() {
@@ -154,10 +159,6 @@ trino --server "${TRINO_SERVER}" --user luser --execute \
                s_rec_start_date AS inicio, s_rec_end_date AS fin
         FROM tpcds.${TPCDS_SCALE}.store
         UNION ALL
-        SELECT 'call_center' AS dimension, cc_call_center_sk AS clave, cc_call_center_id AS clave_negocio,
-               cc_rec_start_date AS inicio, cc_rec_end_date AS fin
-        FROM tpcds.${TPCDS_SCALE}.call_center
-        UNION ALL
         SELECT 'web_page' AS dimension, wp_web_page_sk AS clave, wp_web_page_id AS clave_negocio,
                wp_rec_start_date AS inicio, wp_rec_end_date AS fin
         FROM tpcds.${TPCDS_SCALE}.web_page
@@ -201,18 +202,18 @@ if [ -z "${TPCDS_TABLES}" ]; then
         --output-format TSV --execute "SHOW TABLES FROM tpcds.${TPCDS_SCALE}" \
     )"
     printf '%s\n' "${tpcds_tables}"
-    TPCDS_TABLES="$(printf '%s\n' "${tpcds_tables}" | grep -v '^dbgen_version$')"
+    TPCDS_TABLES="${tpcds_tables}"
 fi
 
 # TPCDS_TABLES es deliberadamente una lista de identificadores sin espacios.
 # shellcheck disable=SC2086
 for table_name in ${TPCDS_TABLES}; do
-    # dbgen_version is metadata from the TPC-DS generator, not a business
-    # table. Its time(3) column is not supported by the Hive writer used here.
-    if [ "${table_name}" = 'dbgen_version' ]; then
-        echo '[=] dbgen_version: tabla técnica excluida de la materialización'
-        continue
-    fi
+    case "${EXCLUDED_TABLES}" in
+        *" ${table_name} "*)
+            echo "[=] ${table_name}: excluida de la materialización"
+            continue
+            ;;
+    esac
 
     success_url="${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}/_SUCCESS?op=GETFILESTATUS&user.name=luser"
     table_url="${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}?op=DELETE&recursive=true&user.name=luser"
