@@ -1,0 +1,21 @@
+SELECT
+    promotion.p_promo_sk,
+    promotion.p_promo_id,
+    date_add('day', promotion.p_start_date_sk - 2415021, DATE '1900-01-01') AS p_start_date,
+    date_add('day', promotion.p_end_date_sk - 2415021, DATE '1900-01-01') AS p_end_date,
+    promotion.p_item_sk,
+    promotion.p_cost,
+    promotion.p_response_targe,
+    promotion.p_promo_name,
+    promotion.p_channel_dmail,
+    promotion.p_channel_email,
+    promotion.p_channel_catalog,
+    promotion.p_channel_tv,
+    promotion.p_channel_radio,
+    promotion.p_channel_press,
+    promotion.p_channel_event,
+    promotion.p_channel_demo,
+    promotion.p_channel_details,
+    promotion.p_purpose,
+    promotion.p_discount_active
+FROM tpcds.__TPCDS_SCALE__.promotion

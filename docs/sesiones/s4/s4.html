@@ -7927,7 +7927,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <tbody>
 <tr>
 <td><code>%esquema</code></td>
-<td>Las 20 tablas, con su papel y su descripción</td>
+<td>Las 18 tablas, con su papel y su descripción</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
@@ -7938,7 +7938,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <td>Las columnas de <code>web_sales</code> cuyo nombre contiene <code>date</code></td>
 </tr>
 <tr>
-<td><code>%esquema ws_sold_date_sk</code></td>
+<td><code>%esquema ws_sold_timestamp</code></td>
 <td>Esa columna y ninguna otra</td>
 </tr>
 </tbody>
@@ -8549,7 +8549,7 @@ otra sesión con <code>spark.stop()</code>.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Pregunta guía</div>
-<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Antes de ejecutar las lecturas siguientes: ¿cuántas particiones de ejecución esperas para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim</code> y cuántas para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code>?</li><li style="margin:10px 0">¿De qué crees que depende ese número: de los ficheros, de su tamaño, de los núcleos?</li></ul>
+<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Antes de ejecutar las lecturas siguientes: ¿cuántas particiones de ejecución esperas para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> y cuántas para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code>?</li><li style="margin:10px 0">¿De qué crees que depende ese número: de los ficheros, de su tamaño, de los núcleos?</li></ul>
 </div>
 </div>
 </div>
@@ -8562,7 +8562,7 @@ otra sesión con <code>spark.stop()</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Primera-lectura-de-Parquet">Primera lectura de Parquet<a class="anchor-link" href="#Primera-lectura-de-Parquet">¶</a></h2><p>Leemos primero una tabla pequeña, <code>date_dim</code>, y después una tabla de
+<h2 id="Primera-lectura-de-Parquet">Primera lectura de Parquet<a class="anchor-link" href="#Primera-lectura-de-Parquet">¶</a></h2><p>Leemos primero una tabla pequeña, <code>item</code>, y después una tabla de
 hechos, <code>web_sales</code>. HDFS es el sistema de ficheros por defecto de este
 clúster (igual que en S1 y S2), así que no hace falta ningún prefijo
 <code>hdfs://</code>: basta la ruta absoluta <code>/datalake/raw/tpcds/&lt;tabla&gt;</code>.</p>
@@ -8577,8 +8577,8 @@ clúster (igual que en S1 y S2), así que no hace falta ningún prefijo
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># Qué significa cada columna de date_dim; printSchema dará sus tipos.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">date_dim</span>
+<div class="highlight hl-python"><pre><span></span><span class="c1"># Qué significa cada columna de item, la dimensión de productos; printSchema dará sus tipos.</span>
+<span class="o">%</span><span class="n">esquema</span> <span class="n">item</span>
 </pre></div>
 </div>
 </div>
@@ -8594,11 +8594,11 @@ clúster (igual que en S1 y S2), así que no hace falta ningún prefijo
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.dataframe</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
 
-<span class="n">date_dim_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/date_dim"</span>
-<span class="n">date_dim</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">date_dim_path</span><span class="p">)</span>
+<span class="n">item_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/item"</span>
+<span class="n">item</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">item_path</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ruta física leída: </span><span class="si">{</span><span class="n">date_dim_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="n">date_dim</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ruta física leída: </span><span class="si">{</span><span class="n">item_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">item</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -8626,13 +8626,13 @@ acciones: obligan a Spark a ejecutar el plan sobre los datos.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">date_dim</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">item</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
-<span class="n">n_date_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en date_dim: </span><span class="si">{</span><span class="n">n_date_dim</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Particiones de ejecución: </span><span class="si">{</span><span class="n">date_dim</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">n_item</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en item: </span><span class="si">{</span><span class="n">n_item</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Particiones de ejecución: </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">n_date_dim</span> <span class="o">==</span> <span class="mi">73_049</span>
+<span class="k">assert</span> <span class="n">n_item</span> <span class="o">==</span> <span class="mi">18_000</span>
 </pre></div>
 </div>
 </div>
@@ -8751,8 +8751,8 @@ ejecución que acaba de imprimir la celda anterior.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El objetivo de esta lectura no es traer SF1 completo a la memoria del
 driver: es distribuir la lectura y el cómputo entre particiones que Spark
-puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 177 MiB que
-ocupan en Parquet las 20 tablas de SF1 (su tamaño exacto lo da
+puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 185 MiB que
+ocupan en Parquet las 18 tablas de SF1 (su tamaño exacto lo da
 <code>hdfs dfs -du -h /datalake/raw/tpcds/web_sales</code>); TPC-DS a escalas mayores (SF100, SF1000...) seguiría funcionando
 con el mismo código precisamente porque el driver nunca materializa la
 tabla entera, sólo coordina el trabajo sobre sus particiones.</p>
@@ -9362,13 +9362,15 @@ reutilizaremos más adelante, en la sección de persistencia.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Subtotales-con-rollup-y-cube">Subtotales con <code>rollup</code> y <code>cube</code><a class="anchor-link" href="#Subtotales-con-rollup-y-cube">¶</a></h2><p>Con <code>groupBy("d_year", "i_category")</code> se obtiene una fila por cada pareja de
+<h2 id="Subtotales-con-rollup-y-cube">Subtotales con <code>rollup</code> y <code>cube</code><a class="anchor-link" href="#Subtotales-con-rollup-y-cube">¶</a></h2><p>Con <code>groupBy("sold_year", "i_category")</code> se obtiene una fila por cada pareja de
 año y categoría. Un informe de ventas suele pedir además el subtotal de cada
 año y el total general: <code>rollup</code> y <code>cube</code> añaden esas filas de subtotal en la
 misma consulta, en lugar de lanzar un <code>groupBy</code> por cada nivel.</p>
 <p>Para tener el año y la categoría en la misma fila unimos <code>web_sales</code> con
-<code>date_dim</code> (por <code>ws_sold_date_sk = d_date_sk</code>) y con <code>item</code> (por
-<code>ws_item_sk = i_item_sk</code>), con el <code>join</code> que acabamos de ver, y agregamos el
+<code>item</code> (por <code>ws_item_sk = i_item_sk</code>), con el <code>join</code> que acabamos de ver,
+y obtenemos el año de la venta con <code>F.year("ws_sold_timestamp")</code>: la
+fecha y la hora de cada venta están en esa columna, y <code>year</code>, <code>month</code> u
+<code>hour</code> extraen de ella la parte que haga falta. Después agregamos el
 beneficio neto.</p>
 </div>
 </div>
@@ -9381,8 +9383,10 @@ beneficio neto.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># Qué significa cada columna de item, la dimensión de productos.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">item</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_dated_categorized</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">item</span><span class="p">,</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">ws_item_sk</span> <span class="o">==</span> <span class="n">item</span><span class="o">.</span><span class="n">i_item_sk</span>
+<span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">),</span> <span class="s2">"i_category"</span><span class="p">,</span> <span class="s2">"ws_net_profit"</span><span class="p">)</span>
+<span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -9396,36 +9400,12 @@ beneficio neto.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">item</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/item"</span><span class="p">)</span>
-
-<span class="n">web_sales_dated_categorized</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">web_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">date_dim</span><span class="p">,</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">ws_sold_date_sk</span> <span class="o">==</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">d_date_sk</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">ws_item_sk</span> <span class="o">==</span> <span class="n">item</span><span class="o">.</span><span class="n">i_item_sk</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">,</span> <span class="s2">"ws_net_profit"</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="n">n_item</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en item: </span><span class="si">{</span><span class="n">n_item</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">n_item</span> <span class="o">==</span> <span class="mi">18_000</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">spark_sum</span>
 
 <span class="n">rollup_year_category</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">rollup</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
+    <span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">rollup</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">rollup_year_category</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
@@ -9434,23 +9414,25 @@ beneficio neto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>En el resultado del <code>rollup</code>, un <code>null</code> en <code>i_category</code> con <code>d_year</code>
+<p>En el resultado del <code>rollup</code>, un <code>null</code> en <code>i_category</code> con <code>sold_year</code>
 relleno es el subtotal de ese año en todas las categorías; un <code>null</code> en
 ambas columnas es el total general. <code>rollup</code> añade subtotales siguiendo el
-orden de las columnas indicadas (primero por <code>d_year</code>, luego por la
+orden de las columnas indicadas (primero por <code>sold_year</code>, luego por la
 combinación de ambas), pero no añade el subtotal de cada categoría sumando
-todos los años.</p>
+todos los años. Las ventas sin fecha tienen <code>sold_year</code> a <code>null</code> desde el
+principio: forman su propio grupo y no hay que confundirlas con un
+subtotal.</p>
 <p><code>cube</code> sí genera <strong>todas</strong> las combinaciones de subtotales, incluida esa:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9459,9 +9441,9 @@ todos los años.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">cube_year_category</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">cube</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
+    <span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">cube</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">cube_year_category</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
@@ -9470,19 +9452,19 @@ todos los años.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Comprueba en el resultado del <code>cube</code> que ahora también aparece una fila con
-<code>d_year</code> a <code>null</code> e <code>i_category</code> con un valor concreto: el beneficio de esa
+<code>sold_year</code> a <code>null</code> e <code>i_category</code> con un valor concreto: el beneficio de esa
 categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9507,7 +9489,7 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9518,7 +9500,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9537,7 +9519,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=75">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9552,7 +9534,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9566,7 +9548,7 @@ sospechosos antes de construir una consulta de negocio más elaborada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9584,7 +9566,7 @@ historial.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9595,7 +9577,7 @@ historial.</p>
 <div class="highlight hl-python"><pre><span></span><span class="n">orders_base</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span> <span class="s2">"ws_order_number"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
     <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s2">"ws_net_paid"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"importe_pedido"</span><span class="p">),</span>
     <span class="c1"># Todas las líneas de un pedido comparten fecha: sirve cualquiera, y first() toma una.</span>
-    <span class="n">F</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="s2">"ws_sold_date_sk"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ws_sold_date_sk"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Pedidos distintos agregados: </span><span class="si">{</span><span class="n">orders_base</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
@@ -9603,7 +9585,7 @@ historial.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9616,7 +9598,7 @@ historial.</p>
         <span class="n">F</span><span class="o">.</span><span class="n">struct</span><span class="p">(</span>
             <span class="n">col</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">),</span>
             <span class="n">col</span><span class="p">(</span><span class="s2">"importe_pedido"</span><span class="p">),</span>
-            <span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_date_sk"</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">),</span>
         <span class="p">)</span>
     <span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"historial_pedidos"</span><span class="p">)</span>
 <span class="p">)</span>
@@ -9628,7 +9610,7 @@ historial.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9642,7 +9624,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9660,7 +9642,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9678,7 +9660,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9690,7 +9672,7 @@ cliente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9712,7 +9694,7 @@ cliente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9724,7 +9706,7 @@ a clasificar cada línea de venta según su beneficio neto en tres etiquetas.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9761,7 +9743,7 @@ a clasificar cada línea de venta según su beneficio neto en tres etiquetas.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9778,7 +9760,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9801,7 +9783,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9825,7 +9807,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9843,7 +9825,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9859,7 +9841,7 @@ es opaca; el cronómetro, en cambio, depende de la máquina.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9870,7 +9852,7 @@ funciones integradas que exprese la misma lógica.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=93">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=92">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9895,19 +9877,21 @@ funciones integradas que exprese la misma lógica.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Funciones-de-ventana">Funciones de ventana<a class="anchor-link" href="#Funciones-de-ventana">¶</a></h2><p>Reutilizamos <code>orders_base</code> (un pedido por fila, con su importe neto
-pagado) y le añadimos la fecha de negocio uniendo con <code>date_dim</code>. A partir
-de ahí construimos cuatro ejemplos clásicos de funciones de ventana.</p>
+pagado y su marca de tiempo) y nos quedamos con la fecha del pedido, que
+<code>F.to_date</code> obtiene de la marca de tiempo. Los pedidos sin fecha se
+descartan, porque no se pueden ordenar en el tiempo. A partir de ahí
+construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=95">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9917,12 +9901,10 @@ de ahí construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.window</span><span class="w"> </span><span class="kn">import</span> <span class="n">Window</span><span class="p">,</span> <span class="n">WindowSpec</span>
 
-<span class="n">orders_dated</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">orders_base</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-    <span class="n">date_dim</span><span class="p">,</span> <span class="n">orders_base</span><span class="o">.</span><span class="n">ws_sold_date_sk</span> <span class="o">==</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">d_date_sk</span>
-<span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+<span class="n">orders_dated</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">orders_base</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">())</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
     <span class="n">col</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"cliente"</span><span class="p">),</span>
     <span class="n">col</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"pedido"</span><span class="p">),</span>
-    <span class="n">col</span><span class="p">(</span><span class="s2">"d_date"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"fecha_pedido"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"fecha_pedido"</span><span class="p">),</span>
     <span class="n">col</span><span class="p">(</span><span class="s2">"importe_pedido"</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="n">orders_dated</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"cliente"</span><span class="p">,</span> <span class="s2">"fecha_pedido"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
@@ -9932,7 +9914,7 @@ de ahí construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9947,7 +9929,7 @@ resultantes pueden caer en cualquier partición de ejecución.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9978,7 +9960,7 @@ resultantes pueden caer en cualquier partición de ejecución.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9990,7 +9972,7 @@ devuelve <code>null</code> (y <code>lead</code>, en el último).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10016,7 +9998,7 @@ devuelve <code>null</code> (y <code>lead</code>, en el último).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10028,7 +10010,7 @@ filas y la media se calcula con las que hay.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10052,7 +10034,7 @@ filas y la media se calcula con las que hay.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10063,7 +10045,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10088,7 +10070,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10112,7 +10094,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=105">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=104">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10137,7 +10119,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10156,22 +10138,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># time_dim, la única tabla de las vistas que aún no se ha leído en esta sesión.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">time_dim</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10182,20 +10149,13 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 <div class="highlight hl-python"><pre><span></span><span class="n">web_sales</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"web_sales"</span><span class="p">)</span>
 <span class="n">customer</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"customer"</span><span class="p">)</span>
 <span class="n">customer_address</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"customer_address"</span><span class="p">)</span>
-<span class="n">date_dim</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"date_dim"</span><span class="p">)</span>
-
-<span class="n">time_dim</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/time_dim"</span><span class="p">)</span>
-<span class="n">n_time_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">time_dim</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en time_dim: </span><span class="si">{</span><span class="n">n_time_dim</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">n_time_dim</span> <span class="o">==</span> <span class="mi">86_400</span>
-<span class="n">time_dim</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"time_dim"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10206,7 +10166,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10232,7 +10192,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10244,7 +10204,7 @@ caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10271,19 +10231,19 @@ caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Distribuci%C3%B3n-horaria-de-las-compras">Distribución horaria de las compras<a class="anchor-link" href="#Distribuci%C3%B3n-horaria-de-las-compras">¶</a></h3><p>Unimos por <code>ws_sold_time_sk = t_time_sk</code>, no por <code>t_time</code>: esa segunda
-columna es la representación numérica completa de la hora, no la clave que
-usa <code>web_sales</code>.</p>
+<h3 id="Distribuci%C3%B3n-horaria-de-las-compras">Distribución horaria de las compras<a class="anchor-link" href="#Distribuci%C3%B3n-horaria-de-las-compras">¶</a></h3><p>No hace falta ninguna dimensión: <code>hour()</code> extrae la hora, de 0 a 23, de
+<code>ws_sold_timestamp</code>. Las ventas sin fecha se excluyen, y las que no tenían
+hora quedaron a medianoche en S2, así que cuentan en la hora 0.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10293,14 +10253,13 @@ usa <code>web_sales</code>.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
-<span class="s2">        t.t_hour,</span>
-<span class="s2">        count(DISTINCT s.ws_order_number) AS pedidos,</span>
-<span class="s2">        sum(s.ws_ext_sales_price) AS ventas</span>
-<span class="s2">    FROM web_sales AS s</span>
-<span class="s2">    JOIN time_dim AS t</span>
-<span class="s2">        ON s.ws_sold_time_sk = t.t_time_sk</span>
-<span class="s2">    GROUP BY t.t_hour</span>
-<span class="s2">    ORDER BY t.t_hour</span>
+<span class="s2">        hour(ws_sold_timestamp) AS hora,</span>
+<span class="s2">        count(DISTINCT ws_order_number) AS pedidos,</span>
+<span class="s2">        sum(ws_ext_sales_price) AS ventas</span>
+<span class="s2">    FROM web_sales</span>
+<span class="s2">    WHERE ws_sold_timestamp IS NOT NULL</span>
+<span class="s2">    GROUP BY hora</span>
+<span class="s2">    ORDER BY hora</span>
 <span class="s2">"""</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -10308,7 +10267,7 @@ usa <code>web_sales</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10321,7 +10280,7 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=114">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10346,7 +10305,7 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10354,13 +10313,14 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Beneficio-neto-por-a%C3%B1o">Beneficio neto por año<a class="anchor-link" href="#Beneficio-neto-por-a%C3%B1o">¶</a></h3><p>Esta consulta no viene de S2: es la misma agregación que ejecutará más
 adelante el trabajo que se envía a YARN (<code>spark_sum(ws_net_profit)</code>,
-<code>count(DISTINCT ws_order_number)</code> y <code>count(*)</code>, agrupando por <code>d_year</code>).
+<code>count(DISTINCT ws_order_number)</code> y <code>count(*)</code>, agrupando por el año de
+<code>ws_sold_timestamp</code>, sin las ventas que no tienen fecha).
 Guardamos el resultado en local para compararlo con el que produzca YARN
 sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10372,15 +10332,14 @@ sobre los mismos datos.</p>
 
 <span class="n">sales_by_year_local</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
-<span class="s2">        d.d_year,</span>
-<span class="s2">        sum(s.ws_net_profit) AS beneficio_neto_total,</span>
-<span class="s2">        count(DISTINCT s.ws_order_number) AS pedidos_distintos,</span>
+<span class="s2">        year(ws_sold_timestamp) AS sold_year,</span>
+<span class="s2">        sum(ws_net_profit) AS beneficio_neto_total,</span>
+<span class="s2">        count(DISTINCT ws_order_number) AS pedidos_distintos,</span>
 <span class="s2">        count(*) AS lineas_de_venta</span>
-<span class="s2">    FROM web_sales AS s</span>
-<span class="s2">    JOIN date_dim AS d</span>
-<span class="s2">        ON s.ws_sold_date_sk = d.d_date_sk</span>
-<span class="s2">    GROUP BY d.d_year</span>
-<span class="s2">    ORDER BY d.d_year</span>
+<span class="s2">    FROM web_sales</span>
+<span class="s2">    WHERE ws_sold_timestamp IS NOT NULL</span>
+<span class="s2">    GROUP BY sold_year</span>
+<span class="s2">    ORDER BY sold_year</span>
 <span class="s2">"""</span><span class="p">)</span>
 <span class="n">sales_by_year_local</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -10392,7 +10351,7 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=117">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10417,7 +10376,7 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10431,7 +10390,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=119">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10445,7 +10404,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10453,9 +10412,9 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">sales_by_year_category</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
-    <span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">)</span>
-<span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">sales_by_year_category</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales_dated_categorized</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span>
+    <span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"i_category"</span>
+<span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas a escribir: </span><span class="si">{</span><span class="n">sales_by_year_category</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -10463,7 +10422,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10485,7 +10444,7 @@ resultado sólo tiene unas decenas de filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10500,7 +10459,7 @@ resultado sólo tiene unas decenas de filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10515,7 +10474,7 @@ resultado sólo tiene unas decenas de filas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10528,7 +10487,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10543,7 +10502,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10558,7 +10517,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10571,7 +10530,7 @@ columna.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10593,7 +10552,7 @@ supuesto por haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10616,7 +10575,7 @@ supuesto por haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10639,7 +10598,7 @@ supuesto por haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10658,7 +10617,7 @@ suponer el efecto sólo por el nombre de la función.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=134">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10676,7 +10635,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10691,7 +10650,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10712,7 +10671,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=137">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10720,11 +10679,9 @@ AQE.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">store_sales_by_year</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">store_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">date_dim</span><span class="p">,</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">ss_sold_date_sk</span> <span class="o">==</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">d_date_sk</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ss_ext_sales_price"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ventas_tienda"</span><span class="p">))</span>
-<span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">store_sales_by_year</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ss_ext_sales_price"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ventas_tienda"</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span>
     <span class="sa">f</span><span class="s2">"Particiones tras el groupBy (shuffle.partitions=8): </span><span class="si">{</span><span class="n">store_sales_by_year</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
@@ -10733,7 +10690,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10743,11 +10700,9 @@ AQE.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.shuffle.partitions"</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
-<span class="n">store_sales_by_year_3</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">store_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">date_dim</span><span class="p">,</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">ss_sold_date_sk</span> <span class="o">==</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">d_date_sk</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ss_ext_sales_price"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ventas_tienda"</span><span class="p">))</span>
-<span class="p">)</span>
+<span class="n">store_sales_by_year_3</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ss_ext_sales_price"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ventas_tienda"</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span>
     <span class="sa">f</span><span class="s2">"Particiones tras el groupBy (shuffle.partitions=3): </span><span class="si">{</span><span class="n">store_sales_by_year_3</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
@@ -10761,7 +10716,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10775,7 +10730,7 @@ en el siguiente paso del pipeline.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10786,11 +10741,11 @@ estadísticas reales en lugar de sólo estimaciones previas. Una de sus
 funciones más visibles es fusionar particiones de <em>shuffle</em> que han
 quedado demasiado pequeñas tras un filtro selectivo.</p>
 <p>Para verlo con datos reales, primero calculamos el rango de años presente
-en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
+en <code>store_sales</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10800,19 +10755,20 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Row</span>
 
-<span class="n">year_bounds</span><span class="p">:</span> <span class="n">Row</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
-    <span class="n">F</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_year"</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"max_year"</span><span class="p">)</span>
+<span class="n">year_bounds</span><span class="p">:</span> <span class="n">Row</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_year"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"max_year"</span><span class="p">),</span>
 <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
 <span class="n">sample_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span><span class="n">year_bounds</span><span class="p">[</span><span class="s2">"min_year"</span><span class="p">]</span> <span class="o">+</span> <span class="n">year_bounds</span><span class="p">[</span><span class="s2">"max_year"</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
 <span class="nb">print</span><span class="p">(</span>
-    <span class="sa">f</span><span class="s2">"Años en date_dim: </span><span class="si">{</span><span class="n">year_bounds</span><span class="p">[</span><span class="s1">'min_year'</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">year_bounds</span><span class="p">[</span><span class="s1">'max_year'</span><span class="p">]</span><span class="si">}</span><span class="s2">. Usamos </span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">."</span>
+    <span class="sa">f</span><span class="s2">"Años en store_sales: </span><span class="si">{</span><span class="n">year_bounds</span><span class="p">[</span><span class="s1">'min_year'</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">year_bounds</span><span class="p">[</span><span class="s1">'max_year'</span><span class="p">]</span><span class="si">}</span><span class="s2">. Usamos </span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">."</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=142">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10824,9 +10780,8 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 <span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.adaptive.enabled"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">)</span>
 
 <span class="n">sin_aqe</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">store_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">date_dim</span><span class="p">,</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">ss_sold_date_sk</span> <span class="o">==</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">d_date_sk</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_year</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span>
+    <span class="n">store_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_year</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">))</span>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ss_ext_sales_price"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ventas_tienda"</span><span class="p">))</span>
 <span class="p">)</span>
 <span class="n">sin_aqe</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
@@ -10836,7 +10791,7 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=143">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10848,9 +10803,8 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 <span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.adaptive.coalescePartitions.enabled"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">)</span>
 
 <span class="n">con_aqe</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">store_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">date_dim</span><span class="p">,</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">ss_sold_date_sk</span> <span class="o">==</span> <span class="n">date_dim</span><span class="o">.</span><span class="n">d_date_sk</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_year</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span>
+    <span class="n">store_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_year</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">))</span>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ss_ext_sales_price"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ventas_tienda"</span><span class="p">))</span>
 <span class="p">)</span>
 <span class="n">con_aqe</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
@@ -10864,14 +10818,14 @@ en <code>date_dim</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=142">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El filtro <code>d_year == sample_year</code> selecciona un único año de los varios
-que hay en <code>date_dim</code>; el <code>groupBy("d_year")</code> posterior agrupa todas esas
+<p>El filtro por <code>sample_year</code> selecciona un único año de los varios que hay
+en <code>store_sales</code>; el <code>groupBy</code> posterior, por ese mismo año, agrupa todas esas
 filas bajo una sola clave, así que el <em>shuffle</em> concentra casi todo en una
 partición y deja las otras 199 vacías. Sin AQE, esas 200 particiones de
 <em>shuffle</em> casi vacías se mantienen tal cual. Con <code>coalescePartitions</code>
@@ -10881,7 +10835,7 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=145">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=143">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10905,7 +10859,7 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=146">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=144">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10930,7 +10884,7 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10944,7 +10898,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=148">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=146">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10964,7 +10918,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=149">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10979,7 +10933,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=150">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=148">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11004,7 +10958,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=151">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11023,7 +10977,7 @@ la parte del plan que ya estaba calculada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=152">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=150">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11039,7 +10993,7 @@ la parte del plan que ya estaba calculada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=153">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=151">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11062,7 +11016,7 @@ la parte del plan que ya estaba calculada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11076,7 +11030,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=155">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=153">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11100,7 +11054,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=154">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11115,7 +11069,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11128,7 +11082,7 @@ mediante <code>spark-submit</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=158">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=156">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11153,7 +11107,7 @@ mediante <code>spark-submit</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=159">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11183,7 +11137,7 @@ nuevo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=160">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11208,15 +11162,15 @@ porque ambas imágenes parten de la misma base.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=159">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="El-script-que-se-enviar%C3%A1-a-YARN">El script que se enviará a YARN<a class="anchor-link" href="#El-script-que-se-enviar%C3%A1-a-YARN">¶</a></h3><p>Escribimos un fichero <code>.py</code> independiente. Hace dos cosas: calcula el
-beneficio neto total de <code>web_sales</code> por año (uniendo con <code>date_dim</code>, la
-misma clave de negocio de siempre) y, además, genera un pequeño informe de
+beneficio neto total de <code>web_sales</code> por año (el de <code>ws_sold_timestamp</code>,
+como en la consulta local) y, además, genera un pequeño informe de
 qué host ha procesado cada partición. <code>mapPartitionsWithIndex</code> ejecuta una
 función en cada partición y permite registrar allí
 <code>socket.gethostname()</code>. Así se comprueba que YARN reparte el trabajo entre
@@ -11224,7 +11178,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=162">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=160">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11242,7 +11196,7 @@ varios DataNodes.</p>
 <span class="s1">import socket</span>
 
 <span class="s1">from pyspark.sql import SparkSession</span>
-<span class="s1">from pyspark.sql.functions import count, countDistinct</span>
+<span class="s1">from pyspark.sql.functions import col, count, countDistinct, year</span>
 <span class="s1">from pyspark.sql.functions import sum as spark_sum</span>
 <span class="s1">from pyspark.sql.types import IntegerType, LongType, StringType, StructField, StructType</span>
 
@@ -11251,18 +11205,17 @@ varios DataNodes.</p>
 
 <span class="s1">spark = SparkSession.builder.appName("TCDM_S4_YARN_business").master("yarn").getOrCreate()</span>
 
-<span class="s1">date_dim = spark.read.parquet("/datalake/raw/tpcds/date_dim")</span>
 <span class="s1">web_sales = spark.read.parquet("/datalake/raw/tpcds/web_sales")</span>
 
 <span class="s1">sales_by_year = (</span>
-<span class="s1">    web_sales.join(date_dim, web_sales.ws_sold_date_sk == date_dim.d_date_sk)</span>
-<span class="s1">    .groupBy("d_year")</span>
+<span class="s1">    web_sales.filter(col("ws_sold_timestamp").isNotNull())</span>
+<span class="s1">    .groupBy(year("ws_sold_timestamp").alias("sold_year"))</span>
 <span class="s1">    .agg(</span>
 <span class="s1">        spark_sum("ws_net_profit").alias("beneficio_neto_total"),</span>
 <span class="s1">        countDistinct("ws_order_number").alias("pedidos_distintos"),</span>
 <span class="s1">        count("*").alias("lineas_de_venta"),</span>
 <span class="s1">    )</span>
-<span class="s1">    .orderBy("d_year")</span>
+<span class="s1">    .orderBy("sold_year")</span>
 <span class="s1">)</span>
 <span class="s1">sales_by_year.coalesce(1).write.mode("overwrite").csv(BUSINESS_OUTPUT, header=True)</span>
 
@@ -11304,7 +11257,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=163">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11318,7 +11271,7 @@ ejemplo para probar con menos ejecutores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=164">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=162">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11347,7 +11300,7 @@ ejemplo para probar con menos ejecutores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=165">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=163">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11365,7 +11318,7 @@ ejemplo para probar con menos ejecutores.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11410,7 +11363,7 @@ o más. La que importa está casi al final:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=167">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=165">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11440,7 +11393,7 @@ o más. La que importa está casi al final:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=166">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11455,7 +11408,7 @@ o más. La que importa está casi al final:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11467,7 +11420,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=170">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11482,7 +11435,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=171">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11496,7 +11449,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=172">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=170">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11516,7 +11469,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
 
 <span class="n">yarn_by_year</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"d_year"</span><span class="p">]):</span> <span class="p">(</span>
+    <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"sold_year"</span><span class="p">]):</span> <span class="p">(</span>
         <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"pedidos_distintos"</span><span class="p">]),</span>
         <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"lineas_de_venta"</span><span class="p">]),</span>
         <span class="n">Decimal</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto_total"</span><span class="p">]),</span>
@@ -11524,7 +11477,11 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">yarn_csv</span><span class="p">))</span>
 <span class="p">}</span>
 <span class="n">local_by_year</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">row</span><span class="p">[</span><span class="s2">"d_year"</span><span class="p">]:</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"pedidos_distintos"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"lineas_de_venta"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto_total"</span><span class="p">])</span>
+    <span class="n">row</span><span class="p">[</span><span class="s2">"sold_year"</span><span class="p">]:</span> <span class="p">(</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">"pedidos_distintos"</span><span class="p">],</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">"lineas_de_venta"</span><span class="p">],</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto_total"</span><span class="p">],</span>
+    <span class="p">)</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">sales_by_year_local_rows</span>
 <span class="p">}</span>
 
@@ -11535,7 +11492,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=173">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=171">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11549,7 +11506,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=174">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=172">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11574,7 +11531,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=173">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11594,7 +11551,7 @@ actividades de esta sección.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=176">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=174">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11609,7 +11566,7 @@ actividades de esta sección.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11623,7 +11580,7 @@ concentrar el trabajo en un único nodo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=178">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=176">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11651,7 +11608,7 @@ concentrar el trabajo en un único nodo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=179">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11666,7 +11623,7 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=180">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=178">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11690,7 +11647,7 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=181">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=179">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11715,7 +11672,7 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=182">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=180">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11731,11 +11688,9 @@ sesión ha dicho explícitamente cuál de las dos calculaba;</li>
 representa la medida (<code>ws_net_profit</code>, <code>ws_ext_sales_price</code>,
 <code>ss_ext_sales_price</code>, <code>ws_net_paid</code>...), en lugar de sumar "lo que
 hubiera";</li>
-<li><code>web_sales</code> se ha unido con <code>date_dim</code> mediante
-<code>ws_sold_date_sk = d_date_sk</code> en todas las agregaciones por año, con
-<code>time_dim</code> mediante <code>ws_sold_time_sk = t_time_sk</code> en la distribución
-horaria, y con <code>customer</code>/<code>customer_address</code> sólo cuando la pregunta lo
-necesitaba;</li>
+<li>el año y la hora de una venta han salido siempre de <code>ws_sold_timestamp</code>,
+con <code>year</code> y <code>hour</code>, y <code>web_sales</code> se ha unido con <code>item</code>, <code>customer</code> o
+<code>customer_address</code> sólo cuando la pregunta lo necesitaba;</li>
 <li>ningún identificador surrogate (<code>ws_bill_customer_sk</code>, <code>c_customer_sk</code>,
 <code>ca_address_sk</code>...) se ha presentado como si fuera el nombre de una
 persona o una región administrativa real: son claves sintéticas del
@@ -11749,7 +11704,7 @@ ser la misma consultando el mismo dataset inmutable.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=183">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=181">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11769,7 +11724,7 @@ en el notebook.</li>
 puede evitarlo? ¿Qué condición debe cumplir la tabla que se distribuye
 entera?</li>
 <li>¿Qué controla <code>spark.sql.shuffle.partitions</code> y en qué se diferencia de
-las particiones de lectura que vimos con <code>date_dim</code> y <code>web_sales</code>?</li>
+las particiones de lectura que vimos con <code>item</code> y <code>web_sales</code>?</li>
 <li>¿Qué decide Adaptive Query Execution por sí solo, y qué sigue estando
 bajo el control explícito de quien escribe la consulta (por ejemplo,
 cuántos ejecutores pedir a YARN)?</li>
@@ -11785,7 +11740,7 @@ filas? ¿Qué cambiarías en el script para repartir de verdad el cálculo?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=182">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11796,7 +11751,7 @@ profesor para revisar el trabajo de esta sesión. Esa reunión combina una
 demostración en vivo sobre tu propio ordenador y una memoria escrita breve.</p>
 <h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparadas estas evidencias:</p>
 <ol>
-<li>El esquema (<code>printSchema</code>) y el número de filas de <code>date_dim</code> o
+<li>El esquema (<code>printSchema</code>) y el número de filas de <code>item</code> o
 <code>web_sales</code>, junto con su número de particiones de ejecución.</li>
 <li>El plan de <code>.explain("formatted")</code> de al menos una consulta con <code>join</code>
 (por ejemplo, el <em>broadcast join</em> con <code>customer_address</code>).</li>
@@ -11841,7 +11796,7 @@ más lenta que una función integrada;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=185">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=183">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11866,7 +11821,7 @@ más lenta que una función integrada;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=186">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

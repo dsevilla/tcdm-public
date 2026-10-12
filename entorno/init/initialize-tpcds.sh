@@ -13,16 +13,19 @@ INE_MUNICIPALITIES_FILE="/opt/tcdm/data/ine/municipios-2026.csv.gz"
 
 # Las tablas que no se materializan con un SELECT * tienen su consulta en
 # sql/select-<tabla>.sql. Son las mismas consultas que construye s2/s2.ipynb,
-# y las dos listas dicen qué corrección lleva cada una: la geografía del INE
-# y la vigencia de las versiones (dimensiones con rec_start_date y
-# rec_end_date, y hechos cuya clave se reasigna a la versión vigente).
+# y las tres listas dicen qué corrección lleva cada una: la geografía del INE,
+# la vigencia de las versiones (dimensiones con rec_start_date y
+# rec_end_date, y hechos cuya clave se reasigna a la versión vigente) y las
+# claves de fecha y hora convertidas en columnas date y timestamp.
 LOCALIZED_TABLES=' customer_address store warehouse web_site '
 VERSIONED_TABLES=' item store web_page web_site store_sales store_returns web_returns '
+DATE_TABLES=' store_sales web_sales store_returns web_returns inventory customer store promotion web_page web_site '
 
 # Tablas del generador que no se materializan: dbgen_version describe el
 # generador (y su columna time(3) no la admite el escritor Hive que se usa
-# aquí), y el curso no usa el canal de catálogo.
-EXCLUDED_TABLES=' dbgen_version catalog_sales catalog_returns catalog_page call_center '
+# aquí), el curso no usa el canal de catálogo, y las claves que apuntaban a
+# date_dim y time_dim se guardan ya como fechas.
+EXCLUDED_TABLES=' dbgen_version catalog_sales catalog_returns catalog_page call_center date_dim time_dim '
 
 # Contenido del marcador _SUCCESS de una tabla: las correcciones que lleva.
 success_marker() {
@@ -32,6 +35,9 @@ success_marker() {
     esac
     case "${VERSIONED_TABLES}" in
         *" $1 "*) marker="${marker:+${marker}+}SCD2" ;;
+    esac
+    case "${DATE_TABLES}" in
+        *" $1 "*) marker="${marker:+${marker}+}FECHAS" ;;
     esac
     printf '%s' "${marker}"
 }

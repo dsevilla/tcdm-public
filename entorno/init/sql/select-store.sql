@@ -3,7 +3,7 @@ SELECT
     store.s_store_id,
     vigencia_versiones.vigente_desde AS s_rec_start_date,
     vigencia_versiones.vigente_hasta AS s_rec_end_date,
-    store.s_closed_date_sk,
+    date_add('day', store.s_closed_date_sk - 2415021, DATE '1900-01-01') AS s_closed_date,
     store.s_store_name,
     store.s_number_employees,
     store.s_floor_space,

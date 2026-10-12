@@ -7932,7 +7932,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <tbody>
 <tr>
 <td><code>%esquema</code></td>
-<td>Las 20 tablas, con su papel y su descripción</td>
+<td>Las 18 tablas, con su papel y su descripción</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
@@ -7943,7 +7943,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <td>Las columnas de <code>web_sales</code> cuyo nombre contiene <code>date</code></td>
 </tr>
 <tr>
-<td><code>%esquema ws_sold_date_sk</code></td>
+<td><code>%esquema ws_sold_timestamp</code></td>
 <td>Esa columna y ninguna otra</td>
 </tr>
 </tbody>
@@ -8180,7 +8180,7 @@ ya están en marcha;</li>
 <li>S5 dejó <code>/datalake/silver/tpcds/web_sales</code> (particionado por <code>sold_year</code> y
 <code>sold_month</code>) y <code>/datalake/gold/tpcds/web_sales_by_year</code> escritos en HDFS;</li>
 <li>S6 registró esos mismos datos como tablas Hive externas:
-<code>hive.tcdm.date_dim</code>, <code>hive.tcdm.web_sales_silver</code> (con sus particiones ya
+<code>hive.tcdm.item</code>, <code>hive.tcdm.web_sales_silver</code> (con sus particiones ya
 sincronizadas) y <code>hive.tcdm.web_sales_by_year_gold</code>.</li>
 </ul>
 <p>Si el clúster de infraestructura no está levantado todavía, desde una
@@ -8223,7 +8223,7 @@ anteriores no existe todavía, ejecuta antes esos dos notebooks.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-d<span class="w"> </span>/datalake/raw/tpcds/date_dim<span class="w"> </span><span class="err">\</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-d<span class="w"> </span>/datalake/raw/tpcds/item<span class="w"> </span><span class="err">\</span>
     <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">silver</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales</span> \
     <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">gold</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales_by_year</span> \
     <span class="o">/</span><span class="n">warehouse</span>
@@ -8434,7 +8434,7 @@ mismo almacén de metadatos, no dos almacenes distintos.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">tablas_s6</span><span class="p">)</span>
 
 <span class="n">nombres_s6</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tablas_s6</span><span class="p">[</span><span class="s2">"Table"</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"date_dim"</span><span class="p">,</span> <span class="s2">"web_sales_silver"</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold"</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"item"</span><span class="p">,</span> <span class="s2">"web_sales_silver"</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold"</span><span class="p">):</span>
     <span class="k">assert</span> <span class="p">(</span>
         <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="n">nombres_s6</span>
     <span class="p">),</span> <span class="sa">f</span><span class="s2">"falta hive.tcdm.</span><span class="si">{</span><span class="n">tabla_esperada</span><span class="si">}</span><span class="s2">: ejecuta S6 antes de continuar"</span>
@@ -8699,7 +8699,7 @@ ws_order_number
 ws_item_sk
 ws_bill_customer_sk
 ws_bill_addr_sk
-ws_sold_date_sk
+ws_sold_timestamp
 ws_quantity
 ws_list_price
 ws_ext_discount_amt
@@ -8733,7 +8733,7 @@ ws_net_profit
 <span class="s1">    ws_item_sk,</span>
 <span class="s1">    ws_bill_customer_sk,</span>
 <span class="s1">    ws_bill_addr_sk,</span>
-<span class="s1">    ws_sold_date_sk,</span>
+<span class="s1">    ws_sold_timestamp,</span>
 <span class="s1">    ws_sold_date,</span>
 <span class="s1">    ws_quantity,</span>
 <span class="s1">    ws_list_price,</span>
@@ -8832,7 +8832,7 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">ctas_web_sales_by_year_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CREATE TABLE IF NOT EXISTS iceberg.tcdm.web_sales_by_year AS</span>
-<span class="s1">SELECT d_year, pedidos, lineas_de_venta, beneficio_neto</span>
+<span class="s1">SELECT sold_year, pedidos, lineas_de_venta, beneficio_neto</span>
 <span class="s1">FROM hive.tcdm.web_sales_by_year_gold</span>
 <span class="s1">'''</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="n">ctas_web_sales_by_year_sql</span><span class="p">)</span>
@@ -9609,13 +9609,11 @@ uno real de TPC-DS—, calculamos uno que no puede colisionar:
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Esta fila de laboratorio copia <code>ws_sold_date_sk</code> de una fila real sin
-recalcularla para la fecha <code>2000-06-15</code> que fijamos a mano: la clave
-surrogate y la fecha derivada no se corresponden. No afecta a esta tabla de
-laboratorio —sólo sirve para observar el efecto del <code>INSERT</code> en los
-snapshots—, pero no la tomes como ejemplo del contrato
-<code>ws_sold_date</code>/<code>ws_sold_date_sk</code> que sí se respeta en
-<code>iceberg.tcdm.web_sales</code>.</p>
+<p>Esta fila de laboratorio copia los valores de una fila real y les pone una
+fecha fijada a mano, el 15 de junio de 2000 a mediodía, en las cuatro
+columnas que la llevan: <code>ws_sold_timestamp</code>, <code>ws_sold_date</code>, <code>sold_year</code> y
+<code>sold_month</code>. Sólo sirve para observar el efecto del <code>INSERT</code> en los
+snapshots.</p>
 </div>
 </div>
 </div>
@@ -9636,7 +9634,8 @@ snapshots—, pero no la tomes como ejemplo del contrato
 <span class="s1">    INSERT INTO iceberg.tcdm.web_sales_lab_evolution</span>
 <span class="s1">    SELECT</span>
 <span class="s1">        </span><span class="si">{</span><span class="n">nuevo_order_number</span><span class="si">}</span><span class="s1"> AS ws_order_number,</span>
-<span class="s1">        ws_item_sk, ws_bill_customer_sk, ws_bill_addr_sk, ws_sold_date_sk,</span>
+<span class="s1">        ws_item_sk, ws_bill_customer_sk, ws_bill_addr_sk,</span>
+<span class="s1">        TIMESTAMP '2000-06-15 12:00:00' AS ws_sold_timestamp,</span>
 <span class="s1">        DATE '2000-06-15' AS ws_sold_date,</span>
 <span class="s1">        ws_quantity, ws_list_price, ws_ext_discount_amt, ws_ext_sales_price,</span>
 <span class="s1">        ws_net_paid, ws_net_profit,</span>
@@ -10055,7 +10054,7 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_raw_sin_particionar"</span><span class="p">)</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    CREATE TABLE hive.tcdm.web_sales_raw_sin_particionar (</span>
-<span class="s1">        ws_sold_date_sk BIGINT,</span>
+<span class="s1">        ws_sold_timestamp TIMESTAMP,</span>
 <span class="s1">        ws_order_number BIGINT,</span>
 <span class="s1">        ws_item_sk BIGINT</span>
 <span class="s1">    ) WITH (</span>
@@ -10080,9 +10079,8 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Comparamos ahora el plan de una consulta equivalente —contar líneas
 de venta del año 2000— sobre las tres variantes. La tabla <code>raw</code> no tiene
-ninguna columna de fecha ya calculada como <code>ws_sold_date</code>, así que el filtro
-tiene que apoyarse en el rango de <code>ws_sold_date_sk</code> que corresponde a ese
-año (podemos obtenerlo de <code>date_dim</code>, la tabla que ya registró S6).</p>
+la columna <code>ws_sold_date</code>, que añadió S5, así que el filtro se escribe
+sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
@@ -10094,29 +10092,10 @@ año (podemos obtenerlo de <code>date_dim</code>, la tabla que ya registró S6).
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">rango_2000</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    SELECT min(d_date_sk) AS primero, max(d_date_sk) AS ultimo</span>
-<span class="s1">    FROM hive.tcdm.date_dim WHERE d_year = 2000</span>
-<span class="s1">'''</span><span class="p">)</span>
-<span class="n">primer_sk_2000</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rango_2000</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"primero"</span><span class="p">])</span>
-<span class="n">ultimo_sk_2000</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rango_2000</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"ultimo"</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Claves d_date_sk de 2000: </span><span class="si">{</span><span class="n">primer_sk_2000</span><span class="si">}</span><span class="s2">..</span><span class="si">{</span><span class="n">ultimo_sk_2000</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_raw</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s1">'''</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_raw</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    EXPLAIN SELECT count(*) FROM hive.tcdm.web_sales_raw_sin_particionar</span>
-<span class="s1">    WHERE ws_sold_date_sk BETWEEN </span><span class="si">{</span><span class="n">primer_sk_2000</span><span class="si">}</span><span class="s1"> AND </span><span class="si">{</span><span class="n">ultimo_sk_2000</span><span class="si">}</span>
+<span class="s1">    WHERE ws_sold_timestamp &gt;= TIMESTAMP '2000-01-01 00:00:00'</span>
+<span class="s1">      AND ws_sold_timestamp &lt; TIMESTAMP '2001-01-01 00:00:00'</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"=== Parquet sin particionar (raw) ==="</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">explain_raw</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
@@ -10125,7 +10104,7 @@ año (podemos obtenerlo de <code>date_dim</code>, la tabla que ya registró S6).
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10143,7 +10122,7 @@ año (podemos obtenerlo de <code>date_dim</code>, la tabla que ya registró S6).
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10163,7 +10142,7 @@ año (podemos obtenerlo de <code>date_dim</code>, la tabla que ya registró S6).
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10192,7 +10171,7 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10208,7 +10187,7 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10227,7 +10206,7 @@ motor, en lugar de asumir que siempre lo hace.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10243,20 +10222,19 @@ motor, en lugar de asumir que siempre lo hace.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Antes de ejecutar <code>ANALYZE</code>, capturamos también el plan de un <code>JOIN</code>
-con <code>date_dim</code> —la misma unión que ya usábamos en S2 para relacionar
-<code>ws_sold_date_sk</code> con el año de negocio—, para tener con qué comparar
-después.</p>
+con <code>item</code> —la unión de S2 entre una línea de venta y su producto—, para
+tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10265,10 +10243,10 @@ después.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_join_antes_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    EXPLAIN SELECT w.ws_order_number, d.d_year</span>
+<span class="s1">    EXPLAIN SELECT w.ws_order_number, i.i_category</span>
 <span class="s1">    FROM iceberg.tcdm.web_sales w</span>
-<span class="s1">    JOIN hive.tcdm.date_dim d ON w.ws_sold_date_sk = d.d_date_sk</span>
-<span class="s1">    WHERE d.d_year = 2000</span>
+<span class="s1">    JOIN hive.tcdm.item i ON w.ws_item_sk = i.i_item_sk</span>
+<span class="s1">    WHERE i.i_category_id = 1</span>
 <span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">explain_join_antes_texto</span><span class="p">)</span>
 </pre></div>
@@ -10276,7 +10254,7 @@ después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10292,7 +10270,7 @@ después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10301,10 +10279,10 @@ después.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_join_despues_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    EXPLAIN SELECT w.ws_order_number, d.d_year</span>
+<span class="s1">    EXPLAIN SELECT w.ws_order_number, i.i_category</span>
 <span class="s1">    FROM iceberg.tcdm.web_sales w</span>
-<span class="s1">    JOIN hive.tcdm.date_dim d ON w.ws_sold_date_sk = d.d_date_sk</span>
-<span class="s1">    WHERE d.d_year = 2000</span>
+<span class="s1">    JOIN hive.tcdm.item i ON w.ws_item_sk = i.i_item_sk</span>
+<span class="s1">    WHERE i.i_category_id = 1</span>
 <span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">explain_join_despues_texto</span><span class="p">)</span>
 
@@ -10319,7 +10297,7 @@ después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10341,7 +10319,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10365,7 +10343,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=109">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=108">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10390,7 +10368,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10405,7 +10383,7 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10438,7 +10416,7 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10450,7 +10428,7 @@ manifests y número de snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10486,7 +10464,7 @@ manifests y número de snapshots.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10505,7 +10483,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10522,7 +10500,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10546,7 +10524,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10560,7 +10538,7 @@ explícitamente. Lo comprobamos en la propia tabla de snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10579,7 +10557,7 @@ explícitamente. Lo comprobamos en la propia tabla de snapshots.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10611,7 +10589,7 @@ borrar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=119">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10630,7 +10608,7 @@ borrar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10651,7 +10629,7 @@ borrar.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10667,7 +10645,7 @@ referenciar nunca; comparte la misma protección de retención mínima que
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=123">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=122">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10692,7 +10670,7 @@ referenciar nunca; comparte la misma protección de retención mínima que
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10723,7 +10701,7 @@ Iceberg de Trino.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10748,7 +10726,7 @@ Iceberg de Trino.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10762,7 +10740,7 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10780,7 +10758,7 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10815,7 +10793,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10840,7 +10818,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10903,7 +10881,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10925,7 +10903,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10943,7 +10921,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10991,7 +10969,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11010,7 +10988,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=135">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=134">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11035,7 +11013,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11084,7 +11062,7 @@ oficiales del curso, como hemos hecho con el prefijo <code>web_sales_lab_</code>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11123,7 +11101,7 @@ seguía existiendo el mismo resultado de negocio después de compactar?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11153,7 +11131,7 @@ después de aplicar un filtro por partición, y la comparación de las tres
 variantes de particionado.</li>
 <li>La tabla de <code>SHOW STATS FOR iceberg.tcdm.web_sales</code> antes y después de
 <code>ANALYZE</code>, con tu propia valoración de si cambió o no el plan del <code>JOIN</code>
-con <code>date_dim</code>.</li>
+con <code>item</code>.</li>
 <li>El inventario de ficheros, manifests y snapshots de
 <code>iceberg.tcdm.web_sales_lab_smallfiles</code> antes y después de <code>EXECUTE optimize</code>, y antes y después de <code>expire_snapshots</code>.</li>
 <li>Que sabes explicar, con tus propias palabras, la diferencia entre
@@ -11199,7 +11177,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11252,7 +11230,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=140">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=139">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11277,7 +11255,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=141">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

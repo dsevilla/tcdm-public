@@ -91,7 +91,7 @@ Para preparar la infraestructura S3 desde la raíz de la distribución:
 make s3-up
 ```
 
-Después se ejecuta `s3/s3.ipynb`. El notebook consume las 20 tablas que dejó
+Después se ejecuta `s3/s3.ipynb`. El notebook consume las 18 tablas que dejó
 S2 y realiza la copia bajo el prefijo `raw/tpcds` mediante
 `hdfs dfs -cat` y `boto3.upload_fileobj`, sin pasar los Parquet por el disco
 del host. Mantiene un prefijo por tabla, igual que la organización de HDFS.
@@ -198,7 +198,7 @@ Compose. Primero crea la red si no existe, después arranca Hadoop y finalmente
 PostgreSQL, el metastore y Trino.
 
 Después se ejecuta `s2/s2.ipynb` completo desde Jupyter. El notebook genera
-las 20 tablas de TPC-DS SF1 que usa el curso como Parquet y deja las fuentes preparadas para
+las 18 tablas de TPC-DS SF1 que usa el curso como Parquet y deja las fuentes preparadas para
 S3–S8.
 
 El objetivo siguiente se conserva como herramienta de infraestructura para
@@ -228,9 +228,21 @@ hechos, no elige la versión por fecha. Una vista temporal,
 `vigencia_versiones`, deshace el adelanto y rellena las fechas de inicio
 vacías de `item`; con ella se corrigen las fechas de las cuatro dimensiones
 y se reasignan a la versión vigente `ss_store_sk`, `sr_store_sk`
-y `wr_web_page_sk`. El marcador `_SUCCESS` de cada tabla
-guarda las correcciones que lleva (`INE-2026`, `SCD2`, `INE-2026+SCD2` o
-vacío), y una tabla cuyo marcador no coincide se vuelve a generar.
+y `wr_web_page_sk`.
+
+Por último, guardan las fechas en las propias tablas. TPC-DS las representa
+con claves hacia dos dimensiones, `date_dim` y `time_dim`, que el curso no
+materializa: una clave de fecha sola pasa a ser una columna `date` con el
+mismo nombre sin `_sk` (`ws_ship_date`, `inv_date`), y una clave de fecha
+con su clave de hora se funden en una columna `timestamp`
+(`ws_sold_timestamp`, `ss_sold_timestamp`, `sr_returned_timestamp`,
+`wr_returned_timestamp`). Si falta la fecha queda `NULL`; si sólo falta la
+hora, la marca de tiempo queda a medianoche. Diez tablas tienen claves de
+este tipo.
+
+El marcador `_SUCCESS` de cada tabla guarda las correcciones que lleva
+(`INE-2026`, `SCD2` y `FECHAS`, unidas con `+` cuando son varias, o vacío),
+y una tabla cuyo marcador no coincide se vuelve a generar.
 
 Después escribe tablas externas temporales y elimina sus metadatos. Los
 ficheros de negocio se conservan bajo `/datalake/raw/tpcds/<tabla>`,
@@ -250,8 +262,9 @@ El catálogo virtual de Trino también muestra la tabla técnica
 tabla de negocio y su columna `time(3)` no es compatible con el escritor Hive
 que materializa estos Parquet. También excluye las cuatro tablas del canal
 de catálogo (`catalog_sales`, `catalog_returns`, `catalog_page` y
-`call_center`), que el curso no usa: de las 24 tablas de negocio del
-benchmark se materializan 20.
+`call_center`), que el curso no usa, y `date_dim` y `time_dim`, cuyas
+claves se guardan ya como fechas: de las 24 tablas de negocio del
+benchmark se materializan 18.
 Los nombres que genera Trino pueden no terminar en `.parquet`: el formato lo
 determinan el contenido y sus metadatos (un fichero Parquet comienza y termina
 con la firma `PAR1`), no la extensión.
@@ -259,7 +272,7 @@ con la firma `PAR1`), no la extensión.
 El inicializador auxiliar puede limitarse a algunas tablas:
 
 ```bash
-TPCDS_TABLES="date_dim customer item" make tpcds-init
+TPCDS_TABLES="web_sales customer item" make tpcds-init
 ```
 
 La generación es determinista en sus filas para una escala, versión de Trino

@@ -1,17 +1,17 @@
 """Consulta del esquema de TPC-DS SF1 desde cualquier notebook del curso.
 
-El catálogo de las 20 tablas —qué significa cada columna, su tipo y sus
+El catálogo de las 18 tablas —qué significa cada columna, su tipo y sus
 claves— está escrito una sola vez, en el apéndice de `s2/s2.ipynb`. Este
 módulo lo lee de ahí y lo muestra a petición, para no tener que ir al
 apéndice cada vez que una consulta usa una tabla que no se recuerda:
 
     %load_ext tcdm_esquema
 
-    %esquema                        las 20 tablas, con su papel y descripción
+    %esquema                        las 18 tablas, con su papel y descripción
     %esquema web_sales              la tabla completa, con todas sus columnas y,
                                     si es de hechos, su diagrama entidad-relación
     %esquema web_sales date         las columnas de web_sales que contienen «date»
-    %esquema ws_sold_date_sk        esa columna y ninguna otra
+    %esquema ws_sold_timestamp      esa columna y ninguna otra
     %esquema item_sk                todas las columnas «item_sk», tabla a tabla
     %esquema web_sales customer     varias tablas seguidas
 
@@ -70,7 +70,7 @@ FIGURE: Final[re.Pattern[str]] = re.compile(r'^<p\b.*<img src="([^"]+)"')
 # `addendum/figuras/generate_tpcds_diagrams.py` y se publican con las páginas.
 ER_FIGURE_URL: Final[str] = "https://dsevilla.github.io/tcdm-public/figs/tpcds_er_{table}.svg"
 PRIMARY_KEY: Final[re.Pattern[str]] = re.compile(r"^PK(?: \((\d+)/(\d+)\))?$")
-EXPECTED_TABLES: Final[dict[Role, int]] = {"dimensión": 15, "hecho": 5}
+EXPECTED_TABLES: Final[dict[Role, int]] = {"dimensión": 13, "hecho": 5}
 PLAIN_KEYS: Final[frozenset[str]] = frozenset({"BK", "—"})
 
 
@@ -280,7 +280,7 @@ def schema_markdown(*terms: str, source: NotebookSource | None = None) -> str:
 
     Un término que es el nombre de una tabla la selecciona. Los demás filtran
     columnas, dentro de las tablas seleccionadas o, si no se ha seleccionado
-    ninguna, en las 20: el nombre completo de una columna la elige a ella, y
+    ninguna, en las 18: el nombre completo de una columna la elige a ella, y
     cualquier otro texto, a las columnas cuyo nombre lo contiene. Sin términos,
     lista las tablas.
     """
@@ -343,7 +343,7 @@ def _not_found_markdown(tables: Schema, filters: Sequence[str], names: Sequence[
     hint: str = (
         " Quizá buscabas " + ", ".join(f"`{match}`" for match in dict.fromkeys(close)) + "."
         if close
-        else " `%esquema` sin argumentos lista las 20 tablas."
+        else " `%esquema` sin argumentos lista las 18 tablas."
     )
     return f"No hay ninguna columna cuyo nombre contenga {wanted}{where}.{hint}"
 

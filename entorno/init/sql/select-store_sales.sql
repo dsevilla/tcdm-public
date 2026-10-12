@@ -1,6 +1,5 @@
 SELECT
-    store_sales.ss_sold_date_sk,
-    store_sales.ss_sold_time_sk,
+    date_add('second', coalesce(store_sales.ss_sold_time_sk, 0), CAST(date_add('day', store_sales.ss_sold_date_sk - 2415021, DATE '1900-01-01') AS timestamp(3))) AS ss_sold_timestamp,
     store_sales.ss_item_sk,
     store_sales.ss_customer_sk,
     store_sales.ss_cdemo_sk,
@@ -23,13 +22,11 @@ SELECT
     store_sales.ss_net_paid_inc_tax,
     store_sales.ss_net_profit
 FROM tpcds.__TPCDS_SCALE__.store_sales
-LEFT JOIN tpcds.__TPCDS_SCALE__.date_dim
-  ON date_dim.d_date_sk = store_sales.ss_sold_date_sk
 LEFT JOIN hive.tpcds_bootstrap.vigencia_versiones AS original
   ON original.dimension = 'store'
  AND original.clave = store_sales.ss_store_sk
 LEFT JOIN hive.tpcds_bootstrap.vigencia_versiones AS vigente
   ON vigente.dimension = 'store'
  AND vigente.clave_negocio = original.clave_negocio
- AND date_dim.d_date BETWEEN vigente.vigente_desde
-                         AND coalesce(vigente.vigente_hasta, DATE '9999-12-31')
+ AND date_add('day', store_sales.ss_sold_date_sk - 2415021, DATE '1900-01-01') BETWEEN vigente.vigente_desde
+               AND coalesce(vigente.vigente_hasta, DATE '9999-12-31')

@@ -7935,7 +7935,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <tbody>
 <tr>
 <td><code>%esquema</code></td>
-<td>Las 20 tablas, con su papel y su descripción</td>
+<td>Las 18 tablas, con su papel y su descripción</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
@@ -7946,7 +7946,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <td>Las columnas de <code>web_sales</code> cuyo nombre contiene <code>date</code></td>
 </tr>
 <tr>
-<td><code>%esquema ws_sold_date_sk</code></td>
+<td><code>%esquema ws_sold_timestamp</code></td>
 <td>Esa columna y ninguna otra</td>
 </tr>
 </tbody>
@@ -8036,11 +8036,11 @@ transformaciones de partición de una tabla Iceberg;</li>
 <li>justificar la elección de columnas de partición a partir de los patrones
 de consulta y de la cardinalidad de los datos, no por costumbre;</li>
 <li>construir con Spark una tabla <code>silver</code> particionada por año y mes a
-partir de <code>web_sales</code> y <code>date_dim</code>, conservando una salida de control sin
+partir de <code>web_sales</code>, conservando una salida de control sin
 particionar para comparar;</li>
-<li>validar, con comprobaciones ejecutables (no sólo visuales), que una unión
-no multiplica ni pierde filas y que las claves de unión no aparecen
-inesperadamente nulas;</li>
+<li>validar, con comprobaciones ejecutables (no sólo visuales), que una
+transformación no pierde más filas de las esperadas y que las columnas
+derivadas no aparecen inesperadamente nulas;</li>
 <li>agregar desde <code>silver</code> un producto <code>gold</code> orientado a una pregunta de
 negocio y distinguir la métrica de pedidos de la métrica de líneas de
 venta;</li>
@@ -8438,7 +8438,7 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Qué contiene: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF1 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></li><li style="margin:10px 0">Cómo se une: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date_sk = d_date_sk</code> contra <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim</code></li><li style="margin:10px 0">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año</li><li style="margin:10px 0">Cómo se regenera: en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Qué contiene: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF1 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></li><li style="margin:10px 0">De dónde sale la fecha: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se derivan de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año</li><li style="margin:10px 0">Cómo se regenera: en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul>
 </div>
 </div>
 </div>
@@ -8460,14 +8460,13 @@ en lugar de dejarlo sólo en la cabeza de quien escribió el código— indica:<
 <li>qué columnas conserva o añade: las columnas de negocio de la línea de
 venta más <code>ws_sold_date</code> (derivada) y las particiones <code>sold_year</code>,
 <code>sold_month</code>;</li>
-<li>qué claves de unión utiliza: <code>ws_sold_date_sk = d_date_sk</code> contra
-<code>date_dim</code>;</li>
+<li>de dónde salen las columnas derivadas: de <code>ws_sold_timestamp</code>, con
+<code>to_date</code>, <code>year</code> y <code>month</code>; las líneas sin fecha no entran en <code>silver</code>;</li>
 <li>qué significa cada métrica del producto <code>gold</code>: pedidos distintos,
 líneas de venta y beneficio neto, sin confundir unas con otras;</li>
 <li>dónde vive el producto <code>gold</code> y qué columnas tiene: una fila por
-año en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con la columna <code>d_year</code>
-(el <code>sold_year</code> de <code>silver</code>, con el nombre que tiene el año en <code>date_dim</code>)
-y esas tres métricas;</li>
+año en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con la columna
+<code>sold_year</code> y esas tres métricas;</li>
 <li>qué formato y compresión emplea: Parquet con la compresión por defecto
 de Spark;</li>
 <li>qué columnas se utilizan para particionar: <code>sold_year</code> y <code>sold_month</code>,
@@ -8557,7 +8556,7 @@ detienen el notebook si no se cumplen.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un data lake sin catálogo también tiene reglas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> inmutable es la referencia estable frente a la que se valida todo</li></ul><p style="margin:10px 0">lo derivado</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un contrato documentado dice rutas, claves de unión, métricas y regla de</li></ul><p style="margin:10px 0">regeneración; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> no es un dato</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Escribir Parquet correctamente no basta: la fiabilidad son las</li></ul><p style="margin:10px 0">comprobaciones, y aquí serán <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code>, no comentarios</p>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un data lake sin catálogo también tiene reglas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> inmutable es la referencia estable frente a la que se valida todo</li></ul><p style="margin:10px 0">lo derivado</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un contrato documentado dice rutas, columnas derivadas, métricas y regla de</li></ul><p style="margin:10px 0">regeneración; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> no es un dato</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Escribir Parquet correctamente no basta: la fiabilidad son las</li></ul><p style="margin:10px 0">comprobaciones, y aquí serán <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code>, no comentarios</p>
 </div>
 </div>
 </div>
@@ -8709,7 +8708,7 @@ vamos a construir aquí.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Criterios: filtros frecuentes, cardinalidad moderada, ficheros útiles</li><li style="margin:10px 0">Cardinalidades reales de SF1: pedidos, artículos y clientes frente a</li></ul><p style="margin:10px 0">años y meses</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date_sk</code> no vale y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> sí</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Criterios: filtros frecuentes, cardinalidad moderada, ficheros útiles</li><li style="margin:10px 0">Cardinalidades reales de SF1: pedidos, artículos y clientes frente a</li></ul><p style="margin:10px 0">años y meses</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code> no vale y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> sí</li></ul>
 </div>
 </div>
 </div>
@@ -8731,28 +8730,26 @@ grandes como para que merezca la pena evitar leerlos; poder explicarse con
 una frase a quien vaya a consultar la tabla; y no generar un número
 excesivo de ficheros pequeños, el mismo problema que ya vimos en S4 con
 <code>repartition</code> frente a <code>coalesce</code>.</p>
-<p>Para <code>web_sales</code> vamos a enriquecer la tabla con <code>date_dim</code> y añadir
-<code>sold_year</code> y <code>sold_month</code>. Es una elección docente comprensible porque
+<p>Para <code>web_sales</code> vamos a añadir a la tabla <code>sold_year</code> y <code>sold_month</code>,
+derivadas de la fecha de venta. Es una elección docente comprensible porque
 permite consultar por tiempo —"ventas de 2001", "ventas de enero de
 1999"— sin necesidad de explicar nada más sobre el dominio.</p>
 <p>En cambio, <code>ws_bill_customer_sk</code>, <code>ws_item_sk</code> y <code>ws_order_number</code> son
 malas columnas de partición principal, y no por casualidad: las tres
 identifican entidades con muchísimos valores distintos dentro de
 <code>web_sales</code> (clientes, artículos y pedidos), muy por encima del número de
-años o meses distintos que aparecen en <code>date_dim</code>. Particionar por una
+años o meses distintos que aparecen en las ventas. Particionar por una
 columna así produciría un directorio por cada cliente, artículo o pedido,
 casi todos con uno o muy pocos ficheros diminutos: exactamente el problema
 de los "ficheros pequeños" que penaliza tanto a HDFS (metadatos del
 NameNode por fichero) como a cualquier motor que después tenga que abrir
 todos esos directorios. Comprobaremos estas cardinalidades con datos reales
 de SF1 en cuanto carguemos las tablas, en la siguiente sección.</p>
-<p>Una clave <em>surrogate</em> de fecha (<code>ws_sold_date_sk</code>) sufre un problema
-parecido: es una columna casi tan fina como una fecha exacta, con muchos
-más valores distintos que <code>sold_year</code>/<code>sold_month</code>, y además no es
-directamente comprensible para quien consulte la tabla —es un entero
-sintético del generador TPC-DS, no una fecha legible—. Por eso derivamos
-<code>sold_year</code> y <code>sold_month</code> a partir de <code>d_date</code> en lugar de particionar
-directamente por la clave surrogate.</p>
+<p>La propia marca de tiempo de la venta (<code>ws_sold_timestamp</code>) sufre un
+problema parecido: tiene casi un valor distinto por pedido. Ni siquiera la
+fecha sin la hora serviría, porque produciría un directorio por día, más de
+mil en los cinco años de SF1. Por eso derivamos <code>sold_year</code> y <code>sold_month</code>
+en lugar de particionar directamente por la fecha.</p>
 <p>Por último, la elección entre particionar sólo por <code>sold_year</code> o por la
 pareja <code>sold_year, sold_month</code> debe relacionarse con el tamaño real de los
 fragmentos resultantes, no con una preferencia a priori: más niveles de
@@ -8778,11 +8775,11 @@ tocarlos:</p>
 <div class="highlight"><pre><span></span>/datalake/raw/tpcds/web_sales
     → /datalake/silver/tpcds/web_sales/sold_year=.../sold_month=.../part-...
 </pre></div>
-<p>El flujo, celda a celda, será: leer <code>web_sales</code> y <code>date_dim</code> desde sus
-rutas físicas; comprobar con datos reales la cardinalidad de las columnas
-que descartamos como partición; unir por <code>ws_sold_date_sk = d_date_sk</code>;
-conservar las columnas de negocio necesarias y derivar <code>sold_year</code> y
-<code>sold_month</code>; validar filas y claves con <code>assert</code>; escribir la salida
+<p>El flujo, celda a celda, será: leer <code>web_sales</code> desde su ruta física;
+comprobar con datos reales la cardinalidad de las columnas que descartamos
+como partición; conservar las columnas de negocio necesarias y derivar de
+<code>ws_sold_timestamp</code> la fecha, <code>sold_year</code> y <code>sold_month</code>; validar filas y
+fechas con <code>assert</code>; escribir la salida
 particionada; escribir además una salida de control sin particionar; y
 agregar desde <code>silver</code> los pedidos, las líneas y el beneficio por año para
 escribir el producto <code>gold</code>.</p>
@@ -8796,7 +8793,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Leer-las-tablas-fuente">Leer las tablas fuente<a class="anchor-link" href="#Leer-las-tablas-fuente">¶</a></h3>
+<h3 id="Leer-la-tabla-fuente">Leer la tabla fuente<a class="anchor-link" href="#Leer-la-tabla-fuente">¶</a></h3>
 </div>
 </div>
 </div>
@@ -8829,6 +8826,7 @@ escribir el producto <code>gold</code>.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">min</span> <span class="k">as</span> <span class="n">spark_min</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">month</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">spark_sum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_date</span><span class="p">,</span> <span class="n">year</span>
 
 <span class="n">web_sales_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/web_sales"</span>
 <span class="n">web_sales</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">web_sales_path</span><span class="p">)</span>
@@ -8840,53 +8838,20 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># date_dim aporta la fecha y el año de cada venta: d_date_sk, d_date y d_year.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">date_dim</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">date_dim_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/date_dim"</span>
-<span class="n">date_dim</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">date_dim_path</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ruta física leída: </span><span class="si">{</span><span class="n">date_dim_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="n">date_dim</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">Comprobar las cardinalidades antes de elegir la partición<a class="anchor-link" href="#Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">¶</a></h3><p>Antes de unir nada, confirmamos con datos reales de SF1 la reflexión de la
+<h3 id="Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">Comprobar las cardinalidades antes de elegir la partición<a class="anchor-link" href="#Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">¶</a></h3><p>Antes de transformar nada, confirmamos con datos reales de SF1 la reflexión de la
 sección anterior: cuántos valores distintos tienen las columnas que
 descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=37">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8910,7 +8875,7 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8930,18 +8895,62 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Compara esas tres cifras con el número de años y meses distintos que
-veremos más abajo tras unir con <code>date_dim</code> (a lo sumo unas pocas decenas de
+veremos más abajo tras derivar las particiones (a lo sumo unas pocas decenas de
 combinaciones <code>sold_year</code>/<code>sold_month</code>). Cualquiera de las tres columnas
 anteriores generaría muchísimos más directorios que la pareja
 <code>sold_year</code>/<code>sold_month</code>, la mayoría con muy pocas filas: es precisamente
 la razón por la que no las usamos como partición principal.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Derivar-la-fecha-y-construir-el-esquema-silver">Derivar la fecha y construir el esquema <em>silver</em><a class="anchor-link" href="#Derivar-la-fecha-y-construir-el-esquema-silver">¶</a></h3><p>Nos quedamos con las líneas que tienen fecha, conservamos las columnas de
+negocio del contrato y derivamos de <code>ws_sold_timestamp</code> tres columnas:
+<code>ws_sold_date</code>, la fecha sin la hora, con <code>to_date</code>; y las particiones
+<code>sold_year</code> y <code>sold_month</code>, con <code>year</code> y <code>month</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_silver</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">())</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+    <span class="s2">"ws_order_number"</span><span class="p">,</span>
+    <span class="s2">"ws_item_sk"</span><span class="p">,</span>
+    <span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span>
+    <span class="s2">"ws_bill_addr_sk"</span><span class="p">,</span>
+    <span class="s2">"ws_sold_timestamp"</span><span class="p">,</span>
+    <span class="n">to_date</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ws_sold_date"</span><span class="p">),</span>
+    <span class="s2">"ws_quantity"</span><span class="p">,</span>
+    <span class="s2">"ws_list_price"</span><span class="p">,</span>
+    <span class="s2">"ws_ext_discount_amt"</span><span class="p">,</span>
+    <span class="s2">"ws_ext_sales_price"</span><span class="p">,</span>
+    <span class="s2">"ws_net_paid"</span><span class="p">,</span>
+    <span class="s2">"ws_net_profit"</span><span class="p">,</span>
+    <span class="n">year</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">),</span>
+    <span class="n">month</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">web_sales_silver</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -8952,11 +8961,13 @@ la razón por la que no las usamos como partición principal.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Unir-con-date_dim-y-construir-el-esquema-silver">Unir con <code>date_dim</code> y construir el esquema <em>silver</em><a class="anchor-link" href="#Unir-con-date_dim-y-construir-el-esquema-silver">¶</a></h3><p>Unimos por <code>ws_sold_date_sk = d_date_sk</code>, conservamos las columnas de
-negocio del contrato y derivamos <code>ws_sold_date</code> (la fecha real, no sólo la
-clave surrogate), junto con las particiones <code>sold_year</code> y <code>sold_month</code>.
-<code>sold_year</code> viene directamente de <code>date_dim.d_year</code>; <code>sold_month</code> se
-calcula con <code>month(d_date)</code>, equivalente a usar <code>d_moy</code> de <code>date_dim</code>.</p>
+<h3 id="Validar-filas-y-fechas-antes-de-escribir">Validar filas y fechas antes de escribir<a class="anchor-link" href="#Validar-filas-y-fechas-antes-de-escribir">¶</a></h3><p>Una transformación mal planteada puede perder más filas de las esperadas.
+TPC-DS introduce deliberadamente una pequeña fracción de líneas de venta
+sin fecha —una característica documentada del propio generador, pensada
+para simular datos de origen imperfectos, no un error de esta sesión—:
+esas líneas no se pueden asignar a ningún año ni mes, y el filtro
+<code>isNotNull</code> las deja fuera de <code>silver</code>. Antes de escribir nada comprobamos
+que la única pérdida de filas es exactamente esa, ni una más ni una menos:</p>
 </div>
 </div>
 </div>
@@ -8968,27 +8979,18 @@ calcula con <code>month(d_date)</code>, equivalente a usar <code>d_moy</code> de
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_silver</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-    <span class="n">date_dim</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"d_date_sk"</span><span class="p">,</span> <span class="s2">"d_date"</span><span class="p">,</span> <span class="s2">"d_year"</span><span class="p">),</span>
-    <span class="n">on</span><span class="o">=</span><span class="n">web_sales</span><span class="p">[</span><span class="s2">"ws_sold_date_sk"</span><span class="p">]</span> <span class="o">==</span> <span class="n">date_dim</span><span class="p">[</span><span class="s2">"d_date_sk"</span><span class="p">],</span>
-    <span class="n">how</span><span class="o">=</span><span class="s2">"inner"</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
-    <span class="s2">"ws_order_number"</span><span class="p">,</span>
-    <span class="s2">"ws_item_sk"</span><span class="p">,</span>
-    <span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span>
-    <span class="s2">"ws_bill_addr_sk"</span><span class="p">,</span>
-    <span class="s2">"ws_sold_date_sk"</span><span class="p">,</span>
-    <span class="n">col</span><span class="p">(</span><span class="s2">"d_date"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"ws_sold_date"</span><span class="p">),</span>
-    <span class="s2">"ws_quantity"</span><span class="p">,</span>
-    <span class="s2">"ws_list_price"</span><span class="p">,</span>
-    <span class="s2">"ws_ext_discount_amt"</span><span class="p">,</span>
-    <span class="s2">"ws_ext_sales_price"</span><span class="p">,</span>
-    <span class="s2">"ws_net_paid"</span><span class="p">,</span>
-    <span class="s2">"ws_net_profit"</span><span class="p">,</span>
-    <span class="n">col</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">),</span>
-    <span class="n">month</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"d_date"</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">),</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">raw_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">silver_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">missing_date_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en la fuente (web_sales): </span><span class="si">{</span><span class="n">raw_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas sin ws_sold_timestamp (no se pueden fechar): </span><span class="si">{</span><span class="n">missing_date_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en silver: </span><span class="si">{</span><span class="n">silver_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">raw_count</span> <span class="o">-</span> <span class="n">silver_count</span> <span class="o">==</span> <span class="n">missing_date_count</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"silver sólo debería perder las líneas sin ws_sold_timestamp, ninguna otra: "</span>
+    <span class="sa">f</span><span class="s2">"raw=</span><span class="si">{</span><span class="n">raw_count</span><span class="si">}</span><span class="s2"> silver=</span><span class="si">{</span><span class="n">silver_count</span><span class="si">}</span><span class="s2"> sin_fecha=</span><span class="si">{</span><span class="n">missing_date_count</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
-<span class="n">web_sales_silver</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -9001,16 +9003,8 @@ calcula con <code>month(d_date)</code>, equivalente a usar <code>d_moy</code> de
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Validar-filas-y-claves-antes-de-escribir">Validar filas y claves antes de escribir<a class="anchor-link" href="#Validar-filas-y-claves-antes-de-escribir">¶</a></h3><p>Un <code>join</code> interno mal planteado puede multiplicar filas (si la clave de la
-dimensión no es única) o perder más filas de las esperadas (si aparecen
-claves de hecho sin correspondencia en la dimensión). TPC-DS, además,
-introduce deliberadamente una pequeña fracción de líneas de venta sin
-<code>ws_sold_date_sk</code> —una característica documentada del propio generador,
-pensada para simular datos de origen imperfectos, no un error de esta
-sesión—: esas líneas no pueden fecharse y un <code>join</code> interno las descarta
-igual que descartaría cualquier fila sin pareja en <code>date_dim</code>. Antes de
-escribir nada comprobamos que la única pérdida de filas es exactamente esa,
-ni una más ni una menos:</p>
+<p>Después comprobamos que ni la marca de tiempo ni las columnas derivadas de
+ella aparecen nulas en ninguna fila de <code>silver</code>:</p>
 </div>
 </div>
 </div>
@@ -9022,19 +9016,13 @@ ni una más ni una menos:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">raw_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="n">silver_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="n">missing_date_key_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_date_sk"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">null_dates</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()</span> <span class="o">|</span> <span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_date"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()</span> <span class="o">|</span> <span class="n">col</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()</span>
+<span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en la fuente (web_sales): </span><span class="si">{</span><span class="n">raw_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas sin ws_sold_date_sk (no se pueden fechar): </span><span class="si">{</span><span class="n">missing_date_key_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas tras la unión con date_dim: </span><span class="si">{</span><span class="n">silver_count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Líneas con marca de tiempo, fecha o año nulos: </span><span class="si">{</span><span class="n">null_dates</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">raw_count</span> <span class="o">-</span> <span class="n">silver_count</span> <span class="o">==</span> <span class="n">missing_date_key_count</span><span class="p">,</span> <span class="p">(</span>
-    <span class="s2">"El join con date_dim sólo debería perder las líneas sin ws_sold_date_sk, "</span>
-    <span class="s2">"ninguna otra: "</span>
-    <span class="sa">f</span><span class="s2">"raw=</span><span class="si">{</span><span class="n">raw_count</span><span class="si">}</span><span class="s2"> silver=</span><span class="si">{</span><span class="n">silver_count</span><span class="si">}</span><span class="s2"> sin_fecha=</span><span class="si">{</span><span class="n">missing_date_key_count</span><span class="si">}</span><span class="s2">"</span>
-<span class="p">)</span>
+<span class="k">assert</span> <span class="n">null_dates</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"No debería haber fechas nulas en silver: </span><span class="si">{</span><span class="n">null_dates</span><span class="si">}</span><span class="s2"> filas afectadas"</span>
 </pre></div>
 </div>
 </div>
@@ -9047,49 +9035,13 @@ ni una más ni una menos:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Después comprobamos que la clave de unión y la fecha derivada no aparecen
-inesperadamente nulas, algo que sí podría ocurrir con un <code>left_outer</code> pero
-que un <code>inner</code> bien planteado no debería dejar pasar:</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">null_join_keys</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-    <span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_date_sk"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()</span> <span class="o">|</span> <span class="n">col</span><span class="p">(</span><span class="s2">"ws_sold_date"</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()</span>
-<span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Líneas con clave de unión o fecha derivada nula: </span><span class="si">{</span><span class="n">null_join_keys</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">null_join_keys</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-    <span class="s2">"No debería haber claves de unión nulas tras un join interno: "</span>
-    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">null_join_keys</span><span class="si">}</span><span class="s2"> filas afectadas"</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Por último, comprobamos que los rangos de las columnas de partición tienen
 sentido: <code>sold_month</code> debe estar siempre entre 1 y 12, y el rango de años
 debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9121,7 +9073,7 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9139,13 +9091,13 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El join validado, no supuesto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La única pérdida del <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">join</code> son las líneas sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date_sk</code>: ni una</li></ul><p style="margin:10px 0">más, comprobado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Clave de unión y fecha derivada sin nulos tras el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">join</code> interno</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12: los rangos de las columnas de partición</li></ul><p style="margin:10px 0">también se comprueban</p>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">La transformación validada, no supuesta</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La única pérdida son las líneas sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code>: ni una más,</li></ul><p style="margin:10px 0">comprobado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Marca de tiempo, fecha y año sin nulos en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12: los rangos de las columnas de partición</li></ul><p style="margin:10px 0">también se comprueban</p>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=51">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=49">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9163,13 +9115,13 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Rompe una validación a propósito</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Cambia <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">how="inner"</code> por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">how="left_outer"</code> y ejecuta las comprobaciones: ¿cuál falla primero y qué dice su mensaje?</li><li style="margin:10px 0">Une con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">date_dim.union(date_dim)</code>: ¿qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> detecta las filas duplicadas y por qué?</li><li style="margin:10px 0">Escribe una comprobación nueva para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>: ¿qué rango de años esperas y por qué?</li><li style="margin:10px 0">Antes de seguir, vuelve a ejecutar la celda original del <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">join</code> para restaurar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Rompe una validación a propósito</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Quita el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">filter</code> de las líneas sin fecha y ejecuta las comprobaciones: ¿cuál falla primero y qué dice su mensaje?</li><li style="margin:10px 0">Deriva <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">dayofmonth</code> en lugar de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">month</code>: ¿qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> lo detecta y por qué?</li><li style="margin:10px 0">Escribe una comprobación nueva para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>: ¿qué rango de años esperas y por qué?</li><li style="margin:10px 0">Antes de seguir, vuelve a ejecutar la celda original para restaurar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=52">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9194,7 +9146,7 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9211,7 +9163,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9235,7 +9187,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9251,7 +9203,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9265,7 +9217,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9284,7 +9236,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9302,7 +9254,7 @@ se confundan.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9319,8 +9271,7 @@ se confundan.</p>
         <span class="n">count</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"lineas_de_venta"</span><span class="p">),</span>
         <span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">),</span>
     <span class="p">)</span>
-    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"d_year"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"d_year"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="n">web_sales_by_year</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
@@ -9331,7 +9282,7 @@ se confundan.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9344,7 +9295,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9362,7 +9313,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9386,7 +9337,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9411,7 +9362,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9423,7 +9374,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9440,7 +9391,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9459,7 +9410,7 @@ la ruta por su cuenta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9477,7 +9428,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9499,7 +9450,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=69">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9523,7 +9474,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9539,7 +9490,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9549,7 +9500,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9564,7 +9515,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9577,7 +9528,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9592,7 +9543,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9604,7 +9555,7 @@ una acción sobre cada una.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9625,7 +9576,7 @@ una acción sobre cada una.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9646,7 +9597,7 @@ aunque el plan aplique <code>PartitionFilters</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9681,7 +9632,7 @@ aunque el plan aplique <code>PartitionFilters</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9697,7 +9648,7 @@ abajo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9715,14 +9666,14 @@ abajo.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el filtro y compara la poda</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> a la vez: ¿cuántos ficheros lee ahora?</li><li style="margin:10px 0">Filtra sólo por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month = 12</code>: ¿se poda algo? ¿En qué se diferencia de filtrar sólo por año?</li><li style="margin:10px 0">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit &gt; 1000</code>: ¿aparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code>? ¿Dónde aparece el filtro?</li><li style="margin:10px 0">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date_sk</code> en lugar de por año: ¿se poda? ¿Por qué no, si la fecha determina el año?</li><li style="margin:10px 0">Lee un único directorio <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month=</code> por su ruta, con y sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">basePath</code>: ¿qué columnas cambian?</li><li style="margin:10px 0">Escribe una copia con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">partitionBy("sold_year")</code> en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s5</code> y compara ficheros y tamaño medio</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el filtro y compara la poda</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> a la vez: ¿cuántos ficheros lee ahora?</li><li style="margin:10px 0">Filtra sólo por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month = 12</code>: ¿se poda algo? ¿En qué se diferencia de filtrar sólo por año?</li><li style="margin:10px 0">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit &gt; 1000</code>: ¿aparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code>? ¿Dónde aparece el filtro?</li><li style="margin:10px 0">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code> en lugar de por año: ¿se poda? ¿Por qué no, si la fecha determina el año?</li><li style="margin:10px 0">Lee un único directorio <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month=</code> por su ruta, con y sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">basePath</code>: ¿qué columnas cambian?</li><li style="margin:10px 0">Escribe una copia con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">partitionBy("sold_year")</code> en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s5</code> y compara ficheros y tamaño medio</li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9734,7 +9685,7 @@ hace S4 antes de cambiar de sección.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9749,7 +9700,7 @@ hace S4 antes de cambiar de sección.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9761,7 +9712,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9776,7 +9727,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9790,7 +9741,7 @@ ficheros y el tamaño lógico total:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9805,7 +9756,7 @@ ficheros y el tamaño lógico total:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9817,7 +9768,7 @@ antes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9832,7 +9783,7 @@ antes:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9844,7 +9795,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9859,7 +9810,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9870,7 +9821,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9885,7 +9836,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9897,7 +9848,7 @@ datos, que sale de dividir el tamaño lógico total que imprimió
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9919,7 +9870,7 @@ datos, que sale de dividir el tamaño lógico total que imprimió
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9934,7 +9885,7 @@ pasaría con un dataset mil veces mayor?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9962,8 +9913,8 @@ genérico:</p>
 </tr>
 <tr>
 <td>Refinada sin particionar</td>
-<td><code>/user/luser/s5/web_sales_silver_sin_particionar</code>, un directorio, mismas filas que la fuente tras el <code>join</code></td>
-<td><code>silver_count</code> filas: <code>raw_count</code> menos <code>missing_date_key_count</code> (comprobado con <code>assert</code>), no <code>raw_count</code> exacto</td>
+<td><code>/user/luser/s5/web_sales_silver_sin_particionar</code>, un directorio, mismas filas que la fuente menos las que no tienen fecha</td>
+<td><code>silver_count</code> filas: <code>raw_count</code> menos <code>missing_date_count</code> (comprobado con <code>assert</code>), no <code>raw_count</code> exacto</td>
 <td>Qué aporta la transformación por sí sola: columnas de negocio limpias, <code>ws_sold_date</code> derivada, líneas sin fecha ya descartadas de forma documentada, sin reorganización física todavía</td>
 </tr>
 <tr>
@@ -9975,20 +9926,20 @@ genérico:</p>
 <tr>
 <td>Gold</td>
 <td><code>/datalake/gold/tpcds/web_sales_by_year</code>, un único fichero</td>
-<td>Una fila por año (<code>d_year</code>)</td>
-<td>Qué producto consume directamente una pregunta de negocio (pedidos, líneas y beneficio neto por año), sin que quien lo consulte tenga que repetir el <code>join</code> con <code>date_dim</code></td>
+<td>Una fila por año (<code>sold_year</code>)</td>
+<td>Qué producto consume directamente una pregunta de negocio (pedidos, líneas y beneficio neto por año), sin que quien lo consulte tenga que repetir la agregación</td>
 </tr>
 </tbody>
 </table>
 <p>Las columnas "Filas" de esta tabla no son números fijos de esta plantilla:
 son los valores impresos por <code>raw_count</code>, <code>silver_count</code>,
-<code>missing_date_key_count</code>, <code>year_counts</code>, <code>full_scan_files</code> y
+<code>missing_date_count</code>, <code>year_counts</code>, <code>full_scan_files</code> y
 <code>filtered_files</code> en las celdas de arriba, en esta misma ejecución del
 notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10012,7 +9963,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10036,7 +9987,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=99">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10061,7 +10012,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10107,7 +10058,7 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10136,7 +10087,7 @@ no en dónde viven los bytes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10173,7 +10124,7 @@ un ejemplo concreto de esta sesión en qué momento lo has notado.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10193,7 +10144,7 @@ de filas, sin modificar.</li>
 <code>silver</code>, con su contenido (<code>show()</code>).</li>
 <li>La comprobación de filas y claves: el resultado de los <code>assert</code> de esta
 sesión, junto con los valores que compararon (<code>raw_count</code>,
-<code>silver_count</code>, <code>missing_date_key_count</code>, <code>null_join_keys</code>).</li>
+<code>silver_count</code>, <code>missing_date_count</code>, <code>null_dates</code>).</li>
 <li>El listado <code>hdfs dfs -ls</code> de al menos un nivel de directorios
 <code>columna=valor</code> de la tabla particionada.</li>
 <li>La comparación entre la consulta completa y la consulta filtrada: los
@@ -10236,7 +10187,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=102">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10261,7 +10212,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

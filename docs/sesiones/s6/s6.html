@@ -7927,7 +7927,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <tbody>
 <tr>
 <td><code>%esquema</code></td>
-<td>Las 20 tablas, con su papel y su descripción</td>
+<td>Las 18 tablas, con su papel y su descripción</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
@@ -7938,7 +7938,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <td>Las columnas de <code>web_sales</code> cuyo nombre contiene <code>date</code></td>
 </tr>
 <tr>
-<td><code>%esquema ws_sold_date_sk</code></td>
+<td><code>%esquema ws_sold_timestamp</code></td>
 <td>Esa columna y ninguna otra</td>
 </tr>
 </tbody>
@@ -8191,7 +8191,7 @@ notebook de S5.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">date_dim</span> \
+<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">item</span> \
     <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">silver</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales</span> \
     <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">gold</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales_by_year</span> \
     <span class="o">/</span><span class="n">warehouse</span>
@@ -8207,7 +8207,7 @@ notebook de S5.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Si alguna de esas cuatro rutas no aparece, revisa S2 (para <code>date_dim</code>)
+<p>Si alguna de esas cuatro rutas no aparece, revisa S2 (para <code>item</code>)
 o S5 (para <code>web_sales</code> en <code>silver</code> y <code>web_sales_by_year</code> en <code>gold</code>) antes de
 continuar. <code>/warehouse</code> ya existe desde que S1 preparó el NameNode: es la
 zona reservada para las tablas administradas por Hive e Iceberg, y hasta
@@ -8547,8 +8547,8 @@ la fuente de datos continúa siendo externa al ciclo de vida de la tabla: si
 se elimina la definición de la tabla del metastore, los ficheros Parquet
 siguen en HDFS exactamente igual que antes.</p>
 <p>Este modelo es el adecuado para los datos fuente y refinados de S2 y S5:</p>
-<div class="highlight"><pre><span></span>/datalake/raw/tpcds/date_dim
-    → tabla Hive externa: tcdm.date_dim
+<div class="highlight"><pre><span></span>/datalake/raw/tpcds/item
+    → tabla Hive externa: tcdm.item
 
 /datalake/silver/tpcds/web_sales
     → tabla Hive externa particionada: tcdm.web_sales_silver
@@ -8603,16 +8603,16 @@ modelos; en S7 será también la zona de las tablas Iceberg.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Registrar-los-Parquet-originales:-tcdm.date_dim">Registrar los Parquet originales: <code>tcdm.date_dim</code><a class="anchor-link" href="#Registrar-los-Parquet-originales:-tcdm.date_dim">¶</a></h2><p>Empezamos por la tabla más pequeña, <code>date_dim</code>, exactamente el mismo Parquet
+<h2 id="Registrar-los-Parquet-originales:-tcdm.item">Registrar los Parquet originales: <code>tcdm.item</code><a class="anchor-link" href="#Registrar-los-Parquet-originales:-tcdm.item">¶</a></h2><p>Empezamos por una tabla pequeña, <code>item</code>, exactamente el mismo Parquet
 que S2 y S4 ya leyeron directamente por ruta
-(<code>/datalake/raw/tpcds/date_dim</code>, 73.049 filas).</p>
+(<code>/datalake/raw/tpcds/item</code>, 18.000 filas).</p>
 <p><code>hive.tcdm</code> ya debería existir — lo crea <code>catalog-init</code> al levantar el
 entorno—, pero repetir <code>CREATE SCHEMA IF NOT EXISTS</code> aquí es idempotente y
 deja el paso explícito en el propio notebook.</p>
-<p>El <code>CREATE TABLE</code> siguiente lista todas las columnas de <code>date_dim</code> con su
+<p>El <code>CREATE TABLE</code> siguiente lista todas las columnas de <code>item</code> con su
 tipo. El conector Hive de Trino no lee el esquema de los Parquet para crear
 la tabla: hay que declararlo, y por eso lo copiamos del catálogo de S2 (el
-<code>%esquema date_dim</code> que precede al <code>CREATE TABLE</code>). Si lo declarado no
+<code>%esquema item</code> que precede al <code>CREATE TABLE</code>). Si lo declarado no
 coincide con los ficheros, el error no aparece al crear la tabla sino al
 leerla.</p>
 </div>
@@ -8641,7 +8641,7 @@ leerla.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="c1"># Las columnas que declara el CREATE TABLE siguiente, con su significado.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">date_dim</span>
+<span class="o">%</span><span class="n">esquema</span> <span class="n">item</span>
 </pre></div>
 </div>
 </div>
@@ -8655,45 +8655,39 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.date_dim"</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.item"</span><span class="p">)</span>
 
-<span class="n">create_date_dim_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
-<span class="s1">CREATE TABLE hive.tcdm.date_dim (</span>
-<span class="s1">    d_date_sk BIGINT,</span>
-<span class="s1">    d_date_id CHAR(16),</span>
-<span class="s1">    d_date DATE,</span>
-<span class="s1">    d_month_seq INTEGER,</span>
-<span class="s1">    d_week_seq INTEGER,</span>
-<span class="s1">    d_quarter_seq INTEGER,</span>
-<span class="s1">    d_year INTEGER,</span>
-<span class="s1">    d_dow INTEGER,</span>
-<span class="s1">    d_moy INTEGER,</span>
-<span class="s1">    d_dom INTEGER,</span>
-<span class="s1">    d_qoy INTEGER,</span>
-<span class="s1">    d_fy_year INTEGER,</span>
-<span class="s1">    d_fy_quarter_seq INTEGER,</span>
-<span class="s1">    d_fy_week_seq INTEGER,</span>
-<span class="s1">    d_day_name CHAR(9),</span>
-<span class="s1">    d_quarter_name CHAR(6),</span>
-<span class="s1">    d_holiday CHAR(1),</span>
-<span class="s1">    d_weekend CHAR(1),</span>
-<span class="s1">    d_following_holiday CHAR(1),</span>
-<span class="s1">    d_first_dom INTEGER,</span>
-<span class="s1">    d_last_dom INTEGER,</span>
-<span class="s1">    d_same_day_ly INTEGER,</span>
-<span class="s1">    d_same_day_lq INTEGER,</span>
-<span class="s1">    d_current_day CHAR(1),</span>
-<span class="s1">    d_current_week CHAR(1),</span>
-<span class="s1">    d_current_month CHAR(1),</span>
-<span class="s1">    d_current_quarter CHAR(1),</span>
-<span class="s1">    d_current_year CHAR(1)</span>
+<span class="n">create_item_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
+<span class="s1">CREATE TABLE hive.tcdm.item (</span>
+<span class="s1">    i_item_sk BIGINT,</span>
+<span class="s1">    i_item_id CHAR(16),</span>
+<span class="s1">    i_rec_start_date DATE,</span>
+<span class="s1">    i_rec_end_date DATE,</span>
+<span class="s1">    i_item_desc VARCHAR(200),</span>
+<span class="s1">    i_current_price DECIMAL(7, 2),</span>
+<span class="s1">    i_wholesale_cost DECIMAL(7, 2),</span>
+<span class="s1">    i_brand_id INTEGER,</span>
+<span class="s1">    i_brand CHAR(50),</span>
+<span class="s1">    i_class_id INTEGER,</span>
+<span class="s1">    i_class CHAR(50),</span>
+<span class="s1">    i_category_id INTEGER,</span>
+<span class="s1">    i_category CHAR(50),</span>
+<span class="s1">    i_manufact_id INTEGER,</span>
+<span class="s1">    i_manufact CHAR(50),</span>
+<span class="s1">    i_size CHAR(20),</span>
+<span class="s1">    i_formulation CHAR(20),</span>
+<span class="s1">    i_color CHAR(20),</span>
+<span class="s1">    i_units CHAR(10),</span>
+<span class="s1">    i_container CHAR(10),</span>
+<span class="s1">    i_manager_id INTEGER,</span>
+<span class="s1">    i_product_name CHAR(50)</span>
 <span class="s1">) WITH (</span>
 <span class="s1">    format = 'PARQUET',</span>
-<span class="s1">    external_location = 'hdfs://namenode:9000/datalake/raw/tpcds/date_dim'</span>
+<span class="s1">    external_location = 'hdfs://namenode:9000/datalake/raw/tpcds/item'</span>
 <span class="s1">)</span>
 <span class="s1">'''</span>
-<span class="n">run_trino</span><span class="p">(</span><span class="n">create_date_dim_sql</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"tcdm.date_dim creada."</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="n">create_item_sql</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"tcdm.item creada."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8707,7 +8701,7 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.date_dim"</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.item"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8721,7 +8715,7 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.date_dim"</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.item"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8735,10 +8729,10 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">date_dim_count</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.date_dim"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">date_dim_count</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">item_count</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.item"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">item_count</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_dim_count</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">73_049</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">item_count</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">18_000</span>
 </pre></div>
 </div>
 </div>
@@ -8768,10 +8762,10 @@ de la sesión.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    COMMENT ON TABLE hive.tcdm.date_dim IS</span>
-<span class="s1">    'Dimensión de fechas de TPC-DS SF1, registrada como tabla externa sobre /datalake/raw/tpcds/date_dim (ver S2).'</span>
+<span class="s1">    COMMENT ON TABLE hive.tcdm.item IS</span>
+<span class="s1">    'Dimensión de productos de TPC-DS SF1, registrada como tabla externa sobre /datalake/raw/tpcds/item (ver S2).'</span>
 <span class="s1">'''</span><span class="p">)</span>
-<span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.date_dim"</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.item"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8785,7 +8779,7 @@ de la sesión.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El <code>CREATE TABLE</code> no ha tardado más que declarar el esquema: no ha
-leído ni copiado ningún byte de <code>date_dim</code>. <code>SHOW CREATE TABLE</code> confirma que
+leído ni copiado ningún byte de <code>item</code>. <code>SHOW CREATE TABLE</code> confirma que
 <code>external_location</code> apunta exactamente a la misma ruta HDFS que ya conocías
 de S2 y S4, y el recuento de filas coincide con el que obtuvo Spark en S4
 leyendo el Parquet directamente. Registrar una tabla no transforma ni
@@ -8829,8 +8823,8 @@ existía.</p>
 <code>/datalake/silver/tpcds/web_sales</code>, organizada en directorios
 <code>sold_year=&lt;año&gt;/sold_month=&lt;mes&gt;/</code>. Los tipos de las columnas de negocio
 coinciden con el catálogo de columnas de <code>web_sales</code> que documentó S2, con
-una excepción: <code>ws_sold_date</code> es un <code>DATE</code> derivado que S5 añadió a partir
-de <code>ws_sold_date_sk</code> y <code>date_dim</code>, y no aparece en el catálogo original de
+una excepción: <code>ws_sold_date</code> es un <code>DATE</code> que S5 derivó de
+<code>ws_sold_timestamp</code>, y no aparece en el catálogo original de
 S2. Las dos últimas columnas, <code>sold_year</code> y <code>sold_month</code>, son las columnas de
 partición que
 introdujo S5 y <strong>no</strong> están dentro de los ficheros Parquet: Spark las quitó
@@ -8854,7 +8848,7 @@ en el listado de columnas de Trino, ir al final.</p>
 <span class="n">ws_item_sk</span>
 <span class="n">ws_bill_customer_sk</span>
 <span class="n">ws_bill_addr_sk</span>
-<span class="n">ws_sold_date_sk</span>
+<span class="n">ws_sold_timestamp</span>
 <span class="n">ws_quantity</span>
 <span class="n">ws_list_price</span>
 <span class="n">ws_ext_discount_amt</span>
@@ -8882,7 +8876,7 @@ en el listado de columnas de Trino, ir al final.</p>
 <span class="s1">    ws_item_sk BIGINT,</span>
 <span class="s1">    ws_bill_customer_sk BIGINT,</span>
 <span class="s1">    ws_bill_addr_sk BIGINT,</span>
-<span class="s1">    ws_sold_date_sk BIGINT,</span>
+<span class="s1">    ws_sold_timestamp TIMESTAMP,</span>
 <span class="s1">    ws_sold_date DATE,</span>
 <span class="s1">    ws_quantity INTEGER,</span>
 <span class="s1">    ws_list_price DECIMAL(7, 2),</span>
@@ -9277,7 +9271,7 @@ filas y bytes leídos que ofrece <code>EXPLAIN ANALYZE</code>.</p>
 <h2 id="Registrar-la-tabla-gold:-tcdm.web_sales_by_year_gold">Registrar la tabla gold: <code>tcdm.web_sales_by_year_gold</code><a class="anchor-link" href="#Registrar-la-tabla-gold:-tcdm.web_sales_by_year_gold">¶</a></h2><p>Por último registramos el agregado de negocio que produjo S5:
 <code>/datalake/gold/tpcds/web_sales_by_year</code>, sin particiones — es una tabla
 pequeña, un año por fila, pensada para consumirse entera. Sus columnas son
-<code>d_year</code>, <code>pedidos</code> (pedidos distintos), <code>lineas_de_venta</code> (líneas de venta,
+<code>sold_year</code>, <code>pedidos</code> (pedidos distintos), <code>lineas_de_venta</code> (líneas de venta,
 <code>count(*)</code>) y <code>beneficio_neto</code>. Declaramos <code>beneficio_neto</code> como
 <code>DECIMAL(17, 2)</code>, coherente con el resto de columnas monetarias de esta
 sesión (<code>DECIMAL(7, 2)</code> en <code>web_sales_silver</code>): un <code>SUM</code> de una columna
@@ -9301,7 +9295,7 @@ devolvería <code>NULL</code> en esa columna, y bastaría con ajustar este únic
 
 <span class="n">create_gold_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CREATE TABLE hive.tcdm.web_sales_by_year_gold (</span>
-<span class="s1">    d_year INTEGER,</span>
+<span class="s1">    sold_year INTEGER,</span>
 <span class="s1">    pedidos BIGINT,</span>
 <span class="s1">    lineas_de_venta BIGINT,</span>
 <span class="s1">    beneficio_neto DECIMAL(17, 2)</span>
@@ -9339,7 +9333,9 @@ devolvería <code>NULL</code> en esa columna, y bastaría con ajustar este únic
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">gold_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT * FROM hive.tcdm.web_sales_by_year_gold ORDER BY d_year"</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">gold_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+    <span class="s2">"SELECT * FROM hive.tcdm.web_sales_by_year_gold ORDER BY sold_year"</span>
+<span class="p">)</span>
 <span class="n">gold_df</span>
 </pre></div>
 </div>
@@ -9666,7 +9662,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">gold_spark_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
-    <span class="s2">"SELECT d_year, pedidos, lineas_de_venta, beneficio_neto FROM tcdm.web_sales_by_year_gold ORDER BY d_year"</span>
+    <span class="s2">"SELECT sold_year, pedidos, lineas_de_venta, beneficio_neto FROM tcdm.web_sales_by_year_gold ORDER BY sold_year"</span>
 <span class="p">)</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span>
 <span class="n">gold_spark_df</span>
 </pre></div>
@@ -9682,7 +9678,9 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">comparacion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">gold_spark_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"d_year"</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">"_trino"</span><span class="p">,</span> <span class="s2">"_spark"</span><span class="p">))</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">comparacion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+    <span class="n">gold_spark_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">"_trino"</span><span class="p">,</span> <span class="s2">"_spark"</span><span class="p">)</span>
+<span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_trino"</span><span class="p">]</span> <span class="o">=</span> <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_trino"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_spark"</span><span class="p">]</span> <span class="o">=</span> <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_spark"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"diferencia_beneficio"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -10168,7 +10166,7 @@ introducir Iceberg en S7.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Preguntas-para-interpretar-la-experiencia">Preguntas para interpretar la experiencia<a class="anchor-link" href="#Preguntas-para-interpretar-la-experiencia">¶</a></h2><ul>
-<li>¿Qué diferencia observable hay entre <code>tcdm.date_dim</code> y
+<li>¿Qué diferencia observable hay entre <code>tcdm.item</code> y
 <code>tcdm.web_sales_by_year_managed_demo</code> en cuanto a lo que ocurre en HDFS al
 ejecutar el <code>CREATE TABLE</code>?</li>
 <li>¿Por qué <code>SELECT count(*) FROM hive.tcdm.web_sales_silver</code> devolvió 0 filas
@@ -10212,7 +10210,7 @@ por tabla: enseña las salidas que quedaron guardadas en el notebook o, para
 repetir el paso de 0 a N filas en vivo, vuelve a ejecutar desde «Registrar la
 versión particionada», que borra y recrea la definición.</p>
 <ol>
-<li>El <code>SHOW CREATE TABLE</code> de <code>tcdm.date_dim</code>, <code>tcdm.web_sales_silver</code> y
+<li>El <code>SHOW CREATE TABLE</code> de <code>tcdm.item</code>, <code>tcdm.web_sales_silver</code> y
 <code>tcdm.web_sales_by_year_gold</code>, mostrando que las tres son tablas externas
 con <code>external_location</code> apuntando a <code>/datalake</code>.</li>
 <li>El recuento de filas de <code>tcdm.web_sales_silver</code> antes y después de
@@ -10292,7 +10290,7 @@ S7, que parte de ellas.</p>
 </tr>
 <tr>
 <td>Eliminar las definiciones externas de esta sesión</td>
-<td><code>DROP TABLE hive.tcdm.date_dim</code>, <code>DROP TABLE hive.tcdm.web_sales_silver</code>, <code>DROP TABLE hive.tcdm.web_sales_by_year_gold</code></td>
+<td><code>DROP TABLE hive.tcdm.item</code>, <code>DROP TABLE hive.tcdm.web_sales_silver</code>, <code>DROP TABLE hive.tcdm.web_sales_by_year_gold</code></td>
 <td>Borra únicamente las tres entradas del metastore. Los Parquet de <code>/datalake/raw</code>, <code>/datalake/silver</code> y <code>/datalake/gold</code> siguen intactos: nunca interpretes este <code>DROP TABLE</code> como "borrar el data lake". S7 necesita las tres definiciones: no las elimines hasta haberla terminado.</td>
 </tr>
 <tr>

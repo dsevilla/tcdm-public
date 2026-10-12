@@ -10,11 +10,11 @@ recoge esos ficheros desde esa ruta con su fuente de ficheros Parquet.
 El programa no depende de Spark ni de PySpark: habla con HDFS únicamente por
 WebHDFS, con `fsspec` y `PyArrow`, igual que las lecturas de la sesión 2.
 Los rangos de claves surrogadas
-(`ws_bill_customer_sk`, `ws_bill_addr_sk`, `ws_item_sk`, `ws_sold_date_sk`)
-se calculan a partir de las tablas reales `customer`, `customer_address`,
-`item` y `date_dim` de `/datalake/raw/tpcds`, nunca a partir de rangos
-adivinados. Las fechas de venta se eligen dentro del periodo que cubre el
-`web_sales` real (de su primera a su última fecha de venta, a partir de
+(`ws_bill_customer_sk`, `ws_bill_addr_sk`, `ws_item_sk`)
+se calculan a partir de las tablas reales `customer`, `customer_address`
+e `item` de `/datalake/raw/tpcds`, nunca a partir de rangos
+adivinados. La fecha y la hora de cada venta se eligen dentro del periodo
+que cubre el `web_sales` real (de su primera a su última venta, a partir de
 1998), de modo que las líneas generadas caen en los mismos años que las
 ventas ya existentes.
 
@@ -46,7 +46,7 @@ import time
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 import fsspec
@@ -60,7 +60,6 @@ RAW_WEB_SALES: str = "/datalake/raw/tpcds/web_sales"
 RAW_CUSTOMER: str = "/datalake/raw/tpcds/customer"
 RAW_CUSTOMER_ADDRESS: str = "/datalake/raw/tpcds/customer_address"
 RAW_ITEM: str = "/datalake/raw/tpcds/item"
-RAW_DATE_DIM: str = "/datalake/raw/tpcds/date_dim"
 
 # Base muy por encima de cualquier ws_order_number real de TPC-DS SF1
 # (el máximo real está muy por debajo de 10 millones), para que las altas
@@ -194,29 +193,24 @@ def read_sk_bounds(
     return minimum, maximum
 
 
-def read_sales_dates(
-    arrow_fs: pafs.FileSystem,
-    webhdfs: AbstractFileSystem,
-    sold_date_sk_bounds: tuple[int, int],
-) -> list[tuple[int, date]]:
-    """Leer de `date_dim` las fechas del periodo real de ventas.
+def read_sales_period(
+    arrow_fs: pafs.FileSystem, webhdfs: AbstractFileSystem
+) -> tuple[datetime, datetime]:
+    """Leer de `web_sales` la primera y la última marca de tiempo de venta.
 
-    Devuelve pares (d_date_sk, d_date) cuya clave está entre la primera y la
-    última `ws_sold_date_sk` de `web_sales`. `date_dim` cubre dos siglos
-    (73 049 fechas en SF1), pero las ventas web sólo ocupan unos pocos años a
-    partir de 1998: limitarse a ese periodo hace que las líneas generadas
-    caigan en los mismos años que las ventas reales, y elegir sólo fechas ya
-    materializadas evita fabricar una clave de fecha que no exista.
+    Las ventas web sólo ocupan unos pocos años a partir de 1998: elegir las
+    fechas nuevas dentro de ese periodo hace que las líneas generadas caigan
+    en los mismos años que las ventas reales. La columna se convierte a
+    segundos porque ésa es la resolución de los datos.
     """
 
-    first_sk, last_sk = sold_date_sk_bounds
-    files: list[str] = list_data_files(webhdfs, RAW_DATE_DIM)
-    table: pa.Table = pq.read_table(files, filesystem=arrow_fs, columns=["d_date_sk", "d_date"])
-    return [
-        (date_sk, sold_date)
-        for date_sk, sold_date in zip(table["d_date_sk"].to_pylist(), table["d_date"].to_pylist())
-        if first_sk <= date_sk <= last_sk
-    ]
+    files: list[str] = list_data_files(webhdfs, RAW_WEB_SALES)
+    column: pa.ChunkedArray = pq.read_table(
+        files, filesystem=arrow_fs, columns=["ws_sold_timestamp"]
+    )["ws_sold_timestamp"].cast(pa.timestamp("s"))
+    first: datetime = pc.min(column).as_py()
+    last: datetime = pc.max(column).as_py()
+    return first, last
 
 
 def read_existing_key_sample(
@@ -290,7 +284,7 @@ def build_batch_rows(
     customer_sk_bounds: tuple[int, int],
     addr_sk_bounds: tuple[int, int],
     item_sk_bounds: tuple[int, int],
-    date_dim_rows: list[tuple[int, date]],
+    sales_period: tuple[datetime, datetime],
     existing_keys: list[tuple[int, int]],
 ) -> tuple[list[dict[str, object]], list[tuple[int, int]], list[tuple[int, int]]]:
     """Construir las filas del lote y devolver también las claves usadas.
@@ -312,9 +306,13 @@ def build_batch_rows(
         (run_base + row_index, rng.randint(*item_sk_bounds)) for row_index in range(n_inserts)
     ]
 
+    first_sale, last_sale = sales_period
+    period_seconds: int = int((last_sale - first_sale).total_seconds())
+
     rows: list[dict[str, object]] = []
     for order_number, item_sk in updated_keys + new_keys:
-        date_sk, sold_date = rng.choice(date_dim_rows)
+        sold_timestamp: datetime = first_sale + timedelta(seconds=rng.randint(0, period_seconds))
+        sold_date: date = sold_timestamp.date()
         quantity, list_price, discount, ext_sales_price, net_paid, net_profit = random_money_line(
             rng
         )
@@ -324,7 +322,7 @@ def build_batch_rows(
                 "ws_item_sk": item_sk,
                 "ws_bill_customer_sk": rng.randint(*customer_sk_bounds),
                 "ws_bill_addr_sk": rng.randint(*addr_sk_bounds),
-                "ws_sold_date_sk": date_sk,
+                "ws_sold_timestamp": sold_timestamp,
                 "ws_sold_date": sold_date,
                 "ws_quantity": quantity,
                 "ws_list_price": list_price,
@@ -348,7 +346,7 @@ def rows_to_table(rows: list[dict[str, object]]) -> pa.Table:
             pa.field("ws_item_sk", pa.int64(), nullable=False),
             pa.field("ws_bill_customer_sk", pa.int64()),
             pa.field("ws_bill_addr_sk", pa.int64()),
-            pa.field("ws_sold_date_sk", pa.int64()),
+            pa.field("ws_sold_timestamp", pa.timestamp("us")),
             pa.field("ws_sold_date", pa.date32()),
             pa.field("ws_quantity", pa.int32()),
             pa.field("ws_list_price", pa.decimal128(7, 2)),
@@ -391,16 +389,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"[RESULTADO <- PyArrow] i_item_sk: {item_sk_bounds}")
 
     print("[ORDEN -> PyArrow] Calculando el periodo real de ventas de web_sales.")
-    sold_date_sk_bounds: tuple[int, int] = read_sk_bounds(
-        arrow_fs, webhdfs, RAW_WEB_SALES, "ws_sold_date_sk"
-    )
-    date_dim_rows: list[tuple[int, date]] = read_sales_dates(arrow_fs, webhdfs, sold_date_sk_bounds)
-    if not date_dim_rows:
-        raise SystemExit("date_dim no contiene ninguna fecha del periodo de ventas de web_sales")
-    print(
-        f"[RESULTADO <- PyArrow] {len(date_dim_rows)} fechas de venta posibles, "
-        f"de {min(row[1] for row in date_dim_rows)} a {max(row[1] for row in date_dim_rows)}."
-    )
+    sales_period: tuple[datetime, datetime] = read_sales_period(arrow_fs, webhdfs)
+    print(f"[RESULTADO <- PyArrow] Ventas reales de {sales_period[0]} a {sales_period[1]}.")
 
     print(
         "[ORDEN -> PyArrow] Muestreando pares (ws_order_number, ws_item_sk) "
@@ -417,7 +407,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         customer_sk_bounds,
         addr_sk_bounds,
         item_sk_bounds,
-        date_dim_rows,
+        sales_period,
         existing_keys,
     )
     table: pa.Table = rows_to_table(rows)

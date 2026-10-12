@@ -1,6 +1,5 @@
 SELECT
-    web_returns.wr_returned_date_sk,
-    web_returns.wr_returned_time_sk,
+    date_add('second', coalesce(web_returns.wr_returned_time_sk, 0), CAST(date_add('day', web_returns.wr_returned_date_sk - 2415021, DATE '1900-01-01') AS timestamp(3))) AS wr_returned_timestamp,
     web_returns.wr_item_sk,
     web_returns.wr_refunded_customer_sk,
     web_returns.wr_refunded_cdemo_sk,
@@ -24,13 +23,11 @@ SELECT
     web_returns.wr_account_credit,
     web_returns.wr_net_loss
 FROM tpcds.__TPCDS_SCALE__.web_returns
-LEFT JOIN tpcds.__TPCDS_SCALE__.date_dim
-  ON date_dim.d_date_sk = web_returns.wr_returned_date_sk
 LEFT JOIN hive.tpcds_bootstrap.vigencia_versiones AS original
   ON original.dimension = 'web_page'
  AND original.clave = web_returns.wr_web_page_sk
 LEFT JOIN hive.tpcds_bootstrap.vigencia_versiones AS vigente
   ON vigente.dimension = 'web_page'
  AND vigente.clave_negocio = original.clave_negocio
- AND date_dim.d_date BETWEEN vigente.vigente_desde
-                         AND coalesce(vigente.vigente_hasta, DATE '9999-12-31')
+ AND date_add('day', web_returns.wr_returned_date_sk - 2415021, DATE '1900-01-01') BETWEEN vigente.vigente_desde
+               AND coalesce(vigente.vigente_hasta, DATE '9999-12-31')
