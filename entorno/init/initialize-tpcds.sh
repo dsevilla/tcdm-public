@@ -11,6 +11,26 @@ DATALAKE_PATH="${TPCDS_DATALAKE_ROOT}"
 WEBHDFS_URL="http://namenode:9870/webhdfs/v1"
 INE_MUNICIPALITIES_FILE="/opt/tcdm/data/ine/municipios-2026.csv.gz"
 
+# Las tablas que no se materializan con un SELECT * tienen su consulta en
+# sql/select-<tabla>.sql. Son las mismas consultas que construye s2/s2.ipynb,
+# y las dos listas dicen qué corrección lleva cada una: la geografía del INE
+# y la vigencia de las versiones (dimensiones con rec_start_date y
+# rec_end_date, y hechos cuya clave se reasigna a la versión vigente).
+LOCALIZED_TABLES=' customer_address store warehouse call_center web_site '
+VERSIONED_TABLES=' item store call_center web_page web_site store_sales store_returns catalog_returns web_returns '
+
+# Contenido del marcador _SUCCESS de una tabla: las correcciones que lleva.
+success_marker() {
+    marker=''
+    case "${LOCALIZED_TABLES}" in
+        *" $1 "*) marker='INE-2026' ;;
+    esac
+    case "${VERSIONED_TABLES}" in
+        *" $1 "*) marker="${marker:+${marker}+}SCD2" ;;
+    esac
+    printf '%s' "${marker}"
+}
+
 echo '[*] Esperando a que WebHDFS responda...'
 attempt=0
 until curl --fail --silent \
@@ -114,6 +134,66 @@ trino --server "${TRINO_SERVER}" --user luser --execute \
          provincia
      FROM hive.tpcds_bootstrap.ine_municipios'
 
+echo 'SQL> Creando una vista con la vigencia corregida de las versiones'
+echo '[SALIDA <- trino]'
+# El generador adelanta las fechas de vigencia de cada dimensión un número
+# distinto de días respecto al primer día de datos (1998-01-01) y deja sin
+# fecha de inicio algunas versiones de item. La vista deshace el adelanto y
+# rellena esas fechas; la usan las dimensiones para corregir sus fechas y los
+# hechos para apuntar a la versión vigente en la fecha de cada fila.
+trino --server "${TRINO_SERVER}" --user luser --execute \
+    'DROP VIEW IF EXISTS hive.tpcds_bootstrap.vigencia_versiones'
+trino --server "${TRINO_SERVER}" --user luser --execute \
+    "CREATE VIEW hive.tpcds_bootstrap.vigencia_versiones AS
+    WITH versiones AS (
+        SELECT 'item' AS dimension, i_item_sk AS clave, i_item_id AS clave_negocio,
+               i_rec_start_date AS inicio, i_rec_end_date AS fin
+        FROM tpcds.${TPCDS_SCALE}.item
+        UNION ALL
+        SELECT 'store' AS dimension, s_store_sk AS clave, s_store_id AS clave_negocio,
+               s_rec_start_date AS inicio, s_rec_end_date AS fin
+        FROM tpcds.${TPCDS_SCALE}.store
+        UNION ALL
+        SELECT 'call_center' AS dimension, cc_call_center_sk AS clave, cc_call_center_id AS clave_negocio,
+               cc_rec_start_date AS inicio, cc_rec_end_date AS fin
+        FROM tpcds.${TPCDS_SCALE}.call_center
+        UNION ALL
+        SELECT 'web_page' AS dimension, wp_web_page_sk AS clave, wp_web_page_id AS clave_negocio,
+               wp_rec_start_date AS inicio, wp_rec_end_date AS fin
+        FROM tpcds.${TPCDS_SCALE}.web_page
+        UNION ALL
+        SELECT 'web_site' AS dimension, web_site_sk AS clave, web_site_id AS clave_negocio,
+               web_rec_start_date AS inicio, web_rec_end_date AS fin
+        FROM tpcds.${TPCDS_SCALE}.web_site
+    ),
+    desplazadas AS (
+        SELECT
+            dimension,
+            clave,
+            clave_negocio,
+            date_add('day', adelanto, inicio) AS inicio,
+            date_add('day', adelanto, fin) AS fin
+        FROM (
+            SELECT
+                *,
+                date_diff(
+                    'day', min(inicio) OVER (PARTITION BY dimension), DATE '1998-01-01'
+                ) AS adelanto
+            FROM versiones
+        )
+    )
+    SELECT
+        dimension,
+        clave,
+        clave_negocio,
+        coalesce(
+            inicio,
+            date_add('day', 1, lag(fin) OVER (PARTITION BY dimension, clave_negocio ORDER BY clave)),
+            DATE '1998-01-01'
+        ) AS vigente_desde,
+        fin AS vigente_hasta
+    FROM desplazadas"
+
 if [ -z "${TPCDS_TABLES}" ]; then
     echo "SQL> SHOW TABLES FROM tpcds.${TPCDS_SCALE}"
     echo '[SALIDA <- trino]'
@@ -136,17 +216,17 @@ for table_name in ${TPCDS_TABLES}; do
 
     success_url="${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}/_SUCCESS?op=GETFILESTATUS&user.name=luser"
     table_url="${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}?op=DELETE&recursive=true&user.name=luser"
-    localization_query="/opt/tcdm/init/sql/localize-${table_name}.sql"
+    select_file="/opt/tcdm/init/sql/select-${table_name}.sql"
+    expected_marker="$(success_marker "${table_name}")"
 
     if curl --fail --silent "${success_url}" >/dev/null 2>&1; then
-        if ! test -e "${localization_query}" \
-            || curl --fail --silent --location \
-                "${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}/_SUCCESS?op=OPEN&user.name=luser" \
-                | grep -q '^INE-2026$'; then
+        actual_marker="$(curl --fail --silent --location \
+            "${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}/_SUCCESS?op=OPEN&user.name=luser")"
+        if [ "${actual_marker}" = "${expected_marker}" ]; then
             echo "[=] ${table_name}: ya está materializada"
             continue
         fi
-        echo "[*] ${table_name}: existe sin la localización INE 2026; se regenerará"
+        echo "[*] ${table_name}: su marcador es '${actual_marker}' y debe ser '${expected_marker}'; se regenerará"
     fi
 
     echo "[*] ${table_name}: generando Parquet desde tpcds.${TPCDS_SCALE}.${table_name}"
@@ -156,9 +236,9 @@ for table_name in ${TPCDS_TABLES}; do
         "DROP TABLE IF EXISTS hive.tpcds_bootstrap.${table_name}"
     echo "WebHDFS> DELETE ${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}?op=DELETE&recursive=true&user.name=luser"
     curl --fail --silent --request DELETE "${table_url}" >/dev/null 2>&1 || true
-    if test -e "${localization_query}"; then
-        echo "[*] ${table_name}: cruzando sus lugares con el catálogo municipal del INE"
-        select_query="$(sed "s/__TPCDS_SCALE__/${TPCDS_SCALE}/g" "${localization_query}")"
+    if test -e "${select_file}"; then
+        echo "[*] ${table_name}: aplicando sus correcciones (${expected_marker})"
+        select_query="$(sed "s/__TPCDS_SCALE__/${TPCDS_SCALE}/g" "${select_file}")"
     else
         select_query="SELECT * FROM tpcds.${TPCDS_SCALE}.${table_name}"
     fi
@@ -169,13 +249,9 @@ for table_name in ${TPCDS_TABLES}; do
 
     echo "WebHDFS> PUT ${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}/_SUCCESS?op=CREATE&overwrite=true&user.name=luser"
     echo '[SALIDA <- WebHDFS]'
-    success_content=''
-    if test -e "${localization_query}"; then
-        success_content='INE-2026'
-    fi
     curl --fail --silent --location --request PUT \
         --header 'Content-Type: application/octet-stream' \
-        --data-binary "${success_content}" \
+        --data-binary "${expected_marker}" \
         "${WEBHDFS_URL}${DATALAKE_PATH}/${table_name}/_SUCCESS?op=CREATE&overwrite=true&user.name=luser" \
         | tee /dev/stderr >/dev/null
     echo "SQL> DROP TABLE hive.tpcds_bootstrap.${table_name}"
@@ -183,6 +259,11 @@ for table_name in ${TPCDS_TABLES}; do
     trino --server "${TRINO_SERVER}" --user luser --execute \
         "DROP TABLE hive.tpcds_bootstrap.${table_name}"
 done
+
+echo 'SQL> DROP VIEW de la vigencia corregida'
+echo '[SALIDA <- trino]'
+trino --server "${TRINO_SERVER}" --user luser --execute \
+    'DROP VIEW hive.tpcds_bootstrap.vigencia_versiones'
 
 echo 'SQL> DROP VIEW y TABLE de lectura temporal del catálogo del INE'
 echo '[SALIDA <- trino]'

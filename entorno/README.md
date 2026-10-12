@@ -216,8 +216,21 @@ INE. Trino detecta la compresión por la extensión, registra temporalmente ese
 CSV y lo cruza con las cinco dimensiones
 que contienen direcciones: `customer_address`, `store`, `warehouse`,
 `call_center` y `web_site`. Los municipios, provincias, códigos provinciales y
-el país se sustituyen por valores españoles; las claves y las demás columnas
-TPC-DS no cambian.
+el país se sustituyen por valores españoles; las claves de esas dimensiones y
+sus demás columnas no cambian.
+
+También corrigen la vigencia de las versiones. Cinco dimensiones (`item`,
+`store`, `call_center`, `web_page` y `web_site`) guardan varias versiones de
+cada objeto con sus fechas `rec_start_date` y `rec_end_date`, y el generador
+no enlaza siempre cada hecho con la versión vigente en su fecha: adelanta
+esas fechas un número distinto de días en cada dimensión y, en algunos
+hechos, no elige la versión por fecha. Una vista temporal,
+`vigencia_versiones`, deshace el adelanto y rellena las fechas de inicio
+vacías de `item`; con ella se corrigen las fechas de las cinco dimensiones
+y se reasignan a la versión vigente `ss_store_sk`, `sr_store_sk`,
+`cr_call_center_sk` y `wr_web_page_sk`. El marcador `_SUCCESS` de cada tabla
+guarda las correcciones que lleva (`INE-2026`, `SCD2`, `INE-2026+SCD2` o
+vacío), y una tabla cuyo marcador no coincide se vuelve a generar.
 
 Después escribe tablas externas temporales y elimina sus metadatos. Los
 ficheros de negocio se conservan bajo `/datalake/raw/tpcds/<tabla>`,
