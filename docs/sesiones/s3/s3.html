@@ -7858,8 +7858,13 @@ leen de ahí y se apagan. Almacenamiento y cómputo se dimensionan y se pagan
 por separado.</p>
 <p>La interfaz que ha acabado siendo común para ese almacenamiento es la API
 HTTP de Amazon S3. La ofrecen también servicios que no son de Amazon
-—MinIO, Ceph, Cloudflare R2 o el RustFS de este laboratorio—, y casi
-cualquier lector de Parquet sabe hablarla. Por eso esta sesión conserva
+—MinIO, Ceph, Cloudflare R2 o el RustFS de este laboratorio—, y también
+otros proveedores de nube: Google Cloud Storage acepta peticiones con el
+protocolo de S3 mediante su API de interoperabilidad (con claves HMAC).
+Azure Blob Storage es la excepción: tiene su propia API y sus propios
+conectores (<code>abfs://</code>), y sólo se alcanza con el protocolo de S3 a través de
+una pasarela intermedia. Casi cualquier lector de Parquet sabe hablar
+S3. Por eso esta sesión conserva
 todo lo de S2 —el mismo TPC-DS SF3, los mismos ficheros Parquet y las
 mismas tres bibliotecas— y cambia una sola cosa: dónde están los bytes y
 cómo se piden. Lo que resulte distinto al leerlos se deberá al
