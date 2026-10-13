@@ -56,7 +56,7 @@ type NotebookSource = str | Path
 S2_URL: Final[str] = "https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/s2/s2.ipynb"
 S2_LOCAL: Final[tuple[Path, ...]] = (Path("s2.ipynb"), Path("../s2/s2.ipynb"))
 
-APPENDIX_ANCHOR: Final[str] = 'id="apendice-tpcds-sf1"'
+APPENDIX_ANCHOR: Final[str] = 'id="apendice-tpcds-sf3"'
 SECTIONS: Final[dict[str, Role]] = {
     "### Dimensiones y tablas auxiliares": "dimensión",
     "### Tablas de hechos": "hecho",
