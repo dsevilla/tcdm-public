@@ -11485,6 +11485,7 @@ paso calculamos un pequeño resumen de consistencia sobre la clave
 
 <span class="n">arrow_fs</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">FileSystem</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">PyFileSystem</span><span class="p">(</span><span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">FSSpecHandler</span><span class="p">(</span><span class="n">webhdfs</span><span class="p">))</span>
 <span class="n">arrow_table</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">Table</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">filesystem</span><span class="o">=</span><span class="n">arrow_fs</span><span class="p">)</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="o">.</span><span class="n">sort_by</span><span class="p">([(</span><span class="s2">"i_item_sk"</span><span class="p">,</span> <span class="s2">"ascending"</span><span class="p">)])</span>
 
 <span class="n">key_values</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">ChunkedArray</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="p">[</span><span class="s2">"i_item_sk"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">arrow_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
@@ -11649,6 +11650,7 @@ devuelve un diccionario de columna a valor:</p>
 
 <span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">))</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 <span class="n">polars_table</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fragments</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">)</span>
+<span class="n">polars_table</span> <span class="o">=</span> <span class="n">polars_table</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"i_item_sk"</span><span class="p">)</span>
 
 <span class="n">key_values</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">polars_table</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="s2">"i_item_sk"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">polars_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
@@ -11942,7 +11944,9 @@ función de Python:</p>
 <span class="c1"># show() recorta las tablas largas; max_rows hace que muestre todas las filas.</span>
 <span class="n">schema</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
-<span class="n">first_row</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM item LIMIT 1"</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<span class="n">first_row</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="s2">"SELECT * FROM item ORDER BY i_item_sk LIMIT 1"</span>
+<span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
 <span class="c1"># DESCRIBE devuelve una fila por columna; su primer campo es el nombre.</span>
 <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Primera fila:"</span><span class="p">)</span>
@@ -11970,9 +11974,10 @@ función de Python:</p>
 falta que las tres formas de leer produzcan la misma salida textual:
 PyArrow imprime un esquema Arrow, Polars un esquema con sus propios tipos
 y DuckDB muestra el resultado de <code>DESCRIBE</code>. La primera fila sí es la
-misma en las tres, porque todas leen los ficheros de <code>files</code> en el mismo
-orden: una versión de un producto, con su clave <code>i_item_sk</code>, su nombre
-y el resto de atributos.</p>
+misma en las tres: <code>i_item_sk</code> identifica de forma única cada fila.
+Ordenamos cada resultado por esa clave y mostramos la de menor valor.
+Así no dependemos del orden en que cada biblioteca recorra los ficheros;
+vemos una versión de un producto, con su nombre y el resto de atributos.</p>
 <p>También deben coincidir las cinco cifras del resumen: filas, valores no
 nulos, mínimo, máximo y suma de <code>i_item_sk</code>. Esa coincidencia confirma que
 las tres bibliotecas han leído exactamente los mismos Parquet, aunque cada
