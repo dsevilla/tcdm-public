@@ -98,28 +98,6 @@ services:
     networks:
       hadoop-cluster:
 
-  tpcds-init:
-    profiles: ["init"]
-    image: trinodb/trino:${TRINO_VERSION:-483}
-    container_name: tcdm-tpcds-init
-    depends_on:
-      catalog-init:
-        condition: service_completed_successfully
-    environment:
-      TPCDS_SCALE: ${TPCDS_SCALE:-sf3}
-      TPCDS_TABLES: ${TPCDS_TABLES:-}
-      TPCDS_DATALAKE_ROOT: ${TPCDS_DATALAKE_ROOT:-/datalake/raw/tpcds}
-      INE_MUNICIPALITIES_ROOT: ${INE_MUNICIPALITIES_ROOT:-/datalake/raw/ine/municipios}
-    volumes:
-      # Este directorio contiene los scripts efímeros de inicialización.
-      - ./init:/opt/tcdm/init:ro
-      # Instantáneas versionadas de fuentes públicas usadas al materializar.
-      - ./data:/opt/tcdm/data:ro
-    entrypoint: ["/bin/sh", "/opt/tcdm/init/initialize-tpcds.sh"]
-    restart: "no"
-    networks:
-      hadoop-cluster:
-
 volumes:
   postgresql-metastore-data:
     name: tcdm-26-27-postgresql-metastore-data

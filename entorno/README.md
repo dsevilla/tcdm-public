@@ -142,8 +142,8 @@ Para saber en qué estado está el laboratorio antes de buscar más:
 Los ficheros de configuración y los scripts que entran en los contenedores se
 montan siempre como directorios existentes del repositorio. Por ejemplo,
 `trino-hdfs/etc` se monta en `/etc/trino` —incluyendo su subdirectorio
-`etc/catalog`—; los inicializadores se montan desde `init` y el script de
-Polaris desde `polaris`.
+`etc/catalog`—; el inicializador de catálogos se monta desde `init` y el
+script de Polaris desde `polaris`.
 
 Esto evita una fuente habitual de errores con Docker Desktop para macOS: si la
 ruta de origen de un bind mount de un fichero no existe exactamente, Docker
@@ -198,19 +198,12 @@ Compose. Primero crea la red si no existe, después arranca Hadoop y finalmente
 PostgreSQL, el metastore y Trino.
 
 Después se ejecuta `s2/s2.ipynb` completo desde Jupyter. El notebook genera
-las 18 tablas de TPC-DS SF3 que usa el curso como Parquet y deja las fuentes preparadas para
-S3–S8.
+las 18 tablas de TPC-DS SF3 que usa el curso como Parquet y deja las fuentes
+preparadas para S3–S8. Es la única forma de obtenerlas: ningún objetivo de
+`make` ni servicio de Compose genera datos.
 
-El objetivo siguiente se conserva como herramienta de infraestructura para
-pruebas aisladas o recuperación sin Jupyter; no es el recorrido normal del
-alumnado:
-
-```bash
-make tpcds-init
-```
-
-Tanto el notebook como el inicializador auxiliar combinan dos fuentes. Leen las tablas virtuales deterministas de
-`tpcds.sf3` y publican en `/datalake/raw/ine/municipios` la instantánea gzip
+El notebook combina dos fuentes. Lee las tablas virtuales deterministas de
+`tpcds.sf3` y publica en `/datalake/raw/ine/municipios` la instantánea gzip
 normalizada de la Relación de municipios y códigos a 1 de enero de 2026 del
 INE. Trino detecta la compresión por la extensión, registra temporalmente ese
 CSV y lo cruza con las cuatro dimensiones
@@ -219,7 +212,7 @@ y `web_site`. Los municipios, provincias, códigos provinciales y
 el país se sustituyen por valores españoles; las claves de esas dimensiones y
 sus demás columnas no cambian.
 
-También corrigen la vigencia de las versiones. Cuatro dimensiones (`item`,
+También corrige la vigencia de las versiones. Cuatro dimensiones (`item`,
 `store`, `web_page` y `web_site`) guardan varias versiones de
 cada objeto con sus fechas `rec_start_date` y `rec_end_date`, y el generador
 no enlaza siempre cada hecho con la versión vigente en su fecha: adelanta
@@ -230,7 +223,7 @@ vacías de `item`; con ella se corrigen las fechas de las cuatro dimensiones
 y se reasignan a la versión vigente `ss_store_sk`, `sr_store_sk`
 y `wr_web_page_sk`.
 
-Por último, guardan las fechas en las propias tablas. TPC-DS las representa
+Por último, guarda las fechas en las propias tablas. TPC-DS las representa
 con claves hacia dos dimensiones, `date_dim` y `time_dim`, que el curso no
 materializa: una clave de fecha sola pasa a ser una columna `date` con el
 mismo nombre sin `_sk` (`ws_ship_date`, `inv_date`), y una clave de fecha
@@ -254,11 +247,11 @@ adelante como tablas externas o reescribirlos como tablas Iceberg.
 La ruta no contiene `sf3`: el curso mantiene una única escala, indicada por
 `TPCDS_SCALE`, y no necesita otro nivel físico para distinguir versiones.
 `tpcds` identifica la fuente y cada `<tabla>` es un directorio con uno o más
-fragmentos Parquet. Los nombres `raw` y `tpcds` los fija el inicializador; Trino
+fragmentos Parquet. Los nombres `raw` y `tpcds` los fija el notebook; Trino
 escribe en la ubicación externa que recibe.
 
 El catálogo virtual de Trino también muestra la tabla técnica
-`dbgen_version`. El inicializador la excluye de forma intencionada: no es una
+`dbgen_version`. El notebook la excluye de forma intencionada: no es una
 tabla de negocio y su columna `time(3)` no es compatible con el escritor Hive
 que materializa estos Parquet. También excluye las cuatro tablas del canal
 de catálogo (`catalog_sales`, `catalog_returns`, `catalog_page` y
@@ -268,12 +261,6 @@ benchmark se materializan 18.
 Los nombres que genera Trino pueden no terminar en `.parquet`: el formato lo
 determinan el contenido y sus metadatos (un fichero Parquet comienza y termina
 con la firma `PAR1`), no la extensión.
-
-El inicializador auxiliar puede limitarse a algunas tablas:
-
-```bash
-TPCDS_TABLES="web_sales customer item" make tpcds-init
-```
 
 La generación es determinista en sus filas para una escala, versión de Trino
 y edición versionada del INE dadas. La asignación ordena los 8.132 municipios
