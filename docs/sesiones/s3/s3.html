@@ -9325,8 +9325,12 @@ propio.</li>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>A partir de aquí es el SQL de S2 con otras URL. <code>read_parquet</code> recibe la
-lista de objetos, y el resumen se calcula como una agregación:</p>
+<p>A partir de aquí es el SQL de S2 con otras URL. Como allí, la primera vez
+que se usa la tabla se crea una vista con su nombre, <code>item</code>, sobre
+<code>read_parquet</code>: la única diferencia con S2 es que las URL empiezan por
+<code>s3://</code>, así que las consultas siguientes se escriben igual (<code>FROM item</code>).
+<code>CREATE VIEW</code> no admite parámetros <code>?</code>, y la lista de objetos va escrita en
+el propio SQL. El resumen se calcula como una agregación:</p>
 </div>
 </div>
 </div>
@@ -9340,15 +9344,16 @@ lista de objetos, y el resumen se calcula como una agregación:</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"s3://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 
-<span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE SELECT * FROM read_parquet(?)"</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">urls</span><span class="p">])</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="c1"># La vista lleva la lista de URLs escrita en el SQL: CREATE VIEW no admite `?`.</span>
+<span class="n">url_list</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">)</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"CREATE OR REPLACE VIEW item AS SELECT * FROM read_parquet([</span><span class="si">{</span><span class="n">url_list</span><span class="si">}</span><span class="s2">])"</span><span class="p">)</span>
 
-<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-<span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    SELECT count(*), count(i_item_sk), min(i_item_sk), max(i_item_sk), sum(i_item_sk)</span>
-<span class="sd">    FROM read_parquet(?)</span>
-<span class="sd">    """</span><span class="p">,</span>
-    <span class="p">[</span><span class="n">urls</span><span class="p">],</span>
-<span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE item"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT count(*), count(i_item_sk), min(i_item_sk), max(i_item_sk), sum(i_item_sk)</span>
+<span class="s2">    FROM item</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">duckdb_summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">duckdb-s3</span><span class="se">\t</span><span class="s2">item</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">duckdb_summary</span><span class="p">)))</span>
 </pre></div>
@@ -9413,16 +9418,13 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
-<span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    SELECT trim(i_category) AS categoría, count(*) AS productos, max(i_current_price) AS precio_máximo</span>
-<span class="sd">    FROM read_parquet(?)</span>
-<span class="sd">    WHERE i_current_price &gt;= 50</span>
-<span class="sd">    GROUP BY categoría</span>
-<span class="sd">    ORDER BY categoría</span>
-<span class="sd">    """</span><span class="p">,</span>
-    <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="n">urls</span><span class="p">],</span>
-<span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT trim(i_category) AS categoría, count(*) AS productos, max(i_current_price) AS precio_máximo</span>
+<span class="s2">    FROM item</span>
+<span class="s2">    WHERE i_current_price &gt;= 50</span>
+<span class="s2">    GROUP BY categoría</span>
+<span class="s2">    ORDER BY categoría</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -9435,10 +9437,12 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La consulta no nombra ninguna tabla: recibe una lista de objetos. Nada en
-el bucket dice que esos objetos formen <code>item</code>, ni qué columnas tienen,
-salvo sus propias claves y sus pies. Es la misma situación que en S2 con
-los directorios de HDFS, y cambiar de almacenamiento no la resuelve.</p>
+<p>La consulta ya nombra una tabla, <code>item</code>, pero es la vista de esta conexión:
+el nombre se lo dimos nosotros al crearla desde una lista de objetos. Nada
+en el bucket dice que esos objetos formen <code>item</code>, ni qué columnas tienen,
+salvo sus propias claves y sus pies, y la vista desaparece al cerrar la
+conexión. Es la misma situación que en S2 con los directorios de HDFS, y
+cambiar de almacenamiento no la resuelve.</p>
 </div>
 </div>
 </div>
@@ -9460,7 +9464,7 @@ los directorios de HDFS, y cambiar de almacenamiento no la resuelve.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia de prefijo, de tabla y de lector</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Lista con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Delimiter="/"</code> el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/</code>: ¿qué «carpetas» aparecen y quién las ha creado?</li><li style="margin:10px 0">Repite la lectura de la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> y del tamaño del pie con un objeto de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code></li><li style="margin:10px 0">Lee <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store</code> desde S3 con DuckDB y cuenta las tiendas por provincia (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s_county</code>)</li><li style="margin:10px 0">Lee sólo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit</code> de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> con PyArrow: ¿cuántas filas salen?</li><li style="margin:10px 0">Suma el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Size</code> de los objetos de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store_sales</code> y compáralo con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -du -s</code> de esa tabla</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia de prefijo, de tabla y de lector</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Lista con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Delimiter="/"</code> el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/</code>: ¿qué «carpetas» aparecen y quién las ha creado?</li><li style="margin:10px 0">Repite la lectura de la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> y del tamaño del pie con un objeto de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code></li><li style="margin:10px 0">Crea con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">CREATE VIEW</code> la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store</code> desde S3 y cuenta las tiendas por provincia (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s_county</code>)</li><li style="margin:10px 0">Lee sólo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit</code> de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> con PyArrow: ¿cuántas filas salen?</li><li style="margin:10px 0">Suma el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Size</code> de los objetos de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store_sales</code> y compáralo con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -du -s</code> de esa tabla</li></ul>
 </div>
 </div>
 </div>
@@ -9484,7 +9488,7 @@ los directorios de HDFS, y cambiar de almacenamiento no la resuelve.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres caminos, el mismo resumen</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un Parquet empieza y acaba con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code>; su pie dice dónde está cada columna</li><li style="margin:10px 0">Con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code> por rango, un lector trae el pie y sólo las columnas que necesita</li><li style="margin:10px 0">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: las cinco cifras coinciden, y son las de S2</li><li style="margin:10px 0">Sigue sin haber catálogo: cada lector recibe la lista de objetos del prefijo</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres caminos, el mismo resumen</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un Parquet empieza y acaba con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code>; su pie dice dónde está cada columna</li><li style="margin:10px 0">Con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code> por rango, un lector trae el pie y sólo las columnas que necesita</li><li style="margin:10px 0">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: las cinco cifras coinciden, y son las de S2</li><li style="margin:10px 0">Sigue sin haber catálogo: la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> es de esta conexión y se construye con la lista de objetos del prefijo</li></ul>
 </div>
 </div>
 </div>
