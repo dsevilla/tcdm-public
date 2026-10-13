@@ -33,7 +33,7 @@ JOIN hive.tpcds_bootstrap.ine_municipios_ordenados
           '|',
           coalesce(CAST(trim(web_site.web_state) AS varchar), '')
       ))),
-      ine_municipios_ordenados.total_municipios
+      __TOTAL_MUNICIPIOS__
   )
 JOIN hive.tpcds_bootstrap.vigencia_versiones
   ON vigencia_versiones.dimension = 'web_site'

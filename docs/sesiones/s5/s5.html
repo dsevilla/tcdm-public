@@ -7861,7 +7861,7 @@ convertirlo todavía en una tabla gestionada por un catálogo.</p>
 <p>¿Cómo organizamos los ficheros para que sean reutilizables, comprensibles
 y eficientes sin convertir todavía el data lake en una tabla gestionada?</p>
 </blockquote>
-<p>Para responderla mantendremos el mismo TPC-DS SF1 de las sesiones
+<p>Para responderla mantendremos el mismo TPC-DS SF3 de las sesiones
 anteriores y compararemos tres versiones del mismo dato: la fuente <em>raw</em>
 que ya conoces de S2, una versión refinada <em>silver</em> que construiremos con
 Spark, y un agregado de negocio <em>gold</em> derivado de esa versión refinada. El
@@ -8010,7 +8010,7 @@ versión nueva.</p>
      font-size:26px;line-height:1.42;
      display:flex;flex-direction:column;justify-content:center;
      text-align:left;overflow:hidden">
-<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 5: buenas prácticas de data lake y particionado físico</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El mismo TPC-DS SF1 en tres versiones: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0">Contratos, calidad y mantenimiento: un data lake no es un directorio</li></ul><p style="margin:10px 0">lleno de ficheros</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Spark escribe una tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> particionada y un producto <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0">La evidencia de que particionar ayuda se lee en el plan, no en el reloj</li></ul></div>
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 5: buenas prácticas de data lake y particionado físico</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El mismo TPC-DS SF3 en tres versiones: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0">Contratos, calidad y mantenimiento: un data lake no es un directorio</li></ul><p style="margin:10px 0">lleno de ficheros</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Spark escribe una tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> particionada y un producto <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0">La evidencia de que particionar ayuda se lee en el plan, no en el reloj</li></ul></div>
 </div>
 </div>
 </div>
@@ -8095,7 +8095,7 @@ para ejecutarlas en una terminal de tu equipo, nunca como celdas de este
 notebook.</p>
 </blockquote>
 <p>Esta sesión asume que el clúster de S1 ya está en marcha y que S2 dejó
-materializado TPC-DS SF1 en <code>/datalake/raw/tpcds</code> (S4 sólo lo leyó). S5 no
+materializado TPC-DS SF3 en <code>/datalake/raw/tpcds</code> (S4 sólo lo leyó). S5 no
 vuelve a generar esos datos ni los modifica: se limita a leerlos. Si el clúster no
 está arriba, desde una terminal de tu equipo situada en la raíz de la
 distribución de sesiones:</p>
@@ -8268,7 +8268,7 @@ que en S4: esta JVM comparte el contenedor <code>namenode</code> con el propio
 NameNode, el ResourceManager, el Timeline Server y el kernel de Jupyter
 (recuerda la tabla de límites de S1: 2 vCPU y 4096 MiB para todo el
 contenedor; cada NodeManager, aparte, sólo anuncia 2560 MiB a YARN). Para
-los volúmenes de SF1 que vamos a leer y escribir no hace falta más.</p>
+los volúmenes de SF3 que vamos a leer y escribir no hace falta más.</p>
 </div>
 </div>
 </div>
@@ -8438,7 +8438,7 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Qué contiene: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF1 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></li><li style="margin:10px 0">De dónde sale la fecha: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se derivan de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año</li><li style="margin:10px 0">Cómo se regenera: en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Qué contiene: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF3 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></li><li style="margin:10px 0">De dónde sale la fecha: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se derivan de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año</li><li style="margin:10px 0">Cómo se regenera: en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul>
 </div>
 </div>
 </div>
@@ -8456,7 +8456,7 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
 el contrato que aplicaremos en esta sesión —y que documentamos aquí mismo,
 en lugar de dejarlo sólo en la cabeza de quien escribió el código— indica:</p>
 <ul>
-<li>qué tabla y escala de TPC-DS contiene: <code>web_sales</code> de TPC-DS SF1;</li>
+<li>qué tabla y escala de TPC-DS contiene: <code>web_sales</code> de TPC-DS SF3;</li>
 <li>qué columnas conserva o añade: las columnas de negocio de la línea de
 venta más <code>ws_sold_date</code> (derivada) y las particiones <code>sold_year</code>,
 <code>sold_month</code>;</li>
@@ -8708,7 +8708,7 @@ vamos a construir aquí.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Criterios: filtros frecuentes, cardinalidad moderada, ficheros útiles</li><li style="margin:10px 0">Cardinalidades reales de SF1: pedidos, artículos y clientes frente a</li></ul><p style="margin:10px 0">años y meses</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code> no vale y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> sí</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Criterios: filtros frecuentes, cardinalidad moderada, ficheros útiles</li><li style="margin:10px 0">Cardinalidades reales de SF3: pedidos, artículos y clientes frente a</li></ul><p style="margin:10px 0">años y meses</p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code> no vale y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> sí</li></ul>
 </div>
 </div>
 </div>
@@ -8744,22 +8744,22 @@ casi todos con uno o muy pocos ficheros diminutos: exactamente el problema
 de los "ficheros pequeños" que penaliza tanto a HDFS (metadatos del
 NameNode por fichero) como a cualquier motor que después tenga que abrir
 todos esos directorios. Comprobaremos estas cardinalidades con datos reales
-de SF1 en cuanto carguemos las tablas, en la siguiente sección.</p>
+de SF3 en cuanto carguemos las tablas, en la siguiente sección.</p>
 <p>La propia marca de tiempo de la venta (<code>ws_sold_timestamp</code>) sufre un
 problema parecido: tiene casi un valor distinto por pedido. Ni siquiera la
 fecha sin la hora serviría, porque produciría un directorio por día, más de
-mil en los cinco años de SF1. Por eso derivamos <code>sold_year</code> y <code>sold_month</code>
+mil en los cinco años de SF3. Por eso derivamos <code>sold_year</code> y <code>sold_month</code>
 en lugar de particionar directamente por la fecha.</p>
 <p>Por último, la elección entre particionar sólo por <code>sold_year</code> o por la
 pareja <code>sold_year, sold_month</code> debe relacionarse con el tamaño real de los
 fragmentos resultantes, no con una preferencia a priori: más niveles de
 partición no significan automáticamente más rendimiento, sobre todo si
 cada partición mensual termina teniendo un único fichero pequeño. Para
-SF1 usaremos la pareja <code>sold_year, sold_month</code> y, más abajo, mediremos qué
-tamaño tienen los ficheros que resultan: con unas pocas centenas de miles de
+SF3 usaremos la pareja <code>sold_year, sold_month</code> y, más abajo, mediremos qué
+tamaño tienen los ficheros que resultan: con un par de millones de
 líneas repartidas entre varios años, cada mes aporta pocas filas, y qué
 granularidad conviene depende de la escala del dataset (con SF1000 cada mes
-pesaría mil veces más).</p>
+pesaría unas trescientas veces más).</p>
 </div>
 </div>
 </div>
@@ -8845,7 +8845,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">Comprobar las cardinalidades antes de elegir la partición<a class="anchor-link" href="#Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">¶</a></h3><p>Antes de transformar nada, confirmamos con datos reales de SF1 la reflexión de la
+<h3 id="Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">Comprobar las cardinalidades antes de elegir la partición<a class="anchor-link" href="#Comprobar-las-cardinalidades-antes-de-elegir-la-partici%C3%B3n">¶</a></h3><p>Antes de transformar nada, confirmamos con datos reales de SF3 la reflexión de la
 sección anterior: cuántos valores distintos tienen las columnas que
 descartamos como partición principal.</p>
 </div>
@@ -9416,7 +9416,7 @@ la ruta por su cuenta.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Comparar-una-lectura-completa-con-una-lectura-filtrada">Comparar una lectura completa con una lectura filtrada<a class="anchor-link" href="#Comparar-una-lectura-completa-con-una-lectura-filtrada">¶</a></h2><p>El tiempo total de una consulta SF1 en un portátil, dentro de un
+<h2 id="Comparar-una-lectura-completa-con-una-lectura-filtrada">Comparar una lectura completa con una lectura filtrada<a class="anchor-link" href="#Comparar-una-lectura-completa-con-una-lectura-filtrada">¶</a></h2><p>El tiempo total de una consulta SF3 en un portátil, dentro de un
 contenedor, no es una evidencia fiable de que el particionado ayuda:
 depende de cachés del sistema operativo, de la carga del equipo, de Docker
 y de cuántas veces se haya ejecutado ya la misma consulta antes. Lo que sí
@@ -9638,7 +9638,7 @@ aunque el plan aplique <code>PartitionFilters</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><code>sample_year</code> es el año con más líneas de los que hay en SF1 (unos pocos
+<p><code>sample_year</code> es el año con más líneas de los que hay en SF3 (unos pocos
 años en total), así que su partición es sólo una fracción del total:
 <code>filtered_files</code> debe ser estrictamente menor que <code>full_scan_files</code>, y
 debería coincidir con lo que mostró la interfaz de Spark para la consulta
@@ -9878,7 +9878,7 @@ datos, que sale de dividir el tamaño lógico total que imprimió
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Compara esa cifra con el tamaño de bloque de este clúster (64 MiB,
 <code>dfs.blocksize</code>, S1) y con lo que S4 explicó sobre los ficheros pequeños:
-¿es la pareja año-mes una buena elección para SF1? ¿Qué cambiarías
+¿es la pareja año-mes una buena elección para SF3? ¿Qué cambiarías
 —particionar sólo por <code>sold_year</code>, o reagrupar más filas por fichero— y qué
 pasaría con un dataset mil veces mayor?</p>
 </div>
@@ -9908,7 +9908,7 @@ genérico:</p>
 <tr>
 <td>Fuente (<code>raw</code>)</td>
 <td><code>/datalake/raw/tpcds/web_sales</code>, un directorio sin particionar</td>
-<td><code>raw_count</code> filas (719.384 en SF1)</td>
+<td><code>raw_count</code> filas (2.160.165 en SF3)</td>
 <td>Qué datos existen físicamente; es la referencia inmutable frente a la que se valida todo lo demás</td>
 </tr>
 <tr>

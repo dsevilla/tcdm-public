@@ -1,4 +1,4 @@
-"""Consulta del esquema de TPC-DS SF1 desde cualquier notebook del curso.
+"""Consulta del esquema de TPC-DS SF3 desde cualquier notebook del curso.
 
 El catálogo de las 18 tablas —qué significa cada columna, su tipo y sus
 claves— está escrito una sola vez, en el apéndice de `s2/s2.ipynb`. Este

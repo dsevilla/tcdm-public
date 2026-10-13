@@ -7852,7 +7852,7 @@ textarea,
 escribir Parquet con Spark, organizar un data lake en zonas <em>raw</em>/<em>silver</em>/
 <em>gold</em>, registrar tablas en un Metastore y gestionar una tabla Iceberg con
 snapshots, evolución y optimización medida. Todo ese trabajo, hasta ahora, ha
-sido por lotes: se materializa TPC-DS SF1 una vez y se procesa.</p>
+sido por lotes: se materializa TPC-DS SF3 una vez y se procesa.</p>
 <p>La pregunta central es:</p>
 <blockquote>
 <p>¿Qué cambia cuando los datos no llegan de una vez, sino en tandas sucesivas
@@ -8165,7 +8165,7 @@ celdas de este notebook.</p>
 Metastore y Trino) de S6 también, porque el catálogo Iceberg de esta
 sesión usa el mismo Hive Metastore y las celdas de sólo lectura usan
 Trino;</li>
-<li>S2 generó los Parquet de TPC-DS SF1 en <code>/datalake/raw/tpcds</code>, incluidas
+<li>S2 generó los Parquet de TPC-DS SF3 en <code>/datalake/raw/tpcds</code>, incluidas
 <code>web_sales</code>, <code>customer</code>, <code>customer_address</code> e <code>item</code>;</li>
 <li><strong>S7 ya creó y pobló las dos tablas Iceberg que esta sesión alimenta de
 forma continua</strong>: <code>iceberg.tcdm.web_sales</code> (la <em>silver</em> a nivel de línea)
@@ -8731,7 +8731,7 @@ desde que S7 la materializó) con importes nuevos: es la parte "update"
 del <code>MERGE</code>;</li>
 <li><strong>altas</strong>, con un par <code>(ws_order_number, ws_item_sk)</code> nuevo que no puede
 colisionar con ningún pedido real (los números de pedido de alta parten
-de una base muy por encima del rango real de TPC-DS SF1): es la parte
+de una base muy por encima del rango real de TPC-DS SF3): es la parte
 "insert".</li>
 </ul>
 <p>La fracción de correcciones se controla con <code>--update-fraction</code> (0.3 por
@@ -9467,7 +9467,7 @@ claves salen de <code>batch_reports</code>, no se adivinan.</p>
 <p>La primera consulta devuelve una fila cuya clave ya existía en el
 <code>web_sales</code> real de S2 (el mismo <code>(ws_order_number, ws_item_sk)</code>), pero con
 los importes que generó el micro-lote correspondiente: es la rama <code>WHEN MATCHED THEN UPDATE SET *</code> del <code>MERGE</code>. La segunda devuelve una fila cuya
-clave no puede existir en TPC-DS SF1 (los números de pedido de alta parten
+clave no puede existir en TPC-DS SF3 (los números de pedido de alta parten
 de una base muy por encima del rango real): es la rama <code>WHEN NOT MATCHED THEN INSERT *</code>. El mismo <code>MERGE INTO</code>, ejecutado una sola vez por
 micro-lote, ha resuelto las dos situaciones sin que <code>foreachBatch</code> tuviera
 que distinguirlas de antemano.</p>
@@ -9511,7 +9511,7 @@ años presentes en ese micro-lote. La comprobamos ahora completa.</p>
 <p>Ningún paso de este notebook ha recalculado <code>iceberg.tcdm.web_sales_by_year</code>
 desde toda la <em>silver</em>: cada micro-lote sólo ha vuelto a agregar los años
 que él mismo tocaba (<code>touched_years</code>, impreso más arriba por cada vuelta del
-bucle). Con TPC-DS SF1 —unos pocos años de <code>web_sales</code>— la diferencia de
+bucle). Con TPC-DS SF3 —unos pocos años de <code>web_sales</code>— la diferencia de
 coste entre las dos estrategias no se nota en el tiempo de pared de esta
 sesión, pero sí se notaría con un histórico de muchos años: recalcular
 todo el agregado en cada micro-lote crecería con el tamaño de <em>silver</em>,
@@ -9538,7 +9538,7 @@ tocados por el propio micro-lote.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Agregar no es recalcular todo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><em>Gold</em> se actualiza sólo por los años que toca el micro-lote</li><li style="margin:10px 0">En SF1 la diferencia no se nota en el reloj, pero crece con el número de años de un histórico largo, no con el tamaño de <em>silver</em></li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Agregar no es recalcular todo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><em>Gold</em> se actualiza sólo por los años que toca el micro-lote</li><li style="margin:10px 0">En SF3 la diferencia no se nota en el reloj, pero crece con el número de años de un histórico largo, no con el tamaño de <em>silver</em></li></ul>
 </div>
 </div>
 </div>
@@ -9799,8 +9799,8 @@ sirven para comparar el efecto físico del mismo <code>MERGE</code> entre las ta
         <span class="p">{</span>
             <span class="s2">"ws_order_number"</span><span class="p">:</span> <span class="n">key_row</span><span class="p">[</span><span class="s2">"ws_order_number"</span><span class="p">],</span>
             <span class="s2">"ws_item_sk"</span><span class="p">:</span> <span class="n">key_row</span><span class="p">[</span><span class="s2">"ws_item_sk"</span><span class="p">],</span>
-            <span class="s2">"ws_bill_customer_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100_000</span><span class="p">),</span>
-            <span class="s2">"ws_bill_addr_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">50_000</span><span class="p">),</span>
+            <span class="s2">"ws_bill_customer_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">188_000</span><span class="p">),</span>
+            <span class="s2">"ws_bill_addr_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">94_000</span><span class="p">),</span>
             <span class="s2">"ws_sold_timestamp"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">"ws_sold_date"</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="n">LAB_YEAR</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
             <span class="s2">"ws_quantity"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
@@ -9818,9 +9818,9 @@ sirven para comparar el efecto físico del mismo <code>MERGE</code> entre las ta
     <span class="n">lab_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
         <span class="p">{</span>
             <span class="s2">"ws_order_number"</span><span class="p">:</span> <span class="mi">950_000_000</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span>
-            <span class="s2">"ws_item_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">18_000</span><span class="p">),</span>
-            <span class="s2">"ws_bill_customer_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100_000</span><span class="p">),</span>
-            <span class="s2">"ws_bill_addr_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">50_000</span><span class="p">),</span>
+            <span class="s2">"ws_item_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">36_000</span><span class="p">),</span>
+            <span class="s2">"ws_bill_customer_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">188_000</span><span class="p">),</span>
+            <span class="s2">"ws_bill_addr_sk"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">94_000</span><span class="p">),</span>
             <span class="s2">"ws_sold_timestamp"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">"ws_sold_date"</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="n">LAB_YEAR</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
             <span class="s2">"ws_quantity"</span><span class="p">:</span> <span class="n">lab_rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>

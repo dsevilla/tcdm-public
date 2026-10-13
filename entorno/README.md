@@ -198,7 +198,7 @@ Compose. Primero crea la red si no existe, después arranca Hadoop y finalmente
 PostgreSQL, el metastore y Trino.
 
 Después se ejecuta `s2/s2.ipynb` completo desde Jupyter. El notebook genera
-las 18 tablas de TPC-DS SF1 que usa el curso como Parquet y deja las fuentes preparadas para
+las 18 tablas de TPC-DS SF3 que usa el curso como Parquet y deja las fuentes preparadas para
 S3–S8.
 
 El objetivo siguiente se conserva como herramienta de infraestructura para
@@ -210,7 +210,7 @@ make tpcds-init
 ```
 
 Tanto el notebook como el inicializador auxiliar combinan dos fuentes. Leen las tablas virtuales deterministas de
-`tpcds.sf1` y publican en `/datalake/raw/ine/municipios` la instantánea gzip
+`tpcds.sf3` y publican en `/datalake/raw/ine/municipios` la instantánea gzip
 normalizada de la Relación de municipios y códigos a 1 de enero de 2026 del
 INE. Trino detecta la compresión por la extensión, registra temporalmente ese
 CSV y lo cruza con las cuatro dimensiones
@@ -251,7 +251,7 @@ todavía no son tablas permanentes del catálogo. Se podrán estudiar
 directamente mediante WebHDFS, `fsspec`, PyArrow y Polars, y registrar más
 adelante como tablas externas o reescribirlos como tablas Iceberg.
 
-La ruta no contiene `sf1`: el curso mantiene una única escala, indicada por
+La ruta no contiene `sf3`: el curso mantiene una única escala, indicada por
 `TPCDS_SCALE`, y no necesita otro nivel físico para distinguir versiones.
 `tpcds` identifica la fuente y cada `<tabla>` es un directorio con uno o más
 fragmentos Parquet. Los nombres `raw` y `tpcds` los fija el inicializador; Trino

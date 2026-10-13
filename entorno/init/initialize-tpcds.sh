@@ -3,7 +3,7 @@
 set -eu
 
 TRINO_SERVER="${TRINO_SERVER:-http://trino-hdfs:8080}"
-TPCDS_SCALE="${TPCDS_SCALE:-sf1}"
+TPCDS_SCALE="${TPCDS_SCALE:-sf3}"
 TPCDS_TABLES="${TPCDS_TABLES:-}"
 TPCDS_DATALAKE_ROOT="${TPCDS_DATALAKE_ROOT:-/datalake/raw/tpcds}"
 INE_MUNICIPALITIES_ROOT="${INE_MUNICIPALITIES_ROOT:-/datalake/raw/ine/municipios}"
@@ -138,7 +138,6 @@ trino --server "${TRINO_SERVER}" --user luser --execute \
     'CREATE VIEW hive.tpcds_bootstrap.ine_municipios_ordenados AS
      SELECT
          row_number() OVER (ORDER BY municipio_id) AS posicion,
-         count(*) OVER () AS total_municipios,
          municipio_id,
          provincia_id,
          municipio,
@@ -152,6 +151,10 @@ echo '[SALIDA <- trino]'
 # fecha de inicio algunas versiones de item. La vista deshace el adelanto y
 # rellena esas fechas; la usan las dimensiones para corregir sus fechas y los
 # hechos para apuntar a la versión vigente en la fecha de cada fila.
+# También deja abierta la última versión de cada objeto: si el generador corta
+# una dimensión en mitad de las versiones de un objeto (por ejemplo, 32 filas de
+# store en sf3), la última que queda conserva su fecha de fin sin tener
+# sucesora, y las ventas posteriores se quedarían sin versión vigente.
 trino --server "${TRINO_SERVER}" --user luser --execute \
     'DROP VIEW IF EXISTS hive.tpcds_bootstrap.vigencia_versiones'
 trino --server "${TRINO_SERVER}" --user luser --execute \
@@ -198,7 +201,11 @@ trino --server "${TRINO_SERVER}" --user luser --execute \
             date_add('day', 1, lag(fin) OVER (PARTITION BY dimension, clave_negocio ORDER BY clave)),
             DATE '1998-01-01'
         ) AS vigente_desde,
-        fin AS vigente_hasta
+        CASE
+            WHEN lead(clave) OVER (PARTITION BY dimension, clave_negocio ORDER BY clave) IS NULL
+            THEN NULL
+            ELSE fin
+        END AS vigente_hasta
     FROM desplazadas"
 
 if [ -z "${TPCDS_TABLES}" ]; then
@@ -245,7 +252,14 @@ for table_name in ${TPCDS_TABLES}; do
     curl --fail --silent --request DELETE "${table_url}" >/dev/null 2>&1 || true
     if test -e "${select_file}"; then
         echo "[*] ${table_name}: aplicando sus correcciones (${expected_marker})"
-        select_query="$(sed "s/__TPCDS_SCALE__/${TPCDS_SCALE}/g" "${select_file}")"
+        # El total de municipios se sustituye por su valor, contado arriba: si la
+        # unión comparase con una columna de la otra tabla, Trino no podría
+        # resolverla como unión por igualdad y compararía cada fila con los 8132
+        # municipios.
+        select_query="$(sed \
+            -e "s/__TPCDS_SCALE__/${TPCDS_SCALE}/g" \
+            -e "s/__TOTAL_MUNICIPIOS__/${municipality_count}/g" \
+            "${select_file}")"
     else
         select_query="SELECT * FROM tpcds.${TPCDS_SCALE}.${table_name}"
     fi

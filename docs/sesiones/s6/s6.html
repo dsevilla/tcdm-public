@@ -8141,7 +8141,7 @@ como celdas de este notebook.</p>
 <p>Esta sesión asume que:</p>
 <ul>
 <li>el clúster de S1 ya está en marcha;</li>
-<li>S2 generó los Parquet de TPC-DS SF1 en <code>/datalake/raw/tpcds</code>;</li>
+<li>S2 generó los Parquet de TPC-DS SF3 en <code>/datalake/raw/tpcds</code>;</li>
 <li>S5 ya ejecutó su ETL y dejó <code>/datalake/silver/tpcds/web_sales</code> (particionado
 por <code>sold_year</code> y <code>sold_month</code>) y <code>/datalake/gold/tpcds/web_sales_by_year</code>
 escritos en HDFS.</li>
@@ -8605,7 +8605,7 @@ modelos; en S7 será también la zona de las tablas Iceberg.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Registrar-los-Parquet-originales:-tcdm.item">Registrar los Parquet originales: <code>tcdm.item</code><a class="anchor-link" href="#Registrar-los-Parquet-originales:-tcdm.item">¶</a></h2><p>Empezamos por una tabla pequeña, <code>item</code>, exactamente el mismo Parquet
 que S2 y S4 ya leyeron directamente por ruta
-(<code>/datalake/raw/tpcds/item</code>, 18.000 filas).</p>
+(<code>/datalake/raw/tpcds/item</code>, 36.000 filas).</p>
 <p><code>hive.tcdm</code> ya debería existir — lo crea <code>catalog-init</code> al levantar el
 entorno—, pero repetir <code>CREATE SCHEMA IF NOT EXISTS</code> aquí es idempotente y
 deja el paso explícito en el propio notebook.</p>
@@ -8732,7 +8732,7 @@ leerla.</p>
 <div class="highlight hl-python"><pre><span></span><span class="n">item_count</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.item"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">item_count</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">item_count</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">18_000</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">item_count</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">36_000</span>
 </pre></div>
 </div>
 </div>
@@ -8763,7 +8763,7 @@ de la sesión.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    COMMENT ON TABLE hive.tcdm.item IS</span>
-<span class="s1">    'Dimensión de productos de TPC-DS SF1, registrada como tabla externa sobre /datalake/raw/tpcds/item (ver S2).'</span>
+<span class="s1">    'Dimensión de productos de TPC-DS SF3, registrada como tabla externa sobre /datalake/raw/tpcds/item (ver S2).'</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.item"</span><span class="p">)</span>
 </pre></div>

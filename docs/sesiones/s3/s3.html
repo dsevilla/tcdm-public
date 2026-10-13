@@ -7860,7 +7860,7 @@ por separado.</p>
 HTTP de Amazon S3. La ofrecen también servicios que no son de Amazon
 —MinIO, Ceph, Cloudflare R2 o el RustFS de este laboratorio—, y casi
 cualquier lector de Parquet sabe hablarla. Por eso esta sesión conserva
-todo lo de S2 —el mismo TPC-DS SF1, los mismos ficheros Parquet y las
+todo lo de S2 —el mismo TPC-DS SF3, los mismos ficheros Parquet y las
 mismas tres bibliotecas— y cambia una sola cosa: dónde están los bytes y
 cómo se piden. Lo que resulte distinto al leerlos se deberá al
 almacenamiento, no al dato.</p>
@@ -7875,7 +7875,7 @@ objetos y qué se gana al separarlo del cómputo;</li>
 qué un prefijo no es un directorio;</li>
 <li>reconocer las operaciones de la API de S3 —listar, <code>PUT</code>, <code>HEAD</code>, <code>GET</code>
 completo o por rango, <code>DELETE</code>— y usarlas con boto3;</li>
-<li>copiar los Parquet de TPC-DS SF1 desde HDFS hasta un bucket;</li>
+<li>copiar los Parquet de TPC-DS SF3 desde HDFS hasta un bucket;</li>
 <li>explicar por qué un lector de Parquet no necesita descargar el objeto
 entero;</li>
 <li>leer los mismos Parquet desde S3 con PyArrow, Polars y DuckDB, y decir
@@ -9379,7 +9379,7 @@ antes del bucket o del prefijo que se está leyendo que del dato.</p>
     <span class="n">polars_summary</span><span class="p">,</span>
     <span class="n">duckdb_summary</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="k">assert</span> <span class="n">arrow_summary</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">18_000</span><span class="p">,</span> <span class="n">arrow_summary</span>
+<span class="k">assert</span> <span class="n">arrow_summary</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">36_000</span><span class="p">,</span> <span class="n">arrow_summary</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Los tres lectores coinciden:"</span><span class="p">,</span> <span class="n">arrow_summary</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -9678,7 +9678,7 @@ firma <code>PAR1</code> al principio y al final y el tamaño del pie, obtenidos 
 descargar el objeto.</li>
 <li>Las tres líneas <code>TCDM_SUMMARY</code> (<code>pyarrow-s3</code>, <code>polars-s3</code> y <code>duckdb-s3</code>)
 de <code>item</code>, iguales entre sí y a las que obtuviste en S2 leyendo desde
-HDFS (18.000 filas).</li>
+HDFS (36.000 filas).</li>
 <li>Que sabes señalar qué variables <code>AWS_*</code> y qué campos del secreto de
 DuckDB habría que cambiar para usar un bucket real de Amazon S3, y qué
 celdas no cambiarían.</li>
@@ -9706,7 +9706,7 @@ qué caminos distintos devuelven el mismo dato;</li>
 URL— para que el mismo código funcione con RustFS y con Amazon S3.</li>
 </ul>
 <h2 id="Continuaci%C3%B3n-del-curso">Continuación del curso<a class="anchor-link" href="#Continuaci%C3%B3n-del-curso">¶</a></h2><p>Con HDFS y el almacenamiento de objetos sirviendo el mismo dataset TPC-DS
-SF1 en el mismo formato Parquet, la sesión 4 introduce Spark como motor de
+SF3 en el mismo formato Parquet, la sesión 4 introduce Spark como motor de
 cómputo distribuido, leyendo los Parquet de HDFS. Las sesiones 5 a 8 añaden
 sobre HDFS el particionado físico, un catálogo (Hive Metastore y Trino),
 tablas Iceberg y su alimentación continua. Lo aprendido aquí sobre buckets,

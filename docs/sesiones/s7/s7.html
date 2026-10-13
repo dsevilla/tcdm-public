@@ -7850,7 +7850,7 @@ textarea,
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">Sesión 7 — Iceberg: del data lake al lakehouse, evolución y optimización<a class="anchor-link" href="#Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">¶</a></h1><p>Esta sesión reúne, de forma deliberada, dos bloques: la creación y evolución
 de una tabla Iceberg, y la medición y optimización de esa misma tabla. Van
-juntos porque comparten la tabla de trabajo, el dataset TPC-DS SF1 que
+juntos porque comparten la tabla de trabajo, el dataset TPC-DS SF3 que
 ya conoces de S2-S6 y buena parte del vocabulario: no tiene sentido medir
 manifests y snapshots sobre una tabla que todavía no has visto crear ni
 evolucionar.</p>
@@ -8176,7 +8176,7 @@ notebook.</p>
 <ul>
 <li>el clúster de S1 y el warehouse de S6 (PostgreSQL, Hive Metastore, Trino)
 ya están en marcha;</li>
-<li>S2 generó los Parquet de TPC-DS SF1 en <code>/datalake/raw/tpcds</code>;</li>
+<li>S2 generó los Parquet de TPC-DS SF3 en <code>/datalake/raw/tpcds</code>;</li>
 <li>S5 dejó <code>/datalake/silver/tpcds/web_sales</code> (particionado por <code>sold_year</code> y
 <code>sold_month</code>) y <code>/datalake/gold/tpcds/web_sales_by_year</code> escritos en HDFS;</li>
 <li>S6 registró esos mismos datos como tablas Hive externas:
@@ -8897,7 +8897,7 @@ de la sesión, la misma que ya demostramos en S6 con las tablas Hive.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    COMMENT ON TABLE iceberg.tcdm.web_sales IS</span>
-<span class="s1">    'Ventas web de TPC-DS SF1 a nivel de línea, creada por CTAS desde hive.tcdm.web_sales_silver (ver S7).'</span>
+<span class="s1">    'Ventas web de TPC-DS SF3 a nivel de línea, creada por CTAS desde hive.tcdm.web_sales_silver (ver S7).'</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE iceberg.tcdm.web_sales"</span><span class="p">)</span>
 </pre></div>
@@ -9914,7 +9914,7 @@ usamos la sintaxis común de Spark.</p>
 Iceberg, ya sabemos crearla, leerla desde dos motores y hacerla evolucionar.
 Toca decidir qué hace falta para que sea eficiente, y comprobarlo, no sólo
 suponerlo.</p>
-<p>TPC-DS SF1 es lo bastante grande para trabajar con datos realistas durante
+<p>TPC-DS SF3 es lo bastante grande para trabajar con datos realistas durante
 el curso, pero puede ser demasiado pequeño —y este entorno, al ejecutarse en
 contenedores Docker compartiendo máquina con el resto del portátil o del
 servidor de sesiones, demasiado variable— para que el tiempo de pared de
@@ -10159,11 +10159,11 @@ sobre la transformación <code>month(ws_sold_date)</code>, sin que hayamos tenid
 declarar ninguna columna de partición.</p>
 <p>Una advertencia que conviene no perder de vista: particionar por una clave
 de alta cardinalidad —un <code>ws_order_number</code> o un <code>bucket</code> con demasiados
-cubos para el volumen de datos de SF1— puede producir tantas particiones
+cubos para el volumen de datos de SF3— puede producir tantas particiones
 pequeñas que el coste de planificación (leer y combinar muchos manifests
 pequeños) supere al beneficio de la poda. La transformación temporal que
 hemos elegido aquí (<code>month</code>) es razonable porque el número de meses de
-TPC-DS SF1 es pequeño y coincide con cómo se suelen filtrar los datos de
+TPC-DS SF3 es pequeño y coincide con cómo se suelen filtrar los datos de
 ventas en las consultas de negocio.</p>
 <p>Retiramos la tabla temporal <code>raw</code> que hemos usado sólo para esta
 comparación: es una definición de catálogo efímera, y <code>DROP TABLE</code> sobre una
@@ -10308,7 +10308,7 @@ como <code>distinct_values_count</code> o <code>data_size</code> suelen venir va
 estimaciones muy toscas basadas sólo en el tamaño de los ficheros; después,
 cada columna trae una estimación calculada sobre los datos reales, y
 aparece <code>row_count</code> en la fila final. Ahora bien: en una tabla tan pequeña
-como la de esta sesión (SF1, unos cientos de miles de líneas de venta), es
+como la de esta sesión (SF3, un par de millones de líneas de venta), es
 perfectamente posible que <code>explain_join_antes_texto</code> y
 <code>explain_join_despues_texto</code> resulten idénticos —Trino puede elegir el mismo
 tipo de <code>JOIN</code> con o sin estadísticas si el volumen de datos ya es pequeño
@@ -11142,7 +11142,7 @@ qué esta sesión no lo ejecuta (columnas <code>DECIMAL</code> no admitidas; tab
 un <em>sort order</em> ya declarado).</li>
 <li>Una conclusión propia, de una o dos frases, sobre cuándo una optimización
 de las vistas en esta sesión ayuda de verdad y cuándo no merece la
-pena aplicarla en TPC-DS SF1.</li>
+pena aplicarla en TPC-DS SF3.</li>
 <li>Que sabes qué tablas de laboratorio se borran después de la reunión y
 cuáles deben conservarse para S8, tal como se describe a continuación.</li>
 </ol>
@@ -11153,7 +11153,7 @@ externa y una tabla Iceberg; qué aporta el catálogo y qué aporta el formato
 de tabla; qué es un snapshot y qué ocurre con los anteriores tras un
 <code>INSERT</code> o un <code>ALTER TABLE</code>; en qué se diferencia una partición oculta de
 Iceberg de una partición visible de Hive; y tu conclusión razonada sobre qué
-optimización de las vistas ayuda de verdad en SF1 y cuál no.</p>
+optimización de las vistas ayuda de verdad en SF3 y cuál no.</p>
 <h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una sentencia. Debes poder
 explicar:</p>
 <ul>

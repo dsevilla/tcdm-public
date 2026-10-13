@@ -23,7 +23,7 @@ Cada lote mezcla dos tipos de líneas:
 - **altas**: usan un par `(ws_order_number, ws_item_sk)` nuevo, que no
   colisiona con ningún pedido real ni con el de otra ejecución de este
   programa (los números de pedido de alta se generan a partir de una base
-  muy por encima del rango real de TPC-DS SF1, más un contador por fila).
+  muy por encima del rango real de TPC-DS SF3, más un contador por fila).
 - **correcciones**: reutilizan deliberadamente un par
   `(ws_order_number, ws_item_sk)` que ya existe en el `web_sales` real de
   S2, con importes nuevos. `MERGE INTO` sólo compara esa clave compuesta,
@@ -61,7 +61,7 @@ RAW_CUSTOMER: str = "/datalake/raw/tpcds/customer"
 RAW_CUSTOMER_ADDRESS: str = "/datalake/raw/tpcds/customer_address"
 RAW_ITEM: str = "/datalake/raw/tpcds/item"
 
-# Base muy por encima de cualquier ws_order_number real de TPC-DS SF1
+# Base muy por encima de cualquier ws_order_number real de TPC-DS SF3
 # (el máximo real está muy por debajo de 10 millones), para que las altas
 # nunca puedan colisionar por casualidad con un pedido ya existente.
 NEW_ORDER_NUMBER_BASE: int = 900_000_000
@@ -221,7 +221,7 @@ def read_existing_key_sample(
     Sólo se leen esas dos columnas del primer fragmento Parquet de
     `web_sales` (S2): basta para tener un conjunto de claves ya conocidas
     por la tabla Iceberg de S7 con las que simular correcciones, sin tener
-    que leer la tabla completa (719 384 filas en SF1).
+    que leer la tabla completa (2 160 165 filas en SF3).
     """
 
     files: list[str] = list_data_files(webhdfs, RAW_WEB_SALES)

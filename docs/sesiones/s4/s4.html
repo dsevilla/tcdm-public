@@ -7850,7 +7850,7 @@ textarea,
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="Sesi%C3%B3n-4-%E2%80%94-Spark-como-motor-de-procesamiento-distribuido">Sesión 4 — Spark como motor de procesamiento distribuido<a class="anchor-link" href="#Sesi%C3%B3n-4-%E2%80%94-Spark-como-motor-de-procesamiento-distribuido">¶</a></h1><p>Esta sesión es el siguiente paso después de S1, S2 y S3. En S1 se
 estudiaron HDFS, YARN y MapReduce; en S2 se exploraron los Parquet de TPC-DS
-SF1 como ficheros, sin catálogo; en S3 se comprobó que esos mismos Parquet
+SF3 como ficheros, sin catálogo; en S3 se comprobó que esos mismos Parquet
 pueden vivir en un almacenamiento compatible con S3. Ahora se incorpora un
 motor de procesamiento distribuido capaz de leer esos ficheros y ejecutar el
 trabajo sobre los DataNodes a través de YARN.</p>
@@ -7868,7 +7868,7 @@ recorrido completo hasta este punto es:</p>
   → S3: Parquet sobre un almacenamiento S3-compatible
   → S4: Spark procesa los Parquet y utiliza YARN
 </pre></div>
-<p>Los datos de entrada siguen siendo los de TPC-DS SF1. Se conserva el
+<p>Los datos de entrada siguen siendo los de TPC-DS SF3. Se conserva el
 materializado original de <code>/datalake/raw/tpcds</code> y se evita modificarlo
 durante los ejercicios: las transformaciones de Spark escribirán sus
 salidas en rutas de trabajo separadas, bajo <code>/user/luser/s4</code>.</p>
@@ -8002,7 +8002,7 @@ versión nueva.</p>
      font-size:26px;line-height:1.42;
      display:flex;flex-direction:column;justify-content:center;
      text-align:left;overflow:hidden">
-<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 4: Spark como motor de procesamiento distribuido</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un motor nuevo sobre los mismos datos: los Parquet de TPC-DS SF1</li><li style="margin:10px 0">DataFrames: transformaciones perezosas, acciones y planes de ejecución</li><li style="margin:10px 0">Primero en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">local[2]</code>; al final, de verdad sobre YARN con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark-submit</code></li><li style="margin:10px 0">Las mismas preguntas de negocio de S2, ahora con otro motor</li></ul></div>
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 4: Spark como motor de procesamiento distribuido</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un motor nuevo sobre los mismos datos: los Parquet de TPC-DS SF3</li><li style="margin:10px 0">DataFrames: transformaciones perezosas, acciones y planes de ejecución</li><li style="margin:10px 0">Primero en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">local[2]</code>; al final, de verdad sobre YARN con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark-submit</code></li><li style="margin:10px 0">Las mismas preguntas de negocio de S2, ahora con otro motor</li></ul></div>
 </div>
 </div>
 </div>
@@ -8137,7 +8137,7 @@ muestran como texto para ejecutarlas en una terminal de tu equipo, nunca
 como celdas de este notebook.</p>
 </blockquote>
 <p>Esta sesión asume que el clúster de S1 ya está en marcha y que S2 generó
-los Parquet de TPC-DS SF1 en <code>/datalake/raw/tpcds</code>. Si no es así, desde una
+los Parquet de TPC-DS SF3 en <code>/datalake/raw/tpcds</code>. Si no es así, desde una
 terminal de tu equipo situada en la raíz de la distribución de sesiones:</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno warehouse-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-warehouse-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
@@ -8421,7 +8421,7 @@ contenedor <code>namenode</code> con el propio NameNode, el ResourceManager, el
 Timeline Server y el kernel de Jupyter (recuerda la tabla de límites de S1:
 2 vCPU y 4096 MiB para todo el contenedor). Pedir varios gigabytes de
 memoria del driver aquí dejaría sin margen a los demonios de Hadoop; para
-los volúmenes de SF1 que leeremos con <code>select</code>/<code>filter</code>/agregaciones no hace
+los volúmenes de SF3 que leeremos con <code>select</code>/<code>filter</code>/agregaciones no hace
 falta.</p>
 </div>
 </div>
@@ -8462,7 +8462,7 @@ falta.</p>
 <p><code>spark.sql.shuffle.partitions</code> controla cuántas particiones produce Spark
 tras una operación <em>wide</em> (por ejemplo, un <code>groupBy</code>). El valor por defecto
 es 200, pensado para clústeres grandes; lo bajamos a 8 porque en <code>local[2]</code>,
-con los volúmenes de SF1, 200 particiones diminutas sólo añadirían
+con los volúmenes de SF3, 200 particiones diminutas sólo añadirían
 coordinación sin paralelismo real. Volveremos sobre este parámetro más
 adelante, en la sección dedicada a la configuración del <em>shuffle</em>.</p>
 </div>
@@ -8632,7 +8632,7 @@ acciones: obligan a Spark a ejecutar el plan sobre los datos.</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en item: </span><span class="si">{</span><span class="n">n_item</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Particiones de ejecución: </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">n_item</span> <span class="o">==</span> <span class="mi">18_000</span>
+<span class="k">assert</span> <span class="n">n_item</span> <span class="o">==</span> <span class="mi">36_000</span>
 </pre></div>
 </div>
 </div>
@@ -8709,7 +8709,7 @@ compares.</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en web_sales: </span><span class="si">{</span><span class="n">n_web_sales</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Particiones de ejecución: </span><span class="si">{</span><span class="n">web_sales</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">n_web_sales</span> <span class="o">==</span> <span class="mi">719_384</span>
+<span class="k">assert</span> <span class="n">n_web_sales</span> <span class="o">==</span> <span class="mi">2_160_165</span>
 </pre></div>
 </div>
 </div>
@@ -8749,10 +8749,10 @@ ejecución que acaba de imprimir la celda anterior.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El objetivo de esta lectura no es traer SF1 completo a la memoria del
+<p>El objetivo de esta lectura no es traer SF3 completo a la memoria del
 driver: es distribuir la lectura y el cómputo entre particiones que Spark
-puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 185 MiB que
-ocupan en Parquet las 18 tablas de SF1 (su tamaño exacto lo da
+puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 524 MiB que
+ocupan en Parquet las 18 tablas de SF3 (su tamaño exacto lo da
 <code>hdfs dfs -du -h /datalake/raw/tpcds/web_sales</code>); TPC-DS a escalas mayores (SF100, SF1000...) seguiría funcionando
 con el mismo código precisamente porque el driver nunca materializa la
 tabla entera, sólo coordina el trabajo sobre sus particiones.</p>
@@ -9086,8 +9086,8 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 <span class="n">n_customer_address</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en customer: </span><span class="si">{</span><span class="n">n_customer</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en customer_address: </span><span class="si">{</span><span class="n">n_customer_address</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">n_customer</span> <span class="o">==</span> <span class="mi">100_000</span>
-<span class="k">assert</span> <span class="n">n_customer_address</span> <span class="o">==</span> <span class="mi">50_000</span>
+<span class="k">assert</span> <span class="n">n_customer</span> <span class="o">==</span> <span class="mi">188_000</span>
+<span class="k">assert</span> <span class="n">n_customer_address</span> <span class="o">==</span> <span class="mi">94_000</span>
 
 <span class="c1"># Mismo filtro que usó S2 para reconocer las direcciones ya cruzadas con el</span>
 <span class="c1"># INE: país fijado a España, municipio y provincia no nulos, y código de</span>
@@ -9309,10 +9309,10 @@ de <code>LEFT ANTI</code>, ninguna clave apunta a un domicilio que no exista.</p
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <div class="highlight"><pre><span></span><span class="c1"># Producto cartesiano: cada fila de web_sales_slim con TODAS las filas de</span>
 <span class="c1"># customer_address. NO debe ejecutarse: el resultado tendría</span>
-<span class="c1"># aproximadamente 719.384 x 50.000 filas.</span>
+<span class="c1"># aproximadamente 2.160.165 x 94.000 filas.</span>
 <span class="c1"># cross = web_sales_slim.crossJoin(customer_address)</span>
 </pre></div>
-<h3 id="Broadcast-join">Broadcast join<a class="anchor-link" href="#Broadcast-join">¶</a></h3><p><code>customer_address</code> tiene 50.000 filas: es pequeña comparada con las 719.384
+<h3 id="Broadcast-join">Broadcast join<a class="anchor-link" href="#Broadcast-join">¶</a></h3><p><code>customer_address</code> tiene 94.000 filas: es pequeña comparada con las 2.160.165
 de <code>web_sales</code>. Podemos pedirle a Spark que la distribuya entera a cada
 ejecutor con <code>broadcast()</code>, evitando el <em>shuffle</em> de la tabla grande. Spark ya lo hace
 solo con las tablas que estima menores de <code>spark.sql.autoBroadcastJoinThreshold</code>
@@ -10625,7 +10625,7 @@ suponer el efecto sólo por el nombre de la función.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Configuraci%C3%B3n-del-shuffle">Configuración del shuffle<a class="anchor-link" href="#Configuraci%C3%B3n-del-shuffle">¶</a></h2><p><code>spark.sql.shuffle.partitions</code> fija cuántas particiones produce cualquier
 operación <em>wide</em>. Lo comprobamos con una agregación de <code>store_sales</code>
-—2.880.404 filas, la mayor tabla de hechos que usaremos en esta
+—8.639.377 filas, la mayor tabla de hechos que usaremos en esta
 sesión— por año de venta. Desactivamos primero Adaptive Query Execution
 (activo por defecto en Spark 4): si no, AQE podría fusionar particiones de
 <em>shuffle</em> pequeñas él mismo y el número de particiones que se imprime a
@@ -10663,7 +10663,7 @@ AQE.</p>
 <span class="n">store_sales</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">"/datalake/raw/tpcds/store_sales"</span><span class="p">)</span>
 <span class="n">n_store_sales</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filas en store_sales: </span><span class="si">{</span><span class="n">n_store_sales</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">n_store_sales</span> <span class="o">==</span> <span class="mi">2_880_404</span>
+<span class="k">assert</span> <span class="n">n_store_sales</span> <span class="o">==</span> <span class="mi">8_639_377</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"spark.sql.shuffle.partitions actual: </span><span class="si">{</span><span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'spark.sql.shuffle.partitions'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
@@ -10723,7 +10723,7 @@ AQE.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El número de filas del resultado no cambia (sigue habiendo un puñado de
-años en SF1); lo que cambia es en cuántas particiones queda repartido ese
+años en SF3); lo que cambia es en cuántas particiones queda repartido ese
 resultado, y por tanto cuántas tareas paralelas puede lanzar Spark sobre él
 en el siguiente paso del pipeline.</p>
 </div>

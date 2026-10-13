@@ -21,5 +21,5 @@ JOIN hive.tpcds_bootstrap.ine_municipios_ordenados
           '|',
           coalesce(CAST(trim(warehouse.w_state) AS varchar), '')
       ))),
-      ine_municipios_ordenados.total_municipios
+      __TOTAL_MUNICIPIOS__
   )
