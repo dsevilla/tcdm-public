@@ -10099,7 +10099,12 @@ corregidas en la dimensión quedan bien enlazados.</p>
 <p><code>table_select</code> reúne las cuatro clases de cambio —localización, claves de
 fecha, fechas de vigencia y clave reasignada— y devuelve la consulta con
 la que se materializa cada tabla; para las cinco que no necesitan ninguno
-es un <code>SELECT *</code>. <code>success_marker</code> resume en una etiqueta qué correcciones lleva
+es un <code>SELECT *</code>. En los cinco hechos añade además un <code>ORDER BY</code> fecha y
+artículo (<code>SORT_ORDER</code>): las filas parecidas quedan seguidas, Parquet las
+comprime mejor y las estadísticas de cada grupo de filas se estrechan, lo
+que ayudará al particionar por fecha en las sesiones siguientes. TPC-DS ya
+las genera casi en ese orden, así que no esperes una gran diferencia de
+tamaño. <code>success_marker</code> resume en una etiqueta qué correcciones lleva
 la tabla; se guardará en su marcador <code>_SUCCESS</code>. La etiqueta de la
 localización es <code>INE-2026</code>, por la fuente y su edición. La de las versiones
 es <code>SCD2</code>, abreviatura de <em>slowly changing dimension</em> de tipo 2: es el
@@ -10156,8 +10161,32 @@ convertidas es <code>FECHAS</code>.</p>
     <span class="k">return</span> <span class="p">{</span><span class="n">column</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"coalesce(vigente.clave, </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">)"</span><span class="p">},</span> <span class="p">[</span><span class="n">joins</span><span class="p">]</span>
 
 
+<span class="c1"># Orden de escritura de los hechos (columnas ya convertidas). Agrupar las</span>
+<span class="c1"># filas por fecha y artículo mejora la compresión de Parquet (más valores</span>
+<span class="c1"># repetidos seguidos, diccionarios más pequeños) y deja las estadísticas</span>
+<span class="c1"># mín/máx de cada grupo de filas más estrechas, lo que ayudará a saltarse</span>
+<span class="c1"># datos al filtrar por fecha y a particionar por año y mes en las sesiones</span>
+<span class="c1"># 5 a 8. El generador de TPC-DS ya entrega las filas casi en este orden, así</span>
+<span class="c1"># que el efecto en tamaño será pequeño; el coste de ordenar, también.</span>
+<span class="n">SORT_ORDER</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"store_sales"</span><span class="p">:</span> <span class="s2">"CAST(ss_sold_timestamp AS date), ss_item_sk"</span><span class="p">,</span>
+    <span class="s2">"web_sales"</span><span class="p">:</span> <span class="s2">"CAST(ws_sold_timestamp AS date), ws_item_sk"</span><span class="p">,</span>
+    <span class="s2">"store_returns"</span><span class="p">:</span> <span class="s2">"CAST(sr_returned_timestamp AS date), sr_item_sk"</span><span class="p">,</span>
+    <span class="s2">"web_returns"</span><span class="p">:</span> <span class="s2">"CAST(wr_returned_timestamp AS date), wr_item_sk"</span><span class="p">,</span>
+    <span class="s2">"inventory"</span><span class="p">:</span> <span class="s2">"inv_date, inv_item_sk"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">table_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Consulta con la que se materializa una tabla."""</span>
+    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">unordered_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">SORT_ORDER</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">ORDER BY </span><span class="si">{</span><span class="n">SORT_ORDER</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="n">query</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">unordered_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Consulta con las correcciones de una tabla, sin ordenar."""</span>
     <span class="n">changes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Changes</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">types</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_types</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">LOCALIZED_COLUMNS</span><span class="p">:</span>
