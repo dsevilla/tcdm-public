@@ -7977,7 +7977,7 @@ realizado. Esa misma sección indica también qué conceptos de esta sesión
 son relevantes para el examen final.</p>
 </blockquote>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>requests</code>, <code>pandas</code>, <code>matplotlib</code>.
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>requests</code>, <code>tenacity</code>, <code>pandas</code>, <code>matplotlib</code>.
 Es la primera sesión cuyo kernel se ejecuta dentro de <code>namenode</code>, así que todos son nuevos respecto a S1. Se instalan en el kernel de <code>namenode</code> en la sección
 «Preparar Python».</p>
 </blockquote>
@@ -8961,7 +8961,8 @@ posteriores.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Preparar-Python">Preparar Python<a class="anchor-link" href="#Preparar-Python">¶</a></h3><p><code>requirements.txt</code> es la lista única de dependencias de S2: DuckDB, que
 genera los datos y es además uno de los tres lectores Parquet junto a
-PyArrow y Polars; <code>fsspec</code>, que da acceso a HDFS desde los tres; y <code>pandas</code>
+PyArrow y Polars; <code>fsspec</code>, que da acceso a HDFS desde los tres; <code>tenacity</code>,
+que repite una escritura en HDFS cuando falla de forma pasajera; y <code>pandas</code>
 con <code>matplotlib</code>, con los que se muestran y se dibujan los resultados de
 algunas consultas. El notebook no supone que ese
 fichero esté dentro del contenedor —tu copia de <code>s2/requirements.txt</code> está en
@@ -8999,6 +9000,8 @@ empezar: Jupyter en <code>namenode</code>».</p>
 <span class="n">polars</span>
 <span class="n">pyarrow</span>
 <span class="n">requests</span>
+<span class="c1"># Reintenta la escritura de una tabla en HDFS cuando falla (S2).</span>
+<span class="n">tenacity</span>
 <span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
 <span class="c1"># pandas dibuja con matplotlib.</span>
 <span class="n">pandas</span>
@@ -10196,8 +10199,13 @@ nada si ya existe.</li>
 </ul>
 <p><code>duckdb.register_filesystem(webhdfs, connection=tpcds_db)</code> le presta ese
 mismo objeto a DuckDB: a partir de ahí, las rutas <code>webhdfs://</code> de sus
-órdenes se leen y se escriben a través de él. Cómo llegan esas peticiones
-a HDFS —el mecanismo WebHDFS y la biblioteca <code>fsspec</code>— se explica más
+órdenes se leen y se escriben a través de él. La celda fija también
+<code>webhdfs.blocksize</code>: <code>fsspec</code> no envía a HDFS cada escritura de DuckDB, las
+acumula y las manda por trozos, y ese atributo dice de qué tamaño. Con los
+4 MiB por defecto, <code>store_sales</code> (unos 300 MiB) salen en unas ochenta
+peticiones; con 64 MiB, el tamaño de bloque de HDFS en este clúster, en
+cinco.</p>
+<p>Cómo llegan esas peticiones a HDFS —el mecanismo WebHDFS y la biblioteca <code>fsspec</code>— se explica más
 adelante, en «Acceso con WebHDFS y fsspec», cuando haga falta para leer los
 Parquet. Para los marcadores se usa aquí en lugar de <code>hdfs dfs</code> porque cada
 orden <code>hdfs dfs</code> arranca una máquina virtual de Java, que tarda más de un
@@ -10224,6 +10232,10 @@ las 18 tablas.</p>
     <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span>
     <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="c1"># fsspec envía lo que escribe en trozos de este tamaño: 4 MiB por defecto, que</span>
+<span class="c1"># para `store_sales` serían unas ochenta peticiones seguidas. 64 MiB es el</span>
+<span class="c1"># tamaño de bloque de HDFS en este clúster.</span>
+<span class="n">webhdfs</span><span class="o">.</span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
 <span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">webhdfs</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="n">tpcds_db</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -10291,7 +10303,7 @@ convierten en fechas: quedan las 18 que se van a materializar.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un bucle que se puede repetir</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Si <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> existe y su contenido es el esperado, la tabla se reutiliza</li><li style="margin:10px 0">Si falta o no coincide, se borra el directorio y DuckDB vuelve a escribirla</li><li style="margin:10px 0">El marcador se escribe sólo al terminar el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">COPY</code> y dice qué correcciones lleva la tabla: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">INE-2026</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SCD2</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FECHAS</code> o varias</li><li style="margin:10px 0">Primera ejecución: 18 materializadas; al repetir: 18 reutilizadas</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un bucle que se puede repetir</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Si <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> existe y su contenido es el esperado, la tabla se reutiliza</li><li style="margin:10px 0">Si falta o no coincide, se borra el directorio y DuckDB vuelve a escribirla</li><li style="margin:10px 0">Si HDFS rechaza una escritura, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">@retry</code> la repite hasta tres veces</li><li style="margin:10px 0">El marcador se escribe sólo al terminar el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">COPY</code> y dice qué correcciones lleva la tabla: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">INE-2026</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SCD2</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FECHAS</code> o varias</li><li style="margin:10px 0">Primera ejecución: 18 materializadas; al repetir: 18 reutilizadas</li></ul>
 </div>
 </div>
 </div>
@@ -10322,9 +10334,9 @@ está materializada con la geografía correcta y se reutiliza sin volver a
 escribirla.</li>
 <li>Si el marcador falta o no coincide —por ejemplo, quedó de una
 ejecución con otra fuente geográfica, o interrumpida a medias—,
-<code>webhdfs.rm(".../customer_address", recursive=True)</code> retira cualquier
-resto y <code>webhdfs.makedirs(...)</code> vuelve a crear el directorio vacío antes
-de que DuckDB escriba la tabla con <code>COPY</code>.</li>
+<code>write_parquet</code> empieza por <code>webhdfs.rm(".../customer_address", recursive=True)</code>, que retira cualquier resto, y <code>webhdfs.makedirs(...)</code>,
+que vuelve a crear el directorio vacío, antes de que DuckDB escriba la
+tabla con <code>COPY</code>.</li>
 <li>Al terminar el <code>COPY</code>, <code>webhdfs.write_text(".../_SUCCESS", "INE-2026")</code>
 escribe el marcador esperado. Sólo entonces la tabla cuenta como
 materializada con esa geografía.</li>
@@ -10332,6 +10344,19 @@ materializada con esa geografía.</li>
 <p>Comprobar el contenido del marcador, no sólo su existencia, es lo que
 distingue una tabla ya cruzada con el INE de una generada sin esa
 localización, y una con las versiones corregidas de una que no las tiene.</p>
+<p><strong>Reintentar una escritura rechazada.</strong> HDFS sólo deja escribir en un
+fichero a una persona —o a un programa— a la vez. DuckDB manda cada tabla a
+HDFS en varias tandas seguidas, y si una llega antes de que HDFS haya dado
+por cerrada la anterior, la rechaza con un error <code>403 Client Error</code>, aunque
+no haya ningún problema real. Pasa sobre todo cuando el ordenador va justo de
+CPU, pero cuando ocurre basta con volver a escribir la tabla. Para eso sirve
+el decorador <code>@retry</code> del paquete <code>tenacity</code>: si <code>write_parquet</code> falla, la
+vuelve a llamar, hasta tres intentos en total y con cinco segundos de pausa
+para que HDFS cierre el fichero anterior. <code>reraise=True</code> hace que, si los
+tres intentos fallan, se vea el error original de HDFS. La función repetida
+incluye el borrado y la creación del directorio, no sólo el <code>COPY</code>: un
+intento fallido deja un fichero a medio escribir, y el siguiente tiene que
+empezar de cero.</p>
 <p>Las tablas se escriben de una en una: DuckDB ya reparte el trabajo de cada
 <code>COPY</code> entre las 2 CPU del contenedor. Por cada tabla verás una línea <code>[=] tabla: ya está materializada</code> o <code>[*] tabla: escrita en N s</code>, según si
 reutiliza o reescribe; <code>store_sales</code>, con más de ocho millones de filas, es
@@ -10352,6 +10377,21 @@ esperado.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">tenacity</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry</span><span class="p">,</span> <span class="n">stop_after_attempt</span><span class="p">,</span> <span class="n">wait_fixed</span>
+
+
+<span class="nd">@retry</span><span class="p">(</span><span class="n">stop</span><span class="o">=</span><span class="n">stop_after_attempt</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait_fixed</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">reraise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_parquet</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Escribir una tabla en HDFS desde cero; si HDFS la rechaza, se repite entera."""</span>
+    <span class="k">if</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">table_path</span><span class="p">):</span>
+        <span class="n">webhdfs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">webhdfs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tpcds_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
+<span class="s2">        COPY (</span><span class="si">{</span><span class="n">table_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span><span class="si">}</span><span class="s2">)</span>
+<span class="s2">        TO 'webhdfs://</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet'</span>
+<span class="s2">        (FORMAT PARQUET, COMPRESSION ZSTD)</span>
+<span class="s2">        """</span><span class="p">)</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">materialize</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Dejar una tabla escrita en HDFS; devuelve si ha habido que generarla."""</span>
@@ -10364,15 +10404,8 @@ esperado.</p>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[=] </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: ya está materializada"</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">if</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">table_path</span><span class="p">):</span>
-        <span class="n">webhdfs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">webhdfs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">started</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
-    <span class="n">tpcds_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
-<span class="s2">        COPY (</span><span class="si">{</span><span class="n">table_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span><span class="si">}</span><span class="s2">)</span>
-<span class="s2">        TO 'webhdfs://</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet'</span>
-<span class="s2">        (FORMAT PARQUET, COMPRESSION ZSTD)</span>
-<span class="s2">        """</span><span class="p">)</span>
+    <span class="n">write_parquet</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">table_path</span><span class="p">)</span>
     <span class="n">webhdfs</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">expected_marker</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[*] </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: escrita en </span><span class="si">{</span><span class="n">perf_counter</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">started</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span>
@@ -11578,9 +11611,9 @@ función de Python:</p>
     <span class="s2">"SELECT * FROM item ORDER BY i_item_sk LIMIT 1"</span>
 <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
 <span class="c1"># DESCRIBE devuelve una fila por columna; su primer campo es el nombre.</span>
-<span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+<span class="n">item_column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Primera fila:"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">first_row</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">item_column_names</span><span class="p">,</span> <span class="n">first_row</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT count(*), count(i_item_sk), min(i_item_sk), max(i_item_sk), sum(i_item_sk)</span>
