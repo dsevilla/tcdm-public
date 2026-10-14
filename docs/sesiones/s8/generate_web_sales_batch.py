@@ -348,7 +348,7 @@ def rows_to_table(rows: list[dict[str, object]]) -> pa.Table:
             pa.field("ws_bill_addr_sk", pa.int64()),
             pa.field("ws_sold_timestamp", pa.timestamp("us")),
             pa.field("ws_sold_date", pa.date32()),
-            pa.field("ws_quantity", pa.int32()),
+            pa.field("ws_quantity", pa.int64()),
             pa.field("ws_list_price", pa.decimal128(7, 2)),
             pa.field("ws_ext_discount_amt", pa.decimal128(7, 2)),
             pa.field("ws_ext_sales_price", pa.decimal128(7, 2)),

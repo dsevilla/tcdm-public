@@ -8139,10 +8139,10 @@ como celdas de este notebook.</p>
 <p>Esta sesión asume que el clúster de S1 ya está en marcha y que S2 generó
 los Parquet de TPC-DS SF3 en <code>/datalake/raw/tpcds</code>. Si no es así, desde una
 terminal de tu equipo situada en la raíz de la distribución de sesiones:</p>
-<p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno warehouse-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-warehouse-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
+<p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno hadoop-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-hadoop-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
-make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
 <p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
 Como en S2, arráncalo desde <strong>otra terminal de tu equipo</strong> y déjala abierta
@@ -8244,8 +8244,6 @@ confirme que está.</p>
 <span class="n">polars</span>
 <span class="n">pyarrow</span>
 <span class="n">requests</span>
-<span class="c1"># Cliente de Trino; se fija la serie mayor, igual que en S6-S8.</span>
-<span class="n">trino</span><span class="o">&gt;=</span><span class="mf">0.330</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">1</span>
 <span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
 <span class="c1"># pandas dibuja con matplotlib.</span>
 <span class="n">pandas</span>
@@ -8657,8 +8655,9 @@ depende también del paralelismo (dos hilos en <code>local[2]</code>; en la secc
 YARN, uno por ejecutor). Y un fichero Parquet sólo se puede partir por sus
 <em>row groups</em>, los bloques de filas en que se organiza por dentro: si sólo
 tiene uno, uno de los trozos se lleva todas las filas y los demás quedan
-vacíos. Tras la lectura listamos los ficheros de <code>web_sales</code> para que lo
-compares.</p>
+vacíos. S2 escribió <code>web_sales</code> como un único fichero de unos 110 MiB con
+18 grupos de 122.880 filas, así que Spark puede repartirlo. Tras la lectura
+listamos los ficheros de <code>web_sales</code> para que lo compares.</p>
 </div>
 </div>
 </div>
@@ -8751,7 +8750,7 @@ ejecución que acaba de imprimir la celda anterior.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El objetivo de esta lectura no es traer SF3 completo a la memoria del
 driver: es distribuir la lectura y el cómputo entre particiones que Spark
-puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 524 MiB que
+puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 545 MiB que
 ocupan en Parquet las 18 tablas de SF3 (su tamaño exacto lo da
 <code>hdfs dfs -du -h /datalake/raw/tpcds/web_sales</code>); TPC-DS a escalas mayores (SF100, SF1000...) seguiría funcionando
 con el mismo código precisamente porque el driver nunca materializa la
@@ -9093,10 +9092,10 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 <span class="c1"># INE: país fijado a España, municipio y provincia no nulos, y código de</span>
 <span class="c1"># provincia de dos dígitos.</span>
 <span class="n">localized_addresses</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-    <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_country"</span><span class="p">))</span> <span class="o">==</span> <span class="s2">"España"</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_country"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"España"</span><span class="p">)</span>
     <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_city"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">()</span>
     <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_county"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">()</span>
-    <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_state"</span><span class="p">))</span><span class="o">.</span><span class="n">rlike</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[0-9]</span><span class="si">{2}</span><span class="s2">$"</span><span class="p">)</span>
+    <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_state"</span><span class="p">)</span><span class="o">.</span><span class="n">rlike</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[0-9]</span><span class="si">{2}</span><span class="s2">$"</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="k">assert</span> <span class="n">localized_addresses</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="n">n_customer_address</span>
 
@@ -11540,14 +11539,14 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 <p>Cada fila del informe es una partición de <code>web_sales</code>: su número, el host
 del ejecutor que la procesó y cuántas filas tenía. Mira la columna
 <code>records</code> antes de mirar los hosts: una tarea que procesa una partición con
-0 filas ha recibido trabajo, pero no lo ha hecho. Si ves una partición con
-(casi) todas las filas y las demás vacías, es la consecuencia de lo que vimos
-al leer <code>web_sales</code>: si el fichero Parquet tiene un único <em>row group</em> no se
-puede partir, y Spark reparte tareas, no filas. Que haya varios hosts en el
-informe prueba que YARN repartió <em>tareas</em> entre DataNodes; que el <em>cálculo</em>
-se repartiera depende de cuántas particiones con datos haya. Se arregla
-reparticionando antes de contar (<code>repartition(12)</code>), como proponen las
-actividades de esta sección.</p>
+0 filas ha recibido trabajo, pero no lo ha hecho. Con tres ejecutores de un
+núcleo, Spark parte el fichero de <code>web_sales</code> en tres trozos, y como el
+fichero tiene 18 <em>row groups</em> los tres reciben filas: unos cientos de miles
+cada uno. Si el fichero tuviera un único <em>row group</em> no se podría partir: una
+partición se llevaría todas las filas y las demás quedarían vacías, porque
+Spark reparte tareas, no filas. Que haya varios hosts en el informe prueba
+que YARN repartió <em>tareas</em> entre DataNodes; que el <em>cálculo</em> se repartiera
+lo dice la columna <code>records</code>.</p>
 </div>
 </div>
 </div>
@@ -11641,7 +11640,7 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el reparto y vuelve a enviarlo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Añade <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.repartition(12)</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.rdd</code> en el script y envíalo de nuevo: ¿trabajan ya los tres hosts? Mira la columna <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">records</code></li><li style="margin:10px 0">Fija <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">TCDM_SPARK_EXECUTORS=1</code> y compara hosts y duración de la aplicación en el ResourceManager</li><li style="margin:10px 0">Pide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">--executor-memory 4g</code>: ¿qué error da Spark y qué dato del clúster lo explica?</li><li style="margin:10px 0">Abre la pestaña <strong>Executors</strong> mientras corre y localiza en qué DataNode está cada ejecutor</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el reparto y vuelve a enviarlo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Añade <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.repartition(12)</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.rdd</code> en el script y envíalo de nuevo: ¿cuántas particiones procesa ahora cada host? Mira la columna <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">records</code></li><li style="margin:10px 0">Fija <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">TCDM_SPARK_EXECUTORS=1</code> y compara hosts y duración de la aplicación en el ResourceManager</li><li style="margin:10px 0">Pide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">--executor-memory 4g</code>: ¿qué error da Spark y qué dato del clúster lo explica?</li><li style="margin:10px 0">Abre la pestaña <strong>Executors</strong> mientras corre y localiza en qué DataNode está cada ejecutor</li></ul>
 </div>
 </div>
 </div>
@@ -11733,8 +11732,8 @@ del resto del notebook? ¿Qué tuvo que crearse aparte y por qué?</li>
 <li>En la sección de UDFs, ¿qué información concreta pierde Spark al no
 poder "mirar dentro" de una función Python, y qué consecuencia tiene
 eso sobre el rendimiento?</li>
-<li>En el informe de ejecutores, ¿qué significa que un host aparezca con 0
-filas? ¿Qué cambiarías en el script para repartir de verdad el cálculo?</li>
+<li>En el informe de ejecutores, ¿qué significaría que un host apareciera con
+0 filas? ¿Qué propiedad del fichero de <code>web_sales</code> evita que ocurra?</li>
 </ul>
 </div>
 </div>

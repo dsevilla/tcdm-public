@@ -7902,7 +7902,7 @@ socket de Docker.</p>
 <code>aiobotocore</code>, <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code> y <code>s3fs</code>. Respecto a
 S2 añade <code>boto3</code>, <code>aiobotocore</code> y <code>s3fs</code>, que se presentan en «Las
 bibliotecas que hablan con S3». El fichero incluye también las de S2
-(<code>trino</code>, <code>pandas</code>, <code>matplotlib</code>, <code>requests</code>), porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en
+(<code>pandas</code>, <code>matplotlib</code>, <code>requests</code>), porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en
 esa misma sección: una celda <code>%%writefile requirements.txt</code> crea el
 fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de <code>s3/</code>
 está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
@@ -8090,11 +8090,11 @@ versión nueva.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="De-un-sistema-de-ficheros-a-un-almac%C3%A9n-de-objetos">De un sistema de ficheros a un almacén de objetos<a class="anchor-link" href="#De-un-sistema-de-ficheros-a-un-almac%C3%A9n-de-objetos">¶</a></h2><p>En S2 los datos estaban en una ruta del espacio de nombres de HDFS:</p>
-<div class="highlight"><pre><span></span>hdfs:///datalake/raw/tpcds/item/part-...
+<div class="highlight"><pre><span></span>hdfs:///datalake/raw/tpcds/item/item.parquet
 </pre></div>
 <p>En S3 estarán en un <strong>bucket</strong> y, dentro de él, bajo una <strong>clave</strong>:</p>
-<div class="highlight"><pre><span></span>s3://tcdm-datalake/raw/tpcds/item/part-...
-     └─ bucket ──┘ └────────── clave ──────────┘
+<div class="highlight"><pre><span></span>s3://tcdm-datalake/raw/tpcds/item/item.parquet
+     └─ bucket ──┘ └──────── clave ────────┘
 </pre></div>
 <p>Se conserva la misma organización <em>medallion</em>: <code>raw</code> identifica la capa,
 <code>tpcds</code> la fuente y <code>item</code> la tabla. Pero ya no son directorios. Un
@@ -8209,7 +8209,7 @@ protocolo y las mismas bibliotecas que se usarían contra Amazon S3.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno warehouse-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code> (consola en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">9001</code>)</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno hadoop-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code> (consola en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">9001</code>)</li></ul>
 </div>
 </div>
 </div>
@@ -8229,7 +8229,7 @@ hiciste en S2 y sigue arrancado, puedes saltar la primera):</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno s3-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-s3-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar<span class="w">     </span><span class="c1"># trae s3/ y entorno/compose-s3.yml</span>
-make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up<span class="w">   </span><span class="c1"># si el clúster de S2 no sigue arrancado</span>
+make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up<span class="w">      </span><span class="c1"># si el clúster de S2 no sigue arrancado</span>
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>s3-up
 </pre></div>
 <p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
@@ -8397,8 +8397,6 @@ anterior.</p>
 <span class="n">polars</span>
 <span class="n">pyarrow</span>
 <span class="n">requests</span>
-<span class="c1"># Cliente de Trino; se fija la serie mayor, igual que en S6-S8.</span>
-<span class="n">trino</span><span class="o">&gt;=</span><span class="mf">0.330</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">1</span>
 <span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
 <span class="c1"># pandas dibuja con matplotlib.</span>
 <span class="n">pandas</span>
@@ -8905,7 +8903,7 @@ admite objetos mayores que una sola petición.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Pregunta guía</div>
-<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Algunos objetos no terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>: ¿cómo puede saber un lector que lo son?</li><li style="margin:10px 0">Para leer dos columnas de una tabla, ¿hace falta descargar sus objetos completos?</li></ul>
+<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Los objetos terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>, pero ningún lector mira la extensión: ¿cómo sabe que lo son?</li><li style="margin:10px 0">Para leer dos columnas de una tabla, ¿hace falta descargar sus objetos completos?</li></ul>
 </div>
 </div>
 </div>
@@ -8949,7 +8947,7 @@ las tablas: un prefijo común por cada una.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Dentro de una tabla, los objetos son los ficheros que escribió Trino en S2.
+<p>Dentro de una tabla, los objetos son los ficheros que escribió DuckDB en S2.
 Compara los de <code>item</code> en el bucket con el directorio de HDFS del que
 salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 <code>_SUCCESS</code>, que no se copió.</p>
@@ -8996,8 +8994,8 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Un-Parquet-se-reconoce-y-se-lee-por-rangos">Un Parquet se reconoce y se lee por rangos<a class="anchor-link" href="#Un-Parquet-se-reconoce-y-se-lee-por-rangos">¶</a></h3><p>Los nombres no terminan en <code>.parquet</code>, y no hace falta: un fichero Parquet
-empieza y acaba con los cuatro bytes <code>PAR1</code>. Justo antes de la firma final
+<h3 id="Un-Parquet-se-reconoce-y-se-lee-por-rangos">Un Parquet se reconoce y se lee por rangos<a class="anchor-link" href="#Un-Parquet-se-reconoce-y-se-lee-por-rangos">¶</a></h3><p>Los nombres terminan en <code>.parquet</code>, pero ningún lector se fía de la
+extensión: un fichero Parquet empieza y acaba con los cuatro bytes <code>PAR1</code>. Justo antes de la firma final
 hay un entero de cuatro bytes con el tamaño del <strong>pie</strong>, el bloque de
 metadatos que cierra el fichero: el esquema y, para cada columna, en qué
 posición empiezan sus datos y cuánto ocupan.</p>
@@ -9164,7 +9162,8 @@ bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="PyArrow">PyArrow<a class="anchor-link" href="#PyArrow">¶</a></h3><p>Es la celda de S2 con <code>object_store</code> donde antes estaba <code>webhdfs</code>:
 <code>FSSpecHandler</code> adapta cualquier filesystem de <code>fsspec</code> a la interfaz que
-espera Arrow, y <code>read_table</code> lee los fragmentos de <code>files</code>. Igual que
+espera Arrow, y <code>read_table</code> lee los objetos de <code>files</code> (aquí, uno por
+tabla). Igual que
 entonces, después del esquema se muestra la primera fila y se calcula un
 resumen de la clave <code>i_item_sk</code>: filas, valores no nulos, mínimo, máximo y
 suma.</p>
@@ -9215,7 +9214,7 @@ suma.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Polars">Polars<a class="anchor-link" href="#Polars">¶</a></h3><p>Polars tampoco cambia: abre cada objeto como un flujo binario con
 <code>object_store.open(path, "rb")</code> y se lo entrega a <code>pl.read_parquet</code>,
-concatenando los fragmentos. Reunir así la tabla en memoria sirve para una
+concatenando lo leído de cada objeto. Reunir así la tabla en memoria sirve para una
 dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</p>
 </div>
 </div>
@@ -9419,7 +9418,7 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
-<span class="s2">    SELECT trim(i_category) AS categoría, count(*) AS productos, max(i_current_price) AS precio_máximo</span>
+<span class="s2">    SELECT i_category AS categoría, count(*) AS productos, max(i_current_price) AS precio_máximo</span>
 <span class="s2">    FROM item</span>
 <span class="s2">    WHERE i_current_price &gt;= 50</span>
 <span class="s2">    GROUP BY categoría</span>
@@ -9659,8 +9658,8 @@ aparecer en el listado. ¿Qué habría pasado en HDFS al borrar el único
 fichero de un directorio?</li>
 <li>En HDFS, renombrar un directorio con mil ficheros es una operación. ¿En
 cuántas peticiones se convertiría en S3?</li>
-<li>¿Por qué un objeto sin extensión <code>.parquet</code> sigue siendo un Parquet
-válido, y con qué peticiones lo has comprobado?</li>
+<li>Si renombraras un objeto quitándole la extensión <code>.parquet</code>, ¿seguiría
+siendo un Parquet válido? ¿Con qué peticiones lo has comprobado?</li>
 <li>Para responder a la consulta por precio, ¿qué partes de cada objeto de
 <code>item</code> ha tenido que pedir DuckDB y cuáles no?</li>
 <li>¿Qué diferencia hay entre que un fichero fluya de HDFS a S3 (de

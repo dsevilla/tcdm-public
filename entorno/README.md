@@ -71,7 +71,7 @@ namenode + tres datanodeX
           │       ├── raw/tpcds ── Parquet fuente sin catálogo
           │       ├── silver    ── datos validados y enriquecidos
           │       └── gold      ── productos de datos
-          └── HDFS /warehouse ── tablas Hive e Iceberg
+          └── HDFS /warehouse ── tablas Hive e Iceberg (desde S6)
                     ▲
               Trino ─ Hive Metastore ─ PostgreSQL
 ```
@@ -127,7 +127,7 @@ distribución.
 | Visual Studio Code no consigue conectar con `http://127.0.0.1:8888` | Jupyter no está arrancado: se cerró su terminal, se pulsó `Ctrl+C` o se pararon los contenedores | Volver a lanzarlo con `make -C entorno jupyter` (o `docker exec -it namenode bash`, `su - luser` y `jupyter lab ...`) y reconectar el kernel |
 | `NameError` al usar una variable definida más arriba | El kernel se ha reiniciado y ha perdido su estado | Ejecutar de nuevo, en orden, las celdas anteriores de las que depende la sección |
 | `make -C entorno status` no muestra en marcha `namenode` y los tres `datanodeN`, o `hdfs dfsadmin -report` lista menos de tres DataNodes | El clúster está parado o todavía arrancando | `make -C entorno hadoop-up`, esperar medio minuto y repetir la comprobación. Si sigue igual, `docker logs namenode --tail=120` |
-| Errores de conexión con `trino-hdfs:8080` o `hive-metastore:9083` | El warehouse no está arrancado, o Trino sigue arrancando | `make -C entorno warehouse-up` y `make -C entorno status`. Si un servicio ha terminado con error, `docker compose -f entorno/compose-warehouse-hdfs.yml logs trino-hdfs hive-metastore` |
+| Errores de conexión con `trino-hdfs:8080` o `hive-metastore:9083` (desde la sesión 6) | El warehouse no está arrancado, o Trino sigue arrancando | `make -C entorno warehouse-up` y `make -C entorno status`. Si un servicio ha terminado con error, `docker compose -f entorno/compose-warehouse-hdfs.yml logs trino-hdfs hive-metastore` |
 | Errores de conexión con `rustfs:9000` (sesión 3) | RustFS no está arrancado | `make -C entorno s3-up` |
 | Falla una descarga: `%pip install`, un fichero de `raw.githubusercontent.com` o el conector de Iceberg al crear la `SparkSession` de las sesiones 7 y 8 | El contenedor `namenode` no tiene salida a Internet | Comprobarlo con `docker exec namenode curl -sI https://github.com` y revisar la red, la VPN o el proxy de Docker |
 | Un contenedor aparece como `Exited (137)`, o el kernel muere durante un cálculo | Docker se ha quedado sin memoria | Asignar más memoria a Docker (ver «Arrancar el clúster › Antes de empezar» en la sesión 1), parar los servicios que la sesión no use y cerrar otros notebooks que tengan una `SparkSession` abierta |
@@ -158,7 +158,7 @@ Hay dos configuraciones de Trino deliberadamente independientes:
 
 | Servicio | Configuración montada | Almacén y catálogo |
 | --- | --- | --- |
-| `trino-hdfs` | `trino-hdfs/etc` (incluye `etc/catalog`) | HDFS + Hive Metastore por Thrift; catálogos `hive`, `iceberg` y `tpcds` |
+| `trino-hdfs` | `trino-hdfs/etc` (incluye `etc/catalog`) | HDFS + Hive Metastore por Thrift; catálogos `hive` e `iceberg` |
 | `trino` | `trino/etc` (incluye `etc/catalog`) | RustFS/S3 + Polaris mediante Iceberg REST |
 
 No se debe reutilizar `trino/etc/catalog/iceberg.properties` en el servicio HDFS:
@@ -180,14 +180,8 @@ en nodos de almacenamiento ni de ejecución YARN:
 El contenedor `catalog-init` es efímero y se ejecuta al arrancar el compose.
 Espera a Trino, crea el esquema compartido `tcdm` bajo
 `/warehouse/tcdm.db` —la convención de nombres de Hive— y
-comprueba los catálogos. La generación docente de TPC-DS se ejecuta dentro de
-`s2/s2.ipynb`: así el uso de la instantánea gzip del INE, el cruce y la
-materialización forman parte de la sesión y son exactamente lo que prueba CI.
-El notebook conserva como Markdown el código de descarga y normalización para
-explicar el proceso, pero no lo ejecuta: la relación puede cambiar y la copia
-que recibe el alumnado ya está preparada en `data/ine`.
-
-Desde la raíz de la distribución:
+comprueba los catálogos. La sesión 6 es la primera que lo usa. Desde la raíz
+de la distribución:
 
 ```bash
 make -C entorno warehouse-up
@@ -197,27 +191,34 @@ El objetivo `make` se ejecuta en el host y delega las operaciones en Docker
 Compose. Primero crea la red si no existe, después arranca Hadoop y finalmente
 PostgreSQL, el metastore y Trino.
 
-Después se ejecuta `s2/s2.ipynb` completo desde Jupyter. El notebook genera
-las 18 tablas de TPC-DS SF3 que usa el curso como Parquet y deja las fuentes
-preparadas para S3–S8. Es la única forma de obtenerlas: ningún objetivo de
-`make` ni servicio de Compose genera datos.
+## Generación de TPC-DS en S2
 
-El notebook combina dos fuentes. Lee las tablas virtuales deterministas de
-`tpcds.sf3` y publica en `/datalake/raw/ine/municipios` la instantánea gzip
-normalizada de la Relación de municipios y códigos a 1 de enero de 2026 del
-INE. Trino detecta la compresión por la extensión, registra temporalmente ese
-CSV y lo cruza con las cuatro dimensiones
-que contienen direcciones: `customer_address`, `store`, `warehouse`
-y `web_site`. Los municipios, provincias, códigos provinciales y
-el país se sustituyen por valores españoles; las claves de esas dimensiones y
-sus demás columnas no cambian.
+S2 no necesita más servicios que el clúster de S1. El notebook genera las 18
+tablas de TPC-DS SF3 que usa el curso con DuckDB, dentro de su propio kernel
+en `namenode`, y las escribe como Parquet en HDFS por WebHDFS. Es la única
+forma de obtenerlas: ningún objetivo de `make` ni servicio de Compose genera
+datos.
+
+DuckDB genera TPC-DS con `dsdgen`, de su extensión `tpcds`, en una base
+temporal en el disco de `namenode` (`/tmp/tpcds/tpcds-sf3.duckdb`), con
+`memory_limit` fijado a 1 GB porque `namenode` comparte su memoria con el
+NameNode, el ResourceManager y Jupyter. La base se borra al terminar.
+
+El notebook combina dos fuentes. Lee con la extensión `excel` de DuckDB las 52
+hojas de la Relación de municipios y códigos a 1 de enero de 2026 del INE
+(`data/ine/26codmun.xlsx`), las reúne en una tabla de 8.132 municipios, la
+valida y publica el libro sin cambios en `/datalake/raw/ine/municipios`.
+Después la cruza con las cuatro dimensiones que contienen direcciones:
+`customer_address`, `store`, `warehouse` y `web_site`. Los municipios,
+provincias, códigos provinciales y el país se sustituyen por valores
+españoles; las claves de esas dimensiones y sus demás columnas no cambian.
 
 También corrige la vigencia de las versiones. Cuatro dimensiones (`item`,
 `store`, `web_page` y `web_site`) guardan varias versiones de
 cada objeto con sus fechas `rec_start_date` y `rec_end_date`, y el generador
 no enlaza siempre cada hecho con la versión vigente en su fecha: adelanta
 esas fechas un número distinto de días en cada dimensión y, en algunos
-hechos, no elige la versión por fecha. Una vista temporal,
+hechos, no elige la versión por fecha. Una tabla temporal,
 `vigencia_versiones`, deshace el adelanto y rellena las fechas de inicio
 vacías de `item`; con ella se corrigen las fechas de las cuatro dimensiones
 y se reasignan a la versión vigente `ss_store_sk`, `sr_store_sk`
@@ -233,45 +234,34 @@ con su clave de hora se funden en una columna `timestamp`
 hora, la marca de tiempo queda a medianoche. Diez tablas tienen claves de
 este tipo.
 
-El marcador `_SUCCESS` de cada tabla guarda las correcciones que lleva
-(`INE-2026`, `SCD2` y `FECHAS`, unidas con `+` cuando son varias, o vacío),
-y una tabla cuyo marcador no coincide se vuelve a generar.
+Cada tabla se escribe con un `COPY ... TO ... (FORMAT PARQUET, COMPRESSION
+ZSTD)` en un único fichero, `/datalake/raw/tpcds/<tabla>/<tabla>.parquet`,
+con grupos de 122.880 filas (el valor por defecto de DuckDB). Los hechos se
+escriben ordenados por fecha y, dentro de cada día, por ticket o pedido; las
+dimensiones, por su clave. El marcador `_SUCCESS` de cada tabla guarda las
+correcciones que lleva (`INE-2026`, `SCD2` y `FECHAS`, unidas con `+` cuando
+son varias, o vacío), y una tabla cuyo marcador no coincide se vuelve a
+generar. Al terminar hay datasets Parquet que todavía no son tablas de
+ningún catálogo: se estudian directamente mediante WebHDFS, `fsspec`,
+PyArrow, Polars y DuckDB, y se registran más adelante como tablas externas o
+se reescriben como tablas Iceberg.
 
-Después escribe tablas externas temporales y elimina sus metadatos. Los
-ficheros de negocio se conservan bajo `/datalake/raw/tpcds/<tabla>`,
-acompañados por `_SUCCESS`. Por tanto, al terminar hay datasets Parquet que
-todavía no son tablas permanentes del catálogo. Se podrán estudiar
-directamente mediante WebHDFS, `fsspec`, PyArrow y Polars, y registrar más
-adelante como tablas externas o reescribirlos como tablas Iceberg.
+La ruta no contiene `sf3`: el curso mantiene una única escala y no necesita
+otro nivel físico para distinguir versiones. `tpcds` identifica la fuente y
+cada `<tabla>` es un directorio. De las 24 tablas que genera `dsdgen` se
+excluyen las cuatro del canal de catálogo (`catalog_sales`,
+`catalog_returns`, `catalog_page` y `call_center`), que el curso no usa, y
+`date_dim` y `time_dim`, cuyas claves se guardan ya como fechas: se
+materializan 18.
 
-La ruta no contiene `sf3`: el curso mantiene una única escala, indicada por
-`TPCDS_SCALE`, y no necesita otro nivel físico para distinguir versiones.
-`tpcds` identifica la fuente y cada `<tabla>` es un directorio con uno o más
-fragmentos Parquet. Los nombres `raw` y `tpcds` los fija el notebook; Trino
-escribe en la ubicación externa que recibe.
-
-El catálogo virtual de Trino también muestra la tabla técnica
-`dbgen_version`. El notebook la excluye de forma intencionada: no es una
-tabla de negocio y su columna `time(3)` no es compatible con el escritor Hive
-que materializa estos Parquet. También excluye las cuatro tablas del canal
-de catálogo (`catalog_sales`, `catalog_returns`, `catalog_page` y
-`call_center`), que el curso no usa, y `date_dim` y `time_dim`, cuyas
-claves se guardan ya como fechas: de las 24 tablas de negocio del
-benchmark se materializan 18.
-Los nombres que genera Trino pueden no terminar en `.parquet`: el formato lo
-determinan el contenido y sus metadatos (un fichero Parquet comienza y termina
-con la firma `PAR1`), no la extensión.
-
-La generación es determinista en sus filas para una escala, versión de Trino
+La generación es determinista en sus filas para una escala, versión de DuckDB
 y edición versionada del INE dadas. La asignación ordena los 8.132 municipios
-por su código y selecciona uno aplicando `crc32` a la pareja ciudad-estado
-original de TPC-DS. No usa aleatoriedad y conserva todas las claves. El origen,
-checksum y proceso de normalización del Excel están documentados en
-`data/ine/README.md`.
-
-La división física en ficheros Parquet puede variar si cambia Trino o el grado
-de paralelismo, por lo que la igualdad que se exige al alumnado es lógica, no
-una identidad byte a byte de los Parquet.
+por su código y selecciona uno con la huella `md5_number` de la pareja
+ciudad-estado original de TPC-DS. No usa aleatoriedad y conserva todas las
+claves. El origen y la huella del Excel están documentados en
+`data/ine/README.md`. El tamaño exacto de los ficheros puede variar si cambia
+DuckDB, por lo que la igualdad que se exige al alumnado es lógica, no una
+identidad byte a byte de los Parquet.
 
 ### Identidades HDFS
 
