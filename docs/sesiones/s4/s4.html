@@ -8135,7 +8135,6 @@ los Parquet de TPC-DS SF3 en <code>/datalake/raw/tpcds</code>. Si no es así, de
 terminal de tu equipo situada en la raíz de la distribución de sesiones:</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno hadoop-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-hadoop-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
 <p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
@@ -10286,8 +10285,8 @@ sobre los mismos datos.</p>
 <span class="n">sales_by_year_local</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
 <span class="s2">        year(ws_sold_timestamp) AS sold_year,</span>
-<span class="s2">        sum(ws_net_profit) AS beneficio_neto_total,</span>
-<span class="s2">        count(DISTINCT ws_order_number) AS pedidos_distintos,</span>
+<span class="s2">        sum(ws_net_profit) AS beneficio_neto,</span>
+<span class="s2">        count(DISTINCT ws_order_number) AS pedidos,</span>
 <span class="s2">        count(*) AS lineas_de_venta</span>
 <span class="s2">    FROM web_sales</span>
 <span class="s2">    WHERE ws_sold_timestamp IS NOT NULL</span>
@@ -11164,8 +11163,8 @@ varios DataNodes.</p>
 <span class="s1">    web_sales.filter(col("ws_sold_timestamp").isNotNull())</span>
 <span class="s1">    .groupBy(year("ws_sold_timestamp").alias("sold_year"))</span>
 <span class="s1">    .agg(</span>
-<span class="s1">        spark_sum("ws_net_profit").alias("beneficio_neto_total"),</span>
-<span class="s1">        countDistinct("ws_order_number").alias("pedidos_distintos"),</span>
+<span class="s1">        spark_sum("ws_net_profit").alias("beneficio_neto"),</span>
+<span class="s1">        countDistinct("ws_order_number").alias("pedidos"),</span>
 <span class="s1">        count("*").alias("lineas_de_venta"),</span>
 <span class="s1">    )</span>
 <span class="s1">    .orderBy("sold_year")</span>
@@ -11310,6 +11309,11 @@ el navegador acaba en una dirección con el nombre <code>resourcemanager</code>,
 sustitúyelo por <code>localhost</code>. El trabajo dura poco y la interfaz desaparece
 cuando termina: la evidencia permanente de qué host procesó cada partición
 es el informe que escribe el propio script.</p>
+<p>Si mientras esperas la aplicación aparece como <code>ACCEPTED</code> en el
+ResourceManager, YARN la ha recibido pero todavía espera recursos; ese
+estado no demuestra que el cálculo haya empezado. Consulta la aplicación
+en <code>http://localhost:8088</code> y el estado de los NodeManagers antes de
+considerar otro envío.</p>
 <p>La orden imprime muchas líneas de registro de Spark y puede tardar unos minutos
 o más. La que importa está casi al final:
 <code>Hosts remotos que procesaron alguna partición: [...]</code>.</p>
@@ -11423,17 +11427,17 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 
 <span class="n">yarn_by_year</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"sold_year"</span><span class="p">]):</span> <span class="p">(</span>
-        <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"pedidos_distintos"</span><span class="p">]),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"pedidos"</span><span class="p">]),</span>
         <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"lineas_de_venta"</span><span class="p">]),</span>
-        <span class="n">Decimal</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto_total"</span><span class="p">]),</span>
+        <span class="n">Decimal</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto"</span><span class="p">]),</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">yarn_csv</span><span class="p">))</span>
 <span class="p">}</span>
 <span class="n">local_by_year</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">row</span><span class="p">[</span><span class="s2">"sold_year"</span><span class="p">]:</span> <span class="p">(</span>
-        <span class="n">row</span><span class="p">[</span><span class="s2">"pedidos_distintos"</span><span class="p">],</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">"pedidos"</span><span class="p">],</span>
         <span class="n">row</span><span class="p">[</span><span class="s2">"lineas_de_venta"</span><span class="p">],</span>
-        <span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto_total"</span><span class="p">],</span>
+        <span class="n">row</span><span class="p">[</span><span class="s2">"beneficio_neto"</span><span class="p">],</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">sales_by_year_local_rows</span>
 <span class="p">}</span>
@@ -11775,6 +11779,22 @@ más lenta que una función integrada;</li>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Detener-el-laboratorio">Detener el laboratorio<a class="anchor-link" href="#Detener-el-laboratorio">¶</a></h2><p>Cuando hayas guardado el notebook y terminado de revisar las evidencias,
+ejecuta <code>make -C entorno stop</code> en una terminal de tu equipo, desde la raíz
+de la distribución. Se detienen los servicios Compose incluidos en
+<code>entorno/</code> (también RustFS) y Jupyter, pero se conservan los volúmenes
+HDFS y los resultados; para continuar, ejecuta <code>make -C entorno hadoop-up</code>
+y vuelve a iniciar Jupyter como en «Antes de empezar».</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=185">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

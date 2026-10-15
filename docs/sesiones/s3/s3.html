@@ -7972,7 +7972,7 @@ Descarga <code>entorno/python_utils/tcdm_esquema.py</code> del repositorio públ
 <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>), porque el kernel se ejecuta en
 <code>namenode</code>, que no ve tu copia de la distribución. Si el fichero ya está en
 el directorio de trabajo del kernel, se conserva; bórralo para traer una
-versión nueva.</p>
+versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a Internet.</p>
 </div>
 </div>
 </div>
@@ -8221,10 +8221,12 @@ sesiones, en una terminal de tu equipo</strong>, no en este notebook (si ya lo
 hiciste en S2 y sigue arrancado, puedes saltar la primera):</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno s3-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-s3-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar<span class="w">     </span><span class="c1"># trae s3/ y entorno/compose-s3.yml</span>
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up<span class="w">      </span><span class="c1"># si el clúster de S2 no sigue arrancado</span>
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>s3-up
 </pre></div>
+<p>Más adelante, <code>hdfs dfs -ls</code> muestra la ruta que S2 dejó. Si no existe,
+completa primero la generación de datos de S2: esta sesión copia esos
+Parquet, no los vuelve a crear.</p>
 <p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
 Igual que en S2, el servidor se arranca dentro del contenedor.</p>
 <p>Abre <strong>otra terminal de tu equipo</strong> y entra en el contenedor <code>namenode</code>:</p>
@@ -8718,6 +8720,9 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
     <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span>
     <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="k">assert</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+    <span class="n">HDFS_ROOT</span>
+<span class="p">),</span> <span class="sa">f</span><span class="s2">"No existe </span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">. Completa primero la generación de datos de S2."</span>
 <span class="c1"># fsspec lee en trozos de este tamaño: 4 MiB por defecto. 64 MiB es el tamaño</span>
 <span class="c1"># de bloque de HDFS en este clúster.</span>
 <span class="n">webhdfs</span><span class="o">.</span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
@@ -8730,7 +8735,11 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> ficheros Parquet de </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> tablas. Los tres primeros:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">hdfs_files</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">18</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">18</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"S2 debe haber dejado 18 tablas Parquet bajo </span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">; "</span>
+    <span class="sa">f</span><span class="s2">"se encontraron </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">table_names</span><span class="p">)</span><span class="si">}</span><span class="s2">. "</span>
+    <span class="s2">"Completa primero la generación de datos de S2 y vuelve a comprobar."</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8902,11 +8911,15 @@ las tablas: un prefijo común por cada una.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="n">tables</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
-<span class="n">table_prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span><span class="p">[</span><span class="s2">"Prefix"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[</span><span class="s2">"CommonPrefixes"</span><span class="p">]]</span>
+<span class="n">table_prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span><span class="p">[</span><span class="s2">"Prefix"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">tables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CommonPrefixes"</span><span class="p">,</span> <span class="p">[])]</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span><span class="si">}</span><span class="s2"> prefijos de tabla:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">table_prefixes</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">18</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">18</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"Se esperaban 18 prefijos de tabla en s3://</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/ "</span>
+    <span class="sa">f</span><span class="s2">"y hay </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span><span class="si">}</span><span class="s2">. "</span>
+    <span class="s2">"Ejecuta antes la sección «Copiar raw/tpcds de HDFS al bucket»."</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9230,7 +9243,9 @@ dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</
 <h3 id="DuckDB">DuckDB<a class="anchor-link" href="#DuckDB">¶</a></h3><p>DuckDB sí cambia de camino. En S2 se le registró el filesystem de <code>fsspec</code>;
 aquí se usa su extensión <code>httpfs</code>, que entiende directamente las URL
 <code>s3://</code>. Es lo habitual con DuckDB sobre un almacén de objetos, porque el
-motor decide por sí mismo qué rangos de cada objeto pedir.</p>
+motor decide por sí mismo qué rangos de cada objeto pedir. La primera
+orden <code>INSTALL httpfs</code> descarga la extensión y requiere acceso a Internet
+desde <code>namenode</code>; <code>LOAD httpfs</code> la activa en esta conexión.</p>
 <p>Como <code>httpfs</code> no usa el SDK de AWS, hay que darle la configuración en su
 propio formato, un <em>secreto</em> de tipo <code>s3</code>. Las credenciales y la región se
 toman de las mismas variables de entorno. Tres campos son propios de un
@@ -9592,7 +9607,7 @@ notebook tampoco puede borrarte los datos por accidente):</p>
 </thead>
 <tbody>
 <tr>
-<td>Detener RustFS conservando sus objetos</td>
+<td>Eliminar los contenedores de S3 y conservar sus objetos</td>
 <td><code>docker compose -f entorno/compose-s3.yml down</code></td>
 <td>Los objetos siguen en el volumen Docker; se recupera con <code>make -C entorno s3-up</code>.</td>
 </tr>
@@ -9607,9 +9622,12 @@ notebook tampoco puede borrarte los datos por accidente):</p>
 Hadoop ni el HDFS de la sesión 1, que desde la Sesión 1 vive en volúmenes
 Docker con nombre propios y solo se borra de forma explícita con
 <code>make -C entorno clean-hdfs</code>.</p>
-<p>Si en vez de las órdenes anteriores usas <code>make -C entorno clean</code>, también se
-borra el volumen de RustFS de esta sesión (<code>clean</code> hace <code>down -v</code> sobre el
-Compose de S3), aunque conserva el HDFS por el motivo anterior.</p>
+<p><code>make -C entorno clean</code> tiene un alcance mayor: además del bucket de RustFS
+de esta sesión, borra —si están incluidos esos Compose y existen sus volúmenes— el
+volumen PostgreSQL del Hive Metastore y los objetos del RustFS separado de
+Iceberg. Conserva HDFS; para borrar también HDFS
+existe <code>clean-hdfs</code>, que no debes usar mientras las
+sesiones posteriores dependan de ellos.</p>
 </div>
 </div>
 </div>

@@ -7916,12 +7916,12 @@ Docker Desktop esté instalado y en ejecución.</p>
 tenerlo instalado; el motor debe estar realmente arrancado).</p>
 </li>
 <li><p><strong>Instala Visual Studio Code</strong> con las extensiones <strong>WSL</strong>, <strong>Python</strong> y
-<strong>Jupyter</strong>. Abre el proyecto <em>desde dentro</em> de WSL2 —por ejemplo,
-ejecutando <code>code .</code> desde una terminal de Ubuntu, o con "Connect to WSL"
-desde la paleta de comandos—, no como una carpeta nativa de Windows. Es
-preferible clonar el repositorio dentro del sistema de ficheros de WSL2
-(p. ej. <code>~/tcdm-public</code>) en lugar de <code>/mnt/c/...</code>: además de evitar problemas de
-integración, el rendimiento de E/S es mucho mejor.</p>
+<strong>Jupyter</strong>. Después de clonar el material, conecta VS Code a tu
+distribución con la orden de la paleta de comandos <strong>WSL: Connect to
+WSL</strong> y, desde <strong>File → Open Folder</strong>, selecciona la carpeta
+<code>tcdm-public</code> que clonaste en el directorio personal de WSL2. Clonar dentro
+del sistema de ficheros de WSL2 (en lugar de <code>/mnt/c/...</code>) evita
+problemas de integración y mejora el rendimiento de E/S.</p>
 </li>
 <li><p><strong>El kernel del notebook será un Python de WSL2</strong> (no uno de Windows) y
 lo prepara Visual Studio Code. Al abrir <code>s1/s1.ipynb</code>, pulsa <strong>Select
@@ -7977,24 +7977,16 @@ contenedor <code>namenode</code>.</p>
 <a href="https://github.com/dsevilla/tcdm-public"><code>dsevilla/tcdm-public</code></a>, rama
 <code>26-27</code>. En una terminal de tu equipo (en Windows, la terminal de Ubuntu de
 WSL2):</p>
-<p align="center" style="text-align: center;"><img alt="Animación: en una terminal de tu equipo (host) se teclean git clone, cd tcdm-public y code . &amp;" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-git-clone.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>--branch<span class="w"> </span><span class="m">26</span>-27<span class="w"> </span>https://github.com/dsevilla/tcdm-public.git<span class="w"> </span>~/tcdm-public
 <span class="nb">cd</span><span class="w"> </span>~/tcdm-public
 </pre></div>
-<p>La animación abrevia la orden de clonado: la completa es la del bloque
-anterior, que fija la rama <code>26-27</code> y el directorio de destino. Su última
-orden, <code>code . &amp;</code>, abre la carpeta en Visual Studio Code y devuelve el
-control a la terminal.</p>
 <p>A este directorio (<code>~/tcdm-public</code>) lo llamaremos <strong>raíz de la distribución</strong>.
 Contiene un directorio por sesión (<code>s1/</code>, <code>s2/</code>, ...) y <code>entorno/</code>, con los
 ficheros Docker Compose y el <code>Makefile</code> del laboratorio. <code>entorno/</code> crece a
-medida que se publican sesiones: cada una trae sólo lo que necesita. Antes de
-empezar una sesión nueva, actualiza la copia desde la raíz:</p>
-<div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
-</pre></div>
-<p>Esta orden trae el material nuevo. Si habías modificado un fichero que
-también cambia en la versión publicada, guarda tu versión en una copia al
-lado (<code>s1/s1.ipynb</code> pasa a <code>s1/s1.mio-&lt;fecha&gt;-&lt;hora&gt;.ipynb</code>).</p>
+medida que se publican sesiones: cada una trae sólo lo que necesita. La
+celda siguiente explica cómo actualizar la copia antes de empezar una sesión.
+Si un fichero modificado también cambia en la versión publicada, se conserva
+una copia <code>.mio-&lt;fecha&gt;-&lt;hora&gt;</code> junto al original.</p>
 </div>
 </div>
 </div>
@@ -9055,7 +9047,19 @@ ejecución.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Reanudar-en-Visual-Studio-Code">Reanudar en Visual Studio Code<a class="anchor-link" href="#Reanudar-en-Visual-Studio-Code">¶</a></h3><p>A partir de aquí las órdenes modifican el estado de Docker en tu equipo, así
+que conviene abrir el cuaderno en Visual Studio Code.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9070,7 +9074,7 @@ ejecución.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9082,7 +9086,7 @@ gestionan con el complemento Compose v2, invocado como parte de la orden
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9097,7 +9101,7 @@ gestionan con el complemento Compose v2, invocado como parte de la orden
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9111,7 +9115,7 @@ disponible.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9122,18 +9126,6 @@ disponible.</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>docker<span class="w"> </span>info
 </pre></div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Reanudar-en-Visual-Studio-Code">Reanudar en Visual Studio Code<a class="anchor-link" href="#Reanudar-en-Visual-Studio-Code">¶</a></h3><p>A partir de aquí las órdenes modifican el estado de Docker en tu equipo, así
-que conviene abrir el cuaderno en Visual Studio Code.</p>
 </div>
 </div>
 </div>

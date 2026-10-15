@@ -8056,11 +8056,9 @@ kernel ya está dentro de <code>namenode</code>. Al revés, este notebook no pue
 <code>docker</code>, porque el contenedor no tiene acceso al Docker de tu equipo.</p>
 <h3 id="Arrancar-el-cl%C3%BAster">Arrancar el clúster<a class="anchor-link" href="#Arrancar-el-cl%C3%BAster">¶</a></h3><p>Abre una terminal de tu equipo (en Windows, la terminal de Ubuntu de WSL2
 que preparaste en S1) y sitúate en la raíz de la distribución: el directorio
-que contiene <code>s1/</code>, <code>s2/</code> y <code>entorno/</code>. Actualiza la copia, porque esta sesión
-añade <code>s2/</code> y nuevos ficheros de <code>entorno/</code>, y arranca el clúster de S1:</p>
+que contiene <code>s1/</code>, <code>s2/</code> y <code>entorno/</code>. Arranca el clúster de S1:</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno hadoop-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-hadoop-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
 <p><code>actualizar</code> trae la versión publicada y aparta como copia <code>.mio</code> lo que hayas
@@ -12047,9 +12045,9 @@ utilizando: fichero Parquet, tabla Arrow y DataFrame.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Las-medidas-de-este-notebook">Las medidas de este notebook<a class="anchor-link" href="#Las-medidas-de-este-notebook">¶</a></h2><p>Las consultas de las secciones siguientes usan siempre las mismas medidas, con
-los nombres que aparecen en sus salidas. Entre canales cambia el prefijo de las
-columnas (<code>ws_</code> en web, <code>ss_</code> en tienda), pero no el nombre
+<h2 id="Las-medidas-de-este-notebook">Las medidas de este notebook<a class="anchor-link" href="#Las-medidas-de-este-notebook">¶</a></h2><p>Las consultas de las secciones siguientes usan siempre las mismas medidas,
+con nombres estables que reutilizaremos en las sesiones siguientes. Entre
+canales cambia el prefijo de las columnas (<code>ws_</code> en web, <code>ss_</code> en tienda), pero no el nombre
 de la medida. La tabla usa las columnas de web.</p>
 <table>
 <thead>
@@ -12061,7 +12059,7 @@ de la medida. La tabla usa las columnas de web.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>líneas</code></td>
+<td><code>lineas_de_venta</code></td>
 <td><code>count(*)</code></td>
 <td>Filas del hecho: cada línea de venta, es decir, un producto dentro de un pedido. No es un pedido.</td>
 </tr>
@@ -12083,17 +12081,22 @@ de la medida. La tabla usa las columnas de web.</p>
 <tr>
 <td><code>ventas</code></td>
 <td><code>sum(ws_ext_sales_price)</code></td>
-<td>Importe de venta de la línea. Los ejemplos no usan <code>ws_net_paid</code>.</td>
+<td>Suma del importe de venta por línea. Los ejemplos no usan <code>ws_net_paid</code>.</td>
 </tr>
 <tr>
-<td><code>beneficio</code></td>
+<td><code>beneficio_neto</code></td>
 <td><code>sum(ws_net_profit)</code></td>
-<td>Beneficio neto de la línea.</td>
+<td>Suma del beneficio neto por línea.</td>
 </tr>
 </tbody>
 </table>
-<p>Al agregar, <code>líneas</code> cuenta filas, <code>pedidos</code> y <code>tickets</code> cuentan valores
-distintos, y <code>unidades</code>, <code>ventas</code> y <code>beneficio</code> suman sobre las líneas.</p>
+<p>Al agregar, <code>lineas_de_venta</code> cuenta filas, <code>pedidos</code> y <code>tickets</code> cuentan
+valores distintos, y <code>unidades</code>, <code>ventas</code> y <code>beneficio_neto</code> suman sobre las
+líneas. En esta sesión el beneficio por línea conserva el nombre de
+columna <code>ws_net_profit</code>; <code>beneficio_neto</code> es el alias que usarán las
+sesiones que agreguen esa medida. Los alias de columna no llevan tildes,
+para poder reutilizarlos en Python y en los ficheros que se escribirán
+después.</p>
 </div>
 </div>
 </div>
@@ -12548,7 +12551,7 @@ versiones».</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">outside_validity</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">Table</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
 <span class="s2">        'web_sales → item' AS enlace,</span>
-<span class="s2">        count(*) AS líneas,</span>
+<span class="s2">        count(*) AS lineas_de_venta,</span>
 <span class="s2">        count(*) FILTER (</span>
 <span class="s2">            WHERE NOT (</span>
 <span class="s2">                CAST(web_sales.ws_sold_timestamp AS DATE) BETWEEN item.i_rec_start_date</span>
@@ -12637,9 +12640,11 @@ ws_bill_addr_sk
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Ésta es la línea tal como está guardada. Sabemos cuántas unidades se
-vendieron, por cuánto y cuándo, pero el producto, el cliente y el
-domicilio son números que por sí solos no dicen nada:</p>
+<p>Ésta es la línea tal como está guardada. La consulta usa <code>.df()</code> para
+convertir el resultado de DuckDB en un <code>DataFrame</code> de pandas; <code>pd</code> es el
+alias habitual de esa biblioteca. Más abajo, <code>.loc[0, "ws_item_sk"]</code> permite
+leer el valor de una columna en la primera fila; todavía no sabemos qué
+producto, cliente y domicilio representan esos números:</p>
 </div>
 </div>
 </div>
@@ -13816,7 +13821,7 @@ una sola tabla y el nombre del canal se escribe como una constante.</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">sales_by_channel</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
 <span class="s2">        'tienda' AS canal,</span>
-<span class="s2">        count(*) AS líneas,</span>
+<span class="s2">        count(*) AS lineas_de_venta,</span>
 <span class="s2">        sum(ss_quantity) AS unidades,</span>
 <span class="s2">        sum(ss_ext_sales_price) AS ventas</span>
 <span class="s2">    FROM store_sales</span>
@@ -14041,7 +14046,7 @@ agrupar: el año con <code>year()</code>, el mes con <code>month()</code>, el tr
 <span class="n">sales_period</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">date</span><span class="p">]]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
 <span class="s2">        year(ss_sold_timestamp) AS año,</span>
-<span class="s2">        count(*) AS líneas,</span>
+<span class="s2">        count(*) AS lineas_de_venta,</span>
 <span class="s2">        min(CAST(ss_sold_timestamp AS DATE)) AS primera,</span>
 <span class="s2">        max(CAST(ss_sold_timestamp AS DATE)) AS última</span>
 <span class="s2">    FROM store_sales</span>
@@ -14237,7 +14242,7 @@ porque hay nombres que se repiten en provincias distintas.</p>
 
 <span class="n">lines_with_address</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">Table</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
-<span class="s2">        count(*) AS líneas,</span>
+<span class="s2">        count(*) AS lineas_de_venta,</span>
 <span class="s2">        count(ss_addr_sk) AS con_dirección</span>
 <span class="s2">    FROM store_sales</span>
 <span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">to_arrow_table</span><span class="p">()</span>
@@ -14385,7 +14390,7 @@ compran realmente en este canal:</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">store_buyers</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">Table</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
 <span class="s2">        count(DISTINCT ss_customer_sk) AS clientes_con_compras,</span>
-<span class="s2">        count(*) - count(ss_customer_sk) AS líneas_sin_cliente</span>
+<span class="s2">        count(*) - count(ss_customer_sk) AS lineas_sin_cliente</span>
 <span class="s2">    FROM store_sales</span>
 <span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">to_arrow_table</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">from_arrow</span><span class="p">(</span><span class="n">store_buyers</span><span class="p">))</span>

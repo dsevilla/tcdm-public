@@ -8169,7 +8169,6 @@ mensaje claro si no existen o si su esquema no es el esperado.</li>
 de tu equipo situada en la raíz de la distribución de sesiones:</p>
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno warehouse-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-warehouse-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
-make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>actualizar
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>warehouse-up
 </pre></div>
 <p>Este notebook se ejecuta en el Jupyter de <code>namenode</code>, que no arranca solo.
@@ -9577,13 +9576,13 @@ tabla Iceberg v2.</p>
     <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">count</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s2">"count"</span><span class="p">,</span> <span class="s2">"lineas"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"lineas"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s2">"count"</span><span class="p">,</span> <span class="s2">"lineas_de_venta"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"lineas_de_venta"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 <span class="p">)</span>
 <span class="n">LAB_YEAR</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lab_year_counts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"sold_year"</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span>
-    <span class="sa">f</span><span class="s2">"Año elegido para las tablas de laboratorio: </span><span class="si">{</span><span class="n">LAB_YEAR</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">lab_year_counts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'lineas'</span><span class="p">]</span><span class="si">}</span><span class="s2"> líneas)"</span>
+    <span class="sa">f</span><span class="s2">"Año elegido para las tablas de laboratorio: </span><span class="si">{</span><span class="n">LAB_YEAR</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">lab_year_counts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'lineas_de_venta'</span><span class="p">]</span><span class="si">}</span><span class="s2"> líneas)"</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -10384,6 +10383,31 @@ equivalente en S1 (clúster Hadoop) es el borrado de volúmenes con
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Cerrar-la-sesi%C3%B3n-de-Spark">Cerrar la sesión de Spark<a class="anchor-link" href="#Cerrar-la-sesi%C3%B3n-de-Spark">¶</a></h3><p>Cuando hayas terminado cualquier limpieza opcional que uses con <code>spark.sql</code>, cierra el driver local. Esto libera memoria en <code>namenode</code> y deja disponible el puerto 4040; la consulta de streaming ya se ha detenido arriba con <code>query.stop()</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Preguntas-para-interpretar-la-experiencia">Preguntas para interpretar la experiencia<a class="anchor-link" href="#Preguntas-para-interpretar-la-experiencia">¶</a></h2><ul>
 <li>¿Por qué <code>readStream</code> exige un esquema explícito cuando <code>spark.read.parquet</code>
 de las sesiones anteriores podía inferirlo?</li>
@@ -10416,7 +10440,7 @@ simulado, los datos llegaran realmente por Kafka? ¿Qué parte del
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10474,7 +10498,7 @@ evidencia de que la ingesta continua es correcta.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10499,7 +10523,7 @@ evidencia de que la ingesta continua es correcta.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
