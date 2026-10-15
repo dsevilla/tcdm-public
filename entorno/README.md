@@ -204,11 +204,12 @@ temporal en el disco de `namenode` (`/tmp/tpcds/tpcds-sf3.duckdb`), con
 `memory_limit` fijado a 1 GB porque `namenode` comparte su memoria con el
 NameNode, el ResourceManager y Jupyter. La base se borra al terminar.
 
-El notebook combina dos fuentes. Lee con la extensión `excel` de DuckDB las 52
-hojas de la Relación de municipios y códigos a 1 de enero de 2026 del INE
-(`data/ine/26codmun.xlsx`), las reúne en una tabla de 8.132 municipios, la
-valida y publica el libro sin cambios en `/datalake/raw/ine/municipios`.
-Después la cruza con las cuatro dimensiones que contienen direcciones:
+El notebook combina dos fuentes. Lee con `read_csv` de DuckDB el fichero de
+municipios del Nomenclátor Geográfico del IGN, edición de 2026
+(`data/ign/MUNICIPIOS.csv.gz`), con los códigos y la población del INE, la
+superficie y las coordenadas, lo normaliza en una tabla de 8.132 municipios, la
+valida, calcula la densidad de población y publica el CSV sin cambios en
+`/datalake/raw/ign/municipios`. Después la cruza con las cuatro dimensiones que contienen direcciones:
 `customer_address`, `store`, `warehouse` y `web_site`. Los municipios,
 provincias, códigos provinciales y el país se sustituyen por valores
 españoles; las claves de esas dimensiones y sus demás columnas no cambian.
@@ -255,11 +256,11 @@ excluyen las cuatro del canal de catálogo (`catalog_sales`,
 materializan 18.
 
 La generación es determinista en sus filas para una escala, versión de DuckDB
-y edición versionada del INE dadas. La asignación ordena los 8.132 municipios
+y edición versionada del Nomenclátor dadas. La asignación ordena los 8.132 municipios
 por su código y selecciona uno con la huella `md5_number` de la pareja
 ciudad-estado original de TPC-DS. No usa aleatoriedad y conserva todas las
-claves. El origen y la huella del Excel están documentados en
-`data/ine/README.md`. El tamaño exacto de los ficheros puede variar si cambia
+claves. El origen, la huella y la licencia del CSV están documentados en
+`data/ign/README.md`. El tamaño exacto de los ficheros puede variar si cambia
 DuckDB, por lo que la igualdad que se exige al alumnado es lógica, no una
 identidad byte a byte de los Parquet.
 

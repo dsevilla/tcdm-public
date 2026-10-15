@@ -9090,8 +9090,8 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 <span class="k">assert</span> <span class="n">n_customer</span> <span class="o">==</span> <span class="mi">188_000</span>
 <span class="k">assert</span> <span class="n">n_customer_address</span> <span class="o">==</span> <span class="mi">94_000</span>
 
-<span class="c1"># Mismo filtro que usó S2 para reconocer las direcciones ya cruzadas con el</span>
-<span class="c1"># INE: país fijado a España, municipio y provincia no nulos, y código de</span>
+<span class="c1"># Mismo filtro que usó S2 para reconocer las direcciones ya cruzadas con los</span>
+<span class="c1"># municipios del IGN: país fijado a España, municipio y provincia no nulos, y código de</span>
 <span class="c1"># provincia de dos dígitos.</span>
 <span class="n">localized_addresses</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
     <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_country"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"España"</span><span class="p">)</span>
@@ -9220,7 +9220,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 <div class="highlight hl-python"><pre><span></span><span class="n">left_semi</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">web_sales_slim</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">localized_addresses</span><span class="p">,</span> <span class="n">join_expr</span><span class="p">,</span> <span class="s2">"left_semi"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span>
     <span class="sa">f</span><span class="s2">"LEFT SEMI JOIN: </span><span class="si">{</span><span class="n">left_semi</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2"> filas de web_sales cuyo domicilio existe"</span>
-    <span class="s2">" y está localizado (municipio del INE) en customer_address."</span>
+    <span class="s2">" y está localizado (municipio del IGN) en customer_address."</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -10199,7 +10199,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Provincia-con-m%C3%A1s-compras">Provincia con más compras<a class="anchor-link" href="#Provincia-con-m%C3%A1s-compras">¶</a></h3><p>S2 cruzó las direcciones sintéticas con la relación municipal del INE.
+<h3 id="Provincia-con-m%C3%A1s-compras">Provincia con más compras<a class="anchor-link" href="#Provincia-con-m%C3%A1s-compras">¶</a></h3><p>S2 cruzó las direcciones sintéticas con los municipios del IGN.
 <code>ca_county</code> contiene ahora la provincia y <code>ca_state</code> su código INE de dos
 caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
