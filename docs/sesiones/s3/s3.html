@@ -8434,6 +8434,11 @@ cambiando el entorno, sin tocar una línea.</p>
 <td><code>tcdm_student_secret</code></td>
 </tr>
 <tr>
+<td><code>AWS_SESSION_TOKEN</code></td>
+<td>Token de sesión de las credenciales temporales</td>
+<td>no se define; sólo hace falta con credenciales temporales de AWS, como las de un laboratorio de AWS Academy</td>
+</tr>
+<tr>
 <td><code>AWS_DEFAULT_REGION</code></td>
 <td>Región del bucket</td>
 <td><code>us-east-1</code>; RustFS no distingue regiones, pero la firma de cada petición incluye una</td>
@@ -8457,6 +8462,8 @@ así que valen para todas las celdas que siguen:</p>
 <div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">env</span> <span class="n">AWS_ENDPOINT_URL</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">rustfs</span><span class="p">:</span><span class="mi">9000</span>
 <span class="o">%</span><span class="n">env</span> <span class="n">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="n">tcdm_student</span>
 <span class="o">%</span><span class="n">env</span> <span class="n">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="n">tcdm_student_secret</span>
+<span class="c1"># Sólo con credenciales temporales de AWS (por ejemplo, AWS Academy):</span>
+<span class="c1"># %env AWS_SESSION_TOKEN=&lt;token de sesión&gt;</span>
 <span class="o">%</span><span class="n">env</span> <span class="n">AWS_DEFAULT_REGION</span><span class="o">=</span><span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span>
 </pre></div>
 </div>
@@ -9548,12 +9555,28 @@ Para repetir la sesión contra un bucket de Amazon S3 cambiaría esto:</p>
 <tr>
 <td>Secreto de DuckDB</td>
 <td><code>ENDPOINT</code>, <code>USE_SSL false</code>, <code>URL_STYLE 'path'</code></td>
-<td>sin esos tres campos; por ejemplo, <code>CREATE SECRET (TYPE s3, PROVIDER credential_chain)</code>, que toma las credenciales de la cadena estándar de AWS (variables de entorno, perfil o rol)</td>
+<td>sin esos tres campos y con <code>PROVIDER credential_chain</code>, que toma las credenciales de las variables <code>AWS_*</code></td>
 </tr>
 </tbody>
 </table>
 <p>Las celdas de boto3, <code>s3fs</code>, PyArrow y Polars no cambiarían. Tampoco el
-SQL de DuckDB, sólo su secreto.</p>
+SQL de DuckDB, sólo su secreto, que pasaría a ser:</p>
+<div class="highlight"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    CREATE OR REPLACE SECRET tcdm_s3 (</span>
+<span class="sd">        TYPE s3,</span>
+<span class="sd">        PROVIDER credential_chain,</span>
+<span class="sd">        CHAIN 'env'</span>
+<span class="sd">    )</span>
+<span class="sd">    """</span>
+<span class="p">)</span>
+</pre></div>
+<p><code>CHAIN 'env'</code> limita la búsqueda a las variables de entorno, las mismas
+que usa boto3. DuckDB incluye <code>AWS_SESSION_TOKEN</code> si está definida y la
+ignora si no lo está, así que sirve igual con credenciales permanentes.
+El secreto no lleva endpoint, <code>USE_SSL</code> ni <code>URL_STYLE</code>: los valores por
+defecto de DuckDB ya son los de Amazon S3. Esta celda no se ejecuta en el
+laboratorio, porque RustFS necesita el secreto de la sección anterior.</p>
 <p>El estilo de las URL merece una frase. Amazon S3 pone el bucket en el
 nombre del servidor (<code>tcdm-datalake.s3.us-east-1.amazonaws.com</code>), lo que
 exige que ese nombre exista en el DNS. En un servicio local no existe, y
