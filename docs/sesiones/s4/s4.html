@@ -7873,18 +7873,12 @@ materializado original de <code>/datalake/raw/tpcds</code> y se evita modificarl
 durante los ejercicios: las transformaciones de Spark escribirán sus
 salidas en rutas de trabajo separadas, bajo <code>/user/luser/s4</code>.</p>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>.
-Respecto a S3 añade <code>pyspark</code>. El fichero incluye también las de S2 y S3,
-porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en la sección
-«Instalar PySpark en este notebook»: una celda <code>%%writefile requirements.txt</code> crea
-el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
-<code>s4/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
-<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
-paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
-intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
-confirme que están; ejecuta
-esas celdas de todos modos: dejan explícito qué necesita la sesión y
-reparan el entorno si falta algo.</p>
+<p><strong>Paquetes de Python de esta sesión.</strong> S4 usa <code>pyspark</code> para leer y
+transformar Parquet con Spark, tanto localmente como en YARN. Todos los
+notebooks de S2-S8 instalan la lista común publicada como
+<code>entorno/requirements.txt</code>, que reúne los paquetes utilizados a lo largo del
+curso. La imagen de <code>namenode</code> ya trae esa lista en <code>/opt/tcdm/venv</code>, el
+intérprete del kernel; lo normal es que <code>%pip</code> confirme que están.</p>
 </blockquote>
 </div>
 </div>
@@ -8208,68 +8202,26 @@ la <code>SparkSession</code>.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Instalar-PySpark-en-este-notebook">Instalar PySpark en este notebook<a class="anchor-link" href="#Instalar-PySpark-en-este-notebook">¶</a></h2><p>El kernel de este notebook instalará PySpark directamente sobre sí mismo,
-igual que S2 y S3 instalaron PyArrow, Polars o DuckDB. Esta instalación es
-la que usaremos para <strong>todos los ejemplos en modo local</strong> del notebook: una
-única <code>SparkSession</code> construida más abajo y reutilizada en la mayoría de
-las secciones. La sección "Driver, ejecutores y YARN" no reutiliza esa
-<code>SparkSession</code>, porque no se puede cambiar el <code>master</code> de una sesión ya
-construida: lanza un proceso aparte con <code>spark-submit</code>, pero con este mismo
-PySpark del entorno <code>/opt/tcdm/venv</code>.</p>
-<p>La celda siguiente crea <code>requirements.txt</code> con <code>%%writefile</code> dentro de
-<code>namenode</code> —el de tu copia de la distribución está en tu equipo y el kernel no
-lo ve— y la posterior lo instala con <code>%pip</code> en el intérprete del kernel. La
-imagen de <code>namenode</code> ya trae PySpark, así que lo normal es que <code>%pip</code> sólo
-confirme que está.</p>
+<h2 id="Instalar-PySpark-en-este-notebook">Instalar PySpark en este notebook<a class="anchor-link" href="#Instalar-PySpark-en-este-notebook">¶</a></h2><p>El kernel de este notebook instala PySpark sobre sí mismo. Usaremos esa
+instalación para los ejemplos en modo local y para el proceso aparte que se
+lanza con <code>spark-submit</code> en la sección «Driver, ejecutores y YARN».</p>
+<p>La distribución publica una sola lista común en <code>entorno/requirements.txt</code>.
+La celda siguiente la lee directamente con <code>%pip</code> desde su URL pública, que
+aparece en la celda de código. La lista reúne las dependencias usadas desde
+S2 hasta S8; no hay que escoger una distinta para cada sesión. La imagen de
+<code>namenode</code> ya trae esos paquetes en <code>/opt/tcdm/venv</code>, así que lo normal es que
+<code>%pip</code> confirme que están.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-<span class="c1"># Dependencias de la sesión 4, acumulativas: incluyen las de S2 y S3. El notebook</span>
-<span class="c1"># sobrescribe este fichero en el kernel, así que debe llevarlo todo.</span>
-
-<span class="c1"># De S2</span>
-<span class="c1"># WebHDFS de fsspec utiliza requests para sus peticiones HTTP.</span>
-<span class="n">duckdb</span>
-<span class="c1"># DuckDB consulta modified() al registrar WebHDFS como filesystem.</span>
-<span class="n">fsspec</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-<span class="n">polars</span><span class="o">&gt;=</span><span class="mf">2.0</span>
-<span class="n">pyarrow</span>
-<span class="n">requests</span>
-<span class="c1"># Reintenta la escritura de una tabla en HDFS cuando falla (S2).</span>
-<span class="n">tenacity</span>
-<span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
-<span class="c1"># pandas dibuja con matplotlib.</span>
-<span class="n">pandas</span>
-<span class="n">matplotlib</span>
-
-<span class="c1"># De S3</span>
-<span class="c1"># Se utilizan únicamente APIs S3 estándar, de modo que el endpoint local se</span>
-<span class="c1"># puede sustituir por un bucket real de Amazon S3 sin cambiar las lecturas.</span>
-<span class="c1"># s3fs se usa en las lecturas de PyArrow y Polars; DuckDB usa httpfs.</span>
-<span class="c1"># boto3 y aiobotocore se fijan en versiones que comparten botocore 1.43.56.</span>
-<span class="n">boto3</span><span class="o">==</span><span class="mf">1.43.56</span>
-<span class="n">aiobotocore</span><span class="o">==</span><span class="mf">3.9.0</span>
-<span class="c1"># Esta versión de s3fs proporciona la consulta de metadatos `modified` que</span>
-<span class="c1"># utilizan los lectores de la sesión.</span>
-<span class="n">s3fs</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-
-<span class="c1"># De S4</span>
-<span class="c1"># Spark en modo local y envío a YARN (S4-S8). La serie de PySpark aceptada</span>
-<span class="c1"># por el curso es &gt;4,&lt;4.2.</span>
-<span class="n">pyspark</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">,</span><span class="o">&lt;</span><span class="mf">4.2</span>
-
-<span class="c1"># El envío a YARN de «Driver, ejecutores y YARN» usa este mismo PySpark.</span>
-</pre></div>
-</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La celda siguiente instala la lista común publicada en <code>entorno/requirements.txt</code>, directamente desde su URL HTTPS. <code>pip</code> admite una URL en <code>-r</code>, así que no hace falta escribir una copia local del fichero.</p>
 </div>
 </div>
 </div>
@@ -8281,7 +8233,7 @@ confirme que está.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dsevilla</span><span class="o">/</span><span class="n">tcdm</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="mi">26</span><span class="o">-</span><span class="mi">27</span><span class="o">/</span><span class="n">entorno</span><span class="o">/</span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
@@ -11146,7 +11098,7 @@ nuevo.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Qu%C3%A9-Python-usan-el-driver-y-los-ejecutores">Qué Python usan el driver y los ejecutores<a class="anchor-link" href="#Qu%C3%A9-Python-usan-el-driver-y-los-ejecutores">¶</a></h3><p>El envío a YARN usa el mismo entorno Python que el kernel de este notebook,
 <code>/opt/tcdm/venv</code>, instalado en la imagen de <code>namenode</code> y comprobado con
-<code>%pip install -r requirements.txt</code> al principio de la sesión. De él salen
+la celda <code>%pip</code> de instalación al principio de la sesión. De él salen
 tanto <code>spark-submit</code> como el intérprete del <strong>driver</strong>, el único proceso que
 necesita el paquete <code>pyspark</code> instalado para construir la <code>SparkSession</code> y
 lanzar la aplicación.</p>

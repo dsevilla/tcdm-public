@@ -7867,19 +7867,11 @@ ficheros: la misma lectura de Parquet desde un directorio de HDFS que ya
 se ha usado durante todo el curso, repetida ahora de forma continua
 en vez de una sola vez.</p>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>, <code>fsspec</code>, <code>pyarrow</code>, <code>requests</code>.
-No añade ningún paquete respecto a S7: <code>fsspec</code>, <code>pyarrow</code> y <code>requests</code>, que usa el generador,
-ya venían de S2. El fichero incluye también las de S2 a S7, porque el notebook lo
-sobrescribe. Se instalan en el kernel de <code>namenode</code> en la sección
-«Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
-el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
-<code>s8/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
-<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
-paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
-intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
-confirme que están; ejecuta
-esas celdas de todos modos: dejan explícito qué necesita la sesión y
-reparan el entorno si falta algo.</p>
+<p><strong>Paquetes de Python de esta sesión.</strong> S8 usa <code>pyspark</code>, <code>trino</code> y
+<code>pandas</code>; el generador de lotes también usa <code>fsspec</code>, <code>requests</code> y PyArrow
+para leer y escribir por WebHDFS. Todos los notebooks de S2-S8 instalan la
+lista común publicada como <code>entorno/requirements.txt</code>, que reúne los
+paquetes usados a lo largo del curso.</p>
 </blockquote>
 </div>
 </div>
@@ -8233,71 +8225,25 @@ problemas» en <code>entorno/README.md</code>.</p>
 sesión no regenera TPC-DS. La comprobación de que S7 ya creó las tablas
 Iceberg llega un poco más abajo, en «Verificar que S7 ya creó las tablas
 Iceberg».</p>
-<h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>El kernel de este notebook instala PySpark sobre sí mismo, igual que en las
-sesiones anteriores, más el cliente <code>trino</code> de PyPI —el mismo de S6 y
-S7—, que usaremos en varias celdas de sólo lectura como confirmación
-independiente de lo que Spark escribe directamente en <code>iceberg.tcdm.*</code> (se
-explica en la siguiente sección). El generador simulado que escribiremos y
-ejecutaremos más abajo (<code>generate_web_sales_batch.py</code>) es un programa
-aparte que habla con HDFS sólo por WebHDFS, con <code>fsspec</code> y PyArrow — el
-mismo mecanismo que ya usaron los lectores de S2 —, así que sus
-dependencias también viven en <code>requirements.txt</code>. La celda siguiente lo
-recrea con <code>%%writefile</code> para que este notebook no dependa de ningún otro
-fichero de la distribución, tanto si lo abres dentro de <code>namenode</code> como si
-usas «Existing Jupyter Server» desde tu equipo.</p>
+<h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>El notebook usa PySpark, <code>trino</code> y <code>pandas</code>, además de <code>fsspec</code>, <code>requests</code>
+y PyArrow para que el generador de lotes lea y escriba por WebHDFS. La
+distribución publica una sola lista común en <code>entorno/requirements.txt</code> con
+las dependencias usadas en S2-S8. La celda siguiente instala esa lista con
+<code>%pip</code> desde el fichero público; la URL completa queda visible en la celda
+de código.</p>
+<p>Después de instalar, la comprobación de las tablas Iceberg verifica que S7
+dejó el estado que necesita esta sesión; el notebook no lo reconstruye.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-<span class="c1"># Dependencias de la sesión 8, acumulativas: incluyen las de S2 a S7.</span>
-
-<span class="c1"># De S2</span>
-<span class="c1"># WebHDFS de fsspec utiliza requests para sus peticiones HTTP.</span>
-<span class="n">duckdb</span>
-<span class="c1"># DuckDB consulta modified() al registrar WebHDFS como filesystem.</span>
-<span class="n">fsspec</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-<span class="n">polars</span><span class="o">&gt;=</span><span class="mf">2.0</span>
-<span class="n">pyarrow</span>
-<span class="n">requests</span>
-<span class="c1"># Reintenta la escritura de una tabla en HDFS cuando falla (S2).</span>
-<span class="n">tenacity</span>
-<span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
-<span class="c1"># pandas dibuja con matplotlib.</span>
-<span class="n">pandas</span>
-<span class="n">matplotlib</span>
-
-<span class="c1"># De S3</span>
-<span class="c1"># Se utilizan únicamente APIs S3 estándar, de modo que el endpoint local se</span>
-<span class="c1"># puede sustituir por un bucket real de Amazon S3 sin cambiar las lecturas.</span>
-<span class="c1"># s3fs se usa en las lecturas de PyArrow y Polars; DuckDB usa httpfs.</span>
-<span class="c1"># boto3 y aiobotocore se fijan en versiones que comparten botocore 1.43.56.</span>
-<span class="n">boto3</span><span class="o">==</span><span class="mf">1.43.56</span>
-<span class="n">aiobotocore</span><span class="o">==</span><span class="mf">3.9.0</span>
-<span class="c1"># Esta versión de s3fs proporciona la consulta de metadatos `modified` que</span>
-<span class="c1"># utilizan los lectores de la sesión.</span>
-<span class="n">s3fs</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-
-<span class="c1"># De S4</span>
-<span class="c1"># Spark en modo local y envío a YARN (S4-S8). La serie de PySpark aceptada</span>
-<span class="c1"># por el curso es &gt;4,&lt;4.2.</span>
-<span class="n">pyspark</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">,</span><span class="o">&lt;</span><span class="mf">4.2</span>
-
-<span class="c1"># De S6</span>
-<span class="c1"># Cliente de Trino, el motor SQL que presenta S6; se fija la serie mayor.</span>
-<span class="n">trino</span><span class="o">&gt;=</span><span class="mf">0.330</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">1</span>
-
-<span class="c1"># generate_web_sales_batch.py habla con WebHDFS por fsspec y lee/escribe Parquet</span>
-<span class="c1"># con PyArrow; requests es la dependencia HTTP de fsspec. Ya están en el bloque de S2.</span>
-</pre></div>
-</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La celda siguiente instala la lista común publicada en <code>entorno/requirements.txt</code>, directamente desde su URL HTTPS. <code>pip</code> admite una URL en <code>-r</code>, así que no hace falta escribir una copia local del fichero.</p>
 </div>
 </div>
 </div>
@@ -8309,7 +8255,7 @@ usas «Existing Jupyter Server» desde tu equipo.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dsevilla</span><span class="o">/</span><span class="n">tcdm</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="mi">26</span><span class="o">-</span><span class="mi">27</span><span class="o">/</span><span class="n">entorno</span><span class="o">/</span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>

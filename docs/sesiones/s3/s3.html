@@ -7898,19 +7898,12 @@ de tu equipo, no como celdas: el kernel de este notebook no tiene el
 socket de Docker.</p>
 </blockquote>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>boto3</code>,
-<code>aiobotocore</code>, <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code> y <code>s3fs</code>. Respecto a
-S2 añade <code>boto3</code>, <code>aiobotocore</code> y <code>s3fs</code>, que se presentan en «Las
-bibliotecas que hablan con S3». El fichero incluye también las de S2
-(<code>pandas</code>, <code>matplotlib</code>, <code>requests</code>, <code>tenacity</code>), porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en
-esa misma sección: una celda <code>%%writefile requirements.txt</code> crea el
-fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de <code>s3/</code>
-está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
-<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
-paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
-intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
-confirme que están. Ejecuta esas celdas de todos modos: dejan explícito
-qué necesita la sesión y reparan el entorno si falta algo.</p>
+<p><strong>Paquetes de Python de esta sesión.</strong> S3 usa <code>boto3</code> para recorrer la API,
+y <code>aiobotocore</code> y <code>s3fs</code> para acceder al almacenamiento S3. Todos los
+notebooks de S2-S8 instalan la lista común publicada como
+<code>entorno/requirements.txt</code>, que reúne los paquetes usados a lo largo del
+curso. La imagen de <code>namenode</code> ya trae esa lista en <code>/opt/tcdm/venv</code>,
+el intérprete del kernel; lo normal es que <code>%pip</code> confirme que están.</p>
 </blockquote>
 </div>
 </div>
@@ -8330,7 +8323,7 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con WebHDFS</li><li style="margin:10px 0">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con WebHDFS; con ella se hace la copia</li><li style="margin:10px 0">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul>
 </div>
 </div>
 </div>
@@ -8352,12 +8345,13 @@ porque cada lector de Parquet se apoya en una distinta:</p>
 método por cada operación de la API (<code>list_objects_v2</code> es la operación
 <code>ListObjectsV2</code>, <code>get_object</code> es <code>GetObject</code>…) y devuelve la respuesta del
 servicio como un diccionario. Es la forma más directa de ver qué ofrece
-la API, y la usaremos para explorarla y para copiar los datos.</li>
+la API, y la usaremos para explorarla.</li>
 <li><strong>s3fs</strong> presenta S3 con la interfaz de ficheros de <code>fsspec</code>, la misma
 con la que S2 habló con WebHDFS: <code>glob</code>, <code>open</code>, <code>info</code>. Por debajo usa
-<code>aiobotocore</code>, la variante asíncrona del mismo SDK. Gracias a ella el
-código de PyArrow y de Polars de S2 sirve aquí cambiando sólo el
-filesystem.</li>
+<code>aiobotocore</code>, la variante asíncrona del mismo SDK. Con ella se copiarán
+los datos —se lee de HDFS con <code>fsspec</code> y se escribe en S3 con <code>fsspec</code>— y
+gracias a ella el código de PyArrow y de Polars de S2 sirve aquí
+cambiando sólo el filesystem.</li>
 <li><strong><code>httpfs</code></strong> es una extensión de DuckDB con su propio cliente HTTP y S3,
 escrito dentro del motor. No usa el SDK de AWS.</li>
 </ul>
@@ -8365,57 +8359,24 @@ escrito dentro del motor. No usa el SDK de AWS.</li>
 PyArrow, Polars ► s3fs ► aiobotocore ──┼─► API de S3 (HTTP) ► RustFS o Amazon S3
 DuckDB ► httpfs ───────────────────────┘
 </pre></div>
-<p><code>requirements.txt</code> fija versiones de <code>boto3</code> y <code>aiobotocore</code> que comparten
-la misma versión de <code>botocore</code>, para que la instalación sea reproducible.
-La celda siguiente crea el fichero dentro de <code>namenode</code> con <code>%%writefile</code>,
-y la posterior instala las dependencias con <code>%pip</code> en el intérprete del
-kernel. Como en S2, la imagen ya las trae y lo normal es que <code>%pip</code> sólo
-confirme que están.</p>
-<p>Como el kernel guarda un solo <code>requirements.txt</code> por directorio, este fichero incluye
-también las dependencias de S2: la celda lo sobrescribe y así no se pierde nada de lo
-anterior.</p>
+<p>El fichero publicado <code>entorno/requirements.txt</code> es la lista común de
+paquetes para las sesiones S2-S8. En S3 se usan <code>boto3</code> para recorrer la API,
+<code>aiobotocore</code> como cliente asíncrono de AWS y <code>s3fs</code> para presentar S3 con la
+interfaz de <code>fsspec</code>. <code>boto3</code> y <code>aiobotocore</code> se fijan en versiones que
+comparten la misma versión de <code>botocore</code>. La lista también contiene las
+dependencias que necesitan las demás sesiones; todos los notebooks instalan
+el mismo fichero desde la URL pública, sin escribir una copia local.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-<span class="c1"># Dependencias de la sesión 3, acumulativas: incluyen las de S2. El notebook</span>
-<span class="c1"># sobrescribe este fichero en el kernel, así que debe llevarlo todo.</span>
-
-<span class="c1"># De S2</span>
-<span class="c1"># WebHDFS de fsspec utiliza requests para sus peticiones HTTP.</span>
-<span class="n">duckdb</span>
-<span class="c1"># DuckDB consulta modified() al registrar WebHDFS como filesystem.</span>
-<span class="n">fsspec</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-<span class="n">polars</span><span class="o">&gt;=</span><span class="mf">2.0</span>
-<span class="n">pyarrow</span>
-<span class="n">requests</span>
-<span class="c1"># Reintenta la escritura de una tabla en HDFS cuando falla (S2).</span>
-<span class="n">tenacity</span>
-<span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
-<span class="c1"># pandas dibuja con matplotlib.</span>
-<span class="n">pandas</span>
-<span class="n">matplotlib</span>
-
-<span class="c1"># De S3</span>
-<span class="c1"># Se utilizan únicamente APIs S3 estándar, de modo que el endpoint local se</span>
-<span class="c1"># puede sustituir por un bucket real de Amazon S3 sin cambiar las lecturas.</span>
-<span class="c1"># s3fs se usa en las lecturas de PyArrow y Polars; DuckDB usa httpfs.</span>
-<span class="c1"># boto3 y aiobotocore se fijan en versiones que comparten botocore 1.43.56.</span>
-<span class="n">boto3</span><span class="o">==</span><span class="mf">1.43.56</span>
-<span class="n">aiobotocore</span><span class="o">==</span><span class="mf">3.9.0</span>
-<span class="c1"># Esta versión de s3fs proporciona la consulta de metadatos `modified` que</span>
-<span class="c1"># utilizan los lectores de la sesión.</span>
-<span class="n">s3fs</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-</pre></div>
-</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La celda siguiente instala la lista común publicada en <code>entorno/requirements.txt</code>, directamente desde su URL HTTPS. <code>pip</code> admite una URL en <code>-r</code>, así que no hace falta escribir una copia local del fichero.</p>
 </div>
 </div>
 </div>
@@ -8427,7 +8388,7 @@ anterior.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dsevilla</span><span class="o">/</span><span class="n">tcdm</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="mi">26</span><span class="o">-</span><span class="mi">27</span><span class="o">/</span><span class="n">entorno</span><span class="o">/</span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
@@ -8700,7 +8661,7 @@ nunca fue un directorio.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero fluye de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -cat</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">upload_fileobj</code>, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 18 tablas y los mismos ficheros que en HDFS</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero se lee de HDFS con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (WebHDFS) y se escribe en S3 con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): la misma interfaz en los dos lados</li><li style="margin:10px 0">Los bytes fluyen de un fichero abierto al otro, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 18 tablas y los mismos ficheros que en HDFS</li></ul>
 </div>
 </div>
 </div>
@@ -8722,9 +8683,16 @@ almacenamiento.</p>
 <code>hadoop distcp</code>, que reparte el trabajo entre los nodos. Aquí son unos
 cientos de megabytes y se hace con un bucle visible, para que se vea cada
 paso: qué ficheros hay, qué clave recibe cada uno y qué petición lo sube.</p>
-<p>El primer paso es saber qué hay que copiar. <code>hdfs dfs -ls -R</code> lista el
-árbol completo; se conservan las líneas que empiezan por <code>-</code> (ficheros, no
-directorios) y se descarta el marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
+<p>Para copiar hacen falta los dos extremos, y los dos se manejan con <code>fsspec</code>:
+<code>webhdfs</code>, el filesystem de S2, para HDFS, y <code>s3fs.S3FileSystem()</code>, que toma
+servidor y credenciales de las variables <code>AWS_*</code> y maneja rutas con la
+forma <code>bucket/clave</code>, para el bucket. Uno es un sistema de ficheros y el
+otro un almacén de objetos, pero <code>fsspec</code> los presenta con las mismas
+operaciones —<code>find</code>, <code>open</code>, <code>info</code>, <code>size</code>—, así que copiar es leer un
+fichero de uno y escribirlo en el otro.</p>
+<p>El primer paso es saber qué hay que copiar. <code>webhdfs.find</code> recorre el
+árbol completo bajo la raíz y devuelve sólo ficheros; se descarta el
+marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 </div>
 </div>
 </div>
@@ -8736,22 +8704,27 @@ directorios) y se descarta el marcador <code>_SUCCESS</code>, que no es un Parqu
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">run</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">s3fs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fsspec.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFileSystem</span>
 
 <span class="n">HDFS_ROOT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds"</span>
 <span class="n">S3_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"raw/tpcds"</span>
 
-<span class="n">hdfs_listing</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span>
-    <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-ls"</span><span class="p">,</span> <span class="s2">"-R"</span><span class="p">,</span> <span class="n">HDFS_ROOT</span><span class="p">],</span>
-    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
+<span class="n">webhdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span>
+    <span class="s2">"webhdfs"</span><span class="p">,</span>
+    <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span>
+    <span class="n">port</span><span class="o">=</span><span class="mi">9870</span><span class="p">,</span>  <span class="c1"># El NameNode atiende WebHDFS en el 9870; el protocolo propio de HDFS, en el 9000.</span>
+    <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span>
+    <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># fsspec lee en trozos de este tamaño: 4 MiB por defecto. 64 MiB es el tamaño</span>
+<span class="c1"># de bloque de HDFS en este clúster.</span>
+<span class="n">webhdfs</span><span class="o">.</span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
+<span class="n">object_store</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">()</span>
+
 <span class="n">hdfs_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="n">fields</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">hdfs_listing</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">fields</span> <span class="o">:=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
-    <span class="k">if</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>
+    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">HDFS_ROOT</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 <span class="p">)</span>
 <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs_files</span><span class="p">}</span>
 
@@ -8821,12 +8794,16 @@ raíz cambiada, así que la organización por capa, fuente y tabla se
 conserva:</p>
 <div class="highlight"><pre><span></span>/datalake/raw/tpcds/item/&lt;fichero&gt;   →   raw/tpcds/item/&lt;fichero&gt;
 </pre></div>
-<p><code>hdfs dfs -cat</code> escribe el fichero en su salida estándar y <code>upload_fileobj</code>
-lee de ahí: los bytes van de HDFS a S3 sin guardarse en el disco de
-<code>namenode</code>. <code>upload_fileobj</code> se encarga además de partir los ficheros
-grandes en trozos y subirlos como una carga <em>multipart</em>, que es como la API
-admite objetos mayores que una sola petición.</p>
-<p>Python ejecuta <code>hdfs dfs -cat</code> como un programa aparte y lee lo que ese programa escribe, directamente, sin guardar el fichero en el disco de <code>namenode</code>.</p>
+<p><code>webhdfs.open(ruta, "rb")</code> y <code>object_store.open(ruta, "wb")</code> devuelven
+ficheros de Python, uno que lee de HDFS y otro que escribe en el bucket.
+<code>shutil.copyfileobj</code> lee del primero y escribe en el segundo sin saber qué
+hay detrás de cada uno, y los bytes van de HDFS a S3 sin guardarse en el
+disco de <code>namenode</code>. Al escribir, <code>s3fs</code> acumula los datos en trozos y los
+sube como una carga <em>multipart</em>, que es como la API admite objetos mayores
+que una sola petición; el objeto aparece en el bucket al cerrar el fichero.</p>
+<p>Como la operación <code>size</code> existe en los dos filesystems, cada copia se
+comprueba comparando lo que mide el objeto con lo que mide el fichero de
+HDFS.</p>
 </div>
 </div>
 </div>
@@ -8838,21 +8815,14 @@ admite objetos mayores que una sola petición.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">hdfs_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+
+<span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">hdfs_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="n">s3_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">hdfs_path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s1">/'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
-    <span class="n">process</span><span class="p">:</span> <span class="n">Popen</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-cat"</span><span class="p">,</span> <span class="n">hdfs_path</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">s3</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">s3_key</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="n">process</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
-        <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-        <span class="k">raise</span>
-    <span class="k">finally</span><span class="p">:</span>
-        <span class="n">process</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">return_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">return_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"hdfs dfs -cat falló para </span><span class="si">{</span><span class="n">hdfs_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">return_code</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">s3_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">hdfs_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">,</span> <span class="n">object_store</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">s3_path</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">object_store</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">s3_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">hdfs_path</span><span class="p">),</span> <span class="n">hdfs_path</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">position</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">uploaded_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">list_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span>
@@ -8881,7 +8851,7 @@ admite objetos mayores que una sola petición.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0">La copia ha usado sólo operaciones de la API: listar, borrar y subir</li><li style="margin:10px 0">No se ha creado ningún directorio: la organización está en las claves</li><li style="margin:10px 0">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0">La copia ha usado la API de S3: listar y borrar con boto3, subir con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code></li><li style="margin:10px 0">No se ha creado ningún directorio: la organización está en las claves</li><li style="margin:10px 0">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul>
 </div>
 </div>
 </div>
@@ -9100,7 +9070,8 @@ credenciales:</p>
 <h2 id="Leer-los-mismos-Parquet-desde-S3">Leer los mismos Parquet desde S3<a class="anchor-link" href="#Leer-los-mismos-Parquet-desde-S3">¶</a></h2><p>En S2 las tres bibliotecas leían de HDFS a través de un filesystem de
 <code>fsspec</code> para WebHDFS. <code>fsspec</code> existe precisamente para que el código que
 lee no dependa de dónde están los ficheros: basta con otro filesystem que
-ofrezca las mismas operaciones. Para S3 ese filesystem es <code>s3fs</code>.</p>
+ofrezca las mismas operaciones. Para S3 ese filesystem es <code>s3fs</code>, el mismo
+<code>object_store</code> que acaba de escribir la copia.</p>
 <p>La tabla es otra vez <code>item</code>, la de productos, para poder comparar con S2
 sin que cambie nada más que el almacenamiento:</p>
 </div>
@@ -9128,9 +9099,9 @@ sin que cambie nada más que el almacenamiento:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><code>S3FileSystem()</code> tampoco recibe servidor ni credenciales: los toma de las
-mismas variables <code>AWS_*</code>. Las rutas que maneja tienen la forma
-<code>bucket/clave</code>. Como al copiar se dejó fuera <code>_SUCCESS</code>, todo lo que hay
+<p>El <code>object_store</code> de la copia también lee: sus rutas tienen la forma
+<code>bucket/clave</code> y <code>glob</code> las lista igual que <code>webhdfs.glob</code> listaba las de
+HDFS en S2. Como al copiar se dejó fuera <code>_SUCCESS</code>, todo lo que hay
 bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 </div>
 </div>
@@ -9143,10 +9114,7 @@ bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">s3fs</span>
-
-<span class="n">object_store</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">()</span>
-<span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_store</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/*"</span><span class="p">))</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_store</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/*"</span><span class="p">))</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">files</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">files</span><span class="p">,</span> <span class="s2">"No hay objetos de item en el bucket: ejecuta antes la copia"</span>
@@ -9598,7 +9566,7 @@ son las mismas.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (WebHDFS) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
 </div>
 </div>
 </div>
@@ -9664,9 +9632,12 @@ cuántas peticiones se convertiría en S3?</li>
 siendo un Parquet válido? ¿Con qué peticiones lo has comprobado?</li>
 <li>Para responder a la consulta por precio, ¿qué partes de cada objeto de
 <code>item</code> ha tenido que pedir DuckDB y cuáles no?</li>
-<li>¿Qué diferencia hay entre que un fichero fluya de HDFS a S3 (de
-<code>hdfs dfs -cat</code> a <code>upload_fileobj</code>, como en esta sesión) y que se copie
-primero al disco de <code>namenode</code>?</li>
+<li>¿Qué diferencia hay entre que un fichero fluya de HDFS a S3 (de un
+fichero abierto con <code>webhdfs.open</code> a otro abierto con <code>object_store.open</code>,
+como en esta sesión) y que se copie primero al disco de <code>namenode</code>?</li>
+<li>En la celda de copia, ¿qué líneas dependen de que un extremo sea HDFS y el
+otro S3, y cuáles funcionarían igual entre dos filesystems cualesquiera de
+<code>fsspec</code>?</li>
 <li>¿Por qué PyArrow y Polars, por <code>s3fs</code>, y DuckDB, por <code>httpfs</code>, dan
 exactamente el mismo resumen usando dos clientes distintos?</li>
 <li>¿Qué habría que cambiar, y qué no, para ejecutar este notebook contra un

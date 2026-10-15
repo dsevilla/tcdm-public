@@ -54,11 +54,13 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token=tcdm
 Jupyter queda en primer plano. El token es siempre `tcdm` (el puerto 8888 sólo
 se publica en `127.0.0.1`), por lo que la dirección que se pega en Visual
 Studio Code es `http://127.0.0.1:8888/lab?token=tcdm`.
-`make -C entorno jupyter` es un atajo que hace lo mismo en una orden. Cada
-notebook recrea su `requirements.txt` con `%%writefile` y lo instala con
-`%pip`; con la imagen al día, `%pip` sólo confirma lo que ya está instalado. Los DataNodes no necesitan este entorno: los ejecutores de
-Spark reciben por YARN el código de PySpark y los `.jar`, y usan el `python3`
-de la imagen base.
+`make -C entorno jupyter` es un atajo que hace lo mismo en una orden. La lista
+común `entorno/requirements.txt` reúne las dependencias usadas en S2-S8 y se
+publica en este directorio desde S2. La celda `%pip` de cada notebook la
+descarga desde la misma URL HTTPS de `tcdm-public`. Con la imagen al día, `%pip`
+sólo confirma lo que ya está instalado. Los DataNodes no necesitan este
+entorno: los ejecutores de Spark reciben por YARN el código de PySpark y los
+`.jar`, y usan el `python3` de la imagen base.
 
 Este directorio contiene dos entornos complementarios que comparten la red
 Docker `hadoop-cluster`. El primero es el camino principal del curso y utiliza
@@ -93,8 +95,8 @@ make s3-up
 
 Después se ejecuta `s3/s3.ipynb`. El notebook consume las 18 tablas que dejó
 S2 y realiza la copia bajo el prefijo `raw/tpcds` mediante
-`hdfs dfs -cat` y `boto3.upload_fileobj`, sin pasar los Parquet por el disco
-del host. Mantiene un prefijo por tabla, igual que la organización de HDFS.
+`fsspec` (WebHDFS para leer de HDFS y `s3fs` para escribir en el bucket), sin
+pasar los Parquet por el disco del host. Mantiene un prefijo por tabla, igual que la organización de HDFS.
 En un almacenamiento de objetos, `raw` y `tpcds` son componentes de la clave
 y no directorios reales.
 

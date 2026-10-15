@@ -7873,18 +7873,11 @@ repositorio del metastore; Hive Metastore expone la información por Thrift;
 Trino utiliza esa información para planificar consultas. Ninguno de esos
 servicios se convierte por ello en DataNode o NodeManager.</p>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>pyspark</code>, <code>trino</code>, <code>pandas</code>.
-Respecto a S5 añade <code>trino</code>, el cliente Python de Trino; <code>pandas</code> ya venía de S2. El fichero incluye
-también las de S2 a S5, porque el notebook lo sobrescribe. Se instalan en el kernel de <code>namenode</code> en la sección
-«Instalar las dependencias de este notebook»: una celda <code>%%writefile requirements.txt</code> crea
-el fichero dentro del contenedor —el <code>requirements.txt</code> de tu copia de
-<code>s6/</code> está en tu equipo y <code>namenode</code> no lo ve— y otra ejecuta
-<code>%pip install -r requirements.txt</code>. La imagen de <code>namenode</code> ya trae estos
-paquetes en su entorno Python del curso, <code>/opt/tcdm/venv</code>, que es el
-intérprete del kernel y donde instala <code>%pip</code>; lo normal es que <code>%pip</code> sólo
-confirme que están; ejecuta
-esas celdas de todos modos: dejan explícito qué necesita la sesión y
-reparan el entorno si falta algo.</p>
+<p><strong>Paquetes de Python de esta sesión.</strong> S6 usa <code>pyspark</code> para Spark,
+<code>trino</code> para enviar consultas al servidor y <code>pandas</code> para organizar los
+resultados. Todos los notebooks de S2-S8 instalan la lista común publicada
+como <code>entorno/requirements.txt</code>; allí están reunidos los paquetes usados a
+lo largo del curso.</p>
 </blockquote>
 </div>
 </div>
@@ -8213,64 +8206,24 @@ continuar. <code>/warehouse</code> ya existe desde que S1 preparó el NameNode: 
 zona reservada para las tablas administradas por Hive e Iceberg, y hasta
 ahora sólo contiene el directorio vacío <code>tcdm.db</code>, que se creó al arrancar
 el warehouse.</p>
-<h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>Igual que en S4 y S5, el kernel de este notebook instala PySpark sobre sí
-mismo. Esta sesión añade el paquete <code>trino</code>: el cliente DB-API 2.0 con el que
-hablaremos con Trino: no hay binario <code>trino</code> en <code>namenode</code> ni acceso al
-Docker del host, así que aquí no hay CLI de Trino: usamos el cliente
-Python. La celda siguiente recrea <code>requirements.txt</code> con <code>%%writefile</code> para
-que este notebook no dependa de ningún otro fichero de la distribución,
-tanto si lo abres dentro de <code>namenode</code> como si usas «Existing Jupyter
-Server» desde tu equipo.</p>
+<h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>El notebook usa PySpark, <code>trino</code> —el cliente DB-API 2.0 para enviar
+consultas al servidor Trino— y <code>pandas</code> para organizar los resultados.</p>
+<p>La distribución publica una sola lista común en <code>entorno/requirements.txt</code>.
+La celda siguiente la instala directamente con <code>%pip</code> desde la URL pública,
+que aparece en la celda de código. La lista cubre las dependencias de todas
+las sesiones S2-S8; la imagen de <code>namenode</code> ya trae esos paquetes en
+<code>/opt/tcdm/venv</code>, por lo que lo normal es que <code>%pip</code> confirme que están.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=13">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">writefile</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-<span class="c1"># Dependencias de la sesión 6, acumulativas: incluyen las de S2 a S5.</span>
-
-<span class="c1"># De S2</span>
-<span class="c1"># WebHDFS de fsspec utiliza requests para sus peticiones HTTP.</span>
-<span class="n">duckdb</span>
-<span class="c1"># DuckDB consulta modified() al registrar WebHDFS como filesystem.</span>
-<span class="n">fsspec</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-<span class="n">polars</span><span class="o">&gt;=</span><span class="mf">2.0</span>
-<span class="n">pyarrow</span>
-<span class="n">requests</span>
-<span class="c1"># Reintenta la escritura de una tabla en HDFS cuando falla (S2).</span>
-<span class="n">tenacity</span>
-<span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
-<span class="c1"># pandas dibuja con matplotlib.</span>
-<span class="n">pandas</span>
-<span class="n">matplotlib</span>
-
-<span class="c1"># De S3</span>
-<span class="c1"># Se utilizan únicamente APIs S3 estándar, de modo que el endpoint local se</span>
-<span class="c1"># puede sustituir por un bucket real de Amazon S3 sin cambiar las lecturas.</span>
-<span class="c1"># s3fs se usa en las lecturas de PyArrow y Polars; DuckDB usa httpfs.</span>
-<span class="c1"># boto3 y aiobotocore se fijan en versiones que comparten botocore 1.43.56.</span>
-<span class="n">boto3</span><span class="o">==</span><span class="mf">1.43.56</span>
-<span class="n">aiobotocore</span><span class="o">==</span><span class="mf">3.9.0</span>
-<span class="c1"># Esta versión de s3fs proporciona la consulta de metadatos `modified` que</span>
-<span class="c1"># utilizan los lectores de la sesión.</span>
-<span class="n">s3fs</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-
-<span class="c1"># De S4</span>
-<span class="c1"># Spark en modo local y envío a YARN (S4-S8). La serie de PySpark aceptada</span>
-<span class="c1"># por el curso es &gt;4,&lt;4.2.</span>
-<span class="n">pyspark</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">,</span><span class="o">&lt;</span><span class="mf">4.2</span>
-
-<span class="c1"># De S6</span>
-<span class="c1"># Cliente de Trino, el motor SQL que presenta S6; se fija la serie mayor.</span>
-<span class="n">trino</span><span class="o">&gt;=</span><span class="mf">0.330</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">1</span>
-</pre></div>
-</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La celda siguiente instala la lista común publicada en <code>entorno/requirements.txt</code>, directamente desde su URL HTTPS. <code>pip</code> admite una URL en <code>-r</code>, así que no hace falta escribir una copia local del fichero.</p>
 </div>
 </div>
 </div>
@@ -8282,7 +8235,7 @@ Server» desde tu equipo.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dsevilla</span><span class="o">/</span><span class="n">tcdm</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="mi">26</span><span class="o">-</span><span class="mi">27</span><span class="o">/</span><span class="n">entorno</span><span class="o">/</span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>

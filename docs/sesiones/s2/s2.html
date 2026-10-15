@@ -8131,11 +8131,12 @@ sesión sólo usa el clúster de S1, y todo lo demás se hace desde sus celdas.<
 <p>Dos consecuencias de esta arquitectura:</p>
 <ul>
 <li>El directorio de trabajo del kernel está dentro de <code>namenode</code>, no en tu
-carpeta <code>s2/</code>. Los ficheros que crea el notebook (<code>requirements.txt</code>, lo
-que se escribe en <code>/tmp</code>...) quedan en el contenedor, y el notebook no
-puede leer el <code>entorno/</code> ni el <code>s2/</code> de tu equipo: por eso crea
-<code>requirements.txt</code> con <code>%%writefile</code> y descarga del repositorio público el
-CSV de municipios del IGN y el módulo de consulta del esquema.</li>
+carpeta <code>s2/</code>. Los ficheros temporales que crea el notebook quedan en el contenedor,
+y el kernel no puede leer el <code>entorno/</code> ni el <code>s2/</code> de tu equipo. Por eso
+<code>%pip</code> obtiene por HTTPS el fichero común <code>entorno/requirements.txt</code>,
+que se publica en <code>entorno/</code> desde S2,
+igual que las celdas descargan del repositorio público el CSV de municipios
+del IGN y el módulo de consulta del esquema.</li>
 <li>Jupyter vive mientras siga en marcha la orden que lo lanzó. Si cierras esa
 terminal, pulsas <code>Ctrl+C</code> o paras los contenedores (<code>make -C entorno stop</code>), el servidor se detiene. Vuelve a arrancarlo como arriba (<code>docker exec -it namenode bash</code>, <code>su - luser</code>, <code>jupyter lab ...</code>) y reconecta el
 kernel con la misma dirección, porque el token es siempre <code>tcdm</code>. Las
@@ -8920,8 +8921,8 @@ sólo muestra su aplicación concreta en esta sesión.</p>
 celdas que DuckDB ejecuta en el kernel. El proceso completo, que ocupan las
 siguientes subsecciones, es:</p>
 <ol>
-<li><strong>Preparar Python</strong>: crear <code>requirements.txt</code>, instalar con <code>%pip</code> las
-dependencias de la sesión y comprobar que el kernel se ejecuta en
+<li><strong>Preparar Python</strong>: instalar con <code>%pip</code> la lista común de dependencias
+publicada para las sesiones S2-S8 y comprobar que el kernel se ejecuta en
 <code>namenode</code>.</li>
 <li><strong>Abrir DuckDB</strong>: crear la base temporal y cargar la extensión
 <code>tpcds</code>.</li>
@@ -8961,22 +8962,16 @@ posteriores.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Preparar-Python">Preparar Python<a class="anchor-link" href="#Preparar-Python">¶</a></h3><p><code>requirements.txt</code> es la lista única de dependencias de S2: DuckDB, que
-genera los datos y es además uno de los tres lectores Parquet junto a
-PyArrow y Polars; <code>fsspec</code>, que da acceso a HDFS desde los tres; <code>tenacity</code>,
-que repite una escritura en HDFS cuando falla de forma pasajera; y <code>pandas</code>
-con <code>matplotlib</code>, con los que se muestran y se dibujan los resultados de
-algunas consultas. El notebook no supone que ese
-fichero esté dentro del contenedor —tu copia de <code>s2/requirements.txt</code> está en
-tu equipo y <code>namenode</code> no la ve—, así que la celda siguiente lo crea con
-<code>%%writefile</code> en el directorio de trabajo del kernel, dentro de <code>namenode</code>.
-Después, <code>%pip install -r requirements.txt</code> instala esas dependencias en el
-mismo intérprete que ejecuta el kernel: el del entorno virtual del curso,
-<code>/opt/tcdm/venv</code>, que la imagen de <code>namenode</code> incluye (ver S1, «Entorno
-Python del curso»). Todos los <code>%pip install</code> de las sesiones acaban en ese
-entorno. La imagen ya trae estas dependencias, por lo que lo normal es ver
-sólo que están satisfechas; la celda deja
-explícito qué necesita la sesión y repara el entorno si falta algo.</p>
+<h3 id="Preparar-Python">Preparar Python<a class="anchor-link" href="#Preparar-Python">¶</a></h3><p><code>entorno/requirements.txt</code> es la lista común de dependencias de las sesiones
+S2-S8. Incluye los paquetes que utiliza este notebook —DuckDB, PyArrow,
+Polars, <code>fsspec</code>, <code>tenacity</code>, pandas y matplotlib— junto con los que se
+introducen más adelante en el curso. Así, cada sesión instala el mismo
+fichero publicado y no hay que cambiar de lista al avanzar.</p>
+<p>La celda siguiente ejecuta <code>%pip install -q -r</code> con la URL HTTPS que aparece
+en ella. <code>pip</code> descarga el fichero y resuelve sus líneas en <code>/opt/tcdm/venv</code>,
+el mismo intérprete que usa el kernel. La imagen ya trae estos paquetes, por
+lo que lo normal es ver que están satisfechos; la celda también puede
+instalarlos si falta alguno.</p>
 <p>La última celda del grupo muestra dónde se ejecuta el kernel, qué intérprete
 usa (<code>sys.executable</code> debe estar en <code>/opt/tcdm/venv/bin</code>) y las versiones
 instaladas. Si falla alguna de sus dos comprobaciones, el notebook no está
@@ -8985,31 +8980,14 @@ empezar: Jupyter en <code>namenode</code>».</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%writefile</span> requirements.txt
-<span class="c1"># Dependencias de la sesión 2: DuckDB genera TPC-DS y, con PyArrow y Polars,</span>
-<span class="c1"># lee los Parquet. WebHDFS de fsspec utiliza requests para sus peticiones HTTP.</span>
-<span class="n">duckdb</span>
-<span class="c1"># DuckDB consulta modified() al registrar WebHDFS como filesystem.</span>
-<span class="n">fsspec</span><span class="o">&gt;=</span><span class="mf">2026.2.0</span>
-<span class="n">polars</span><span class="o">&gt;=</span><span class="mf">2.0</span>
-<span class="n">pyarrow</span>
-<span class="n">requests</span>
-<span class="c1"># Reintenta la escritura de una tabla en HDFS cuando falla (S2).</span>
-<span class="n">tenacity</span>
-<span class="c1"># Tablas de resultados y gráficos: DuckDB entrega DataFrames de pandas, y</span>
-<span class="c1"># pandas dibuja con matplotlib.</span>
-<span class="n">pandas</span>
-<span class="n">matplotlib</span>
-</pre></div>
-</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La celda siguiente instala la lista común publicada en <code>entorno/requirements.txt</code>, directamente desde su URL HTTPS. <code>pip</code> admite una URL en <code>-r</code>, así que no hace falta escribir una copia local del fichero.</p>
 </div>
 </div>
 </div>
@@ -9021,7 +8999,7 @@ empezar: Jupyter en <code>namenode</code>».</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">pip</span> install -q -r requirements.txt
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">pip</span> install -q -r https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/entorno/requirements.txt
 </pre></div>
 </div>
 </div>
@@ -11859,7 +11837,7 @@ continúa siendo el almacenamiento remoto.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Ya hemos leído Parquet con Python</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_sk</code> son claves surrogate; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">BK</code> describen relaciones lógicas, no restricciones físicas</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%%writefile</code> + <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%pip install -r requirements.txt</code> preparan el kernel, que ya vive en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code></li><li style="margin:10px 0">PyArrow, Polars y DuckDB coinciden en filas, no nulos, mínimo, máximo y suma de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">i_item_sk</code> al leer <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">columns=[...]</code> y el filtro por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">i_current_price</code> se han repetido con las tres; en DuckDB son un <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SELECT ... WHERE</code> sobre la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code></li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Ya hemos leído Parquet con Python</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_sk</code> son claves surrogate; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FK</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">BK</code> describen relaciones lógicas, no restricciones físicas</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%pip install -r</code> instala la lista común de dependencias del curso en el kernel, que ya vive en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code></li><li style="margin:10px 0">PyArrow, Polars y DuckDB coinciden en filas, no nulos, mínimo, máximo y suma de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">i_item_sk</code> al leer <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">columns=[...]</code> y el filtro por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">i_current_price</code> se han repetido con las tres; en DuckDB son un <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SELECT ... WHERE</code> sobre la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code></li></ul>
 </div>
 </div>
 </div>
