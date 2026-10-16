@@ -8864,13 +8864,21 @@ insertada y una fila corregida por el mismo <code>MERGE</code>, en vez de adivin
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="La-consulta-de-streaming">La consulta de streaming<a class="anchor-link" href="#La-consulta-de-streaming">¶</a></h2><p>A diferencia de la lectura por lotes de S4/S5 (<code>spark.read.parquet(...)</code>),
-aquí declaramos el esquema del <code>readStream</code> a mano: con la fuente de
-ficheros, Spark lo exige por defecto. Podría inferirlo leyendo una muestra
+<h2 id="La-consulta-de-streaming">La consulta de streaming<a class="anchor-link" href="#La-consulta-de-streaming">¶</a></h2><p>En S5 declaramos el esquema de <code>silver</code> como parte de su contrato y lo
+pasamos al leerla, aunque Spark podía deducirlo de los ficheros. En el
+<code>readStream</code> no es una opción: con la fuente de ficheros, Spark exige por
+defecto que se le dé el esquema. Podría inferirlo leyendo una muestra
 si se activa <code>spark.sql.streaming.schemaInference</code>, pero esa inferencia no
 es fiable en un flujo continuo —depende de qué ficheros haya presentes en
-cada arranque y puede cambiar entre ejecuciones—, así que no la usamos. Declaramos el mismo esquema que ya construye el
-generador, columna a columna.</p>
+cada arranque y puede cambiar entre ejecuciones—, así que no la usamos.</p>
+<p>Declaramos, columna a columna, las mismas columnas, en el mismo orden y con
+los mismos tipos que escribe el generador, que son también las del
+contrato de <code>silver</code> de S5 (<code>web_sales_silver_schema</code>). Como allí, todas
+se declaran nullables. El generador marca las dos claves como <code>REQUIRED</code> en
+el Parquet, pero Spark trata como nullable toda columna que lee de un
+fichero, también en streaming: un <code>nullable=False</code> en este esquema no
+impediría que llegara un micro-lote con una clave nula. Que las claves no
+sean nulas lo garantiza el generador, no el esquema.</p>
 </div>
 </div>
 </div>
@@ -8894,8 +8902,8 @@ generador, columna a columna.</p>
 
 <span class="n">web_sales_incremental_schema</span><span class="p">:</span> <span class="n">StructType</span> <span class="o">=</span> <span class="n">StructType</span><span class="p">(</span>
     <span class="p">[</span>
-        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_item_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_item_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_bill_addr_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">,</span> <span class="n">TimestampNTZType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>

@@ -8021,8 +8021,9 @@ versión nueva.</p>
 <ul>
 <li>explicar la arquitectura medallion (<code>raw</code>/<code>silver</code>/<code>gold</code>) y qué papel
 cumple cada zona en un data lake basado en ficheros;</li>
-<li>escribir el contrato de una salida de datos: rutas, columnas, claves de
-unión, significado de cada métrica, formato y regla de regeneración;</li>
+<li>escribir el contrato de una salida de datos: rutas, columnas y sus
+tipos (declarados en código como un esquema de Spark), claves de unión,
+significado de cada métrica, formato y regla de regeneración;</li>
 <li>distinguir el particionado físico por directorios <code>columna=valor</code> de
 otras nociones que comparten la palabra "partición": las particiones de
 ejecución de Spark, los bloques HDFS, los <em>splits</em> de un motor SQL y las
@@ -8033,8 +8034,9 @@ de consulta y de la cardinalidad de los datos, no por costumbre;</li>
 partir de <code>web_sales</code>, conservando una salida de control sin
 particionar para comparar;</li>
 <li>validar, con comprobaciones ejecutables (no sólo visuales), que una
-transformación no pierde más filas de las esperadas y que las columnas
-derivadas no aparecen inesperadamente nulas;</li>
+salida cumple su esquema declarado, que una transformación no pierde
+más filas de las esperadas y que las columnas derivadas no aparecen
+inesperadamente nulas;</li>
 <li>agregar desde <code>silver</code> un producto <code>gold</code> orientado a una pregunta de
 negocio y distinguir la métrica de pedidos de la métrica de líneas de
 venta;</li>
@@ -8393,7 +8395,7 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Qué contiene: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF3 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></li><li style="margin:10px 0">De dónde sale la fecha: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se derivan de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año</li><li style="margin:10px 0">Cómo se regenera: en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Qué contiene: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF3 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code></li><li style="margin:10px 0">De dónde sale la fecha: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se derivan de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año</li><li style="margin:10px 0">Qué columnas y tipos tiene cada salida: un esquema de Spark declarado en código</li><li style="margin:10px 0">Cómo se regenera: en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul>
 </div>
 </div>
 </div>
@@ -8412,9 +8414,9 @@ el contrato que aplicaremos en esta sesión —y que documentamos aquí mismo,
 en lugar de dejarlo sólo en la cabeza de quien escribió el código— indica:</p>
 <ul>
 <li>qué tabla y escala de TPC-DS contiene: <code>web_sales</code> de TPC-DS SF3;</li>
-<li>qué columnas conserva o añade: las columnas de negocio de la línea de
-venta más <code>ws_sold_date</code> (derivada) y las particiones <code>sold_year</code>,
-<code>sold_month</code>;</li>
+<li>qué columnas conserva o añade, en qué orden y con qué tipos: las
+columnas de negocio de la línea de venta más <code>ws_sold_date</code> (derivada)
+y las particiones <code>sold_year</code>, <code>sold_month</code>;</li>
 <li>de dónde salen las columnas derivadas: de <code>ws_sold_timestamp</code>, con
 <code>to_date</code>, <code>year</code> y <code>month</code>; las líneas sin fecha no entran en <code>silver</code>;</li>
 <li>qué significa cada métrica del producto <code>gold</code>: pedidos distintos,
@@ -8435,10 +8437,146 @@ transformación con Spark" de este notebook, que escriben siempre en modo
 <code>_SUCCESS</code> es un marcador de generación, no un fragmento Parquet, y no
 debe incluirse en los patrones de lectura.</li>
 </ul>
+<p>Las columnas y sus tipos no se quedan en esta lista: la sección siguiente
+los escribe como esquemas de Spark, que el notebook usará para comprobar
+lo que escribe y para leer lo que ha escrito.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=24">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Los-esquemas-de-silver-y-gold">Los esquemas de <code>silver</code> y <code>gold</code><a class="anchor-link" href="#Los-esquemas-de-silver-y-gold">¶</a></h3><p>Un <strong>esquema</strong> de Spark es la lista ordenada de columnas de un
+DataFrame, cada una con su nombre, su tipo y si admite nulos. Es lo que
+imprime <code>printSchema()</code>, y también un objeto de Python: un <code>StructType</code>
+que contiene un <code>StructField</code> por columna. S4 ya construyó uno en el
+trabajo de YARN para dar forma al informe de particiones; aquí lo
+usamos para lo contrario, para escribir antes de transformar nada qué
+forma deben tener las dos salidas de la sesión.</p>
+<p>Los tipos de las columnas que <code>silver</code> conserva de <code>web_sales</code> son los
+del catálogo de S2 (<code>%esquema web_sales</code>), es decir, los que escribió
+DuckDB. En Spark se llaman de otra forma:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo en S2</th>
+<th>Tipo de Spark</th>
+<th>Columnas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bigint</code></td>
+<td><code>LongType()</code></td>
+<td>claves, <code>ws_order_number</code> y <code>ws_quantity</code></td>
+</tr>
+<tr>
+<td><code>decimal(7,2)</code></td>
+<td><code>DecimalType(7, 2)</code></td>
+<td>importes</td>
+</tr>
+<tr>
+<td><code>timestamp</code> (sin zona)</td>
+<td><code>TimestampNTZType()</code></td>
+<td><code>ws_sold_timestamp</code></td>
+</tr>
+</tbody>
+</table>
+<p>Las columnas que calcula esta sesión tienen el tipo que devuelve la
+función que las calcula: <code>to_date</code> da un <code>DateType()</code>; <code>year</code> y <code>month</code>,
+un <code>IntegerType()</code>; <code>count</code> y <code>countDistinct</code>, un <code>LongType()</code>; y <code>sum</code>
+sobre un <code>decimal(7,2)</code> da un <code>decimal(17,2)</code>, diez dígitos más para que
+la suma de muchas filas no se desborde.</p>
+<p>Todas las columnas se declaran con <code>nullable=True</code>, aunque algunas no
+deban tener nulos nunca. Spark trata como nullable toda columna que lee
+de un fichero Parquet, diga lo que diga el fichero o el esquema que se
+le pase, así que un <code>nullable=False</code> en el contrato no se cumpliría al
+releer la salida. Que una columna no tenga nulos lo comprueban los
+<code>assert</code> de la sección de transformación, no el esquema.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.types</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DateType</span><span class="p">,</span>
+    <span class="n">DecimalType</span><span class="p">,</span>
+    <span class="n">IntegerType</span><span class="p">,</span>
+    <span class="n">LongType</span><span class="p">,</span>
+    <span class="n">StructField</span><span class="p">,</span>
+    <span class="n">StructType</span><span class="p">,</span>
+    <span class="n">TimestampNTZType</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Contrato de /datalake/silver/tpcds/web_sales: columnas, orden y tipos.</span>
+<span class="c1"># sold_year y sold_month son las columnas de partición: van al final.</span>
+<span class="n">web_sales_silver_schema</span><span class="p">:</span> <span class="n">StructType</span> <span class="o">=</span> <span class="n">StructType</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_item_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_bill_addr_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">,</span> <span class="n">TimestampNTZType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_sold_date"</span><span class="p">,</span> <span class="n">DateType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_quantity"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_list_price"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_ext_discount_amt"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_ext_sales_price"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_net_paid"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="n">IntegerType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">,</span> <span class="n">IntegerType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Contrato de /datalake/gold/tpcds/web_sales_by_year: una fila por año.</span>
+<span class="n">web_sales_by_year_schema</span><span class="p">:</span> <span class="n">StructType</span> <span class="o">=</span> <span class="n">StructType</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="n">IntegerType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"pedidos"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"lineas_de_venta"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">web_sales_silver_schema</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"silver  </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">web_sales_by_year_schema</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"gold    </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La salida usa el nombre de cada tipo en SQL (<code>bigint</code>, <code>int</code>,
+<code>decimal(7,2)</code>, <code>timestamp_ntz</code>): son los mismos tipos que el catálogo de
+S2 y que la definición de tabla que escribirá S6 al registrar estas dos
+rutas en el metastore. El esquema se usa tres veces en el notebook:
+antes de escribir cada salida, para comprobar que el DataFrame que se va
+a escribir lo cumple; al releer cada salida, para comprobar que lo que
+ha quedado en HDFS es lo declarado; y al leer <code>silver</code> para construir
+<code>gold</code>, como lo leería cualquier consumidor de esa tabla.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8456,14 +8594,14 @@ debe incluirse en los patrones de lectura.</li>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Qué comprobar antes de dar una salida por buena</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El esquema es el esperado, en nombres y en tipos</li><li style="margin:10px 0">Las claves no traen nulos inesperados y los rangos tienen sentido (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12)</li><li style="margin:10px 0">El número de filas es razonable frente a la fuente: las uniones no multiplican filas</li><li style="margin:10px 0">La métrica distingue líneas de venta de pedidos distintos</li><li style="margin:10px 0">Más abajo serán <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> ejecutables, no comentarios</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Qué comprobar antes de dar una salida por buena</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">El esquema es el declarado, en nombres, orden y tipos</li><li style="margin:10px 0">Las claves no traen nulos inesperados y los rangos tienen sentido (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12)</li><li style="margin:10px 0">El número de filas es razonable frente a la fuente: las uniones no multiplican filas</li><li style="margin:10px 0">La métrica distingue líneas de venta de pedidos distintos</li><li style="margin:10px 0">Más abajo serán <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> ejecutables, no comentarios</li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8472,7 +8610,8 @@ debe incluirse en los patrones de lectura.</li>
 <h3 id="Esquema-y-calidad">Esquema y calidad<a class="anchor-link" href="#Esquema-y-calidad">¶</a></h3><p>Antes de dar por buena una salida —y desde luego antes de que otra
 sesión la registre como tabla— conviene comprobar al menos:</p>
 <ul>
-<li>que el esquema es el esperado, tanto en nombres como en tipos;</li>
+<li>que el esquema es el declarado en el contrato, en nombres, orden y
+tipos;</li>
 <li>que las claves necesarias no aparecen inesperadamente nulas;</li>
 <li>que el número de filas es razonable, comparado con la fuente;</li>
 <li>que los rangos de fechas y claves tienen sentido (por ejemplo, que
@@ -8493,7 +8632,7 @@ detienen el notebook si no se cumplen.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8517,7 +8656,7 @@ detienen el notebook si no se cumplen.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8542,7 +8681,7 @@ detienen el notebook si no se cumplen.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8621,7 +8760,7 @@ vamos a construir aquí.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8645,7 +8784,7 @@ vamos a construir aquí.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8670,7 +8809,7 @@ vamos a construir aquí.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8719,7 +8858,7 @@ pesaría unas trescientas veces más).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8742,7 +8881,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8752,7 +8891,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8767,7 +8906,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8794,7 +8933,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8806,7 +8945,7 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=40">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8830,7 +8969,7 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8850,7 +8989,7 @@ descartamos como partición principal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8866,7 +9005,7 @@ la razón por la que no las usamos como partición principal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8879,7 +9018,7 @@ negocio del contrato y derivamos de <code>ws_sold_timestamp</code> tres columnas
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8910,7 +9049,65 @@ negocio del contrato y derivamos de <code>ws_sold_timestamp</code> tres columnas
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Comprobar-el-esquema-declarado">Comprobar el esquema declarado<a class="anchor-link" href="#Comprobar-el-esquema-declarado">¶</a></h3><p><code>printSchema()</code> muestra el esquema que ha resultado de la
+transformación; falta compararlo con el que declara el contrato. La
+celda siguiente compara, columna a columna y en orden, el nombre y el
+tipo; no la nulabilidad, por lo explicado en «Los esquemas de <code>silver</code>
+y <code>gold</code>». Si una columna sobra, falta o ha cambiado de tipo, el
+mensaje del <code>assert</code> la nombra:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">silver_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">())</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">fields</span>
+<span class="p">]</span>
+<span class="n">silver_contract_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">())</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">web_sales_silver_schema</span><span class="o">.</span><span class="n">fields</span>
+<span class="p">]</span>
+
+<span class="k">assert</span> <span class="n">silver_columns</span> <span class="o">==</span> <span class="n">silver_contract_columns</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"silver no cumple su esquema declarado (si las dos listas están vacías, "</span>
+    <span class="s2">"cambia el orden de las columnas): "</span>
+    <span class="sa">f</span><span class="s2">"no declaradas </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">silver_columns</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="n">silver_contract_columns</span><span class="p">))</span><span class="si">}</span><span class="s2">, "</span>
+    <span class="sa">f</span><span class="s2">"declaradas y ausentes </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">silver_contract_columns</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="n">silver_columns</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"silver cumple su esquema declarado: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">silver_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> columnas."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Hoy la comprobación pasa sin más, porque el <code>select</code> de la celda anterior
+se escribió a partir del contrato. Su utilidad llega después: si alguien
+cambia ese <code>select</code>, o si la fuente <code>raw</code> cambia el tipo de una columna,
+el notebook se detiene aquí en lugar de escribir en <code>silver</code> una tabla
+distinta de la que esperan S6, S7 y S8.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8926,7 +9123,7 @@ que la única pérdida de filas es exactamente esa, ni una más ni una menos:</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8952,7 +9149,7 @@ que la única pérdida de filas es exactamente esa, ni una más ni una menos:</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8963,7 +9160,7 @@ ella aparecen nulas en ninguna fila de <code>silver</code>:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8984,7 +9181,7 @@ ella aparecen nulas en ninguna fila de <code>silver</code>:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8996,7 +9193,7 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9028,7 +9225,7 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=54">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9046,13 +9243,13 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">La transformación validada, no supuesta</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La única pérdida son las líneas sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code>: ni una más,</li></ul><p style="margin:10px 0">comprobado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Marca de tiempo, fecha y año sin nulos en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12: los rangos de las columnas de partición</li></ul><p style="margin:10px 0">también se comprueban</p>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">La transformación validada, no supuesta</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Las columnas, su orden y sus tipos son los del esquema declarado</li><li style="margin:10px 0">La única pérdida son las líneas sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code>: ni una más,</li></ul><p style="margin:10px 0">comprobado con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code></p><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Marca de tiempo, fecha y año sin nulos en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> entre 1 y 12: los rangos de las columnas de partición</li></ul><p style="margin:10px 0">también se comprueban</p>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9070,13 +9267,13 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Rompe una validación a propósito</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Quita el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">filter</code> de las líneas sin fecha y ejecuta las comprobaciones: ¿cuál falla primero y qué dice su mensaje?</li><li style="margin:10px 0">Deriva <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">dayofmonth</code> en lugar de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">month</code>: ¿qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> lo detecta y por qué?</li><li style="margin:10px 0">Escribe una comprobación nueva para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>: ¿qué rango de años esperas y por qué?</li><li style="margin:10px 0">Antes de seguir, vuelve a ejecutar la celda original para restaurar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Rompe una validación a propósito</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Quita el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">filter</code> de las líneas sin fecha y ejecuta las comprobaciones: ¿cuál falla primero y qué dice su mensaje?</li><li style="margin:10px 0">Deriva <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">dayofmonth</code> en lugar de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">month</code>: ¿qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">assert</code> lo detecta y por qué?</li><li style="margin:10px 0">Quita <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_paid</code> del <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">select</code>, o conviértela con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.cast("double")</code>: ¿qué comprobación lo detecta y qué dice su mensaje?</li><li style="margin:10px 0">Escribe una comprobación nueva para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>: ¿qué rango de años esperas y por qué?</li><li style="margin:10px 0">Antes de seguir, vuelve a ejecutar la celda original para restaurar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9101,7 +9298,7 @@ debe corresponder a fechas de venta reales, no a valores fuera de escala.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9118,7 +9315,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9142,7 +9339,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9158,7 +9355,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9172,7 +9369,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9191,7 +9388,7 @@ ruta de trabajo personal <code>/user/luser/s5</code>, no bajo <code>/datalake</c
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9206,10 +9403,19 @@ tabla, más abajo). Mantenemos la misma disciplina de métricas
 que en S2: <code>count(DISTINCT ws_order_number)</code> cuenta pedidos, <code>count(*)</code>
 cuenta líneas de venta, y ambas cifras se muestran por separado para que no
 se confundan.</p>
+<p>La lectura de <code>silver</code> pasa su esquema declarado con
+<code>.schema(web_sales_silver_schema)</code>: quien consume <code>silver</code> la lee por su
+contrato, sin que Spark deduzca los tipos del pie de un fichero ni de los
+nombres de los directorios. Spark no abre los ficheros para comprobar ese
+esquema al definir la lectura. Si un fichero guardara una columna con un
+tipo distinto del declarado, la consulta fallaría al leerlo con un error
+<code>PARQUET_COLUMN_DATA_TYPE_MISMATCH</code>; si le faltara una columna del
+contrato, Spark la leería como <code>NULL</code> sin avisar. Por eso la comprobación
+que importa es la que hicimos antes de escribir.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9217,7 +9423,9 @@ se confundan.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_silver_written</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">silver_path</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_silver_written</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">schema</span><span class="p">(</span><span class="n">web_sales_silver_schema</span><span class="p">)</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span>
+    <span class="n">silver_path</span>
+<span class="p">)</span>
 
 <span class="n">web_sales_by_year</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">web_sales_silver_written</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
@@ -9237,7 +9445,49 @@ se confundan.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>En ese esquema, <code>pedidos</code> y <code>lineas_de_venta</code> aparecen con
+<code>nullable = false</code>: un recuento nunca es nulo, y Spark lo sabe. El
+contrato las declara nullables porque así las verá cualquiera que lea
+el fichero, como comprobaremos al releer <code>gold</code>. Comparamos nombres,
+orden y tipos, como en <code>silver</code>, antes de escribir:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">gold_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">())</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">web_sales_by_year</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">fields</span>
+<span class="p">]</span>
+<span class="n">gold_contract_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">())</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">web_sales_by_year_schema</span><span class="o">.</span><span class="n">fields</span>
+<span class="p">]</span>
+
+<span class="k">assert</span> <span class="n">gold_columns</span> <span class="o">==</span> <span class="n">gold_contract_columns</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"gold no cumple su esquema declarado (si las dos listas están vacías, "</span>
+    <span class="s2">"cambia el orden de las columnas): "</span>
+    <span class="sa">f</span><span class="s2">"no declaradas </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gold_columns</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="n">gold_contract_columns</span><span class="p">))</span><span class="si">}</span><span class="s2">, "</span>
+    <span class="sa">f</span><span class="s2">"declaradas y ausentes </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gold_contract_columns</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="n">gold_columns</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"gold cumple su esquema declarado: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">gold_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> columnas."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9250,7 +9500,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9268,7 +9518,56 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=60">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Releemos <code>gold</code> sin pasarle ningún esquema, como lo leería alguien que
+sólo conoce la ruta. El esquema que Spark deduce del fichero debe ser
+exactamente el declarado, ahora también en la nulabilidad:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="n">web_sales_by_year_read_back</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">gold_path</span><span class="p">)</span>
+
+<span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
+<span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">schema</span> <span class="o">==</span> <span class="n">web_sales_by_year_schema</span>
+<span class="p">),</span> <span class="sa">f</span><span class="s2">"El fichero de gold no tiene el esquema declarado: </span><span class="si">{</span><span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="s2">"</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>pedidos</code> y <code>lineas_de_venta</code> han pasado a <code>nullable = true</code>. Spark sí
+anotó en el fichero que esas dos columnas no tienen nulos (en Parquet,
+una columna <code>REQUIRED</code> en lugar de <code>OPTIONAL</code>), pero al leer un Parquet
+trata todas las columnas como nullables. Es la razón por la que el
+contrato no promete <code>nullable=False</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9292,7 +9591,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9317,7 +9616,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9329,7 +9628,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9346,7 +9645,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9361,11 +9660,31 @@ por convención de directorios" que describimos en la sección "Qué
 significa particionar". En S6 este mismo descubrimiento pasará a estar
 centralizado en un catálogo, en lugar de depender de que cada motor liste
 la ruta por su cuenta.</p>
+<p>Lo que Spark deduce de los ficheros y de los nombres de directorio debe
+coincidir, columna a columna y también en nulabilidad, con el esquema
+declarado en el contrato:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="k">assert</span> <span class="p">(</span>
+    <span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">schema</span> <span class="o">==</span> <span class="n">web_sales_silver_schema</span>
+<span class="p">),</span> <span class="sa">f</span><span class="s2">"La tabla silver releída no tiene el esquema declarado: </span><span class="si">{</span><span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"El esquema de silver releído desde HDFS es el declarado en el contrato."</span><span class="p">)</span>
+</pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9383,7 +9702,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9405,7 +9724,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9429,7 +9748,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9445,7 +9764,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9455,7 +9774,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9470,7 +9789,7 @@ tenga más líneas de venta en la tabla <code>silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9483,7 +9802,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9498,7 +9817,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9510,7 +9829,7 @@ una acción sobre cada una.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9531,7 +9850,7 @@ una acción sobre cada una.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9552,7 +9871,7 @@ aunque el plan aplique <code>PartitionFilters</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9587,7 +9906,7 @@ aunque el plan aplique <code>PartitionFilters</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9603,7 +9922,7 @@ abajo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9628,7 +9947,7 @@ abajo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9640,7 +9959,7 @@ hace S4 antes de cambiar de sección.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9655,7 +9974,7 @@ hace S4 antes de cambiar de sección.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9667,7 +9986,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9682,7 +10001,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9696,7 +10015,7 @@ ficheros y el tamaño lógico total:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9711,7 +10030,7 @@ ficheros y el tamaño lógico total:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9723,7 +10042,7 @@ antes:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9738,7 +10057,7 @@ antes:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9750,7 +10069,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9765,7 +10084,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9776,7 +10095,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9791,7 +10110,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9803,7 +10122,7 @@ datos, que sale de dividir el tamaño lógico total que imprimió
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9825,7 +10144,7 @@ datos, que sale de dividir el tamaño lógico total que imprimió
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9840,7 +10159,7 @@ pasaría con un dataset mil veces mayor?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9894,7 +10213,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=95">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9918,7 +10237,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=108">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9942,7 +10261,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9967,7 +10286,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10013,7 +10332,7 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10042,7 +10361,7 @@ no en dónde viven los bytes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10079,7 +10398,7 @@ un ejemplo concreto de esta sesión en qué momento lo has notado.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10093,10 +10412,12 @@ demostración en vivo sobre tu propio ordenador y una memoria escrita breve.</p>
 <li>La ruta fuente inmutable (<code>/datalake/raw/tpcds/web_sales</code>) y su número
 de filas, sin modificar.</li>
 <li>La ruta refinada <code>/datalake/silver/tpcds/web_sales</code>, con su esquema
-(<code>printSchema</code>) y la definición de sus particiones (<code>sold_year</code>,
-<code>sold_month</code>).</li>
+(<code>printSchema</code>), la comprobación frente al esquema declarado
+(<code>web_sales_silver_schema</code>) y la definición de sus particiones
+(<code>sold_year</code>, <code>sold_month</code>).</li>
 <li>El producto <code>gold</code> <code>/datalake/gold/tpcds/web_sales_by_year</code>, derivado de
-<code>silver</code>, con su contenido (<code>show()</code>).</li>
+<code>silver</code>, con su contenido (<code>show()</code>) y su esquema releído, que coincide
+con <code>web_sales_by_year_schema</code>.</li>
 <li>La comprobación de filas y claves: el resultado de los <code>assert</code> de esta
 sesión, junto con los valores que compararon (<code>raw_count</code>,
 <code>silver_count</code>, <code>missing_date_count</code>, <code>null_dates</code>).</li>
@@ -10126,8 +10447,12 @@ organizada pero sin catálogo.</p>
 explicar:</p>
 <ul>
 <li>la arquitectura medallion y qué se espera de los datos en cada zona;</li>
-<li>qué debe decir el contrato de una salida de datos: ruta, columnas, claves
-de unión, significado de cada métrica, formato y regla de regeneración;</li>
+<li>qué debe decir el contrato de una salida de datos: ruta, columnas y sus
+tipos, claves de unión, significado de cada métrica, formato y regla de
+regeneración;</li>
+<li>qué comprueba un esquema declarado al escribir y qué hace Spark al leer
+con él, y por qué no sirve para garantizar que una columna no tiene
+nulos;</li>
 <li>qué es el particionado físico por directorios <code>columna=valor</code> y en qué se
 distingue de una partición de ejecución de Spark, de un bloque HDFS y de
 una transformación de partición de Iceberg;</li>
@@ -10142,7 +10467,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=114">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10167,7 +10492,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10183,7 +10508,7 @@ avances por el curso.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

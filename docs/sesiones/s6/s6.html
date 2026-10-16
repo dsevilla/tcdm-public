@@ -8880,11 +8880,13 @@ existía.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Registrar-la-versi%C3%B3n-particionada:-tcdm.web_sales_silver">Registrar la versión particionada: <code>tcdm.web_sales_silver</code><a class="anchor-link" href="#Registrar-la-versi%C3%B3n-particionada:-tcdm.web_sales_silver">¶</a></h2><p>Ahora registramos la salida particionada de S5:
 <code>/datalake/silver/tpcds/web_sales</code>, organizada en directorios
-<code>sold_year=&lt;año&gt;/sold_month=&lt;mes&gt;/</code>. Los tipos de las columnas de negocio
-coinciden con el catálogo de columnas de <code>web_sales</code> que documentó S2, con
-una excepción: <code>ws_sold_date</code> es un <code>DATE</code> que S5 derivó de
-<code>ws_sold_timestamp</code>, y no aparece en el catálogo original de
-S2. Las dos últimas columnas, <code>sold_year</code> y <code>sold_month</code>, son las columnas de
+<code>sold_year=&lt;año&gt;/sold_month=&lt;mes&gt;/</code>. Las columnas, su orden y sus tipos
+son los del esquema que S5 declaró como contrato de esta salida
+(<code>web_sales_silver_schema</code>) y comprobó al escribirla y al releerla,
+escritos con los nombres de tipo de Trino: el <code>timestamp_ntz</code> de Spark es
+aquí un <code>TIMESTAMP</code>, que en Trino no lleva zona. Las columnas de negocio
+son las del catálogo de <code>web_sales</code> que documentó S2, salvo
+<code>ws_sold_date</code>, un <code>DATE</code> que S5 derivó de <code>ws_sold_timestamp</code>. Las dos últimas columnas, <code>sold_year</code> y <code>sold_month</code>, son las columnas de
 partición que
 introdujo S5 y <strong>no</strong> están dentro de los ficheros Parquet: Spark las quitó
 de los datos al escribir con <code>partitionBy</code> y las dejó codificadas sólo en el
@@ -9331,14 +9333,11 @@ filas y bytes leídos que ofrece <code>EXPLAIN ANALYZE</code>.</p>
 <code>/datalake/gold/tpcds/web_sales_by_year</code>, sin particiones — es una tabla
 pequeña, un año por fila, pensada para consumirse entera. Sus columnas son
 <code>sold_year</code>, <code>pedidos</code> (pedidos distintos), <code>lineas_de_venta</code> (líneas de venta,
-<code>count(*)</code>) y <code>beneficio_neto</code>. Declaramos <code>beneficio_neto</code> como
-<code>DECIMAL(17, 2)</code>, coherente con el resto de columnas monetarias de esta
-sesión (<code>DECIMAL(7, 2)</code> en <code>web_sales_silver</code>): un <code>SUM</code> de una columna
+<code>count(*)</code>) y <code>beneficio_neto</code>, con los tipos del esquema que S5 declaró
+para <code>gold</code> (<code>web_sales_by_year_schema</code>) y comprobó al releer el fichero.
+<code>beneficio_neto</code> es un <code>DECIMAL(17, 2)</code>: un <code>SUM</code> de una columna
 <code>decimal(7,2)</code> en Spark amplía la precisión, pero mantiene el tipo decimal en
-lugar de convertirlo a coma flotante — importante para un agregado de dinero.
-Si el Parquet físico que escribió S5 usara <code>DOUBLE</code> en su lugar, se notaría
-al consultar la tabla, no al declararla: el <code>SELECT</code> de más abajo fallaría o
-devolvería <code>NULL</code> en esa columna, y bastaría con ajustar este único tipo.</p>
+lugar de convertirlo a coma flotante — importante para un agregado de dinero.</p>
 </div>
 </div>
 </div>
