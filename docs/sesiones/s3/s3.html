@@ -7950,7 +7950,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
-<td>La tabla completa: su descripción, su diagrama entidad-relación si es una tabla de hechos, y todas sus columnas</td>
+<td>La tabla completa: su descripción, su diagrama entidad-relación si es una tabla de hechos, sus columnas y dos filas de muestra</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales date</code></td>
@@ -7960,10 +7960,18 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <td><code>%esquema ws_sold_timestamp</code></td>
 <td>Esa columna y ninguna otra</td>
 </tr>
+<tr>
+<td><code>%esquema item_sk</code></td>
+<td>Todas las columnas <code>item_sk</code>, tabla a tabla: quién apunta a <code>item</code></td>
+</tr>
+<tr>
+<td><code>%esquema web_sales customer</code></td>
+<td>Varias tablas seguidas, por ejemplo las de un <code>JOIN</code></td>
+</tr>
 </tbody>
 </table>
-<p>Una celda <code>%%esquema</code> admite una tabla, columna o filtro por línea. Lo
-encontrarás la primera vez que la sesión usa cada tabla; añade una celda de
+<p>Para pedir varias cosas a la vez también sirve una celda <code>%%esquema</code> con una
+tabla, columna o filtro por línea. Lo encontrarás la primera vez que la sesión usa cada tabla; añade una celda de
 éstas donde te haga falta y bórrala después.</p>
 <p><code>%schema</code> y <code>%%schema</code> son los mismos comandos con su nombre en inglés:
 usa el que prefieras.</p>
@@ -8734,6 +8742,7 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 <span class="c1"># de bloque de HDFS en este clúster.</span>
 <span class="n">webhdfs</span><span class="o">.</span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
 <span class="n">object_store</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Servidor al que habla s3fs: </span><span class="si">{</span><span class="n">object_store</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">endpoint_url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">hdfs_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
     <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">HDFS_ROOT</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
@@ -9642,8 +9651,8 @@ notebook tampoco puede borrarte los datos por accidente):</p>
 </tbody>
 </table>
 <p>Este <code>down -v</code> sólo afecta al Compose de S3 (RustFS): no toca el clúster
-Hadoop ni el HDFS de la sesión 1, que desde la Sesión 1 vive en volúmenes
-Docker con nombre propios y solo se borra de forma explícita con
+Hadoop ni el HDFS de la sesión 1, que desde la sesión 1 vive en volúmenes
+Docker con nombres propios y solo se borra de forma explícita con
 <code>make -C entorno clean-hdfs</code>.</p>
 <p><code>make -C entorno clean</code> tiene un alcance mayor: además del bucket de RustFS
 de esta sesión, borra —si están incluidos esos Compose y existen sus volúmenes— el
