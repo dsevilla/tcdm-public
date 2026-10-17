@@ -8,7 +8,7 @@ apéndice cada vez que una consulta usa una tabla que no se recuerda:
     %load_ext tcdm_esquema
 
     %esquema                        las 18 tablas, con su papel y descripción
-    %esquema web_sales              la tabla completa, con todas sus columnas y,
+    %esquema web_sales              la tabla completa, dos filas de muestra y,
                                     si es de hechos, su diagrama entidad-relación
     %esquema web_sales date         las columnas de web_sales que contienen «date»
     %esquema ws_sold_timestamp      esa columna y ninguna otra
@@ -108,13 +108,14 @@ class Column:
 
 @dataclass(slots=True)
 class Table:
-    """Una tabla del apéndice: su texto, la cabecera de la tabla Markdown y sus columnas."""
+    """Una tabla del apéndice: descripción, columnas y muestra fija de filas."""
 
     name: str
     role: Role
     description: str = ""
     # El párrafo HTML de su diagrama, tal como está en el apéndice.
     figure: str | None = None
+    sample: str | None = None
     header: list[str] = field(default_factory=list)
     columns: list[Column] = field(default_factory=list)
 
@@ -174,10 +175,27 @@ def parse_appendix(cells: Sequence[str]) -> Schema:
 
 
 def _parse_table(name: str, role: Role, lines: Sequence[str]) -> Table:
-    rows: list[str] = [line for line in lines if line.startswith("|")]
-    figures: list[str] = [line for line in lines if FIGURE.match(line)]
-    prose: list[str] = [line for line in lines if not line.startswith("|") and line not in figures]
+    fences: list[int] = [index for index, line in enumerate(lines) if line == "```text"]
+    if len(fences) > 1:
+        raise SchemaError(f"`{name}` tiene más de una muestra de filas.")
+    sample_start: int | None = fences[0] if fences else None
+    schema_lines: Sequence[str] = lines[:sample_start] if sample_start is not None else lines
+    rows: list[str] = [line for line in schema_lines if line.startswith("|")]
+    figures: list[str] = [line for line in schema_lines if FIGURE.match(line)]
+    prose: list[str] = [
+        line
+        for line in schema_lines
+        if not line.startswith("|")
+        and line not in figures
+        and not line.startswith("Muestra fija de dos filas")
+    ]
     table: Table = Table(name, role, description=" ".join(" ".join(prose).split()), header=rows[:2])
+    if sample_start is not None:
+        try:
+            sample_end: int = lines.index("```", sample_start + 1)
+        except ValueError as error:
+            raise SchemaError(f"`{name}` tiene una muestra sin cerrar.") from error
+        table.sample = "\n".join(lines[sample_start : sample_end + 1])
     if len(figures) > 1:
         raise SchemaError(f"`{name}` tiene {len(figures)} figuras y sólo se espera una.")
     table.figure = figures[0] if figures else None
@@ -207,10 +225,38 @@ def check_schema(tables: Schema) -> list[str]:
             problems.append(f"`{table.name}` repite alguna columna.")
         if not table.primary_key:
             problems.append(f"`{table.name}` no marca ninguna columna como PK.")
+        problems.extend(_check_sample(table))
         problems.extend(_check_figure(table))
         for column in table.columns:
             problems.extend(_check_column(tables, table, column))
     return problems
+
+
+def _check_sample(table: Table) -> list[str]:
+    """Cada bloque debe mostrar las mismas dos filas y, juntos, todas las columnas."""
+    if table.sample is None:
+        return [f"`{table.name}` no tiene muestra de filas."]
+    lines: list[str] = table.sample.splitlines()
+    names: list[str] = [column.name for column in table.columns]
+    if len(lines) < 7 or lines[0] != "```text" or lines[-2:] != ["(2 filas)", "```"]:
+        return [f"`{table.name}`: la muestra debe tener todas sus columnas y dos filas."]
+    blocks: list[str] = "\n".join(lines[1:-2]).split("\n\n")
+    headers: list[str] = []
+    for block in blocks:
+        group: list[str] = block.splitlines()
+        if len(group) != 5:
+            return [f"`{table.name}`: un bloque de la muestra está incompleto."]
+        columns: list[str] = [name.strip() for name in group[1].split(" | ")]
+        start: int = len(headers) + 1
+        end: int = start + len(columns) - 1
+        if group[0] != f"Columnas {start}-{end} de {len(names)}" or any(
+            len(row.split(" | ")) != len(columns) for row in group[3:]
+        ):
+            return [f"`{table.name}`: un bloque de la muestra no coincide con sus columnas."]
+        headers.extend(columns)
+    if headers != names:
+        return [f"`{table.name}`: la muestra no incluye todas sus columnas."]
+    return []
 
 
 def _check_figure(table: Table) -> list[str]:
@@ -326,7 +372,17 @@ def _table_markdown(table: Table, columns: Sequence[Column]) -> str:
     rows: list[str] = [*table.header, *(column.row for column in columns)]
     if len(columns) == len(table.columns):
         figure: list[str] = [table.figure, ""] if table.figure else []
-        return "\n".join([title, "", table.description, "", *figure, *rows])
+        sample: list[str] = (
+            [
+                "",
+                "Muestra fija de dos filas (todas las columnas; `…` abrevia texto largo):",
+                "",
+                table.sample,
+            ]
+            if table.sample
+            else []
+        )
+        return "\n".join([title, "", table.description, "", *figure, *rows, *sample])
     return "\n".join([f"{title} ({len(columns)} de {len(table.columns)} columnas)", "", *rows])
 
 

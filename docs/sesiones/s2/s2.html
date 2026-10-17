@@ -8169,7 +8169,7 @@ tal como está en el <a href="#apendice-tpcds-sf3">apéndice</a> de este noteboo
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
-<td>La tabla completa: su descripción, su diagrama entidad-relación si es una tabla de hechos, y todas sus columnas</td>
+<td>La tabla completa: descripción, diagrama si es un hecho, columnas y dos filas de muestra</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales date</code></td>
@@ -15116,6 +15116,13 @@ cuatro del canal de catálogo, <code>date_dim</code> y <code>time_dim</code> no 
 no aparecen. <code>%esquema</code> lee de aquí lo que muestra: si pides
 <code>%esquema store_sales</code> en cualquier celda, de esta sesión o de las
 siguientes, verás el texto y la tabla de <code>store_sales</code> de este apéndice.</p>
+<p>Cada tabla incluye una muestra fija de dos filas reales de SF3, con las
+transformaciones de esta sesión ya aplicadas. El bloque monoespaciado permite
+ver los nombres y valores de todas sus columnas, repartidas en bloques
+para leerlas sin desplazarse demasiado. Cada bloque presenta las mismas dos
+filas. <code>NULL</code> significa que no hay valor y <code>…</code> abrevia un texto largo. La muestra se ve incluso
+antes de materializar los Parquet; una consulta sin <code>ORDER BY</code> puede devolver
+las filas en otro orden.</p>
 <p><code>PK</code> identifica una clave primaria, <code>FK</code> una clave ajena y <code>BK</code> una clave de
 negocio útil para reconocer el mismo objeto fuera del almacén. En las tablas
 de hechos la clave primaria es compuesta y sus componentes se indican como
@@ -15383,6 +15390,32 @@ clase, categoría, fabricante, tamaño, color, unidades y nombre comercial.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-5 de 22
+i_item_sk | i_item_id        | i_rec_start_date | i_rec_end_date | i_item_desc                         
+----------+------------------+------------------+----------------+-------------------------------------
+1         | AAAAAAAABAAAAAAA | 1998-01-01       | NULL           | Powers will not get influences. Ele…
+2         | AAAAAAAACAAAAAAA | 1998-01-01       | 2000-12-31     | Costs could prove. Industrial, new  
+
+Columnas 6-12 de 22
+i_current_price | i_wholesale_cost | i_brand_id | i_brand           | i_class_id | i_class | i_category_id
+----------------+------------------+------------+-------------------+------------+---------+--------------
+27.02           | 23.23            | 5003002    | exportischolar #2 | 3          | pop     | 5            
+1.12            | 0.38             | 1001001    | amalgamalg #1     | 1          | dresses | 1            
+
+Columnas 13-20 de 22
+i_category | i_manufact_id | i_manufact  | i_size | i_formulation        | i_color | i_units | i_container
+-----------+---------------+-------------+--------+----------------------+---------+---------+------------
+Music      | 52            | ableanti    | N/A    | 3663peru009490160959 | spring  | Tsp     | Unknown    
+Women      | 294           | esen stable | petite | peru3235638235244700 | rosy    | Bunch   | Unknown    
+
+Columnas 21-22 de 22
+i_manager_id | i_product_name
+-------------+---------------
+6            | ought         
+98           | able          
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -15516,6 +15549,32 @@ benchmark.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-5 de 18
+c_customer_sk | c_customer_id    | c_current_cdemo_sk | c_current_hdemo_sk | c_current_addr_sk
+--------------+------------------+--------------------+--------------------+------------------
+1             | AAAAAAAABAAAAAAA | 980124             | 7135               | 6946             
+2             | AAAAAAAACAAAAAAA | 819667             | 1461               | 49655            
+
+Columnas 6-11 de 18
+c_first_shipto_date | c_first_sales_date | c_salutation | c_first_name | c_last_name | c_preferred_cust_flag
+--------------------+--------------------+--------------+--------------+-------------+----------------------
+2001-11-24          | 2001-10-25         | Mr.          | Javier       | Lewis       | Y                    
+2002-02-12          | 2002-01-13         | Dr.          | Amy          | Moses       | Y                    
+
+Columnas 12-17 de 18
+c_birth_day | c_birth_month | c_birth_year | c_birth_country | c_login | c_email_address             
+------------+---------------+--------------+-----------------+---------+-----------------------------
+9           | 12            | 1936         | CHILE           |         | Javier.Lewis@VFAxlnZEvOx.org
+9           | 4             | 1966         | TOGO            |         | Amy.Moses@Ovk9KjHH.com      
+
+Columnas 18-18 de 18
+c_last_review_date
+------------------
+2002-08-21        
+2002-02-12        
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -15618,6 +15677,20 @@ e incluye también el desplazamiento horario y el tipo de ubicación.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 13
+ca_address_sk | ca_address_id    | ca_street_number | ca_street_name | ca_street_type | ca_suite_number
+--------------+------------------+------------------+----------------+----------------+----------------
+1             | AAAAAAAABAAAAAAA | 18               | Jackson        | Parkway        | Suite 280      
+2             | AAAAAAAACAAAAAAA | 362              | Washington 6th | RD             | Suite 80       
+
+Columnas 7-13 de 13
+ca_city                  | ca_county | ca_state | ca_zip | ca_country | ca_gmt_offset | ca_location_type
+-------------------------+-----------+----------+--------+------------+---------------+-----------------
+Obón                     | Teruel    | 44       | 86192  | España     | -7.00         | condo           
+Calzadilla de los Barros | Badajoz   | 06       | 85709  | España     | -7.00         | condo           
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -15697,6 +15770,20 @@ dependientes.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 9
+cd_demo_sk | cd_gender | cd_marital_status | cd_education_status | cd_purchase_estimate | cd_credit_rating
+-----------+-----------+-------------------+---------------------+----------------------+-----------------
+1          | M         | M                 | Primary             | 500                  | Good            
+2          | F         | M                 | Primary             | 500                  | Good            
+
+Columnas 7-9 de 9
+cd_dep_count | cd_dep_employed_count | cd_dep_college_count
+-------------+-----------------------+---------------------
+0            | 0                     | 0                   
+0            | 0                     | 0                   
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -15751,6 +15838,14 @@ compra, número de dependientes y vehículos.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-5 de 5
+hd_demo_sk | hd_income_band_sk | hd_buy_potential | hd_dep_count | hd_vehicle_count
+-----------+-------------------+------------------+--------------+-----------------
+1          | 2                 | 0-500            | 0            | 0               
+2          | 3                 | 0-500            | 0            | 0               
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -15792,6 +15887,14 @@ compra, número de dependientes y vehículos.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-3 de 3
+ib_income_band_sk | ib_lower_bound | ib_upper_bound
+------------------+----------------+---------------
+1                 | 0              | 10000         
+2                 | 10001          | 20000         
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -15990,6 +16093,38 @@ horario, mercado y empresa.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 29
+s_store_sk | s_store_id       | s_rec_start_date | s_rec_end_date | s_closed_date | s_store_name
+-----------+------------------+------------------+----------------+---------------+-------------
+1          | AAAAAAAABAAAAAAA | 1998-01-01       | NULL           | 1999-01-10    | ought       
+2          | AAAAAAAACAAAAAAA | 1998-01-01       | 2000-12-31     | NULL          | able        
+
+Columnas 7-12 de 29
+s_number_employees | s_floor_space | s_hours | s_manager    | s_market_id | s_geography_class
+-------------------+---------------+---------+--------------+-------------+------------------
+245                | 5250760       | 8AM-4PM | William Ward | 2           | Unknown          
+236                | 5285950       | 8AM-4PM | Scott Smith  | 8           | Unknown          
+
+Columnas 13-17 de 29
+s_market_desc                        | s_market_manager | s_division_id | s_division_name | s_company_id
+-------------------------------------+------------------+---------------+-----------------+-------------
+Enough high areas stop expectations… | Charles Bartley  | 1             | Unknown         | 1           
+Fingers will access spots. Even loc… | David Lamontagne | 1             | Unknown         | 1           
+
+Columnas 18-24 de 29
+s_company_name | s_street_number | s_street_name | s_street_type | s_suite_number | s_city   | s_county
+---------------+-----------------+---------------+---------------+----------------+----------+---------
+Unknown        | 767             | Spring        | Wy            | Suite 250      | Tortellà | Girona  
+Unknown        | 255             | Sycamore      | Dr.           | Suite 410      | Tortellà | Girona  
+
+Columnas 25-29 de 29
+s_state | s_zip | s_country | s_gmt_offset | s_tax_percentage
+--------+-------+-----------+--------------+-----------------
+17      | 31904 | España    | -5.00        | 0.03            
+17      | 31904 | España    | -5.00        | 0.03            
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16097,6 +16232,20 @@ horario, mercado y empresa.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 14
+w_warehouse_sk | w_warehouse_id   | w_warehouse_name    | w_warehouse_sq_ft | w_street_number | w_street_name
+---------------+------------------+---------------------+-------------------+-----------------+--------------
+1              | AAAAAAAABAAAAAAA | Conventional childr | 977787            | 651             | 6th          
+2              | AAAAAAAACAAAAAAA | Of course ot        | 138504            | 600             | View First   
+
+Columnas 7-14 de 14
+w_street_type | w_suite_number | w_city  | w_county | w_state | w_zip | w_country | w_gmt_offset
+--------------+----------------+---------+----------+---------+-------+-----------+-------------
+Parkway       | Suite 470      | Sancedo | León     | 24      | 35709 | España    | -5.00       
+Avenue        | Suite P        | Sancedo | León     | 24      | 35709 | España    | -5.00       
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16235,6 +16384,32 @@ publicitarios, propósito y si el descuento está activo.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-7 de 19
+p_promo_sk | p_promo_id       | p_start_date | p_end_date | p_item_sk | p_cost  | p_response_target
+-----------+------------------+--------------+------------+-----------+---------+------------------
+1          | AAAAAAAABAAAAAAA | 1996-03-21   | 1996-04-11 | 28022     | 1000.00 | 1                
+2          | AAAAAAAACAAAAAAA | 1996-02-04   | 1996-03-07 | 2410      | 1000.00 | 1                
+
+Columnas 8-13 de 19
+p_promo_name | p_channel_dmail | p_channel_email | p_channel_catalog | p_channel_tv | p_channel_radio
+-------------+-----------------+-----------------+-------------------+--------------+----------------
+ought        | Y               | N               | N                 | N            | N              
+able         | Y               | N               | N                 | N            | N              
+
+Columnas 14-18 de 19
+p_channel_press | p_channel_event | p_channel_demo | p_channel_details                    | p_purpose
+----------------+-----------------+----------------+--------------------------------------+----------
+N               | N               | N              | Men will not say merely. Old, avail… | Unknown  
+N               | N               | N              | Keen ways speak measurements. Futur  | Unknown  
+
+Columnas 19-19 de 19
+p_discount_active
+-----------------
+N                
+N                
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16277,6 +16452,14 @@ devoluciones.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-3 de 3
+r_reason_sk | r_reason_id      | r_reason_desc      
+------------+------------------+--------------------
+1           | AAAAAAAABAAAAAAA | Package was damaged
+2           | AAAAAAAACAAAAAAA | Stopped working    
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16336,6 +16519,14 @@ devoluciones.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 6
+sm_ship_mode_sk | sm_ship_mode_id  | sm_type  | sm_code | sm_carrier | sm_contract       
+----------------+------------------+----------+---------+------------+-------------------
+1               | AAAAAAAABAAAAAAA | EXPRESS  | AIR     | UPS        | YvxVaJI10         
+2               | AAAAAAAACAAAAAAA | NEXT DAY | AIR     | FEDEX      | ldhM8IvpzHgdbBgDfI
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16444,6 +16635,26 @@ contenido y publicidad.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 14
+wp_web_page_sk | wp_web_page_id   | wp_rec_start_date | wp_rec_end_date | wp_creation_date | wp_access_date
+---------------+------------------+-------------------+-----------------+------------------+---------------
+1              | AAAAAAAABAAAAAAA | 1998-01-01        | NULL            | 1997-12-27       | 2002-12-11    
+2              | AAAAAAAACAAAAAAA | 1998-01-01        | 2000-12-31      | 1997-12-31       | 2002-11-01    
+
+Columnas 7-12 de 14
+wp_autogen_flag | wp_customer_sk | wp_url             | wp_type   | wp_char_count | wp_link_count
+----------------+----------------+--------------------+-----------+---------------+--------------
+Y               | 114539         | http://www.foo.com | welcome   | 2531          | 8            
+N               | NULL           | http://www.foo.com | protected | 1564          | 4            
+
+Columnas 13-14 de 14
+wp_image_count | wp_max_ad_count
+---------------+----------------
+3              | 4              
+3              | 1              
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16624,6 +16835,38 @@ apertura y cierre.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 26
+web_site_sk | web_site_id      | web_rec_start_date | web_rec_end_date | web_name | web_open_date
+------------+------------------+--------------------+------------------+----------+--------------
+1           | AAAAAAAABAAAAAAA | 1998-01-01         | NULL             | site_0   | 1997-12-24   
+2           | AAAAAAAACAAAAAAA | 1998-01-01         | 2000-12-31       | site_0   | 1997-12-15   
+
+Columnas 7-11 de 26
+web_close_date | web_class | web_manager    | web_mkt_id | web_mkt_class                       
+---------------+-----------+----------------+------------+-------------------------------------
+NULL           | Unknown   | Ronald Shaffer | 4          | Grey lines ought to result indeed c…
+1987-12-18     | Unknown   | Tommy Jones    | 6          | Otherwise simple years account as s…
+
+Columnas 12-15 de 26
+web_mkt_desc                         | web_market_manager | web_company_id | web_company_name
+-------------------------------------+--------------------+----------------+-----------------
+Well similar decisions used to keep… | Joe George         | 6              | cally           
+Results shall not encourage interes… | David Myers        | 4              | ese             
+
+Columnas 16-22 de 26
+web_street_number | web_street_name | web_street_type | web_suite_number | web_city | web_county | web_state
+------------------+-----------------+-----------------+------------------+----------+------------+----------
+51                | Dogwood Sunset  | Ln              | Suite 330        | Tortellà | Girona     | 17       
+358               | Ridge Wilson    | Cir.            | Suite 150        | Tortellà | Girona     | 17       
+
+Columnas 23-26 de 26
+web_zip | web_country | web_gmt_offset | web_tax_percentage
+--------+-------------+----------------+-------------------
+31904   | España      | -5.00          | 0.10              
+31904   | España      | -5.00          | 0.00              
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -16809,6 +17052,32 @@ beneficio.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-7 de 22
+ss_sold_timestamp   | ss_item_sk | ss_customer_sk | ss_cdemo_sk | ss_hdemo_sk | ss_addr_sk | ss_store_sk
+--------------------+------------+----------------+-------------+-------------+------------+------------
+2000-08-09 13:18:41 | 1          | 55847          | 1604055     | 4710        | 46165      | 1          
+2000-09-10 10:45:19 | 1          | 75499          | 245398      | 2944        | 58043      | 1          
+
+Columnas 8-13 de 22
+ss_promo_sk | ss_ticket_number | ss_quantity | ss_wholesale_cost | ss_list_price | ss_sales_price
+------------+------------------+-------------+-------------------+---------------+---------------
+60          | 1373             | 95          | 56.24             | 73.11         | 1.46          
+83          | 4011             | 34          | 72.06             | 98.00         | 78.40         
+
+Columnas 14-18 de 22
+ss_ext_discount_amt | ss_ext_sales_price | ss_ext_wholesale_cost | ss_ext_list_price | ss_ext_tax
+--------------------+--------------------+-----------------------+-------------------+-----------
+0.00                | 138.70             | 5342.80               | 6945.45           | 2.77      
+0.00                | 2665.60            | 2450.04               | 3332.00           | 186.59    
+
+Columnas 19-22 de 22
+ss_coupon_amt | ss_net_paid | ss_net_paid_inc_tax | ss_net_profit
+--------------+-------------+---------------------+--------------
+0.00          | 138.70      | 141.47              | -5204.10     
+0.00          | 2665.60     | 2852.19             | 215.56       
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -17032,6 +17301,44 @@ sitio, modo de envío, almacén, producto y promoción.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-6 de 33
+ws_sold_timestamp   | ws_ship_date | ws_item_sk | ws_bill_customer_sk | ws_bill_cdemo_sk | ws_bill_hdemo_sk
+--------------------+--------------+------------+---------------------+------------------+-----------------
+2001-06-21 18:38:02 | 2001-10-16   | 1          | 133091              | 750415           | 4539            
+2000-03-29 03:43:09 | 2000-05-11   | 1          | 14975               | 1158676          | 1930            
+
+Columnas 7-12 de 33
+ws_bill_addr_sk | ws_ship_customer_sk | ws_ship_cdemo_sk | ws_ship_hdemo_sk | ws_ship_addr_sk | ws_web_page_sk
+----------------+---------------------+------------------+------------------+-----------------+---------------
+54310           | 133091              | 750415           | 4539             | 54310           | 69            
+82784           | 46733               | 734971           | 1081             | 59191           | 53            
+
+Columnas 13-18 de 33
+ws_web_site_sk | ws_ship_mode_sk | ws_warehouse_sk | ws_promo_sk | ws_order_number | ws_quantity
+---------------+-----------------+-----------------+-------------+-----------------+------------
+13             | 19              | 1               | 119         | 439             | 15         
+2              | 20              | 4               | 56          | 529             | 9          
+
+Columnas 19-23 de 33
+ws_wholesale_cost | ws_list_price | ws_sales_price | ws_ext_discount_amt | ws_ext_sales_price
+------------------+---------------+----------------+---------------------+-------------------
+88.51             | 181.44        | 1.81           | 2694.45             | 27.15             
+43.38             | 86.76         | 49.45          | 335.79              | 445.05            
+
+Columnas 24-29 de 33
+ws_ext_wholesale_cost | ws_ext_list_price | ws_ext_tax | ws_coupon_amt | ws_ext_ship_cost | ws_net_paid
+----------------------+-------------------+------------+---------------+------------------+------------
+1327.65               | 2721.60           | 0.81       | 0.00          | 1034.10          | 27.15      
+390.42                | 780.84            | 0.00       | 0.00          | 187.38           | 445.05     
+
+Columnas 30-33 de 33
+ws_net_paid_inc_tax | ws_net_paid_inc_ship | ws_net_paid_inc_ship_tax | ws_net_profit
+--------------------+----------------------+--------------------------+--------------
+27.96               | 1061.25              | 1062.06                  | -1300.50     
+445.05              | 632.43               | 632.43                   | 54.63        
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -17171,6 +17478,26 @@ impuestos, comisiones, gastos de envío y pérdida neta.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-7 de 19
+sr_returned_timestamp | sr_item_sk | sr_customer_sk | sr_cdemo_sk | sr_hdemo_sk | sr_addr_sk | sr_store_sk
+----------------------+------------+----------------+-------------+-------------+------------+------------
+2000-11-02 12:30:02   | 1          | 55847          | 1516535     | 3153        | 49371      | 31         
+2001-02-17 11:25:56   | 1          | 75499          | 1325942     | 761         | 62733      | 17         
+
+Columnas 8-13 de 19
+sr_reason_sk | sr_ticket_number | sr_return_quantity | sr_return_amt | sr_return_tax | sr_return_amt_inc_tax
+-------------+------------------+--------------------+---------------+---------------+----------------------
+5            | 1373             | 34                 | 49.64         | 0.99          | 50.63                
+34           | 4011             | 4                  | 313.60        | 21.95         | 335.55               
+
+Columnas 14-19 de 19
+sr_fee | sr_return_ship_cost | sr_refunded_cash | sr_reversed_charge | sr_store_credit | sr_net_loss
+-------+---------------------+------------------+--------------------+-----------------+------------
+32.53  | 1043.80             | 24.82            | 3.97               | 20.85           | 1077.32    
+4.44   | 192.08              | 269.69           | 3.07               | 40.84           | 218.47     
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -17334,6 +17661,38 @@ relaciones de cliente, domicilio, producto y pedido.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-5 de 23
+wr_returned_timestamp | wr_item_sk | wr_refunded_customer_sk | wr_refunded_cdemo_sk | wr_refunded_hdemo_sk
+----------------------+------------+-------------------------+----------------------+---------------------
+2001-05-20 10:42:51   | 1          | 160892                  | 1784403              | 4714                
+2001-07-19 09:38:20   | 1          | 16833                   | 1567140              | 1094                
+
+Columnas 6-9 de 23
+wr_refunded_addr_sk | wr_returning_customer_sk | wr_returning_cdemo_sk | wr_returning_hdemo_sk
+--------------------+--------------------------+-----------------------+----------------------
+15778               | 160892                   | 1784403               | 4714                 
+75048               | 16833                    | 1567140               | 1094                 
+
+Columnas 10-15 de 23
+wr_returning_addr_sk | wr_web_page_sk | wr_reason_sk | wr_order_number | wr_return_quantity | wr_return_amt
+---------------------+----------------+--------------+-----------------+--------------------+--------------
+15778                | 63             | 11           | 7294            | 3                  | 253.02       
+75048                | 23             | 36           | 22516           | 4                  | 8.12         
+
+Columnas 16-21 de 23
+wr_return_tax | wr_return_amt_inc_tax | wr_fee | wr_return_ship_cost | wr_refunded_cash | wr_reversed_charge
+--------------+-----------------------+--------+---------------------+------------------+-------------------
+10.12         | 263.14                | 15.71  | 189.75              | 50.60            | 58.70             
+0.40          | 8.52                  | 94.70  | 101.72              | 8.03             | 0.05              
+
+Columnas 22-23 de 23
+wr_account_credit | wr_net_loss
+------------------+------------
+143.72            | 215.58     
+0.04              | 196.82     
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
@@ -17384,6 +17743,14 @@ productos y almacenes con la cantidad disponible.</p>
 </tr>
 </tbody>
 </table>
+<p>Muestra fija de dos filas del dataset SF3 (todas las columnas; <code>…</code> abrevia texto largo):</p>
+<div class="highlight"><pre><span></span>Columnas 1-4 de 4
+inv_date   | inv_item_sk | inv_warehouse_sk | inv_quantity_on_hand
+-----------+-------------+------------------+---------------------
+1998-01-01 | 1           | 1                | 211                 
+1998-01-01 | 1           | 2                | 494                 
+(2 filas)
+</pre></div>
 </div>
 </div>
 </div>
