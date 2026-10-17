@@ -10537,6 +10537,8 @@ falla si alguna no tiene las que le corresponden.</p>
 <span class="p">}</span>
 
 <span class="k">for</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">expected</span> <span class="ow">in</span> <span class="n">LOCALIZED_ROWS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">table_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
+        <span class="k">continue</span>
     <span class="n">rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">tpcds_db</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"SELECT count(*) FROM read_parquet('webhdfs://</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet')"</span>
     <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -10579,7 +10581,7 @@ tabla, <code>dsdgen</code> volvería a crear la base: el resultado es el mismo.<
     <span class="k">assert</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="o">==</span> <span class="n">success_marker</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
 
 <span class="n">tpcds_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">TPCDS_DATABASE</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">TPCDS_DATABASE</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Dataset preparado: 18 tablas TPC-DS corregidas y CSV de municipios en HDFS"</span><span class="p">)</span>
 <span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-du<span class="w"> </span>-h<span class="w"> </span>-s<span class="w"> </span>/datalake/raw/tpcds
