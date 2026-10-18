@@ -7868,8 +7868,8 @@ se ha usado durante todo el curso, repetida ahora de forma continua
 en vez de una sola vez.</p>
 <blockquote>
 <p><strong>Paquetes de Python de esta sesión.</strong> S8 usa <code>pyspark</code>, <code>trino</code> y
-<code>pandas</code>; el generador de lotes también usa <code>fsspec</code>, <code>requests</code> y PyArrow
-para leer y escribir por WebHDFS. Todos los notebooks de S2-S8 instalan la
+<code>pandas</code>; el generador de lotes también usa <code>fsspec</code>, <code>hdfs-native</code> y
+PyArrow para leer y escribir en HDFS. Todos los notebooks de S2-S8 instalan la
 lista común publicada como <code>entorno/requirements.txt</code>, que reúne los
 paquetes usados a lo largo del curso.</p>
 </blockquote>
@@ -8224,8 +8224,8 @@ problemas» en <code>entorno/README.md</code>.</p>
 sesión no regenera TPC-DS. La comprobación de que S7 ya creó las tablas
 Iceberg llega un poco más abajo, en «Verificar que S7 ya creó las tablas
 Iceberg».</p>
-<h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>El notebook usa PySpark, <code>trino</code> y <code>pandas</code>, además de <code>fsspec</code>, <code>requests</code>
-y PyArrow para que el generador de lotes lea y escriba por WebHDFS. La
+<h2 id="Instalar-las-dependencias-de-este-notebook">Instalar las dependencias de este notebook<a class="anchor-link" href="#Instalar-las-dependencias-de-este-notebook">¶</a></h2><p>El notebook usa PySpark, <code>trino</code> y <code>pandas</code>, además de <code>fsspec</code>, <code>hdfs-native</code>
+y PyArrow para que el generador de lotes lea y escriba en HDFS. La
 distribución publica una sola lista común en <code>entorno/requirements.txt</code> con
 las dependencias usadas en S2-S8. La celda siguiente instala esa lista con
 <code>%pip</code> desde el fichero público; la URL completa queda visible en la celda
@@ -8660,8 +8660,8 @@ streaming siguen siendo procesos independientes que se coordinan
 <h2 id="El-generador-simulado">El generador simulado<a class="anchor-link" href="#El-generador-simulado">¶</a></h2><p><code>generate_web_sales_batch.py</code> construye, cada vez que se ejecuta, un lote de
 líneas de venta web sintéticas y lo escribe como un fichero Parquet nuevo
 bajo la ruta de aterrizaje, con un nombre (marca de tiempo + UUID corto) que
-no se repite entre ejecuciones. No usa Spark: habla con HDFS sólo por
-WebHDFS con <code>fsspec</code> y PyArrow, igual que los lectores de S2.</p>
+no se repite entre ejecuciones. No usa Spark: habla con HDFS sólo con
+<code>hdfs-native</code>, <code>fsspec</code> y PyArrow, igual que los lectores de S2.</p>
 <p><code>web_sales</code> es una tabla a nivel de <strong>línea</strong>, no de pedido: su clave real
 es el par <code>(ws_order_number, ws_item_sk)</code>, no <code>ws_order_number</code> en
 solitario, porque un mismo pedido puede tener varias líneas con productos

@@ -41,8 +41,8 @@ copia con commits propios: en ese caso lo indica y no cambia nada.
 
 Desde S2 el kernel de Jupyter se ejecuta dentro de `namenode`. La imagen
 incluye el entorno Python del curso en `/opt/tcdm/venv` (Jupyter Lab,
-PySpark, PyArrow, Polars, DuckDB, `fsspec`, `s3fs`, boto3 y el cliente de
-Trino), pero Jupyter Lab no arranca solo. El alumnado entra en el
+PySpark, PyArrow, Polars, DuckDB, `fsspec`, `hdfs-native`, `s3fs`, boto3 y el
+cliente de Trino), pero Jupyter Lab no arranca solo. El alumnado entra en el
 contenedor y lo lanza como `luser`:
 
 ```bash
@@ -78,8 +78,9 @@ namenode + tres datanodeX
               Trino ─ Hive Metastore ─ PostgreSQL
 ```
 
-La sesión 3 añade un Compose independiente en `compose-s3.yml`: RustFS, la
-inicialización de un bucket y un contenedor AWS CLI. No contiene Trino ni un
+La sesión 3 añade un Compose independiente en `compose-s3.yml`: RustFS y un
+contenedor AWS CLI. El bucket `tcdm-datalake` no lo crea el Compose, sino el
+propio notebook con boto3. No contiene Trino ni un
 catálogo, porque en esa sesión se estudia primero el almacenamiento de
 objetos y los Parquet. El laboratorio posterior definido en `compose-trino.yml`
 añade Polaris, Spark, Trino e Iceberg sobre su propio RustFS. Ese RustFS no
@@ -95,7 +96,7 @@ make s3-up
 
 Después se ejecuta `s3/s3.ipynb`. El notebook consume las 18 tablas que dejó
 S2 y realiza la copia bajo el prefijo `raw/tpcds` mediante
-`fsspec` (WebHDFS para leer de HDFS y `s3fs` para escribir en el bucket), sin
+`fsspec` (`hdfs-native` para leer de HDFS y `s3fs` para escribir en el bucket), sin
 pasar los Parquet por el disco del host. Mantiene un prefijo por tabla, igual que la organización de HDFS.
 En un almacenamiento de objetos, `raw` y `tpcds` son componentes de la clave
 y no directorios reales.
@@ -186,7 +187,7 @@ comprueba los catálogos. La sesión 6 es la primera que lo usa.
 
 S2 no necesita más servicios que el clúster de S1. El notebook genera las 18
 tablas de TPC-DS SF3 que usa el curso con DuckDB, dentro de su propio kernel
-en `namenode`, y las escribe como Parquet en HDFS por WebHDFS. Es la única
+en `namenode`, y las escribe como Parquet en HDFS con el cliente `hdfs-native`. Es la única
 forma de obtenerlas: ningún objetivo de `make` ni servicio de Compose genera
 datos.
 
@@ -236,8 +237,8 @@ dimensiones, por su clave. El marcador `_SUCCESS` de cada tabla guarda las
 correcciones que lleva (`INE-2026`, `SCD2` y `FECHAS`, unidas con `+` cuando
 son varias, o vacío), y una tabla cuyo marcador no coincide se vuelve a
 generar. Al terminar hay datasets Parquet que todavía no son tablas de
-ningún catálogo: se estudian directamente mediante WebHDFS, `fsspec`,
-PyArrow, Polars y DuckDB, y se registran más adelante como tablas externas o
+ningún catálogo: se estudian directamente mediante `hdfs-native`,
+`fsspec`, PyArrow, Polars y DuckDB, y se registran más adelante como tablas externas o
 se reescriben como tablas Iceberg.
 
 La ruta no contiene `sf3`: el curso mantiene una única escala y no necesita
@@ -266,11 +267,14 @@ operaciones auxiliares que realiza contra HDFS. `/datalake`, sus capas `raw`,
 `silver` y `gold`, y `/warehouse` pertenecen a `luser:hadoop` y tienen permisos
 `770`.
 
-WebHDFS devuelve redireccionamientos hacia `datanode1`, `datanode2` o
-`datanode3`. Esos nombres funcionan desde Jupyter porque `namenode` está en la
-misma red Docker. El puerto `9870` publicado en el host sirve para la interfaz
-del NameNode, pero un cliente WebHDFS que siga redireccionamientos debe
-ejecutarse normalmente dentro de `hadoop-cluster`.
+Los notebooks acceden a HDFS desde Python con `hdfs-native`, un cliente
+nativo escrito en Rust que no necesita Java: habla con el NameNode por RPC en
+`namenode:9000` y lee y escribe los bloques directamente en `datanode1`,
+`datanode2` o `datanode3` (puerto `9866`). Esas direcciones sólo se alcanzan
+dentro de la red `hadoop-cluster`, así que el cliente debe ejecutarse ahí, como
+el Jupyter de `namenode`. Toma la identidad de `HADOOP_USER_NAME` o, si no
+está definida, la del usuario del proceso (`luser`). El puerto `9870`
+publicado en el host sirve para la interfaz web del NameNode.
 
 ### Versiones fijadas y compatibilidad
 

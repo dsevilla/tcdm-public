@@ -2,20 +2,22 @@
 # Todos esos notebooks instalan esta lista común desde la distribución pública.
 # S2: generación, acceso a HDFS y lectura/escritura de Parquet.
 duckdb
-# fsspec con el arreglo de la carrera entre CREATE y APPEND de WebHDFS (rama
-# webhdfs-lease-race de dsevilla/filesystem_spec, sobre fsspec 2026.9.0).
-fsspec @ git+https://github.com/dsevilla/filesystem_spec@2026.9.0.post2
+# fsspec da la misma interfaz de ficheros a HDFS (hdfs-native) y a S3 (s3fs).
+fsspec==2026.9.0
+# Cliente nativo de HDFS escrito en Rust, sin JVM: habla el protocolo RPC del
+# NameNode y el de transferencia de datos de los DataNodes. Registra en fsspec
+# el protocolo hdfs://, que usan PyArrow, Polars y DuckDB.
+hdfs-native>=0.14.7,<0.15
 polars>=2.0
 pyarrow
 requests
-tenacity
 pandas
 matplotlib
 # S3: inspección y acceso al almacenamiento compatible con S3.
 boto3==1.43.106
 aiobotocore==3.9.2
 # Cada s3fs exige la versión de fsspec con la que sale (2026.9.0 admite
-# >=2026.9.0,<2026.9.1, y por tanto el 2026.9.0.post2 de arriba).
+# >=2026.9.0,<2026.9.1, la fijada arriba).
 s3fs==2026.9.0
 # S4-S8: Spark; S6-S8: consultas a Trino.
 pyspark>4,<4.2

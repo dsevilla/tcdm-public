@@ -7,8 +7,9 @@ más las columnas derivadas `sold_year`/`sold_month` que ya usa la tabla
 Iceberg `iceberg.tcdm.web_sales` creada en S7. Spark Structured Streaming
 recoge esos ficheros desde esa ruta con su fuente de ficheros Parquet.
 
-El programa no depende de Spark ni de PySpark: habla con HDFS únicamente por
-WebHDFS, con `fsspec` y `PyArrow`, igual que las lecturas de la sesión 2.
+El programa no depende de Spark ni de PySpark: habla con HDFS únicamente con
+`hdfs-native`, a través de `fsspec` y `PyArrow`, igual que las lecturas de la
+sesión 2.
 Los rangos de claves surrogadas
 (`ws_bill_customer_sk`, `ws_bill_addr_sk`, `ws_item_sk`)
 se calculan a partir de las tablas reales `customer`, `customer_address`
@@ -41,6 +42,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import time
 import uuid
@@ -79,7 +81,7 @@ class GeneratorArguments:
     rows: int
     update_fraction: float
     namenode_host: str
-    webhdfs_port: int
+    namenode_port: int
     user: str
     seed: int | None
 
@@ -116,13 +118,13 @@ def parse_arguments(argv: Sequence[str] | None = None) -> GeneratorArguments:
     parser.add_argument(
         "--namenode-host",
         default="namenode",
-        help="Host del NameNode que expone WebHDFS",
+        help="Host del NameNode",
     )
     parser.add_argument(
-        "--webhdfs-port",
+        "--namenode-port",
         type=int,
-        default=9870,
-        help="Puerto WebHDFS del NameNode",
+        default=9000,
+        help="Puerto RPC del NameNode, el de fs.defaultFS",
     )
     parser.add_argument(
         "--user",
@@ -147,29 +149,28 @@ def parse_arguments(argv: Sequence[str] | None = None) -> GeneratorArguments:
         rows=namespace.rows,
         update_fraction=namespace.update_fraction,
         namenode_host=namespace.namenode_host,
-        webhdfs_port=namespace.webhdfs_port,
+        namenode_port=namespace.namenode_port,
         user=namespace.user,
         seed=namespace.seed,
     )
 
 
-def connect_webhdfs(host: str, port: int, user: str) -> AbstractFileSystem:
-    """Abrir la misma conexión WebHDFS que usan los lectores de S2."""
+def connect_hdfs(host: str, port: int, user: str) -> AbstractFileSystem:
+    """Abrir el mismo filesystem de `hdfs-native` que usan los lectores de S2.
 
-    return fsspec.filesystem(
-        "webhdfs",
-        host=host,
-        port=port,
-        user=user,
-        use_https=False,
-    )
+    `hdfs-native`, como el cliente Java de Hadoop, toma la identidad de
+    `HADOOP_USER_NAME` y, si no está definida, la del usuario del proceso.
+    """
+
+    os.environ["HADOOP_USER_NAME"] = user
+    return fsspec.filesystem("hdfs", host=host, port=port)
 
 
-def list_data_files(webhdfs: AbstractFileSystem, table_path: str) -> list[str]:
+def list_data_files(hdfs: AbstractFileSystem, table_path: str) -> list[str]:
     """Listar los ficheros de datos de una tabla Parquet, sin `_SUCCESS`."""
 
     files: list[str] = sorted(
-        path for path in webhdfs.glob(f"{table_path}/*") if not path.endswith("/_SUCCESS")
+        path for path in hdfs.glob(f"{table_path}/*") if not path.endswith("/_SUCCESS")
     )
     if not files:
         raise SystemExit(f"No hay ficheros de datos en {table_path}")
@@ -178,13 +179,13 @@ def list_data_files(webhdfs: AbstractFileSystem, table_path: str) -> list[str]:
 
 def read_sk_bounds(
     arrow_fs: pafs.FileSystem,
-    webhdfs: AbstractFileSystem,
+    hdfs: AbstractFileSystem,
     table_path: str,
     sk_column: str,
 ) -> tuple[int, int]:
     """Leer el mínimo y el máximo reales de una clave surrogada."""
 
-    files: list[str] = list_data_files(webhdfs, table_path)
+    files: list[str] = list_data_files(hdfs, table_path)
     column: pa.ChunkedArray = pq.read_table(files, filesystem=arrow_fs, columns=[sk_column])[
         sk_column
     ]
@@ -194,7 +195,7 @@ def read_sk_bounds(
 
 
 def read_sales_period(
-    arrow_fs: pafs.FileSystem, webhdfs: AbstractFileSystem
+    arrow_fs: pafs.FileSystem, hdfs: AbstractFileSystem
 ) -> tuple[datetime, datetime]:
     """Leer de `web_sales` la primera y la última marca de tiempo de venta.
 
@@ -204,7 +205,7 @@ def read_sales_period(
     segundos porque ésa es la resolución de los datos.
     """
 
-    files: list[str] = list_data_files(webhdfs, RAW_WEB_SALES)
+    files: list[str] = list_data_files(hdfs, RAW_WEB_SALES)
     column: pa.ChunkedArray = pq.read_table(
         files, filesystem=arrow_fs, columns=["ws_sold_timestamp"]
     )["ws_sold_timestamp"].cast(pa.timestamp("s"))
@@ -214,7 +215,7 @@ def read_sales_period(
 
 
 def read_existing_key_sample(
-    arrow_fs: pafs.FileSystem, webhdfs: AbstractFileSystem, sample_size: int
+    arrow_fs: pafs.FileSystem, hdfs: AbstractFileSystem, sample_size: int
 ) -> list[tuple[int, int]]:
     """Leer una muestra de pares `(ws_order_number, ws_item_sk)` reales.
 
@@ -224,7 +225,7 @@ def read_existing_key_sample(
     que leer la tabla completa (2 160 165 filas en SF3).
     """
 
-    files: list[str] = list_data_files(webhdfs, RAW_WEB_SALES)
+    files: list[str] = list_data_files(hdfs, RAW_WEB_SALES)
     table: pa.Table = pq.read_table(
         files[0], filesystem=arrow_fs, columns=["ws_order_number", "ws_item_sk"]
     )
@@ -372,24 +373,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     args: GeneratorArguments = parse_arguments(argv)
     rng: random.Random = random.Random(args.seed)
 
-    print("[ORDEN -> fsspec] Conectando a WebHDFS con la identidad luser.")
-    webhdfs: AbstractFileSystem = connect_webhdfs(args.namenode_host, args.webhdfs_port, args.user)
-    arrow_fs: pafs.FileSystem = pafs.PyFileSystem(pafs.FSSpecHandler(webhdfs))
+    print(f"[ORDEN -> fsspec] Conectando a HDFS con hdfs-native y la identidad {args.user}.")
+    hdfs: AbstractFileSystem = connect_hdfs(args.namenode_host, args.namenode_port, args.user)
+    arrow_fs: pafs.FileSystem = pafs.PyFileSystem(pafs.FSSpecHandler(hdfs))
 
     print("[ORDEN -> PyArrow] Calculando rangos reales de claves surrogadas.")
     customer_sk_bounds: tuple[int, int] = read_sk_bounds(
-        arrow_fs, webhdfs, RAW_CUSTOMER, "c_customer_sk"
+        arrow_fs, hdfs, RAW_CUSTOMER, "c_customer_sk"
     )
     addr_sk_bounds: tuple[int, int] = read_sk_bounds(
-        arrow_fs, webhdfs, RAW_CUSTOMER_ADDRESS, "ca_address_sk"
+        arrow_fs, hdfs, RAW_CUSTOMER_ADDRESS, "ca_address_sk"
     )
-    item_sk_bounds: tuple[int, int] = read_sk_bounds(arrow_fs, webhdfs, RAW_ITEM, "i_item_sk")
+    item_sk_bounds: tuple[int, int] = read_sk_bounds(arrow_fs, hdfs, RAW_ITEM, "i_item_sk")
     print(f"[RESULTADO <- PyArrow] c_customer_sk: {customer_sk_bounds}")
     print(f"[RESULTADO <- PyArrow] ca_address_sk: {addr_sk_bounds}")
     print(f"[RESULTADO <- PyArrow] i_item_sk: {item_sk_bounds}")
 
     print("[ORDEN -> PyArrow] Calculando el periodo real de ventas de web_sales.")
-    sales_period: tuple[datetime, datetime] = read_sales_period(arrow_fs, webhdfs)
+    sales_period: tuple[datetime, datetime] = read_sales_period(arrow_fs, hdfs)
     print(f"[RESULTADO <- PyArrow] Ventas reales de {sales_period[0]} a {sales_period[1]}.")
 
     print(
@@ -397,7 +398,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "reales para simular correcciones."
     )
     existing_keys: list[tuple[int, int]] = read_existing_key_sample(
-        arrow_fs, webhdfs, EXISTING_KEY_SAMPLE_SIZE
+        arrow_fs, hdfs, EXISTING_KEY_SAMPLE_SIZE
     )
     print(f"[RESULTADO <- PyArrow] {len(existing_keys)} pares reales disponibles.")
 

@@ -7905,8 +7905,8 @@ propio proceso de Python, sin servidor; se presenta en «Qué es DuckDB».
 Trae como extensión el generador oficial de TPC-DS, lee el CSV de
 municipios y escribe Parquet. Una vez escritos, los ficheros se abren
 directamente desde Python con tres bibliotecas, <strong>PyArrow</strong>, <strong>Polars</strong> y
-otra vez <strong>DuckDB</strong>, que acceden a HDFS a través de su interfaz HTTP
-(WebHDFS). Usar las tres sobre los mismos
+otra vez <strong>DuckDB</strong>, que acceden a HDFS con <code>hdfs-native</code>, un cliente de
+HDFS para Python que no necesita Java. Usar las tres sobre los mismos
 ficheros muestra que los datos no pertenecen a ninguna herramienta
 concreta. Con ellas se responden las primeras preguntas de negocio sobre
 las ventas: cuánto se vende, qué, cuándo y dónde.</p>
@@ -7948,8 +7948,8 @@ sus formatos;</li>
 sintético mediante una regla determinista;</li>
 <li>interpretar un esquema de columnas con tipos numéricos, fechas, cadenas y
 decimales;</li>
-<li>acceder a HDFS desde Python mediante WebHDFS sin instalar un cliente
-nativo de Hadoop;</li>
+<li>acceder a HDFS desde Python con <code>hdfs-native</code>, sin Java ni las
+bibliotecas de Hadoop;</li>
 <li>seleccionar columnas y filtrar filas con PyArrow y Polars;</li>
 <li>lanzar consultas SQL con DuckDB sobre una colección de ficheros remotos;</li>
 <li>distinguir una operación que lee los datos de otra que solo consulta
@@ -7959,7 +7959,7 @@ metadatos;</li>
 <blockquote>
 <p><strong>Dónde se ejecuta este notebook.</strong> A partir de esta sesión, Jupyter se
 ejecuta directamente dentro del contenedor <code>namenode</code>, como <code>luser</code>, con
-acceso de red directo a HDFS y WebHDFS. El servidor Jupyter se arranca a
+acceso de red directo a HDFS. El servidor Jupyter se arranca a
 mano desde una terminal de tu equipo; la sección siguiente, «Antes de
 empezar: Jupyter en <code>namenode</code>», explica cómo hacerlo y cómo conectar este
 notebook. Las celdas ejecutables hablan
@@ -7981,7 +7981,7 @@ realizado. Esa misma sección indica también qué conceptos de esta sesión
 son relevantes para el examen final.</p>
 </blockquote>
 <blockquote>
-<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>duckdb</code>, <code>fsspec</code>, <code>polars</code>, <code>pyarrow</code>, <code>requests</code>, <code>tenacity</code>, <code>pandas</code>, <code>matplotlib</code>.
+<p><strong>Paquetes de Python de esta sesión.</strong> Esta sesión necesita <code>duckdb</code>, <code>fsspec</code>, <code>hdfs-native</code>, <code>polars</code>, <code>pyarrow</code>, <code>requests</code>, <code>pandas</code>, <code>matplotlib</code>.
 Es la primera sesión cuyo kernel se ejecuta dentro de <code>namenode</code>, así que todos son nuevos respecto a S1. Se instalan en el kernel de <code>namenode</code> en la sección
 «Preparar Python».</p>
 </blockquote>
@@ -8260,7 +8260,7 @@ versión nueva.</p>
      font-size:26px;line-height:1.42;
      display:flex;flex-direction:column;justify-content:center;
      text-align:left;overflow:hidden">
-<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 2: TPC-DS en Parquet sobre HDFS</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Data lake, warehouse y catálogo: entenderemos estos conceptos y cómo se relacionan entre sí</li><li style="margin:10px 0">Combinamos TPC-DS SF3 con los municipios de España del Nomenclátor del IGN</li><li style="margin:10px 0">Leemos los ficheros con WebHDFS + PyArrow, Polars y DuckDB</li><li style="margin:10px 0">Primeras preguntas de negocio sobre las ventas para conocer el dataset: cuánto, qué, cuándo y dónde</li></ul></div>
+<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 style="color:#ffffff;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 2: TPC-DS en Parquet sobre HDFS</h1><h2 style="color:#dceaf4;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Data lake, warehouse y catálogo: entenderemos estos conceptos y cómo se relacionan entre sí</li><li style="margin:10px 0">Combinamos TPC-DS SF3 con los municipios de España del Nomenclátor del IGN</li><li style="margin:10px 0">Leemos los ficheros de HDFS con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code> desde PyArrow, Polars y DuckDB</li><li style="margin:10px 0">Primeras preguntas de negocio sobre las ventas para conocer el dataset: cuánto, qué, cuándo y dónde</li></ul></div>
 </div>
 </div>
 </div>
@@ -8817,7 +8817,7 @@ base DuckDB temporal en namenode                  ▼
 /tmp/tpcds/tpcds-sf3.duckdb  ◄──────────  tabla ign_municipios
           │
           │ JOIN determinista, fechas y vigencias corregidas
-          │ COPY ... TO ... (FORMAT PARQUET), por WebHDFS
+          │ COPY ... TO ... (FORMAT PARQUET), por hdfs-native
           ▼
 HDFS /datalake/
           ├── raw/ign/municipios/       ← el CSV del IGN, tal como se descarga
@@ -8827,8 +8827,8 @@ HDFS /datalake/
 
 HDFS /datalake/raw/tpcds/&lt;tabla&gt;/
           │
-          ├── lectura directa con WebHDFS + fsspec + PyArrow
-          ├── lectura directa con WebHDFS + fsspec + Polars
+          ├── lectura directa con hdfs-native + fsspec + PyArrow
+          ├── lectura directa con hdfs-native + fsspec + Polars
           └── lectura SQL con DuckDB
 </pre></div>
 <p><code>tpcds</code> identifica la fuente principal y contiene un directorio por tabla.
@@ -8938,7 +8938,7 @@ fechas de vigencia corregidas de las cuatro dimensiones que guardan
 versiones, y generar el <code>SELECT</code> de las siete tablas que la usan.</li>
 <li><strong>Materializar las 18 tablas</strong>: ejecutar un <code>COPY (SELECT …) TO …</code> por
 tabla, que escribe el resultado como Parquet en
-<code>/datalake/raw/tpcds/&lt;tabla&gt;</code> a través de WebHDFS.</li>
+<code>/datalake/raw/tpcds/&lt;tabla&gt;</code> con el cliente <code>hdfs-native</code>.</li>
 <li><strong>Validar y borrar la base temporal</strong>: comprobar los marcadores
 <code>_SUCCESS</code> y borrar el fichero de la base; los Parquet permanecen en
 HDFS.</li>
@@ -8961,23 +8961,26 @@ posteriores.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Preparar-Python">Preparar Python<a class="anchor-link" href="#Preparar-Python">¶</a></h3><p><code>entorno/requirements.txt</code> es la lista común de dependencias de las sesiones
 S2-S8. Incluye los paquetes que utiliza este notebook —DuckDB, PyArrow,
-Polars, <code>fsspec</code>, <code>tenacity</code>, pandas y matplotlib— junto con los que se
+Polars, <code>fsspec</code>, <code>hdfs-native</code>, pandas y matplotlib— junto con los que se
 introducen más adelante en el curso. Así, cada sesión instala el mismo
 fichero publicado y no hay que cambiar de lista al avanzar.</p>
-<p>Una de esas líneas fija una compilación de <code>fsspec</code> con un arreglo para
-escribir en HDFS por WebHDFS (se explica en «Materializar las 18 tablas»).</p>
 <p>La celda siguiente ejecuta <code>%pip install -q -r</code> con la URL HTTPS que aparece
 en ella. <code>pip</code> descarga el fichero y resuelve sus líneas en <code>/opt/tcdm/venv</code>,
 el mismo intérprete que usa el kernel. La imagen ya trae estos paquetes, por
 lo que lo normal es ver que están satisfechos. Si descargaste una imagen
-anterior, la celda también los instala o actualiza (<code>fsspec</code>, <code>s3fs</code>,
+anterior, la celda también los instala o actualiza (<code>hdfs-native</code>, <code>fsspec</code>, <code>s3fs</code>,
 <code>boto3</code> y <code>aiobotocore</code>, por ejemplo) y no hace falta reiniciar el kernel,
 porque todavía no se ha importado ninguno.</p>
 <p>La última celda del grupo muestra dónde se ejecuta el kernel, qué intérprete
 usa (<code>sys.executable</code> debe estar en <code>/opt/tcdm/venv/bin</code>) y las versiones
-instaladas. Si falla alguna de sus dos comprobaciones, el notebook no está
-conectado al Jupyter de <code>namenode</code> arrancado como se indica en «Antes de
-empezar: Jupyter en <code>namenode</code>».</p>
+instaladas. Si falla la comprobación del host o la del
+intérprete, el notebook no está conectado al Jupyter de <code>namenode</code>
+arrancado como se indica en «Antes de empezar: Jupyter en <code>namenode</code>».</p>
+<p>La tercera comprobación mira qué implementación usa <code>fsspec</code> para las rutas
+<code>hdfs://</code>. <code>fsspec</code> trae de serie otra con ese nombre, la de PyArrow, que
+necesita Java y las bibliotecas de Hadoop; <code>hdfs-native</code> la sustituye al
+instalarse. Si esa comprobación falla, ejecuta de nuevo la celda <code>%pip</code> y
+reinicia el kernel.</p>
 </div>
 </div>
 </div>
@@ -9031,26 +9034,28 @@ empezar: Jupyter en <code>namenode</code>».</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Host: </span><span class="si">{</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span><span class="si">}</span><span class="s2">    usuario: </span><span class="si">{</span><span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Directorio de trabajo: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Intérprete: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">package</span> <span class="ow">in</span> <span class="p">(</span>
     <span class="s2">"duckdb"</span><span class="p">,</span>
     <span class="s2">"fsspec"</span><span class="p">,</span>
+    <span class="s2">"hdfs-native"</span><span class="p">,</span>
     <span class="s2">"matplotlib"</span><span class="p">,</span>
     <span class="s2">"pandas"</span><span class="p">,</span>
     <span class="s2">"polars"</span><span class="p">,</span>
     <span class="s2">"pyarrow"</span><span class="p">,</span>
     <span class="s2">"requests"</span><span class="p">,</span>
-    <span class="s2">"tenacity"</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">package</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="n">package</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">package</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="n">package</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"namenode"</span><span class="p">,</span> <span class="s2">"El kernel no se ejecuta dentro de namenode"</span>
-<span class="k">assert</span> <span class="s2">"post"</span> <span class="ow">in</span> <span class="n">version</span><span class="p">(</span>
-    <span class="s2">"fsspec"</span>
-<span class="p">),</span> <span class="s2">"fsspec no es la compilación del curso: ejecuta de nuevo la celda %pip anterior y reinicia el kernel"</span>
 <span class="k">assert</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/opt/tcdm/venv/"</span><span class="p">),</span> <span class="s2">"El kernel no usa /opt/tcdm/venv"</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">fsspec</span><span class="o">.</span><span class="n">get_filesystem_class</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s2">"hdfs_native.fsspec"</span>
+<span class="p">),</span> <span class="s2">"hdfs:// no usa hdfs-native: ejecuta de nuevo la celda %pip anterior y reinicia el kernel"</span>
 </pre></div>
 </div>
 </div>
@@ -10241,16 +10246,16 @@ convertidas es <code>FECHAS</code>.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Materializar-las-18-tablas">Materializar las 18 tablas<a class="anchor-link" href="#Materializar-las-18-tablas">¶</a></h3><p>Cada tabla se escribe con una sola orden de DuckDB:</p>
-<div class="highlight"><pre><span></span><span class="k">COPY</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="p">...)</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="s1">'webhdfs:///datalake/raw/tpcds/&lt;tabla&gt;/&lt;tabla&gt;.parquet'</span>
+<div class="highlight"><pre><span></span><span class="k">COPY</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="p">...)</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="s1">'hdfs:///datalake/raw/tpcds/&lt;tabla&gt;/&lt;tabla&gt;.parquet'</span>
 <span class="w">    </span><span class="p">(</span><span class="n">FORMAT</span><span class="w"> </span><span class="n">PARQUET</span><span class="p">,</span><span class="w"> </span><span class="n">COMPRESSION</span><span class="w"> </span><span class="n">ZSTD</span><span class="p">)</span>
 </pre></div>
 <p><code>COPY</code> ejecuta la consulta en la base temporal y escribe su resultado como
 un fichero Parquet; cada tabla queda en un único fichero dentro de su
 directorio. <code>COMPRESSION ZSTD</code> elige el códec de compresión Zstandard, que
 comprime más que Snappy, el que DuckDB usa por defecto, a cambio de algo
-más de trabajo al escribir. La ruta empieza por <code>webhdfs://</code>: DuckDB no
-escribe en el disco de <code>namenode</code> sino en HDFS, a través de la interfaz HTTP
-del NameNode, WebHDFS.</p>
+más de trabajo al escribir. La ruta empieza por <code>hdfs://</code>: DuckDB no
+escribe en el disco de <code>namenode</code> sino en HDFS, a través del cliente
+<code>hdfs-native</code>.</p>
 </div>
 </div>
 </div>
@@ -10263,28 +10268,26 @@ del NameNode, WebHDFS.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>La materialización también tiene que consultar, escribir y borrar ficheros
 de HDFS desde Python: el marcador <code>_SUCCESS</code> de cada tabla y, si hay que
-rehacerla, su directorio. La celda siguiente abre para ello <code>webhdfs</code>, un
-objeto que representa a HDFS como un sistema de ficheros de Python. De
-momento basta con saber qué hace cada una de las cinco operaciones que se
+rehacerla, su directorio. La celda siguiente abre para ello <code>hdfs</code>, un
+objeto que representa a HDFS como un sistema de ficheros de Python. Lo crea
+<code>fsspec</code>, una biblioteca que da la misma interfaz de ficheros a sistemas de
+almacenamiento distintos, y el protocolo <code>hdfs</code> lo aporta <code>hdfs-native</code>, un
+cliente de HDFS que se presenta en «Acceso a HDFS con hdfs-native y
+fsspec». De momento basta con saber qué hace cada una de las cinco operaciones que se
 le van a pedir:</p>
 <ul>
-<li><code>webhdfs.exists(ruta)</code> dice si la ruta existe;</li>
-<li><code>webhdfs.read_text(ruta)</code> devuelve el contenido de un fichero de texto;</li>
-<li><code>webhdfs.write_text(ruta, texto)</code> crea el fichero con ese contenido, o lo
+<li><code>hdfs.exists(ruta)</code> dice si la ruta existe;</li>
+<li><code>hdfs.read_text(ruta)</code> devuelve el contenido de un fichero de texto;</li>
+<li><code>hdfs.write_text(ruta, texto)</code> crea el fichero con ese contenido, o lo
 sobrescribe si ya existía;</li>
-<li><code>webhdfs.rm(ruta, recursive=True)</code> borra un directorio con todo lo que
+<li><code>hdfs.rm(ruta, recursive=True)</code> borra un directorio con todo lo que
 contiene;</li>
-<li><code>webhdfs.makedirs(ruta, exist_ok=True)</code> crea un directorio, y no hace
+<li><code>hdfs.makedirs(ruta, exist_ok=True)</code> crea un directorio, y no hace
 nada si ya existe.</li>
 </ul>
-<p><code>duckdb.register_filesystem(webhdfs, connection=tpcds_db)</code> le presta ese
-mismo objeto a DuckDB: a partir de ahí, las rutas <code>webhdfs://</code> de sus
-órdenes se leen y se escriben a través de él. La celda fija también
-<code>webhdfs.blocksize</code>: <code>fsspec</code> no envía a HDFS cada escritura de DuckDB, las
-acumula y las manda por trozos, y ese atributo dice de qué tamaño. Con los
-4 MiB por defecto, <code>store_sales</code> (unos 300 MiB) salen en unas ochenta
-peticiones; con 64 MiB, el tamaño de bloque de HDFS en este clúster, en
-cinco.</p>
+<p><code>duckdb.register_filesystem(hdfs, connection=tpcds_db)</code> le presta ese
+mismo objeto a DuckDB: a partir de ahí, las rutas <code>hdfs://</code> de sus
+órdenes se leen y se escriben a través de él.</p>
 </div>
 </div>
 </div>
@@ -10299,18 +10302,10 @@ cinco.</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fsspec.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFileSystem</span>
 
-<span class="n">webhdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span>
-    <span class="s2">"webhdfs"</span><span class="p">,</span>
-    <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span>
-    <span class="n">port</span><span class="o">=</span><span class="mi">9870</span><span class="p">,</span>  <span class="c1"># El NameNode atiende WebHDFS en el 9870; el protocolo propio de HDFS, en el 9000.</span>
-    <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span>
-    <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="c1"># fsspec envía lo que escribe en trozos de este tamaño: 4 MiB por defecto, que</span>
-<span class="c1"># para `store_sales` serían unas ochenta peticiones seguidas. 64 MiB es el</span>
-<span class="c1"># tamaño de bloque de HDFS en este clúster.</span>
-<span class="n">webhdfs</span><span class="o">.</span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
-<span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">webhdfs</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="n">tpcds_db</span><span class="p">)</span>
+<span class="c1"># hdfs-native habla con el NameNode por su puerto RPC, el 9000 de fs.defaultFS</span>
+<span class="c1"># (hdfs://namenode:9000), con la identidad del proceso: luser.</span>
+<span class="n">hdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">)</span>
+<span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">hdfs</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="n">tpcds_db</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -10377,7 +10372,7 @@ convierten en fechas: quedan las 18 que se van a materializar.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un bucle que se puede repetir</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Si <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> existe y su contenido es el esperado, la tabla se reutiliza</li><li style="margin:10px 0">Si falta o no coincide, se borra el directorio y DuckDB vuelve a escribirla</li><li style="margin:10px 0">Si HDFS rechaza una escritura, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">@retry</code> la repite hasta tres veces</li><li style="margin:10px 0">El marcador se escribe sólo al terminar el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">COPY</code> y dice qué correcciones lleva la tabla: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">INE-2026</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SCD2</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FECHAS</code> o varias</li><li style="margin:10px 0">Primera ejecución: 18 materializadas; al repetir: 18 reutilizadas</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un bucle que se puede repetir</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Si <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> existe y su contenido es el esperado, la tabla se reutiliza</li><li style="margin:10px 0">Si falta o no coincide, se borra el directorio y DuckDB vuelve a escribirla</li><li style="margin:10px 0">Una escritura interrumpida no deja marcador: al repetir la celda, la tabla se escribe de cero</li><li style="margin:10px 0">El marcador se escribe sólo al terminar el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">COPY</code> y dice qué correcciones lleva la tabla: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">INE-2026</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SCD2</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FECHAS</code> o varias</li><li style="margin:10px 0">Primera ejecución: 18 materializadas; al repetir: 18 reutilizadas</li></ul>
 </div>
 </div>
 </div>
@@ -10400,43 +10395,34 @@ le corresponde más de una (<code>INE-2026+SCD2+FECHAS</code> en <code>store</co
 y una cadena vacía en las demás. Por ejemplo, para <code>customer_address</code> (una de las
 cuatro dimensiones localizadas):</p>
 <ul>
-<li><code>webhdfs.exists("/datalake/raw/tpcds/customer_address/_SUCCESS")</code>
+<li><code>hdfs.exists("/datalake/raw/tpcds/customer_address/_SUCCESS")</code>
 comprueba si ya hay un marcador.</li>
-<li>Si existe, <code>webhdfs.read_text(...)</code> lee su contenido, que aquí debe
+<li>Si existe, <code>hdfs.read_text(...)</code> lee su contenido, que aquí debe
 ser exactamente <code>INE-2026</code>. Si coincide con lo esperado, la tabla ya
 está materializada con la geografía correcta y se reutiliza sin volver a
 escribirla.</li>
 <li>Si el marcador falta o no coincide —por ejemplo, quedó de una
 ejecución con otra fuente geográfica, o interrumpida a medias—,
-<code>write_parquet</code> empieza por <code>webhdfs.rm(".../customer_address", recursive=True)</code>, que retira cualquier resto, y <code>webhdfs.makedirs(...)</code>,
+<code>write_parquet</code> empieza por <code>hdfs.rm(".../customer_address", recursive=True)</code>, que retira cualquier resto, y <code>hdfs.makedirs(...)</code>,
 que vuelve a crear el directorio vacío, antes de que DuckDB escriba la
 tabla con <code>COPY</code>.</li>
-<li>Al terminar el <code>COPY</code>, <code>webhdfs.write_text(".../_SUCCESS", "INE-2026")</code>
+<li>Al terminar el <code>COPY</code>, <code>hdfs.write_text(".../_SUCCESS", "INE-2026")</code>
 escribe el marcador esperado. Sólo entonces la tabla cuenta como
 materializada con esa geografía.</li>
 </ul>
 <p>Comprobar el contenido del marcador, no sólo su existencia, es lo que
 distingue una tabla ya cruzada con los municipios de una generada sin esa
 localización, y una con las versiones corregidas de una que no las tiene.</p>
-<p><strong>Por qué HDFS puede rechazar una escritura.</strong> HDFS sólo deja escribir en un
-fichero a un cliente a la vez, y el cliente que acaba de escribir tarda un
-poco en soltar su permiso de escritura (el <em>lease</em>). Si la petición siguiente
-llega antes, el NameNode la rechaza con <code>AlreadyBeingCreatedException</code>, y
-WebHDFS lo devuelve como un <code>403 Forbidden</code> que no dice nada de la causa. No
-es un problema de tus datos ni del clúster. La implementación estándar de
-<code>fsspec</code> lo provocaba de vez en cuando: para escribir un fichero lo crea
-vacío y a continuación le añade los datos por trozos con peticiones <code>APPEND</code>,
-y el primero llega justo detrás de la creación. La lista de dependencias del
-curso (<code>entorno/requirements.txt</code>) instala por eso una compilación de
-<code>fsspec</code> que manda el primer trozo en la propia petición de creación y repite
-el <code>APPEND</code> rechazado por esa causa, con una pausa corta entre intentos.</p>
-<p>Aun así, un intento de escritura puede fallar por otros motivos (un DataNode
-ocupado, un corte de red). Para eso sirve el decorador <code>@retry</code> del paquete
-<code>tenacity</code>: si <code>write_parquet</code> falla, la vuelve a llamar, hasta tres intentos
-en total y con cinco segundos de pausa. <code>reraise=True</code> hace que, si los tres
-intentos fallan, se vea el error original. La función repetida incluye el
-borrado y la creación del directorio, no sólo el <code>COPY</code>: un intento fallido
-deja un fichero a medio escribir, y el siguiente tiene que empezar de cero.</p>
+<p><strong>Cómo escribe <code>hdfs-native</code>.</strong> Hace lo mismo que el cliente de Hadoop:
+pide al NameNode que cree el fichero, recibe de él los DataNodes que
+guardarán cada bloque y les envía los bytes en cadena, de uno a otro, hasta
+tener las tres réplicas. Mientras escribe, el NameNode le reserva el fichero
+(le concede su <em>lease</em>) y no deja escribir en él a nadie más; la reserva se
+suelta al cerrarlo. Si una escritura se interrumpe —se para el kernel o se
+reinicia <code>namenode</code>—, queda un fichero a medio escribir y sin marcador
+<code>_SUCCESS</code>. Por eso <code>write_parquet</code> empieza borrando el directorio de la
+tabla, no sólo sobrescribiendo el fichero: al volver a ejecutar la celda,
+la tabla se escribe de cero.</p>
 <p>Las tablas se escriben de una en una: DuckDB ya reparte el trabajo de cada
 <code>COPY</code> entre las 2 CPU del contenedor. Por cada tabla verás una línea <code>[=] tabla: ya está materializada</code> o <code>[*] tabla: escrita en N s</code>, según si
 reutiliza o reescribe; <code>store_sales</code>, con más de ocho millones de filas, es
@@ -10457,20 +10443,17 @@ esperado.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">tenacity</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry</span><span class="p">,</span> <span class="n">stop_after_attempt</span><span class="p">,</span> <span class="n">wait_fixed</span>
 
-
-<span class="nd">@retry</span><span class="p">(</span><span class="n">stop</span><span class="o">=</span><span class="n">stop_after_attempt</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait_fixed</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">reraise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">write_parquet</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Escribir una tabla en HDFS desde cero; si HDFS la rechaza, se repite entera."""</span>
-    <span class="k">if</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">table_path</span><span class="p">):</span>
-        <span class="n">webhdfs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">webhdfs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Escribir una tabla en HDFS desde cero, borrando antes lo que hubiera."""</span>
+    <span class="k">if</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">table_path</span><span class="p">):</span>
+        <span class="n">hdfs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">hdfs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># Grupos de 122.880 filas: las tablas de hechos quedan en muchos grupos, y</span>
     <span class="c1"># Spark podrá repartir cada fichero entre sus ejecutores.</span>
     <span class="n">tpcds_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
 <span class="s2">        COPY (</span><span class="si">{</span><span class="n">table_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span><span class="si">}</span><span class="s2">)</span>
-<span class="s2">        TO 'webhdfs://</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet'</span>
+<span class="s2">        TO 'hdfs://</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet'</span>
 <span class="s2">        (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 122880)</span>
 <span class="s2">        """</span><span class="p">)</span>
 
@@ -10480,15 +10463,15 @@ esperado.</p>
     <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">marker_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/_SUCCESS"</span>
     <span class="n">expected_marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">success_marker</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">marker_path</span><span class="p">):</span>
-        <span class="n">marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">marker_path</span><span class="p">):</span>
+        <span class="n">marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">marker</span> <span class="o">==</span> <span class="n">expected_marker</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[=] </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: ya está materializada"</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
     <span class="n">started</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
     <span class="n">write_parquet</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">table_path</span><span class="p">)</span>
-    <span class="n">webhdfs</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">expected_marker</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="n">hdfs</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">expected_marker</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[*] </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: escrita en </span><span class="si">{</span><span class="n">perf_counter</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">started</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span>
 
@@ -10552,7 +10535,7 @@ falla si alguna no tiene las que le corresponden.</p>
     <span class="k">if</span> <span class="n">table_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
         <span class="k">continue</span>
     <span class="n">rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">tpcds_db</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"SELECT count(*) FROM read_parquet('webhdfs://</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet')"</span>
+        <span class="sa">f</span><span class="s2">"SELECT count(*) FROM read_parquet('hdfs://</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet')"</span>
     <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_name</span><span class="si">:</span><span class="s2">17</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">rows</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> filas"</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">rows</span> <span class="o">==</span> <span class="n">expected</span><span class="p">,</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
@@ -10589,8 +10572,8 @@ tabla, <code>dsdgen</code> volvería a crear la base: el resultado es el mismo.<
 
 <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
     <span class="n">marker_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">/_SUCCESS"</span>
-    <span class="k">assert</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">marker_path</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="o">==</span> <span class="n">success_marker</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">marker_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">marker_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="o">==</span> <span class="n">success_marker</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
 
 <span class="n">tpcds_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">TPCDS_DATABASE</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -10648,13 +10631,13 @@ y <code>web_sales</code> comprueba además que hay más grupos que DataNodes:</p
 <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">SORT_ORDER</span><span class="p">:</span>
     <span class="n">table_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
         <span class="n">path</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TPCDS_ROOT</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">size_mib</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">webhdfs</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="s2">"size"</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">table_files</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
+    <span class="n">size_mib</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">hdfs</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="s2">"size"</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">table_files</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
     <span class="n">group_rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">table_files</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
             <span class="n">footer</span><span class="p">:</span> <span class="n">pq</span><span class="o">.</span><span class="n">FileMetaData</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">metadata</span>
         <span class="n">group_rows</span> <span class="o">+=</span> <span class="p">[</span><span class="n">footer</span><span class="o">.</span><span class="n">row_group</span><span class="p">(</span><span class="n">group</span><span class="p">)</span><span class="o">.</span><span class="n">num_rows</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">footer</span><span class="o">.</span><span class="n">num_row_groups</span><span class="p">)]</span>
     <span class="nb">print</span><span class="p">(</span>
@@ -11065,7 +11048,7 @@ mismo la tabla o la columna que pidas. La primera tabla que se va a leer es
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres formas de leer los mismos ficheros</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">WebHDFS es una elección pedagógica entre varias formas de hablar con HDFS</li><li style="margin:10px 0">PyArrow, Polars y DuckDB leerán exactamente los mismos Parquet remotos</li><li style="margin:10px 0">Selección de columnas, filtros y una primera mirada a claves ajenas</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres formas de leer los mismos ficheros</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code> es una de varias formas de hablar con HDFS desde un programa</li><li style="margin:10px 0">PyArrow, Polars y DuckDB leerán exactamente los mismos Parquet remotos</li><li style="margin:10px 0">Selección de columnas, filtros y una primera mirada a claves ajenas</li></ul>
 </div>
 </div>
 </div>
@@ -11078,28 +11061,35 @@ mismo la tabla o la columna que pidas. La primera tabla que se va a leer es
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Otras-formas-de-acceder-a-HDFS">Otras formas de acceder a HDFS<a class="anchor-link" href="#Otras-formas-de-acceder-a-HDFS">¶</a></h2><p>Esta sesión lee los Parquet de <code>/datalake/raw/tpcds</code> mediante <strong>WebHDFS</strong>,
-la interfaz HTTP de HDFS, a través de <code>fsspec</code>. No es la única forma de
-hacerlo, y conviene situarla entre las demás:</p>
+<h2 id="Otras-formas-de-acceder-a-HDFS">Otras formas de acceder a HDFS<a class="anchor-link" href="#Otras-formas-de-acceder-a-HDFS">¶</a></h2><p>Esta sesión lee los Parquet de <code>/datalake/raw/tpcds</code> con <strong><code>hdfs-native</code></strong>,
+a través de <code>fsspec</code>. No es la única forma de hacerlo, y conviene situarla
+entre las demás:</p>
 <ul>
 <li>la <strong>interfaz de línea de órdenes</strong> (<code>hdfs dfs</code>), ya usada en S1, resuelve
 operaciones puntuales pero no es cómoda para leer datos desde un programa;</li>
 <li>la <strong>API Java</strong> (<code>org.apache.hadoop.fs.FileSystem</code>) es la interfaz nativa
-de Hadoop, la que usan internamente <code>hdfs dfs</code> y los propios demonios;</li>
-<li><code>pyarrow.fs.HadoopFileSystem</code> ofrece un cliente <strong>nativo</strong> desde Python,
-que habla el mismo protocolo RPC que la API Java en vez de HTTP; necesita
-las bibliotecas de Hadoop disponibles en el classpath del proceso;</li>
+de Hadoop, la que usan internamente <code>hdfs dfs</code> y los propios demonios.
+Habla con el NameNode por RPC (aquí, en el puerto 9000) y lee y escribe los
+bloques directamente en los DataNodes;</li>
+<li><code>pyarrow.fs.HadoopFileSystem</code> lleva esa API Java a Python a través de
+<code>libhdfs</code>: necesita una JVM y las bibliotecas de Hadoop en el classpath del
+proceso;</li>
 <li><strong>WebHDFS</strong> expone HDFS como una API REST sobre HTTP, servida por el
-NameNode y los DataNodes. <strong>HttpFS</strong> ofrece esa misma API, con lectura y
-escritura, desde un servidor que actúa de pasarela: el cliente sólo
-necesita llegar a él y no a cada DataNode, lo que resulta útil cuando el
-clúster está detrás de un cortafuegos. Ninguna de las dos requiere las
-bibliotecas nativas, así que son adecuadas para clientes ligeros o para
-lenguajes sin un cliente Hadoop propio.</li>
+NameNode (en el puerto 9870) y los DataNodes. <strong>HttpFS</strong> ofrece esa misma
+API desde un servidor que actúa de pasarela: el cliente sólo necesita
+llegar a él y no a cada DataNode, lo que resulta útil cuando el clúster
+está detrás de un cortafuegos. Ninguna de las dos requiere las bibliotecas
+de Hadoop, pero cada operación es una petición HTTP;</li>
+<li><strong><code>hdfs-native</code></strong> es una reimplementación del cliente de HDFS escrita en
+Rust, con una interfaz para Python. Habla los mismos protocolos que la API
+Java —RPC con el NameNode, transferencia de datos con los DataNodes— sin
+JVM ni bibliotecas de Hadoop: se instala con <code>pip</code> como cualquier otro
+paquete.</li>
 </ul>
-<p>Elegir WebHDFS en esta sesión es una decisión pedagógica, no la única
-válida: permite usar <code>fsspec</code> con PyArrow, Polars y DuckDB sin instalar
-dependencias nativas de Hadoop en el entorno donde se ejecuta este notebook.</p>
+<p>Esta sesión usa <code>hdfs-native</code> porque reúne lo mejor de los dos extremos: el
+protocolo propio de HDFS, como el cliente Java, y una instalación ligera,
+como WebHDFS. Además se presenta como un filesystem de <code>fsspec</code> con el
+protocolo <code>hdfs://</code>, así que sirve igual para PyArrow, Polars y DuckDB.</p>
 </div>
 </div>
 </div>
@@ -11110,13 +11100,14 @@ dependencias nativas de Hadoop en el entorno donde se ejecuta este notebook.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Acceso-con-WebHDFS-y-fsspec">Acceso con WebHDFS y fsspec<a class="anchor-link" href="#Acceso-con-WebHDFS-y-fsspec">¶</a></h2><p>WebHDFS es una API HTTP que ofrece el NameNode para operaciones de lectura
-y escritura sobre HDFS. Cuando se solicita un fichero, el NameNode puede
-redirigir la transferencia al DataNode que contiene el bloque; por eso es
-importante que el cliente pueda resolver los nombres de los DataNodes
-dentro de la red Docker (algo que, al ejecutarse este notebook dentro de
-<code>namenode</code>, ya se cumple automáticamente).</p>
-<p>Hasta aquí <code>webhdfs</code> ha servido para que DuckDB escribiera los Parquet y
+<h2 id="Acceso-a-HDFS-con-hdfs-native-y-fsspec">Acceso a HDFS con hdfs-native y fsspec<a class="anchor-link" href="#Acceso-a-HDFS-con-hdfs-native-y-fsspec">¶</a></h2><p><code>hdfs-native</code> trabaja como el cliente de Hadoop. Para leer un fichero
+pregunta primero al NameNode, por RPC, en qué bloques está y qué DataNodes
+guardan cada uno; después pide los bytes directamente a esos DataNodes (en
+su puerto 9866), sin que pasen por el NameNode. Por eso el cliente tiene
+que poder llegar a los DataNodes dentro de la red Docker, algo que, al
+ejecutarse este notebook dentro de <code>namenode</code>, ya se cumple. La identidad
+con la que se presenta a HDFS es la del usuario del proceso, <code>luser</code>.</p>
+<p>Hasta aquí <code>hdfs</code> ha servido para que DuckDB escribiera los Parquet y
 para consultar y escribir los marcadores <code>_SUCCESS</code> de la materialización. La celda siguiente abre esa sesión
 con <code>fsspec</code> —si ya estaba abierta con los mismos argumentos, <code>fsspec</code>
 devuelve la misma— y lista los ficheros de <code>item</code>. La
@@ -11137,17 +11128,11 @@ DuckDB:</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fsspec.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFileSystem</span>
 
-<span class="n">webhdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span>
-    <span class="s2">"webhdfs"</span><span class="p">,</span>
-    <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span>
-    <span class="n">port</span><span class="o">=</span><span class="mi">9870</span><span class="p">,</span>  <span class="c1"># El NameNode atiende WebHDFS en el 9870; el protocolo propio de HDFS, en el 9000.</span>
-    <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span>
-    <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="n">hdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">)</span>
 
 <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/item"</span>
 <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros de datos: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -11165,7 +11150,7 @@ DuckDB:</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Si <code>files</code> está vacío, no es un resultado de la consulta: significa que la
-tabla no se ha generado, que se ha utilizado otra escala, o que WebHDFS no
+tabla no se ha generado, que se ha utilizado otra escala, o que HDFS no
 está accesible — hay que volver a la sección de generación y comprobar que
 las celdas de materialización terminaron correctamente; «Solución de
 problemas», al final del notebook, recoge los casos habituales. También podemos comprobar el
@@ -11184,7 +11169,7 @@ Parquet:</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">"name"</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">"size"</span><span class="p">],</span> <span class="s2">"bytes"</span><span class="p">)</span>
 </pre></div>
@@ -11201,7 +11186,7 @@ Parquet:</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Leer-la-misma-tabla-con-tres-bibliotecas">Leer la misma tabla con tres bibliotecas<a class="anchor-link" href="#Leer-la-misma-tabla-con-tres-bibliotecas">¶</a></h2><p>Comparamos ahora cómo leen exactamente los mismos Parquet remotos PyArrow,
 Polars y DuckDB. Las tres se apoyan en la misma conexión <code>fsspec</code> a
-WebHDFS que acabamos de abrir; lo único que cambia es el adaptador que
+HDFS que acabamos de abrir; lo único que cambia es el adaptador que
 traduce esa conexión a la API de cada biblioteca.</p>
 <p>Con cada una se hace primero una lectura completa de la tabla —esquema,
 primera fila y un resumen de consistencia— y después se explora: selección
@@ -11258,7 +11243,7 @@ con comodidad qué hace cada biblioteca.</p>
 <h3 id="PyArrow">PyArrow<a class="anchor-link" href="#PyArrow">¶</a></h3><p>PyArrow tiene un lector Parquet muy completo, pero su API espera un
 sistema de ficheros compatible con Arrow, no un filesystem de <code>fsspec</code>
 directamente. <code>pyarrow.fs.PyFileSystem</code> junto con <code>FSSpecHandler</code> adaptan
-cualquier filesystem de <code>fsspec</code> — en este caso <code>webhdfs</code> — a esa interfaz,
+cualquier filesystem de <code>fsspec</code> — en este caso <code>hdfs</code> — a esa interfaz,
 así que <code>read_table</code> puede leer los fragmentos de <code>files</code> como si fueran
 locales. Después del esquema mostramos la primera fila, para ver valores
 reales junto al nombre de cada columna: <code>slice(0, 1)</code> se queda con ella sin
@@ -11280,7 +11265,7 @@ paso calculamos un pequeño resumen de consistencia sobre la clave
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.compute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
 
-<span class="n">arrow_fs</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">FileSystem</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">PyFileSystem</span><span class="p">(</span><span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">FSSpecHandler</span><span class="p">(</span><span class="n">webhdfs</span><span class="p">))</span>
+<span class="n">arrow_fs</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">FileSystem</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">PyFileSystem</span><span class="p">(</span><span class="n">pa</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">FSSpecHandler</span><span class="p">(</span><span class="n">hdfs</span><span class="p">))</span>
 <span class="n">arrow_table</span><span class="p">:</span> <span class="n">pa</span><span class="o">.</span><span class="n">Table</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">filesystem</span><span class="o">=</span><span class="n">arrow_fs</span><span class="p">)</span>
 <span class="n">arrow_table</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="o">.</span><span class="n">sort_by</span><span class="p">([(</span><span class="s2">"i_item_sk"</span><span class="p">,</span> <span class="s2">"ascending"</span><span class="p">)])</span>
 
@@ -11426,7 +11411,7 @@ decimal (<code>i_current_price</code>). Los nombres y tipos vienen de los metada
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Polars">Polars<a class="anchor-link" href="#Polars">¶</a></h3><p>Polars no necesita un adaptador de filesystem: abre cada fichero como un
-flujo binario con <code>webhdfs.open(path, "rb")</code> — el propio objeto que
+flujo binario con <code>hdfs.open(path, "rb")</code> — el propio objeto que
 <code>fsspec</code> expone para leer bytes remotos — y se lo entrega a
 <code>pl.read_parquet</code>. Una tabla puede estar partida en varios ficheros
 Parquet —aquí cada una es un único fichero, pero las que escribirá Spark en
@@ -11446,7 +11431,7 @@ devuelve un diccionario de columna a valor:</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 
-<span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">))</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+<span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">))</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 <span class="n">polars_table</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fragments</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">)</span>
 <span class="n">polars_table</span> <span class="o">=</span> <span class="n">polars_table</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"i_item_sk"</span><span class="p">)</span>
 
@@ -11493,7 +11478,7 @@ devuelve un diccionario de columna a valor:</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"i_product_name"</span><span class="p">,</span> <span class="s2">"i_category"</span><span class="p">,</span> <span class="s2">"i_current_price"</span><span class="p">]</span>
 <span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span>
 <span class="p">]</span>
 <span class="n">selected_items</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fragments</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">)</span>
 
@@ -11512,12 +11497,12 @@ devuelve un diccionario de columna a valor:</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El resultado sigue sin ser una lectura de una copia local: cada apertura
-con <code>webhdfs.open(..., "rb")</code> solicita los bytes a través de WebHDFS, y
+con <code>hdfs.open(..., "rb")</code> solicita los bytes a HDFS, y
 aunque el directorio contenga más de un fragmento el número de filas final
 debe seguir siendo el mismo.</p>
 <p>Polars también puede convertir directamente una tabla Arrow que ya
 tengamos en memoria —aquí <code>arrow_table</code>, la de tres columnas que leímos
-con PyArrow—, sin volver a pedir los bytes a WebHDFS:</p>
+con PyArrow—, sin volver a pedir los bytes a HDFS:</p>
 </div>
 </div>
 </div>
@@ -11586,7 +11571,7 @@ abierto por <code>fsspec</code>, sin pasar por Arrow:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
     <span class="n">first_fragment</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
         <span class="n">source</span><span class="p">,</span>
         <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"i_product_name"</span><span class="p">,</span> <span class="s2">"i_current_price"</span><span class="p">],</span>
@@ -11623,7 +11608,7 @@ el trabajo sin acumularlo todo en memoria:</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
         <span class="n">fragments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"i_product_name"</span><span class="p">,</span> <span class="s2">"i_current_price"</span><span class="p">]))</span>
 
 <span class="n">all_items</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fragments</span><span class="p">)</span>
@@ -11658,7 +11643,7 @@ los municipios. Esa conexión conserva la vista <code>ign_municipios_csv</code> 
 18 columnas del CSV, incluso después de cerrar la distinta conexión
 <code>tpcds_db</code> y borrar su fichero. Ahora registramos en <code>connection</code> el
 filesystem de <code>fsspec</code> con <code>register_filesystem</code>, para que también pueda leer
-las URL <code>webhdfs://</code>. A partir de ahí <code>read_parquet</code> recibe una lista de esas
+las URL <code>hdfs://</code>. A partir de ahí <code>read_parquet</code> recibe una lista de esas
 URL y se comporta como una tabla virtual dentro de cualquier consulta SQL.</p>
 <p>Escribir <code>read_parquet</code> con su lista de URLs en cada consulta sería
 pesado, y las consultas no se parecerían a las que se escribirán cuando las
@@ -11731,8 +11716,8 @@ función de Python:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">webhdfs</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">)</span>
-<span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"webhdfs://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">hdfs</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">)</span>
+<span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"hdfs://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 
 <span class="c1"># La vista lleva la lista de URLs escrita en el SQL: CREATE VIEW no admite `?`.</span>
 <span class="n">url_list</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">)</span>
@@ -11792,7 +11777,7 @@ una presente el resultado a su manera.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>A partir de aquí la exploración es SQL. DuckDB ejecuta las consultas sobre
 los Parquet sin levantar ningún servidor, dentro del propio proceso de
-Python, y la ruta de lectura es WebHDFS → fsspec → DuckDB. Reutilizamos la
+Python, y la ruta de lectura es hdfs-native → fsspec → DuckDB. Reutilizamos la
 conexión <code>connection</code> y la vista <code>item</code> de la celda anterior; la consulta
 más sencilla cuenta las filas:</p>
 </div>
@@ -12019,7 +12004,7 @@ demográfico. Las columnas que intervienen aquí son:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El siguiente bloque reutiliza el <code>webhdfs</code> creado antes y define las dos
+<p>El siguiente bloque reutiliza el <code>hdfs</code> creado antes y define las dos
 funciones con las que se estrenará cada tabla durante el resto de la
 sesión: <code>table_urls</code> lista los ficheros Parquet de una tabla sin el marcador
 <code>_SUCCESS</code>, y <code>create_view</code> crea con ellos la vista, la misma sentencia que
@@ -12043,8 +12028,8 @@ pequeña muestra del resultado.</p>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">table_urls</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="k">return</span> <span class="p">[</span>
-        <span class="sa">f</span><span class="s2">"webhdfs://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">webhdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"/datalake/raw/tpcds/</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">/*"</span><span class="p">))</span>
+        <span class="sa">f</span><span class="s2">"hdfs://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"/datalake/raw/tpcds/</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">/*"</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
     <span class="p">]</span>
 
@@ -13117,7 +13102,7 @@ falta.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres bibliotecas, un mismo dato</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> + WebHDFS permite leer HDFS sin bibliotecas nativas de Hadoop</li><li style="margin:10px 0">PyArrow, Polars y DuckDB seleccionan columnas y filtran sin traer antes todo a memoria</li><li style="margin:10px 0">Las relaciones <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FK</code> son lógicas: Parquet no las impone y se comprueban con un <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">JOIN</code></li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres bibliotecas, un mismo dato</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> + <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code> permite leer HDFS sin Java ni bibliotecas de Hadoop</li><li style="margin:10px 0">PyArrow, Polars y DuckDB seleccionan columnas y filtran sin traer antes todo a memoria</li><li style="margin:10px 0">Las relaciones <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FK</code> son lógicas: Parquet no las impone y se comprueban con un <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">JOIN</code></li></ul>
 </div>
 </div>
 </div>
@@ -13161,7 +13146,7 @@ necesitamos todavía un catálogo Iceberg ni Spark: las tablas son
 directorios de Parquet y las relaciones se expresan mediante las claves que
 aparecen en el esquema.</p>
 <p>Las tres preguntas se responden en SQL con DuckDB, sobre la conexión
-<code>connection</code> que ya tiene registrado WebHDFS. PyArrow y Polars han servido
+<code>connection</code> que ya tiene registrado el filesystem de HDFS. PyArrow y Polars han servido
 para comprobar que los mismos Parquet se pueden leer desde Python por
 varios caminos; a partir de aquí las consultas se escriben en SQL, que es
 también el lenguaje que se usará con Trino.</p>
@@ -13259,8 +13244,8 @@ Antes de consultarlas se comprueba que contienen todas sus filas:</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Comprueba las cifras anteriores antes de continuar. Si alguna no coincide,
 no se trata de un resultado de la consulta: significa que la tabla no se ha
-generado entera, que se ha utilizado otra escala o que WebHDFS no está
-accesible desde el NameNode.</p>
+generado entera, que se ha utilizado otra escala o que HDFS no está
+accesible desde el notebook.</p>
 <h3 id="Cliente-con-m%C3%A1s-pedidos">Cliente con más pedidos<a class="anchor-link" href="#Cliente-con-m%C3%A1s-pedidos">¶</a></h3><p>Comenzamos sin unir todavía la dimensión <code>customer</code>. El identificador
 <code>ws_bill_customer_sk</code> basta para encontrar los clientes con más pedidos y
 permite concentrarnos en la agregación: un <code>GROUP BY</code> sobre <code>web_sales</code>
@@ -14867,7 +14852,7 @@ debe medirse: no se deduce únicamente del nombre del operador.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cerramos la sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Actividades propuestas para practicar por tu cuenta</li><li style="margin:10px 0">Qué hacer si algo falla: clúster, generación, WebHDFS, memoria o el marcador <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code></li><li style="margin:10px 0">Cómo parar, regenerar y borrar sin perder lo que necesitan las sesiones siguientes</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cerramos la sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Actividades propuestas para practicar por tu cuenta</li><li style="margin:10px 0">Qué hacer si algo falla: clúster, generación, acceso a HDFS, memoria o el marcador <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code></li><li style="margin:10px 0">Cómo parar, regenerar y borrar sin perder lo que necesitan las sesiones siguientes</li></ul>
 </div>
 </div>
 </div>
@@ -14937,21 +14922,15 @@ marcador <code>_SUCCESS</code> falta o no coincide.</p>
 <p>Si en <code>/tmp/tpcds/tpcds-sf3.duckdb</code> queda una base escrita por otra versión de
 DuckDB, <code>duckdb.connect()</code> falla al abrirla con un error de versión del formato
 de almacenamiento: borra <code>/tmp/tpcds</code> y vuelve a ejecutar desde «Abrir DuckDB».</p>
-<p>La celda que abre <code>webhdfs</code> fija <code>webhdfs.blocksize = 64 * 2**20</code>; si reinicias
-el kernel, vuelve a ejecutarla antes de reescribir ninguna tabla. Si aparece un
-<code>403 Client Error</code> al escribir, comprueba que el kernel usa la compilación de
-<code>fsspec</code> de la lista común (<code>import fsspec; fsspec.__version__</code> debe acabar
-en <code>.post1</code>): con el <code>fsspec</code> estándar el error puede reaparecer de forma
-esporádica. Ejecuta de nuevo la celda de «Preparar Python» y reinicia el kernel.</p>
 <p><code>INSTALL tpcds</code> descarga la extensión de internet la primera vez. Si falla
 con un error de red, comprueba que <code>namenode</code> tiene
 acceso a internet, como para las demás descargas de la sesión.</p>
 <p>Si DuckDB informa de que se ha quedado sin memoria (<code>Out of Memory Error</code>),
 cierra los demás notebooks que tengas abiertos en el mismo Jupyter: todos
 comparten la memoria de <code>namenode</code>.</p>
-<h3 id="WebHDFS-no-responde-desde-Python">WebHDFS no responde desde Python<a class="anchor-link" href="#WebHDFS-no-responde-desde-Python">¶</a></h3><p>Esto sí se puede diagnosticar desde este notebook, porque solo necesita
-resolver el nombre <code>namenode</code> y hablar HTTP con él — algo que ya funciona
-al ejecutarse este kernel dentro del propio contenedor:</p>
+<h3 id="HDFS-no-responde-desde-Python">HDFS no responde desde Python<a class="anchor-link" href="#HDFS-no-responde-desde-Python">¶</a></h3><p>Esto sí se puede diagnosticar desde este notebook. <code>hdfs dfs</code> es el cliente
+Java de Hadoop y habla con el NameNode por el mismo puerto RPC que
+<code>hdfs-native</code>, así que separa un problema del clúster de uno de Python:</p>
 </div>
 </div>
 </div>
@@ -14963,7 +14942,7 @@ al ejecutarse este kernel dentro del propio contenedor:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>curl<span class="w"> </span>--fail<span class="w"> </span><span class="s2">"http://namenode:9870/webhdfs/v1/datalake?op=GETFILESTATUS&amp;user.name=luser"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-d<span class="w"> </span>/datalake
 </pre></div>
 </div>
 </div>
@@ -14979,10 +14958,11 @@ al ejecutarse este kernel dentro del propio contenedor:</p>
 <p>Si esta orden falla, el problema es del clúster HDFS en sí (o de que
 <code>namenode</code> no está arrancado), no de la parte Python de esta sesión.
 Si en cambio la orden anterior funciona pero Python sigue fallando, revisa
-que la conexión <code>fsspec</code> se haya abierto con <code>user="luser"</code> y que se haya
-excluido <code>_SUCCESS</code> de la lista de ficheros.</p>
+que la conexión <code>fsspec</code> se haya abierto con <code>host="namenode"</code> y
+<code>port=9000</code>, que la celda de «Preparar Python» confirme que <code>hdfs://</code> usa
+<code>hdfs-native</code> y que se haya excluido <code>_SUCCESS</code> de la lista de ficheros.</p>
 <h3 id="DuckDB-dice-que-un-fichero-es-demasiado-peque%C3%B1o">DuckDB dice que un fichero es demasiado pequeño<a class="anchor-link" href="#DuckDB-dice-que-un-fichero-es-demasiado-peque%C3%B1o">¶</a></h3><p>La causa habitual es haber utilizado un patrón que incluye <code>_SUCCESS</code>.
-Lista los nombres con <code>webhdfs.glob</code> y filtra el marcador antes de
+Lista los nombres con <code>hdfs.glob</code> y filtra el marcador antes de
 crear la vista; <code>table_urls</code> ya lo hace.</p>
 <h3 id="Falta-memoria">Falta memoria<a class="anchor-link" href="#Falta-memoria">¶</a></h3><p>No cargues simultáneamente varias tablas grandes en listas de DataFrames.
 Empieza con <code>item</code> o <code>customer</code>, selecciona pocas columnas y procesa los
@@ -15156,8 +15136,8 @@ mismos ficheros por caminos distintos.</p>
 <h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una orden. Debes poder
 explicar:</p>
 <ul>
-<li>para qué sirve cada herramienta usada en esta sesión —WebHDFS/<code>fsspec</code>
-como acceso remoto sin cliente nativo, PyArrow como formato y esquema
+<li>para qué sirve cada herramienta usada en esta sesión —<code>hdfs-native</code>/<code>fsspec</code>
+como acceso a HDFS sin Java, PyArrow como formato y esquema
 columnar, Polars como motor de DataFrames en memoria, DuckDB como base de
 datos embebida que generó TPC-DS, cruzó las fuentes y escribió los
 Parquet, y como motor SQL local sobre ficheros remotos— y cómo se conectan

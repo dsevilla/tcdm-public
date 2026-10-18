@@ -1,7 +1,8 @@
 name: tcdm-26-27-s3
 
-# Este Compose contiene solamente el almacenamiento de objetos y las tareas
-# auxiliares de la sesión 3. Hadoop, Trino, Hive e Iceberg se arrancan en
+# Este Compose contiene solamente el almacenamiento de objetos y un cliente
+# AWS CLI auxiliar para la sesión 3. No crea el bucket: lo crea s3.ipynb con
+# boto3, para que el alumnado vea esa petición. Hadoop, Trino, Hive e Iceberg se arrancan en
 # otros Compose y comparten la red externa hadoop-cluster.
 services:
   rustfs-s3:
@@ -33,39 +34,12 @@ services:
         aliases:
           - rustfs
 
-  bucket-setup-s3:
-    image: amazon/aws-cli:latest
-    container_name: tcdm-s3-bucket-setup
-    depends_on:
-      rustfs-s3:
-        condition: service_healthy
-    environment:
-      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-tcdm_student}
-      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-tcdm_student_secret}
-      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
-      AWS_ENDPOINT_URL: http://rustfs:9000
-      AWS_S3_ADDRESSING_STYLE: path
-      AWS_EC2_METADATA_DISABLED: "true"
-      S3_BUCKET: ${S3_BUCKET:-tcdm-datalake}
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - >-
-        set -eu;
-        if aws s3api head-bucket --bucket "$${S3_BUCKET}" >/dev/null 2>&1; then
-          echo "Bucket $${S3_BUCKET} ya existe";
-        else
-          aws s3api create-bucket --bucket "$${S3_BUCKET}";
-        fi;
-        aws s3api list-buckets --query 'Buckets[].Name' --output text;
-    networks:
-      hadoop-cluster:
-
   s3-client:
     image: amazon/aws-cli:latest
     container_name: tcdm-s3-client
     depends_on:
-      bucket-setup-s3:
-        condition: service_completed_successfully
+      rustfs-s3:
+        condition: service_healthy
     environment:
       AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-tcdm_student}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-tcdm_student_secret}

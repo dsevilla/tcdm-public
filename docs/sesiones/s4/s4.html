@@ -8736,20 +8736,19 @@ es el que escribe S2: vuelve a esa sesión.</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fsspec.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFileSystem</span>
 
-<span class="n">webhdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span>
-    <span class="s2">"webhdfs"</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9870</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span> <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span>
-<span class="p">)</span>
+<span class="c1"># El mismo filesystem de hdfs-native que en S2 y S3.</span>
+<span class="n">hdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">)</span>
 <span class="c1"># Los tres DataNodes de S1: en la sección de YARN habrá un ejecutor en cada uno.</span>
 <span class="n">DATANODES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
 
 <span class="n">web_sales_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
     <span class="n">path</span>
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">web_sales_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">web_sales_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">web_sales_groups</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">web_sales_files</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
         <span class="n">web_sales_groups</span> <span class="o">+=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">num_row_groups</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Grupos de filas de web_sales: </span><span class="si">{</span><span class="n">web_sales_groups</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 

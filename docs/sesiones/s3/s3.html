@@ -7992,7 +7992,7 @@ versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a 
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
 
 <span class="n">SCHEMA_MODULE</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"tcdm_esquema.py"</span><span class="p">)</span>
@@ -8006,7 +8006,7 @@ versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a 
     <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
         <span class="n">SCHEMA_MODULE</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
-<span class="o">%</span><span class="n">load_ext</span> <span class="n">tcdm_esquema</span>
+<span class="o">%</span><span class="k">load_ext</span> tcdm_esquema
 </pre></div>
 </div>
 </div>
@@ -8172,17 +8172,15 @@ Compose de esta sesión está en <code>entorno/compose-s3.yml</code> y contiene
 <td>Sí</td>
 </tr>
 <tr>
-<td><code>bucket-setup-s3</code></td>
-<td>Crea el bucket <code>tcdm-datalake</code> si todavía no existe</td>
-<td>No, termina correctamente</td>
-</tr>
-<tr>
 <td><code>s3-client</code></td>
 <td>Contenedor con AWS CLI, útil desde una terminal</td>
 <td>Sí</td>
 </tr>
 </tbody>
 </table>
+<p>RustFS arranca vacío, sin ningún bucket. El bucket <code>tcdm-datalake</code> no lo
+crea el Compose: lo crea este notebook con boto3, para que se vea la
+petición que lo hace.</p>
 <p>El volumen (<code>tcdm-26-27-rustfs-s3-data</code>) hace que detener los contenedores
 no borre los objetos; <code>down -v</code>, en cambio, elimina también ese volumen y
 debe reservarse para regenerar completamente el ejercicio.</p>
@@ -8312,7 +8310,7 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-d<span class="w"> </span>/datalake/raw/tpcds
 </pre></div>
 </div>
 </div>
@@ -8336,7 +8334,7 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con WebHDFS; con ella se hace la copia</li><li style="margin:10px 0">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>; con ella se hace la copia</li><li style="margin:10px 0">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul>
 </div>
 </div>
 </div>
@@ -8360,7 +8358,8 @@ método por cada operación de la API (<code>list_objects_v2</code> es la operac
 servicio como un diccionario. Es la forma más directa de ver qué ofrece
 la API, y la usaremos para explorarla.</li>
 <li><strong>s3fs</strong> presenta S3 con la interfaz de ficheros de <code>fsspec</code>, la misma
-con la que S2 habló con WebHDFS: <code>glob</code>, <code>open</code>, <code>info</code>. Por debajo usa
+con la que S2 habló con HDFS mediante <code>hdfs-native</code>: <code>glob</code>, <code>open</code>,
+<code>info</code>. Por debajo usa
 <code>aiobotocore</code>, la variante asíncrona del mismo SDK. Con ella se copiarán
 los datos —se lee de HDFS con <code>fsspec</code> y se escribe en S3 con <code>fsspec</code>— y
 gracias a ella el código de PyArrow y de Polars de S2 sirve aquí
@@ -8401,7 +8400,7 @@ el mismo fichero desde la URL pública, sin escribir una copia local.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dsevilla</span><span class="o">/</span><span class="n">tcdm</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="mi">26</span><span class="o">-</span><span class="mi">27</span><span class="o">/</span><span class="n">entorno</span><span class="o">/</span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">pip</span> install -q -r https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/entorno/requirements.txt
 </pre></div>
 </div>
 </div>
@@ -8470,12 +8469,12 @@ así que valen para todas las celdas que siguen:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">env</span> <span class="n">AWS_ENDPOINT_URL</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">rustfs</span><span class="p">:</span><span class="mi">9000</span>
-<span class="o">%</span><span class="n">env</span> <span class="n">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="n">tcdm_student</span>
-<span class="o">%</span><span class="n">env</span> <span class="n">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="n">tcdm_student_secret</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">env</span> AWS_ENDPOINT_URL=http://rustfs:9000
+<span class="o">%</span><span class="k">env</span> AWS_ACCESS_KEY_ID=tcdm_student
+<span class="o">%</span><span class="k">env</span> AWS_SECRET_ACCESS_KEY=tcdm_student_secret
 <span class="c1"># Sólo con credenciales temporales de AWS (por ejemplo, AWS Academy):</span>
 <span class="c1"># %env AWS_SESSION_TOKEN=&lt;token de sesión&gt;</span>
-<span class="o">%</span><span class="n">env</span> <span class="n">AWS_DEFAULT_REGION</span><span class="o">=</span><span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span>
+<span class="o">%</span><span class="k">env</span> AWS_DEFAULT_REGION=us-east-1
 </pre></div>
 </div>
 </div>
@@ -8495,7 +8494,9 @@ estas pocas operaciones.</p>
 credenciales: los toma de las variables que se acaban de fijar. La primera
 petición, <code>list_buckets</code>, sirve además de comprobación: si falla con un
 error de conexión, RustFS no está arrancado; ejecuta
-<code>make -C entorno s3-up</code> en una terminal de tu equipo y repite la celda.</p>
+<code>make -C entorno s3-up</code> en una terminal de tu equipo y repite la celda.
+La primera vez que ejecutes el notebook la lista saldrá vacía: RustFS
+arranca sin ningún bucket.</p>
 </div>
 </div>
 </div>
@@ -8507,7 +8508,7 @@ error de conexión, RustFS no está arrancado; ejecuta
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">botocore.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseClient</span>
 
 <span class="n">s3</span><span class="p">:</span> <span class="n">BaseClient</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
@@ -8515,9 +8516,6 @@ error de conexión, RustFS no está arrancado; ejecuta
 
 <span class="n">buckets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">bucket</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">bucket</span> <span class="ow">in</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_buckets</span><span class="p">()[</span><span class="s2">"Buckets"</span><span class="p">]]</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Buckets: </span><span class="si">{</span><span class="n">buckets</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="s2">"tcdm-datalake"</span> <span class="ow">in</span> <span class="n">buckets</span>
-<span class="p">),</span> <span class="s2">"No existe el bucket tcdm-datalake: revisa `make -C entorno s3-up`"</span>
 </pre></div>
 </div>
 </div>
@@ -8530,9 +8528,22 @@ error de conexión, RustFS no está arrancado; ejecuta
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Escribir-un-objeto">Escribir un objeto<a class="anchor-link" href="#Escribir-un-objeto">¶</a></h3><p><code>put_object</code> envía un <code>PUT</code> con el contenido completo. No hay que crear
-antes <code>pruebas/</code> ni <code>pruebas/saludos/</code>: la clave es una sola cadena, y las
-barras forman parte de ella.</p>
+<h3 id="Crear-el-bucket">Crear el bucket<a class="anchor-link" href="#Crear-el-bucket">¶</a></h3><p>Todo objeto está dentro de un bucket, y el bucket es lo único que hay que
+crear antes de escribir: los prefijos no se crean, el bucket sí. Al crearlo
+se fijan su nombre y su región, y sobre él se configuran después los
+permisos, el versionado o las reglas de ciclo de vida. Se crea pocas veces
+—normalmente una, al montar el data lake—, así que la celda comprueba
+antes si ya existe. De este modo el notebook se puede ejecutar de nuevo sin
+que falle.</p>
+<p>La comprobación es <code>head_bucket</code>, un <code>HEAD</code> sobre el bucket que no devuelve
+contenido, sólo un código de estado HTTP. Si el bucket no existe, el
+servicio responde <code>404</code> y boto3 lo convierte en una excepción
+<code>ClientError</code>; entonces <code>create_bucket</code> lo crea. Cualquier otro error se
+vuelve a lanzar: un <code>403</code>, por ejemplo, significa que el bucket existe pero
+pertenece a otra cuenta.</p>
+<p>En Amazon S3 el bucket se crea en una región, y fuera de <code>us-east-1</code> hay que
+indicarla en <code>CreateBucketConfiguration</code>. RustFS no distingue regiones, pero
+la celda contempla los dos casos para servir sin cambios contra AWS.</p>
 </div>
 </div>
 </div>
@@ -8544,8 +8555,53 @@ barras forman parte de ella.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">S3_BUCKET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"tcdm-datalake"</span>
-<span class="n">TEST_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pruebas/saludos/hola.txt"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">botocore.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClientError</span>
+
+<span class="n">S3_BUCKET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"tcdm-datalake"</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">s3</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"El bucket </span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2"> ya existe"</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ClientError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s2">"Error"</span><span class="p">][</span><span class="s2">"Code"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"404"</span><span class="p">:</span>
+        <span class="k">raise</span>
+    <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">region_name</span>
+    <span class="k">if</span> <span class="n">region</span> <span class="o">==</span> <span class="s2">"us-east-1"</span><span class="p">:</span>
+        <span class="n">s3</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">s3</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">CreateBucketConfiguration</span><span class="o">=</span><span class="p">{</span><span class="s2">"LocationConstraint"</span><span class="p">:</span> <span class="n">region</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Creado el bucket </span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2"> en la región </span><span class="si">{</span><span class="n">region</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">buckets</span> <span class="o">=</span> <span class="p">[</span><span class="n">bucket</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">bucket</span> <span class="ow">in</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_buckets</span><span class="p">()[</span><span class="s2">"Buckets"</span><span class="p">]]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Buckets: </span><span class="si">{</span><span class="n">buckets</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">S3_BUCKET</span> <span class="ow">in</span> <span class="n">buckets</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Escribir-un-objeto">Escribir un objeto<a class="anchor-link" href="#Escribir-un-objeto">¶</a></h3><p><code>put_object</code> envía un <code>PUT</code> con el contenido completo. No hay que crear
+antes <code>pruebas/</code> ni <code>pruebas/saludos/</code>: la clave es una sola cadena, y las
+barras forman parte de ella.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">TEST_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pruebas/saludos/hola.txt"</span>
 
 <span class="n">s3</span><span class="o">.</span><span class="n">put_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">,</span> <span class="n">Body</span><span class="o">=</span><span class="sa">b</span><span class="s2">"Hola, S3</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Creado s3://</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">TEST_KEY</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -8555,7 +8611,7 @@ barras forman parte de ella.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8570,7 +8626,7 @@ el momento de listar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8578,7 +8634,7 @@ el momento de listar.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="n">by_prefix</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="s2">"pruebas/"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Claves que empiezan por pruebas/:"</span><span class="p">)</span>
@@ -8594,7 +8650,7 @@ el momento de listar.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8611,7 +8667,7 @@ depende todo lo que viene después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8619,7 +8675,7 @@ depende todo lo que viene después.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">metadata</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"ContentLength"</span><span class="p">,</span> <span class="s2">"ETag"</span><span class="p">,</span> <span class="s2">"LastModified"</span><span class="p">)})</span>
 
 <span class="n">whole</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -8632,7 +8688,7 @@ depende todo lo que viene después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8645,7 +8701,7 @@ nunca fue un directorio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8653,7 +8709,7 @@ nunca fue un directorio.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">s3</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">s3</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">TEST_KEY</span><span class="p">)</span>
 
 <span class="n">after_delete</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Prefijos comunes en la raíz del bucket:"</span><span class="p">)</span>
@@ -8663,7 +8719,7 @@ nunca fue un directorio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8681,14 +8737,14 @@ nunca fue un directorio.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero se lee de HDFS con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (WebHDFS) y se escribe en S3 con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): la misma interfaz en los dos lados</li><li style="margin:10px 0">Los bytes fluyen de un fichero abierto al otro, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 18 tablas y los mismos ficheros que en HDFS</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copia de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0">Cada fichero se lee de HDFS con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y se escribe en S3 con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): la misma interfaz en los dos lados</li><li style="margin:10px 0">Los bytes fluyen de un fichero abierto al otro, sin pasar por el disco local</li><li style="margin:10px 0">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0">HDFS no se modifica; al terminar debe haber 18 tablas y los mismos ficheros que en HDFS</li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8704,19 +8760,19 @@ almacenamiento.</p>
 cientos de megabytes y se hace con un bucle visible, para que se vea cada
 paso: qué ficheros hay, qué clave recibe cada uno y qué petición lo sube.</p>
 <p>Para copiar hacen falta los dos extremos, y los dos se manejan con <code>fsspec</code>:
-<code>webhdfs</code>, el filesystem de S2, para HDFS, y <code>s3fs.S3FileSystem()</code>, que toma
+<code>hdfs</code>, el filesystem de <code>hdfs-native</code> que ya se usó en S2, para HDFS, y <code>s3fs.S3FileSystem()</code>, que toma
 servidor y credenciales de las variables <code>AWS_*</code> y maneja rutas con la
 forma <code>bucket/clave</code>, para el bucket. Uno es un sistema de ficheros y el
 otro un almacén de objetos, pero <code>fsspec</code> los presenta con las mismas
 operaciones —<code>find</code>, <code>open</code>, <code>info</code>, <code>size</code>—, así que copiar es leer un
 fichero de uno y escribirlo en el otro.</p>
-<p>El primer paso es saber qué hay que copiar. <code>webhdfs.find</code> recorre el
+<p>El primer paso es saber qué hay que copiar. <code>hdfs.find</code> recorre el
 árbol completo bajo la raíz y devuelve sólo ficheros; se descarta el
 marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=31">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8724,31 +8780,22 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">s3fs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fsspec.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFileSystem</span>
 
 <span class="n">HDFS_ROOT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds"</span>
 <span class="n">S3_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"raw/tpcds"</span>
 
-<span class="n">webhdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span>
-    <span class="s2">"webhdfs"</span><span class="p">,</span>
-    <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span>
-    <span class="n">port</span><span class="o">=</span><span class="mi">9870</span><span class="p">,</span>  <span class="c1"># El NameNode atiende WebHDFS en el 9870; el protocolo propio de HDFS, en el 9000.</span>
-    <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span>
-    <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="k">assert</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+<span class="n">hdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
     <span class="n">HDFS_ROOT</span>
 <span class="p">),</span> <span class="sa">f</span><span class="s2">"No existe </span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">. Completa primero la generación de datos de S2."</span>
-<span class="c1"># fsspec lee en trozos de este tamaño: 4 MiB por defecto. 64 MiB es el tamaño</span>
-<span class="c1"># de bloque de HDFS en este clúster.</span>
-<span class="n">webhdfs</span><span class="o">.</span><span class="n">blocksize</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>
 <span class="n">object_store</span><span class="p">:</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span> <span class="o">=</span> <span class="n">s3fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Servidor al que habla s3fs: </span><span class="si">{</span><span class="n">object_store</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">endpoint_url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">hdfs_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">HDFS_ROOT</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">HDFS_ROOT</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 <span class="p">)</span>
 <span class="n">table_names</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs_files</span><span class="p">}</span>
 
@@ -8765,7 +8812,7 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8784,7 +8831,7 @@ claves por llamada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8792,7 +8839,7 @@ claves por llamada.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">list_keys</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">list_keys</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="n">pages</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">"list_objects_v2"</span><span class="p">)</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">"Key"</span><span class="p">]</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pages</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Contents"</span><span class="p">,</span> <span class="p">[])]</span>
 
@@ -8811,7 +8858,7 @@ claves por llamada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8822,10 +8869,10 @@ raíz cambiada, así que la organización por capa, fuente y tabla se
 conserva:</p>
 <div class="highlight"><pre><span></span>/datalake/raw/tpcds/item/&lt;fichero&gt;   →   raw/tpcds/item/&lt;fichero&gt;
 </pre></div>
-<p><code>webhdfs.open(ruta, "rb")</code> y <code>object_store.open(ruta, "wb")</code> devuelven
+<p><code>hdfs.open(ruta, "rb")</code> y <code>object_store.open(ruta, "wb")</code> devuelven
 ficheros de Python, uno que lee de HDFS y otro que escribe en el bucket.
 <code>shutil.copyfileobj</code> lee del primero y escribe en el segundo sin saber qué
-hay detrás de cada uno, y los bytes van de HDFS a S3 sin guardarse en el
+hay detrás de cada uno, en trozos del tamaño que se le indique, y los bytes van de HDFS a S3 sin guardarse en el
 disco de <code>namenode</code>. Al escribir, <code>s3fs</code> acumula los datos en trozos y los
 sube como una carga <em>multipart</em>, que es como la API admite objetos mayores
 que una sola petición; el objeto aparece en el bucket al cerrar el fichero.</p>
@@ -8835,7 +8882,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8843,14 +8890,16 @@ HDFS.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 
 <span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">hdfs_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="n">s3_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">hdfs_path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s1">/'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">s3_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">"</span>
-    <span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">hdfs_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">,</span> <span class="n">object_store</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">s3_path</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">target</span><span class="p">:</span>
-        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">object_store</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">s3_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">hdfs_path</span><span class="p">),</span> <span class="n">hdfs_path</span>
+    <span class="k">with</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">hdfs_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">,</span> <span class="n">object_store</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">s3_path</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">target</span><span class="p">:</span>
+        <span class="c1"># Trozos de 64 MiB, el tamaño de bloque de HDFS en este clúster: con los</span>
+        <span class="c1"># 256 KiB que copyfileobj usa por defecto serían 256 lecturas por bloque.</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">64</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">object_store</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">s3_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">hdfs_path</span><span class="p">),</span> <span class="n">hdfs_path</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">position</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfs_files</span><span class="p">)</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">uploaded_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">list_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span>
@@ -8861,7 +8910,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=36">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8885,7 +8934,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8910,7 +8959,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8921,7 +8970,7 @@ las tablas: un prefijo común por cada una.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8929,7 +8978,7 @@ las tablas: un prefijo común por cada una.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">tables</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">tables</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/"</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
 <span class="n">table_prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span><span class="p">[</span><span class="s2">"Prefix"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">tables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CommonPrefixes"</span><span class="p">,</span> <span class="p">[])]</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_prefixes</span><span class="p">)</span><span class="si">}</span><span class="s2"> prefijos de tabla:"</span><span class="p">)</span>
@@ -8945,7 +8994,7 @@ las tablas: un prefijo común por cada una.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8958,7 +9007,7 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8966,7 +9015,7 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">item_objects</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">item_objects</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
     <span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/"</span>
 <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Contents"</span><span class="p">,</span> <span class="p">[])</span>
 <span class="k">assert</span> <span class="n">item_objects</span><span class="p">,</span> <span class="s2">"No hay objetos de item: ejecuta antes la copia"</span>
@@ -8977,7 +9026,7 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8985,14 +9034,14 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">item</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>/datalake/raw/tpcds/item
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9011,7 +9060,7 @@ primeros bytes y otro de los ocho últimos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9019,7 +9068,7 @@ primeros bytes y otro de los ocho últimos.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">first_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">item_objects</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"Key"</span><span class="p">]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">first_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">item_objects</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"Key"</span><span class="p">]</span>
 <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">first_key</span><span class="p">)[</span><span class="s2">"ContentLength"</span><span class="p">]</span>
 
 <span class="n">head</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">first_key</span><span class="p">,</span> <span class="n">Range</span><span class="o">=</span><span class="s2">"bytes=0-3"</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -9038,7 +9087,7 @@ primeros bytes y otro de los ocho últimos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9068,7 +9117,7 @@ credenciales:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=46">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9093,48 +9142,19 @@ credenciales:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Leer-los-mismos-Parquet-desde-S3">Leer los mismos Parquet desde S3<a class="anchor-link" href="#Leer-los-mismos-Parquet-desde-S3">¶</a></h2><p>En S2 las tres bibliotecas leían de HDFS a través de un filesystem de
-<code>fsspec</code> para WebHDFS. <code>fsspec</code> existe precisamente para que el código que
-lee no dependa de dónde están los ficheros: basta con otro filesystem que
-ofrezca las mismas operaciones. Para S3 ese filesystem es <code>s3fs</code>, el mismo
-<code>object_store</code> que acaba de escribir la copia.</p>
-<p>La tabla es otra vez <code>item</code>, la de productos, para poder comparar con S2
-sin que cambie nada más que el almacenamiento:</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># Qué significa cada columna de item, la tabla que leen los tres lectores.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">item</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El <code>object_store</code> de la copia también lee: sus rutas tienen la forma
-<code>bucket/clave</code> y <code>glob</code> las lista igual que <code>webhdfs.glob</code> listaba las de
-HDFS en S2. Como al copiar se dejó fuera <code>_SUCCESS</code>, todo lo que hay
-bajo el prefijo es Parquet y no hay nada que filtrar:</p>
+<h2 id="Leer-los-mismos-Parquet-desde-S3">Leer los mismos Parquet desde S3<a class="anchor-link" href="#Leer-los-mismos-Parquet-desde-S3">¶</a></h2><p>En S2 las tres bibliotecas leían de HDFS a través de un filesystem de
+<code>fsspec</code>, el de <code>hdfs-native</code>. <code>fsspec</code> existe precisamente para que el código que
+lee no dependa de dónde están los ficheros: basta con otro filesystem que
+ofrezca las mismas operaciones. Para S3 ese filesystem es <code>s3fs</code>, el mismo
+<code>object_store</code> que acaba de escribir la copia.</p>
+<p>La tabla es otra vez <code>item</code>, la de productos, para poder comparar con S2
+sin que cambie nada más que el almacenamiento:</p>
 </div>
 </div>
 </div>
@@ -9146,10 +9166,8 @@ bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_store</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/*"</span><span class="p">))</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">files</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">files</span><span class="p">,</span> <span class="s2">"No hay objetos de item en el bucket: ejecuta antes la copia"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Qué significa cada columna de item, la tabla que leen los tres lectores.</span>
+<span class="o">%</span><span class="k">esquema</span> item
 </pre></div>
 </div>
 </div>
@@ -9162,13 +9180,10 @@ bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="PyArrow">PyArrow<a class="anchor-link" href="#PyArrow">¶</a></h3><p>Es la celda de S2 con <code>object_store</code> donde antes estaba <code>webhdfs</code>:
-<code>FSSpecHandler</code> adapta cualquier filesystem de <code>fsspec</code> a la interfaz que
-espera Arrow, y <code>read_table</code> lee los objetos de <code>files</code> (aquí, uno por
-tabla). Igual que
-entonces, después del esquema se muestra la primera fila y se calcula un
-resumen de la clave <code>i_item_sk</code>: filas, valores no nulos, mínimo, máximo y
-suma.</p>
+<p>El <code>object_store</code> de la copia también lee: sus rutas tienen la forma
+<code>bucket/clave</code> y <code>glob</code> las lista igual que <code>hdfs.glob</code> listaba las de
+HDFS en S2. Como al copiar se dejó fuera <code>_SUCCESS</code>, todo lo que hay
+bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 </div>
 </div>
 </div>
@@ -9180,7 +9195,41 @@ suma.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pa</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">object_store</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/*"</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">files</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">files</span><span class="p">,</span> <span class="s2">"No hay objetos de item en el bucket: ejecuta antes la copia"</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="PyArrow">PyArrow<a class="anchor-link" href="#PyArrow">¶</a></h3><p>Es la celda de S2 con <code>object_store</code> donde antes estaba <code>hdfs</code>:
+<code>FSSpecHandler</code> adapta cualquier filesystem de <code>fsspec</code> a la interfaz que
+espera Arrow, y <code>read_table</code> lee los objetos de <code>files</code> (aquí, uno por
+tabla). Igual que
+entonces, después del esquema se muestra la primera fila y se calcula un
+resumen de la clave <code>i_item_sk</code>: filas, valores no nulos, mínimo, máximo y
+suma.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pa</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.compute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.fs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pafs</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
@@ -9208,7 +9257,7 @@ suma.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9221,7 +9270,7 @@ dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9229,7 +9278,7 @@ dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
 
 <span class="n">fragments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
@@ -9253,7 +9302,7 @@ dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9281,7 +9330,7 @@ propio.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9289,7 +9338,7 @@ propio.</li>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">duckdb</span>
 
@@ -9322,7 +9371,7 @@ propio.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9337,7 +9386,7 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9345,7 +9394,7 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"s3://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"s3://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 
 <span class="c1"># La vista lleva la lista de URLs escrita en el SQL: CREATE VIEW no admite `?`.</span>
 <span class="n">url_list</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">)</span>
@@ -9365,7 +9414,7 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9379,7 +9428,7 @@ antes del bucket o del prefijo que se está leyendo que del dato.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9387,7 +9436,7 @@ antes del bucket o del prefijo que se está leyendo que del dato.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="k">assert</span> <span class="n">arrow_summary</span> <span class="o">==</span> <span class="n">polars_summary</span> <span class="o">==</span> <span class="n">duckdb_summary</span><span class="p">,</span> <span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="n">arrow_summary</span> <span class="o">==</span> <span class="n">polars_summary</span> <span class="o">==</span> <span class="n">duckdb_summary</span><span class="p">,</span> <span class="p">(</span>
     <span class="n">arrow_summary</span><span class="p">,</span>
     <span class="n">polars_summary</span><span class="p">,</span>
     <span class="n">duckdb_summary</span><span class="p">,</span>
@@ -9400,7 +9449,7 @@ antes del bucket o del prefijo que se está leyendo que del dato.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9413,7 +9462,7 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9421,7 +9470,7 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT i_category AS categoría, count(*) AS productos, max(i_current_price) AS precio_máximo</span>
 <span class="s2">    FROM item</span>
 <span class="s2">    WHERE i_current_price &gt;= 50</span>
@@ -9434,7 +9483,7 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9449,7 +9498,7 @@ cambiar de almacenamiento no la resuelve.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=64">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9473,7 +9522,7 @@ cambiar de almacenamiento no la resuelve.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9497,7 +9546,7 @@ cambiar de almacenamiento no la resuelve.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9522,7 +9571,7 @@ cambiar de almacenamiento no la resuelve.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9571,7 +9620,8 @@ Para repetir la sesión contra un bucket de Amazon S3 cambiaría esto:</p>
 </tr>
 </tbody>
 </table>
-<p>Las celdas de boto3, <code>s3fs</code>, PyArrow y Polars no cambiarían. Tampoco el
+<p>Las celdas de boto3, <code>s3fs</code>, PyArrow y Polars no cambiarían; la que crea
+el bucket ya indica la región cuando no es <code>us-east-1</code>. Tampoco el
 SQL de DuckDB, sólo su secreto, que pasaría a ser:</p>
 <div class="highlight"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -9598,7 +9648,7 @@ son las mismas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9616,14 +9666,14 @@ son las mismas.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Recapitulación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (WebHDFS) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><div style="background:#ffffff;border-left:6px solid #a54467;margin-top:22px;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9649,7 +9699,7 @@ notebook tampoco puede borrarte los datos por accidente):</p>
 <tr>
 <td>Eliminar el laboratorio S3 por completo (destructivo)</td>
 <td><code>docker compose -f entorno/compose-s3.yml down -v --remove-orphans</code></td>
-<td>Borra también el volumen de RustFS y sus objetos. No elimina los bloques HDFS del clúster Hadoop. Después hay que ejecutar <code>make -C entorno s3-up</code> y volver a ejecutar el notebook.</td>
+<td>Borra también el volumen de RustFS y sus objetos. No elimina los bloques HDFS del clúster Hadoop. Después hay que ejecutar <code>make -C entorno s3-up</code> y volver a ejecutar el notebook, que crea de nuevo el bucket.</td>
 </tr>
 </tbody>
 </table>
@@ -9667,7 +9717,7 @@ sesiones posteriores dependan de ellos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9686,7 +9736,7 @@ siendo un Parquet válido? ¿Con qué peticiones lo has comprobado?</li>
 <li>Para responder a la consulta por precio, ¿qué partes de cada objeto de
 <code>item</code> ha tenido que pedir DuckDB y cuáles no?</li>
 <li>¿Qué diferencia hay entre que un fichero fluya de HDFS a S3 (de un
-fichero abierto con <code>webhdfs.open</code> a otro abierto con <code>object_store.open</code>,
+fichero abierto con <code>hdfs.open</code> a otro abierto con <code>object_store.open</code>,
 como en esta sesión) y que se copie primero al disco de <code>namenode</code>?</li>
 <li>En la celda de copia, ¿qué líneas dependen de que un extremo sea HDFS y el
 otro S3, y cuáles funcionarían igual entre dos filesystems cualesquiera de
