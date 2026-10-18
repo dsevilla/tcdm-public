@@ -6,9 +6,6 @@
 S3_BUCKET ?= tcdm-datalake
 export S3_BUCKET
 
-TPCDS_DATALAKE_ROOT ?= /datalake/raw/tpcds
-TPCDS_PATH := $(TPCDS_DATALAKE_ROOT)
-
 HADOOP_COMPOSE := docker compose -f compose-hadoop-cluster.yml
 WAREHOUSE_COMPOSE := docker compose -f compose-warehouse-hdfs.yml
 S3_COMPOSE := docker compose -f compose-s3.yml
@@ -19,7 +16,7 @@ LAKEHOUSE_COMPOSE := docker compose -f compose-trino.yml
 HDFS_VOLUMES := tcdm-26-27-namenode-data tcdm-26-27-datanode1-data \
 	tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data
 
-.PHONY: actualizar network hadoop-up warehouse-up tpcds-size s3-up lakehouse-up jupyter status stop down clean clean-hdfs
+.PHONY: actualizar network hadoop-up warehouse-up s3-up lakehouse-up jupyter status stop down clean clean-hdfs
 
 # Trae la última versión publicada del material sin fusionar nada, para que
 # nunca haya conflictos que resolver. Sustituye a `git pull`, que se niega a
@@ -95,17 +92,6 @@ hadoop-up: network
 
 warehouse-up: hadoop-up
 	$(WAREHOUSE_COMPOSE) up -d --build
-
-# Muestra el tamaño de los datos lógicos y el espacio realmente consumido por
-# HDFS después de aplicar el factor de replicación.
-tpcds-size: hadoop-up
-	echo "[ORDEN -> namenode] hdfs dfs -du -h $(TPCDS_PATH)"
-	docker exec namenode su - luser -c \
-		"hdfs dfs -du -h '$(TPCDS_PATH)'"
-	echo "[ORDEN -> namenode] hdfs dfs -du -h -s $(TPCDS_PATH)"
-	echo '[INFO] Primera columna: tamaño lógico; segunda: espacio HDFS con réplicas.'
-	docker exec namenode su - luser -c \
-		"hdfs dfs -du -h -s '$(TPCDS_PATH)'"
 
 s3-up: network
 	$(S3_COMPOSE) up -d

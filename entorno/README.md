@@ -112,8 +112,7 @@ a todos los Compose presentes en la distribución (Hadoop, warehouse y S3):
 | `make -C entorno clean` | `down` y borra los volúmenes del Hive Metastore y de S3 | Sólo HDFS |
 | `make -C entorno clean-hdfs` | `clean` y borra los volúmenes HDFS | Ningún dato |
 
-Después de cualquiera de ellas se arranca de nuevo con `hadoop-up`,
-`warehouse-up` o `s3-up`. Jupyter no vuelve solo: hay que lanzarlo otra vez
+Después de cualquiera de ellas se arranca de nuevo con `hadoop-up` o `s3-up`. Jupyter no vuelve solo: hay que lanzarlo otra vez
 dentro de `namenode`. `make -C entorno status` lista los contenedores en
 marcha y los parados.
 
@@ -129,7 +128,6 @@ distribución.
 | Visual Studio Code no consigue conectar con `http://127.0.0.1:8888` | Jupyter no está arrancado: se cerró su terminal, se pulsó `Ctrl+C` o se pararon los contenedores | Volver a lanzarlo con `make -C entorno jupyter` (o `docker exec -it namenode bash`, `su - luser` y `jupyter lab ...`) y reconectar el kernel |
 | `NameError` al usar una variable definida más arriba | El kernel se ha reiniciado y ha perdido su estado | Ejecutar de nuevo, en orden, las celdas anteriores de las que depende la sección |
 | `make -C entorno status` no muestra en marcha `namenode` y los tres `datanodeN`, o `hdfs dfsadmin -report` lista menos de tres DataNodes | El clúster está parado o todavía arrancando | `make -C entorno hadoop-up`, esperar medio minuto y repetir la comprobación. Si sigue igual, `docker logs namenode --tail=120` |
-| Errores de conexión con `trino-hdfs:8080` o `hive-metastore:9083` (desde la sesión 6) | El warehouse no está arrancado, o Trino sigue arrancando | `make -C entorno warehouse-up` y `make -C entorno status`. Si un servicio ha terminado con error, `docker compose -f entorno/compose-warehouse-hdfs.yml logs trino-hdfs hive-metastore` |
 | Errores de conexión con `rustfs:9000` (sesión 3) | RustFS no está arrancado | `make -C entorno s3-up` |
 | Falla una descarga: `%pip install`, un fichero de `raw.githubusercontent.com` o el conector de Iceberg al crear la `SparkSession` de las sesiones 7 y 8 | El contenedor `namenode` no tiene salida a Internet | Comprobarlo con `docker exec namenode curl -sI https://github.com` y revisar la red, la VPN o el proxy de Docker |
 | Un contenedor aparece como `Exited (137)`, o el kernel muere durante un cálculo | Docker se ha quedado sin memoria | Asignar más memoria a Docker (ver «Arrancar el clúster › Antes de empezar» en la sesión 1), parar los servicios que la sesión no use y cerrar otros notebooks que tengan una `SparkSession` abierta |
@@ -182,16 +180,7 @@ en nodos de almacenamiento ni de ejecución YARN:
 El contenedor `catalog-init` es efímero y se ejecuta al arrancar el compose.
 Espera a Trino, crea el esquema compartido `tcdm` bajo
 `/warehouse/tcdm.db` —la convención de nombres de Hive— y
-comprueba los catálogos. La sesión 6 es la primera que lo usa. Desde la raíz
-de la distribución:
-
-```bash
-make -C entorno warehouse-up
-```
-
-El objetivo `make` se ejecuta en el host y delega las operaciones en Docker
-Compose. Primero crea la red si no existe, después arranca Hadoop y finalmente
-PostgreSQL, el metastore y Trino.
+comprueba los catálogos. La sesión 6 es la primera que lo usa.
 
 ## Generación de TPC-DS en S2
 
@@ -441,7 +430,7 @@ docker compose -f entorno/compose-hadoop-cluster.yml up -d
 docker compose -f entorno/compose-trino.yml up -d --build
 ```
 
-El segundo comando (o `make -C entorno lakehouse-up`) inicia:
+El segundo comando inicia:
 
 - RustFS y el bucket `tcdm-iceberg`, sin puertos publicados en el equipo.
 - Polaris y el catálogo `quickstart_catalog`, con el namespace `demo`.
