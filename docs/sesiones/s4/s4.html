@@ -7925,7 +7925,7 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 </tr>
 <tr>
 <td><code>%esquema web_sales</code></td>
-<td>La tabla completa: su descripción, su diagrama entidad-relación si es una tabla de hechos, y todas sus columnas</td>
+<td>La tabla completa: su descripción, su diagrama entidad-relación si es una tabla de hechos, sus columnas y dos filas de muestra</td>
 </tr>
 <tr>
 <td><code>%esquema web_sales date</code></td>
@@ -7935,11 +7935,20 @@ descripción de una tabla o de una columna de TPC-DS, tomada del apéndice de
 <td><code>%esquema ws_sold_timestamp</code></td>
 <td>Esa columna y ninguna otra</td>
 </tr>
+<tr>
+<td><code>%esquema item_sk</code></td>
+<td>Todas las columnas <code>item_sk</code>, tabla a tabla: quién apunta a <code>item</code></td>
+</tr>
+<tr>
+<td><code>%esquema web_sales customer</code></td>
+<td>Varias tablas seguidas, por ejemplo las de un <code>JOIN</code></td>
+</tr>
 </tbody>
 </table>
-<p>Una celda <code>%%esquema</code> admite una tabla, columna o filtro por línea. Lo
-encontrarás la primera vez que la sesión usa cada tabla; añade una celda de
-éstas donde te haga falta y bórrala después.</p>
+<p>Para pedir varias cosas a la vez también sirve una celda <code>%%esquema</code> con una
+tabla, columna o filtro por línea. Lo encontrarás la primera vez que la
+sesión usa cada tabla; añade una celda de éstas donde te haga falta y bórrala
+después.</p>
 <p><code>%schema</code> y <code>%%schema</code> son los mismos comandos con su nombre en inglés:
 usa el que prefieras.</p>
 <p>La celda siguiente lo prepara: ejecútala una vez por sesión de kernel.
@@ -7947,7 +7956,7 @@ Descarga <code>entorno/python_utils/tcdm_esquema.py</code> del repositorio públ
 <code>dsevilla/tcdm-public</code> (rama <code>26-27</code>), porque el kernel se ejecuta en
 <code>namenode</code>, que no ve tu copia de la distribución. Si el fichero ya está en
 el directorio de trabajo del kernel, se conserva; bórralo para traer una
-versión nueva.</p>
+versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a Internet.</p>
 </div>
 </div>
 </div>
@@ -8608,9 +8617,10 @@ depende también del paralelismo (dos hilos en <code>local[2]</code>; en la secc
 YARN, uno por ejecutor). Y un fichero Parquet sólo se puede partir por sus
 <em>row groups</em>, los bloques de filas en que se organiza por dentro: si sólo
 tiene uno, uno de los trozos se lleva todas las filas y los demás quedan
-vacíos. S2 escribió <code>web_sales</code> como un único fichero de unos 110 MiB con
-18 grupos de 122.880 filas, así que Spark puede repartirlo. Tras la lectura
-listamos los ficheros de <code>web_sales</code> para que lo compares.</p>
+vacíos. S2 escribió <code>web_sales</code> como un único fichero, pero con grupos de
+122.880 filas elegidos para que una tabla de hechos tenga muchos más grupos
+que ejecutores, así que Spark puede repartirlo. Tras la lectura listamos los
+ficheros de <code>web_sales</code> para que lo compares, y contamos sus grupos.</p>
 </div>
 </div>
 </div>
@@ -8701,6 +8711,61 @@ ejecución que acaba de imprimir la celda anterior.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Spark sólo puede partir ese fichero por sus <em>row groups</em>, así que lo que
+importa no es cuántos tiene, sino que haya más que ejecutores: dos hilos
+en <code>local[2]</code> y, en la sección de YARN, uno por DataNode. La celda
+siguiente lee el pie del fichero, como hizo S2 en «Grupos de filas de las
+tablas de hechos», sin leer ninguna columna, y comprueba que tiene más
+grupos que DataNodes. Si falla, el <code>web_sales</code> de <code>/datalake/raw/tpcds</code> no
+es el que escribe S2: vuelve a esa sesión.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fsspec.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFileSystem</span>
+
+<span class="n">webhdfs</span><span class="p">:</span> <span class="n">AbstractFileSystem</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">filesystem</span><span class="p">(</span>
+    <span class="s2">"webhdfs"</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9870</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s2">"luser"</span><span class="p">,</span> <span class="n">use_https</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="c1"># Los tres DataNodes de S1: en la sección de YARN habrá un ejecutor en cada uno.</span>
+<span class="n">DATANODES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="n">web_sales_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+    <span class="n">path</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">web_sales_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">web_sales_groups</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">web_sales_files</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+        <span class="n">web_sales_groups</span> <span class="o">+=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">num_row_groups</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Grupos de filas de web_sales: </span><span class="si">{</span><span class="n">web_sales_groups</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">web_sales_groups</span> <span class="o">&gt;</span> <span class="n">DATANODES</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"web_sales tiene </span><span class="si">{</span><span class="n">web_sales_groups</span><span class="si">}</span><span class="s2"> grupos de filas y necesita más que "</span>
+    <span class="sa">f</span><span class="s2">"DataNodes (</span><span class="si">{</span><span class="n">DATANODES</span><span class="si">}</span><span class="s2">) para repartirse entre todos los ejecutores"</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>El objetivo de esta lectura no es traer SF3 completo a la memoria del
 driver: es distribuir la lectura y el cómputo entre particiones que Spark
 puede procesar en paralelo. <code>web_sales</code> es sólo una parte de los 545 MiB que
@@ -8714,7 +8779,7 @@ ninguno por las dos llamadas a <code>spark.read.parquet(...)</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=36">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8739,7 +8804,7 @@ ninguno por las dos llamadas a <code>spark.read.parquet(...)</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8750,7 +8815,7 @@ ninguno por las dos llamadas a <code>spark.read.parquet(...)</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8778,7 +8843,7 @@ ninguno por las dos llamadas a <code>spark.read.parquet(...)</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8790,7 +8855,7 @@ en el que Spark realmente lee, filtra y calcula.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=40">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8814,7 +8879,7 @@ en el que Spark realmente lee, filtra y calcula.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8829,7 +8894,7 @@ en el que Spark realmente lee, filtra y calcula.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8849,7 +8914,7 @@ hoy: <code>ReadSchema</code> (las columnas que se leen de verdad) y <code>Pushed
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8869,7 +8934,7 @@ hoy: <code>ReadSchema</code> (las columnas que se leen de verdad) y <code>Pushed
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8885,7 +8950,7 @@ hoy: <code>ReadSchema</code> (las columnas que se leen de verdad) y <code>Pushed
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8905,7 +8970,7 @@ darlo por hecho sólo porque la función se llame <code>filter</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=46">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8930,7 +8995,7 @@ darlo por hecho sólo porque la función se llame <code>filter</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8950,7 +9015,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8970,7 +9035,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8995,7 +9060,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9006,7 +9071,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9021,7 +9086,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9041,9 +9106,11 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 <span class="k">assert</span> <span class="n">n_customer</span> <span class="o">==</span> <span class="mi">188_000</span>
 <span class="k">assert</span> <span class="n">n_customer_address</span> <span class="o">==</span> <span class="mi">94_000</span>
 
-<span class="c1"># Mismo filtro que usó S2 para reconocer las direcciones ya cruzadas con los</span>
-<span class="c1"># municipios del IGN: país fijado a España, municipio y provincia no nulos, y código de</span>
-<span class="c1"># provincia de dos dígitos.</span>
+<span class="c1"># S2 sustituyó en cada dirección el municipio, la provincia, su código y el país</span>
+<span class="c1"># por los de un municipio del IGN, con un JOIN interior. Este filtro reconoce las</span>
+<span class="c1"># direcciones por los valores que dejó: país España, municipio y provincia no</span>
+<span class="c1"># nulos y código de provincia de dos dígitos. Si no las reconoce todas, los datos</span>
+<span class="c1"># no son los que escribió S2.</span>
 <span class="n">localized_addresses</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">customer_address</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
     <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_country"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"España"</span><span class="p">)</span>
     <span class="o">&amp;</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ca_city"</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">()</span>
@@ -9061,7 +9128,7 @@ un pedido, y un mismo pedido puede tener varias líneas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9111,7 +9178,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9130,7 +9197,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9145,7 +9212,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9160,7 +9227,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9178,7 +9245,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9195,7 +9262,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9220,7 +9287,7 @@ opcional—, así que estos ejemplos también sirven para detectar huérfanos.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9237,7 +9304,7 @@ de <code>LEFT ANTI</code>, ninguna clave apunta a un domicilio que no exista.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9253,7 +9320,7 @@ de <code>LEFT ANTI</code>, ninguna clave apunta a un domicilio que no exista.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9273,7 +9340,7 @@ código.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9293,7 +9360,7 @@ código.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9308,7 +9375,7 @@ reutilizaremos más adelante, en la sección de persistencia.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9327,7 +9394,7 @@ beneficio neto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9344,7 +9411,7 @@ beneficio neto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9366,7 +9433,7 @@ beneficio neto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9384,7 +9451,7 @@ subtotal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9404,7 +9471,7 @@ subtotal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9416,7 +9483,7 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9441,7 +9508,7 @@ categoría sumando todos los años, algo que <code>rollup</code> no calculaba.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9452,7 +9519,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9471,7 +9538,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9486,7 +9553,7 @@ extendido de venta antes de descuentos e impuestos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9500,7 +9567,7 @@ sospechosos antes de construir una consulta de negocio más elaborada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9518,7 +9585,7 @@ historial.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9537,7 +9604,7 @@ historial.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9562,7 +9629,7 @@ historial.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9576,7 +9643,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9594,7 +9661,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9612,7 +9679,7 @@ pedidos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9624,7 +9691,7 @@ cliente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9646,7 +9713,7 @@ cliente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9658,7 +9725,7 @@ a clasificar cada línea de venta según su beneficio neto en tres etiquetas.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9695,7 +9762,7 @@ a clasificar cada línea de venta según su beneficio neto en tres etiquetas.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9712,7 +9779,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9735,7 +9802,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9759,7 +9826,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9777,7 +9844,7 @@ ejecuta enteramente dentro del motor y suele ser bastante más rápida:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9793,7 +9860,7 @@ es opaca; el cronómetro, en cambio, depende de la máquina.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9804,7 +9871,7 @@ funciones integradas que exprese la misma lógica.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=94">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9829,7 +9896,7 @@ funciones integradas que exprese la misma lógica.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9843,7 +9910,7 @@ construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9866,7 +9933,7 @@ construimos cuatro ejemplos clásicos de funciones de ventana.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9881,7 +9948,7 @@ resultantes pueden caer en cualquier partición de ejecución.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9912,7 +9979,7 @@ resultantes pueden caer en cualquier partición de ejecución.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9924,7 +9991,7 @@ devuelve <code>null</code> (y <code>lead</code>, en el último).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9950,7 +10017,7 @@ devuelve <code>null</code> (y <code>lead</code>, en el último).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9962,7 +10029,7 @@ filas y la media se calcula con las que hay.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9986,7 +10053,7 @@ filas y la media se calcula con las que hay.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9997,7 +10064,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10022,7 +10089,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=103">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10046,7 +10113,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10071,7 +10138,7 @@ anteriores de la partición: es el patrón habitual para un total corriente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10090,7 +10157,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10107,7 +10174,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10118,7 +10185,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10144,7 +10211,7 @@ para comprobar que el motor cambia pero el significado de los datos no.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10156,7 +10223,7 @@ caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10183,7 +10250,7 @@ caracteres; las claves que enlazan las ventas no cambiaron.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10195,7 +10262,7 @@ hora quedaron a medianoche en S2, así que cuentan en la hora 0.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10219,7 +10286,7 @@ hora quedaron a medianoche en S2, así que cuentan en la hora 0.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10232,7 +10299,7 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=114">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=116">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10257,7 +10324,7 @@ distribuirse sobre YARN, como veremos más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10272,7 +10339,7 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10303,7 +10370,7 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=117">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10328,7 +10395,7 @@ sobre los mismos datos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10342,7 +10409,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=119">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10356,7 +10423,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10374,7 +10441,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10383,7 +10450,7 @@ categoría. Primero preparamos el espacio de trabajo de esta sesión.</p>
 <h3 id="El-problema-de-los-ficheros-peque%C3%B1os">El problema de los ficheros pequeños<a class="anchor-link" href="#El-problema-de-los-ficheros-peque%C3%B1os">¶</a></h3><p>Si repartimos el resultado en muchas particiones antes de escribir, Spark
 crea hasta un fichero Parquet por partición (las particiones vacías no
 llegan a escribir fichero), y la mayoría de las que sí escriben quedan
-casi vacías: es el problema de los "ficheros pequeños": cada fichero y cada bloque ocupan
+casi vacías: es el problema de los «ficheros pequeños»: cada fichero y cada bloque ocupan
 memoria en el NameNode (S1) y leer un fichero exige abrirlo y lanzar una
 tarea, así que leer miles de ficheros diminutos es mucho más lento que leer
 unos pocos grandes, tanto para HDFS como para los motores que después lean
@@ -10396,7 +10463,7 @@ resultado sólo tiene unas decenas de filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10411,7 +10478,7 @@ resultado sólo tiene unas decenas de filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10426,7 +10493,7 @@ resultado sólo tiene unas decenas de filas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10439,7 +10506,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10454,7 +10521,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10469,7 +10536,7 @@ el coste de una redistribución completa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10482,7 +10549,7 @@ columna.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10504,7 +10571,7 @@ supuesto por haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10527,7 +10594,7 @@ supuesto por haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10550,7 +10617,7 @@ supuesto por haber llamado a <code>repartition</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10569,7 +10636,7 @@ suponer el efecto sólo por el nombre de la función.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10587,7 +10654,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10602,7 +10669,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10623,7 +10690,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10642,7 +10709,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10668,7 +10735,7 @@ AQE.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10682,7 +10749,7 @@ en el siguiente paso del pipeline.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10697,7 +10764,7 @@ en <code>store_sales</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=139">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10705,7 +10772,7 @@ en <code>store_sales</code>, en lugar de suponer un año concreto.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Row</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">Row</span>
 
 <span class="n">year_bounds</span><span class="p">:</span> <span class="n">Row</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">store_sales</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
     <span class="n">F</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s2">"ss_sold_timestamp"</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_year"</span><span class="p">),</span>
@@ -10720,7 +10787,7 @@ en <code>store_sales</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=140">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=142">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10743,7 +10810,7 @@ en <code>store_sales</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=143">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10770,7 +10837,7 @@ en <code>store_sales</code>, en lugar de suponer un año concreto.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=142">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10787,7 +10854,7 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=143">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10811,7 +10878,7 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=144">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=146">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10836,7 +10903,7 @@ redujeron, no antes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10850,7 +10917,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=146">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=148">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10870,7 +10937,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=147">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=149">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10885,7 +10952,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=148">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=150">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10910,7 +10977,7 @@ recálculo guardando el resultado la primera vez que se materializa.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=151">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10929,7 +10996,7 @@ la parte del plan que ya estaba calculada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=150">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10945,7 +11012,7 @@ la parte del plan que ya estaba calculada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=151">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=153">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10968,7 +11035,7 @@ la parte del plan que ya estaba calculada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10982,7 +11049,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=153">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=155">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11006,7 +11073,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=154">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11021,7 +11088,7 @@ sección, para no competir por memoria con las siguientes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11034,7 +11101,7 @@ mediante <code>spark-submit</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=156">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=158">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11059,13 +11126,13 @@ mediante <code>spark-submit</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=157">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=159">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Driver,-ejecutores-y-YARN">Driver, ejecutores y YARN<a class="anchor-link" href="#Driver,-ejecutores-y-YARN">¶</a></h2><p>Hasta ahora, "driver" y "ejecutores" eran hilos dentro del mismo proceso
+<h2 id="Driver,-ejecutores-y-YARN">Driver, ejecutores y YARN<a class="anchor-link" href="#Driver,-ejecutores-y-YARN">¶</a></h2><p>Hasta ahora, «driver» y «ejecutores» eran hilos dentro del mismo proceso
 <code>local[2]</code>. Sobre YARN son procesos reales, potencialmente en máquinas
 distintas:</p>
 <ul>
@@ -11080,7 +11147,7 @@ NodeManagers de los DataNodes —los mismos <code>datanode1</code>, <code>datano
 <code>datanode3</code> de S1— y sobre los que Spark reparte las tareas.</li>
 </ul>
 <p align="center" style="text-align: center;"><img alt="Animación: spark-submit --master yarn se lanza desde namenode y los ejecutores calculan en datanode1, datanode2 y datanode3" src="https://dsevilla.github.io/tcdm-public/figs/anim-spark-ejecutores.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
-<p>Como ya se explicó en "Instalar PySpark en este notebook", una <code>SparkSession</code> no puede
+<p>Como ya se explicó en «Instalar PySpark en este notebook», una <code>SparkSession</code> no puede
 cambiar de <code>master</code> una vez construida: por eso esta sección no reutiliza
 la sesión local de las secciones anteriores, sino que escribe un script
 independiente y lo lanza con <code>spark-submit --master yarn</code> como un proceso
@@ -11089,7 +11156,7 @@ nuevo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=160">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11114,7 +11181,7 @@ porque ambas imágenes parten de la misma base.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=159">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11130,7 +11197,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=160">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=162">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11209,7 +11276,7 @@ varios DataNodes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=163">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11219,11 +11286,14 @@ varios DataNodes.</p>
 que YARN anuncia como
 <code>RUNNING</code>, no de un número fijo elegido a mano. La variable de entorno
 <code>TCDM_SPARK_EXECUTORS</code>, si está definida, permite forzar otro valor, por
-ejemplo para probar con menos ejecutores.</p>
+ejemplo para probar con menos ejecutores. La lee el kernel, que se ejecuta en
+<code>namenode</code>, así que se fija en una celda del notebook con <code>%env</code>, como en S3
+(<code>%env TCDM_SPARK_EXECUTORS=1</code>), y después se repiten esta celda y las de
+envío; exportarla en una terminal de tu equipo no tiene efecto.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=162">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=164">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11246,13 +11316,18 @@ ejemplo para probar con menos ejecutores.</p>
 <span class="n">running_nodemanagers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"NodeManagers en estado RUNNING: </span><span class="si">{</span><span class="n">running_nodemanagers</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">running_nodemanagers</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"Se esperan al menos dos NodeManagers RUNNING"</span>
+<span class="k">assert</span> <span class="n">running_nodemanagers</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"Se esperan al menos dos NodeManagers RUNNING. Comprueba los DataNodes con "</span>
+    <span class="s2">"`make -C entorno status` en una terminal de tu equipo o en la interfaz del "</span>
+    <span class="s2">"ResourceManager (http://localhost:8088); si acabas de arrancar el clúster, "</span>
+    <span class="s2">"espera unos segundos y repite esta celda."</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=163">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=165">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11270,7 +11345,7 @@ ejemplo para probar con menos ejecutores.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11320,7 +11395,7 @@ o más. La que importa está casi al final:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=165">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=167">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11350,7 +11425,7 @@ o más. La que importa está casi al final:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=166">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11365,7 +11440,7 @@ o más. La que importa está casi al final:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11377,7 +11452,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=170">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11392,7 +11467,7 @@ ResourceManager (<code>http://localhost:8088</code>) muestra de forma gráfica.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=169">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=171">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11406,7 +11481,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=170">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=172">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11449,7 +11524,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=171">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=173">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11463,7 +11538,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=172">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=174">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11488,7 +11563,7 @@ falla con <code>NameError</code> y hay que volver a ejecutar el notebook hasta e
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=173">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11499,7 +11574,8 @@ del ejecutor que la procesó y cuántas filas tenía. Mira la columna
 <code>records</code> antes de mirar los hosts: una tarea que procesa una partición con
 0 filas ha recibido trabajo, pero no lo ha hecho. Con tres ejecutores de un
 núcleo, Spark parte el fichero de <code>web_sales</code> en tres trozos, y como el
-fichero tiene 18 <em>row groups</em> los tres reciben filas: unos cientos de miles
+fichero tiene más <em>row groups</em> que DataNodes (lo comprobamos al leerlo en
+«Primera lectura de Parquet»), los tres reciben filas: unos cientos de miles
 cada uno. Si el fichero tuviera un único <em>row group</em> no se podría partir: una
 partición se llevaría todas las filas y las demás quedarían vacías, porque
 Spark reparte tareas, no filas. Que haya varios hosts en el informe prueba
@@ -11508,7 +11584,7 @@ lo dice la columna <code>records</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=174">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=176">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11523,7 +11599,7 @@ lo dice la columna <code>records</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11537,7 +11613,7 @@ concentrar el trabajo en un único nodo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=176">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=178">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11565,7 +11641,7 @@ concentrar el trabajo en un único nodo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=177">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=179">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11580,7 +11656,7 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=178">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=180">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11598,13 +11674,13 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">Actividades</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el reparto y vuelve a enviarlo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Añade <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.repartition(12)</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.rdd</code> en el script y envíalo de nuevo: ¿cuántas particiones procesa ahora cada host? Mira la columna <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">records</code></li><li style="margin:10px 0">Fija <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">TCDM_SPARK_EXECUTORS=1</code> y compara hosts y duración de la aplicación en el ResourceManager</li><li style="margin:10px 0">Pide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">--executor-memory 4g</code>: ¿qué error da Spark y qué dato del clúster lo explica?</li><li style="margin:10px 0">Abre la pestaña <strong>Executors</strong> mientras corre y localiza en qué DataNode está cada ejecutor</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el reparto y vuelve a enviarlo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">Añade <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.repartition(12)</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.rdd</code> en el script y envíalo de nuevo: ¿cuántas particiones procesa ahora cada host? Mira la columna <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">records</code></li><li style="margin:10px 0">Ejecuta <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%env TCDM_SPARK_EXECUTORS=1</code> en una celda, repite el envío y compara hosts y duración de la aplicación en el ResourceManager</li><li style="margin:10px 0">Pide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">--executor-memory 4g</code>: ¿qué error da Spark y qué dato del clúster lo explica?</li><li style="margin:10px 0">Abre la pestaña <strong>Executors</strong> mientras corre y localiza en qué DataNode está cada ejecutor</li></ul>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=179">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=181">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11629,7 +11705,7 @@ distintos y coordinadas por un driver que vive en <code>namenode</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=180">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=182">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11661,7 +11737,7 @@ ser la misma consultando el mismo dataset inmutable.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=181">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=183">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11688,7 +11764,7 @@ cuántos ejecutores pedir a YARN)?</li>
 <li>¿Por qué la sección de YARN no pudo reutilizar la <code>SparkSession</code> local
 del resto del notebook? ¿Qué tuvo que crearse aparte y por qué?</li>
 <li>En la sección de UDFs, ¿qué información concreta pierde Spark al no
-poder "mirar dentro" de una función Python, y qué consecuencia tiene
+poder «mirar dentro» de una función Python, y qué consecuencia tiene
 eso sobre el rendimiento?</li>
 <li>En el informe de ejecutores, ¿qué significaría que un host apareciera con
 0 filas? ¿Qué propiedad del fichero de <code>web_sales</code> evita que ocurra?</li>
@@ -11697,7 +11773,7 @@ eso sobre el rendimiento?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=182">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11753,7 +11829,7 @@ más lenta que una función integrada;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=183">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=185">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11778,7 +11854,7 @@ más lenta que una función integrada;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=186">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11794,7 +11870,7 @@ y vuelve a iniciar Jupyter como en «Antes de empezar».</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=185">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=187">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

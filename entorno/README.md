@@ -239,7 +239,9 @@ este tipo.
 
 Cada tabla se escribe con un `COPY ... TO ... (FORMAT PARQUET, COMPRESSION
 ZSTD)` en un único fichero, `/datalake/raw/tpcds/<tabla>/<tabla>.parquet`,
-con grupos de 122.880 filas (el valor por defecto de DuckDB). Los hechos se
+con grupos de 122.880 filas (`ROW_GROUP_SIZE`, el valor por defecto de
+DuckDB, escrito en el `COPY`), para que los hechos grandes tengan más grupos
+que DataNodes y Spark pueda repartirlos entre los ejecutores. Los hechos se
 escriben ordenados por fecha y, dentro de cada día, por ticket o pedido; las
 dimensiones, por su clave. El marcador `_SUCCESS` de cada tabla guarda las
 correcciones que lleva (`INE-2026`, `SCD2` y `FECHAS`, unidas con `+` cuando

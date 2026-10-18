@@ -10456,10 +10456,12 @@ esperado.</p>
     <span class="k">if</span> <span class="n">webhdfs</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">table_path</span><span class="p">):</span>
         <span class="n">webhdfs</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">webhdfs</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Grupos de 122.880 filas: las tablas de hechos quedan en muchos grupos, y</span>
+    <span class="c1"># Spark podrá repartir cada fichero entre sus ejecutores.</span>
     <span class="n">tpcds_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
 <span class="s2">        COPY (</span><span class="si">{</span><span class="n">table_select</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span><span class="si">}</span><span class="s2">)</span>
 <span class="s2">        TO 'webhdfs://</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">.parquet'</span>
-<span class="s2">        (FORMAT PARQUET, COMPRESSION ZSTD)</span>
+<span class="s2">        (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 122880)</span>
 <span class="s2">        """</span><span class="p">)</span>
 
 
@@ -10603,14 +10605,18 @@ su propio mínimo y máximo por columna. Un grupo es lo más pequeño que un
 lector puede saltarse al filtrar, y lo más pequeño en que Spark puede
 repartir un fichero entre tareas: un fichero con un solo grupo no se puede
 repartir.</p>
-<p>DuckDB escribe grupos de 122.880 filas, su valor por defecto
-(<code>ROW_GROUP_SIZE</code>). Un fichero tiene, por tanto, un grupo por cada 122.880
-filas de su tabla, aunque el fichero ocupe varios bloques de HDFS
-(<code>dfs.blocksize</code>, 64 MiB en este clúster): <code>store_sales</code> es un único fichero
-de unos 300 MiB con unos setenta grupos, y la sesión 4 verá cómo Spark lo
-reparte entre varias tareas.</p>
+<p>El <code>COPY</code> de cada tabla fija grupos de 122.880 filas (<code>ROW_GROUP_SIZE</code>, el
+mismo valor que DuckDB usa por defecto). Un fichero tiene, por tanto, un
+grupo por cada 122.880 filas de su tabla, aunque ocupe varios bloques de
+HDFS (<code>dfs.blocksize</code>, 64 MiB en este clúster). Ese tamaño está elegido para
+que las tablas de hechos grandes, como <code>store_sales</code> y <code>web_sales</code>, queden
+en muchos más grupos que DataNodes tiene el clúster: la sesión 4 reparte
+cada uno de esos ficheros entre ejecutores situados en los DataNodes, y
+para que todos trabajen cada uno tiene que recibir al menos un grupo. El
+número exacto de grupos no importa; importa que haya más que ejecutores.</p>
 <p>La celda siguiente lee el pie de cada fichero de los cinco hechos
-ordenados y cuenta sus grupos, sin leer ninguna columna:</p>
+ordenados y cuenta sus grupos, sin leer ninguna columna. Para <code>store_sales</code>
+y <code>web_sales</code> comprueba además que hay más grupos que DataNodes:</p>
 </div>
 </div>
 </div>
@@ -10623,6 +10629,11 @@ ordenados y cuenta sus grupos, sin leer ninguna columna:</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
+
+<span class="c1"># Los tres DataNodes de S1 (datanode1, datanode2 y datanode3): en S4 habrá un</span>
+<span class="c1"># ejecutor de Spark en cada uno.</span>
+<span class="n">DATANODES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">DISTRIBUTED_FACTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"store_sales"</span><span class="p">,</span> <span class="s2">"web_sales"</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">SORT_ORDER</span><span class="p">:</span>
     <span class="n">table_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
@@ -10640,6 +10651,8 @@ ordenados y cuenta sus grupos, sin leer ninguna columna:</p>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_name</span><span class="si">:</span><span class="s2">14</span><span class="si">}</span><span class="s2"> ficheros=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table_files</span><span class="p">)</span><span class="si">:</span><span class="s2">2</span><span class="si">}</span><span class="s2"> tamaño=</span><span class="si">{</span><span class="n">size_mib</span><span class="si">:</span><span class="s2">6.1f</span><span class="si">}</span><span class="s2"> MiB "</span>
         <span class="sa">f</span><span class="s2">"grupos=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">group_rows</span><span class="p">)</span><span class="si">:</span><span class="s2">3</span><span class="si">}</span><span class="s2"> filas del mayor=</span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">group_rows</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">DISTRIBUTED_FACTS</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">DATANODES</span><span class="p">,</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_rows</span><span class="p">),</span> <span class="n">DATANODES</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
