@@ -11561,9 +11561,7 @@ parado, esta orden lo arranca de nuevo con los mismos volúmenes HDFS
 <p align="center" style="text-align: center;"><img alt="Animación: la orden make -C entorno hadoop-up se teclea en una terminal de tu equipo (host)" src="https://dsevilla.github.io/tcdm-public/figs/anim-host-hadoop-up.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
 <div class="highlight"><pre><span></span>make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
-<p>S2 no necesita más servicios: genera sus datos desde el propio notebook.
-PostgreSQL, Hive Metastore y Trino llegan en la sesión 6, con
-<code>make -C entorno warehouse-up</code>.</p>
+<p>S2 no necesita más servicios: genera sus datos desde el propio notebook.</p>
 </li>
 <li><p>Arranca Jupyter <strong>dentro de <code>namenode</code></strong>. En otra terminal de tu equipo,
 entra en el contenedor:</p>
@@ -11628,11 +11626,6 @@ ninguna es una celda de notebook.</p>
 <td>Al empezar cualquier sesión. Equivale a las órdenes <code>docker network create</code> y <code>docker compose ... up -d</code> de esta sesión</td>
 </tr>
 <tr>
-<td><code>make -C entorno warehouse-up</code></td>
-<td>Lo anterior y, además, PostgreSQL, Hive Metastore y Trino</td>
-<td>Desde la sesión 6; sus ficheros llegan al actualizar el material para esa sesión</td>
-</tr>
-<tr>
 <td><code>make -C entorno jupyter</code></td>
 <td>Arranca Jupyter Lab dentro de <code>namenode</code> como <code>luser</code>; la terminal queda ocupada mientras Jupyter esté en marcha</td>
 <td>Desde la sesión 2. Es el atajo de <code>docker exec -it namenode bash</code>, <code>su - luser</code> y <code>jupyter lab ...</code></td>
@@ -11687,8 +11680,8 @@ contenedores sin perder datos, por ejemplo si alguno ha quedado en mal
 estado. <code>clean</code> y <code>clean-hdfs</code> son deliberadamente destructivas y se dejan
 para cuando se quiera empezar de cero.</p>
 <p>Después de cualquiera de las cuatro se vuelve a arrancar con
-<code>make -C entorno hadoop-up</code> (o <code>warehouse-up</code> desde la sesión 6) y, desde la
-sesión 2, hay que lanzar Jupyter de nuevo. Si has hecho un <code>down</code>, el
+<code>make -C entorno hadoop-up</code> y, desde la sesión 2, hay que lanzar Jupyter de
+nuevo. Si has hecho un <code>down</code>, el
 Timeline Server habrá perdido su histórico: para volver a tener una
 aplicación visible en él —una de las evidencias de esta sesión— repite las
 celdas de WordCount de «Ejecutar un trabajo MapReduce con YARN».</p>

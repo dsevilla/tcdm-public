@@ -8061,9 +8061,6 @@ que contiene <code>s1/</code>, <code>s2/</code> y <code>entorno/</code>. Arranca
 <div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/tcdm-public
 make<span class="w"> </span>-C<span class="w"> </span>entorno<span class="w"> </span>hadoop-up
 </pre></div>
-<p><code>actualizar</code> trae la versión publicada y aparta como copia <code>.mio</code> lo que hayas
-modificado si la versión nueva también lo cambia (ver el aviso al principio de esta
-sesión).</p>
 <p><code>-C entorno</code> hace que <code>make</code> use <code>entorno/Makefile</code> sin cambiar de
 directorio. El objetivo <code>hadoop-up</code> crea la red Docker compartida
 <code>hadoop-cluster</code> si todavía no existe y arranca <code>namenode</code> y los tres
@@ -8967,11 +8964,15 @@ S2-S8. Incluye los paquetes que utiliza este notebook —DuckDB, PyArrow,
 Polars, <code>fsspec</code>, <code>tenacity</code>, pandas y matplotlib— junto con los que se
 introducen más adelante en el curso. Así, cada sesión instala el mismo
 fichero publicado y no hay que cambiar de lista al avanzar.</p>
+<p>Una de esas líneas fija una compilación de <code>fsspec</code> con un arreglo para
+escribir en HDFS por WebHDFS (se explica en «Materializar las 18 tablas»).</p>
 <p>La celda siguiente ejecuta <code>%pip install -q -r</code> con la URL HTTPS que aparece
 en ella. <code>pip</code> descarga el fichero y resuelve sus líneas en <code>/opt/tcdm/venv</code>,
 el mismo intérprete que usa el kernel. La imagen ya trae estos paquetes, por
-lo que lo normal es ver que están satisfechos; la celda también puede
-instalarlos si falta alguno.</p>
+lo que lo normal es ver que están satisfechos. Si descargaste una imagen
+anterior, la celda también los instala o actualiza (<code>fsspec</code>, <code>s3fs</code>,
+<code>boto3</code> y <code>aiobotocore</code>, por ejemplo) y no hace falta reiniciar el kernel,
+porque todavía no se ha importado ninguno.</p>
 <p>La última celda del grupo muestra dónde se ejecuta el kernel, qué intérprete
 usa (<code>sys.executable</code> debe estar en <code>/opt/tcdm/venv/bin</code>) y las versiones
 instaladas. Si falla alguna de sus dos comprobaciones, el notebook no está
@@ -9046,6 +9047,9 @@ empezar: Jupyter en <code>namenode</code>».</p>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">package</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="n">package</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"namenode"</span><span class="p">,</span> <span class="s2">"El kernel no se ejecuta dentro de namenode"</span>
+<span class="k">assert</span> <span class="s2">"post"</span> <span class="ow">in</span> <span class="n">version</span><span class="p">(</span>
+    <span class="s2">"fsspec"</span>
+<span class="p">),</span> <span class="s2">"fsspec no es la compilación del curso: ejecuta de nuevo la celda %pip anterior y reinicia el kernel"</span>
 <span class="k">assert</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/opt/tcdm/venv/"</span><span class="p">),</span> <span class="s2">"El kernel no usa /opt/tcdm/venv"</span>
 </pre></div>
 </div>
@@ -10414,19 +10418,25 @@ materializada con esa geografía.</li>
 <p>Comprobar el contenido del marcador, no sólo su existencia, es lo que
 distingue una tabla ya cruzada con los municipios de una generada sin esa
 localización, y una con las versiones corregidas de una que no las tiene.</p>
-<p><strong>Reintentar una escritura rechazada.</strong> HDFS sólo deja escribir en un
-fichero a una persona —o a un programa— a la vez. DuckDB manda cada tabla a
-HDFS en varias tandas seguidas, y si una llega antes de que HDFS haya dado
-por cerrada la anterior, la rechaza con un error <code>403 Client Error</code>, aunque
-no haya ningún problema real. Pasa sobre todo cuando el ordenador va justo de
-CPU, pero cuando ocurre basta con volver a escribir la tabla. Para eso sirve
-el decorador <code>@retry</code> del paquete <code>tenacity</code>: si <code>write_parquet</code> falla, la
-vuelve a llamar, hasta tres intentos en total y con cinco segundos de pausa
-para que HDFS cierre el fichero anterior. <code>reraise=True</code> hace que, si los
-tres intentos fallan, se vea el error original de HDFS. La función repetida
-incluye el borrado y la creación del directorio, no sólo el <code>COPY</code>: un
-intento fallido deja un fichero a medio escribir, y el siguiente tiene que
-empezar de cero.</p>
+<p><strong>Por qué HDFS puede rechazar una escritura.</strong> HDFS sólo deja escribir en un
+fichero a un cliente a la vez, y el cliente que acaba de escribir tarda un
+poco en soltar su permiso de escritura (el <em>lease</em>). Si la petición siguiente
+llega antes, el NameNode la rechaza con <code>AlreadyBeingCreatedException</code>, y
+WebHDFS lo devuelve como un <code>403 Forbidden</code> que no dice nada de la causa. No
+es un problema de tus datos ni del clúster. La implementación estándar de
+<code>fsspec</code> lo provocaba de vez en cuando: para escribir un fichero lo crea
+vacío y a continuación le añade los datos por trozos con peticiones <code>APPEND</code>,
+y el primero llega justo detrás de la creación. La lista de dependencias del
+curso (<code>entorno/requirements.txt</code>) instala por eso una compilación de
+<code>fsspec</code> que manda el primer trozo en la propia petición de creación y repite
+el <code>APPEND</code> rechazado por esa causa, con una pausa corta entre intentos.</p>
+<p>Aun así, un intento de escritura puede fallar por otros motivos (un DataNode
+ocupado, un corte de red). Para eso sirve el decorador <code>@retry</code> del paquete
+<code>tenacity</code>: si <code>write_parquet</code> falla, la vuelve a llamar, hasta tres intentos
+en total y con cinco segundos de pausa. <code>reraise=True</code> hace que, si los tres
+intentos fallan, se vea el error original. La función repetida incluye el
+borrado y la creación del directorio, no sólo el <code>COPY</code>: un intento fallido
+deja un fichero a medio escribir, y el siguiente tiene que empezar de cero.</p>
 <p>Las tablas se escriben de una en una: DuckDB ya reparte el trabajo de cada
 <code>COPY</code> entre las 2 CPU del contenedor. Por cada tabla verás una línea <code>[=] tabla: ya está materializada</code> o <code>[*] tabla: escrita en N s</code>, según si
 reutiliza o reescribe; <code>store_sales</code>, con más de ocho millones de filas, es
@@ -14928,10 +14938,11 @@ marcador <code>_SUCCESS</code> falta o no coincide.</p>
 DuckDB, <code>duckdb.connect()</code> falla al abrirla con un error de versión del formato
 de almacenamiento: borra <code>/tmp/tpcds</code> y vuelve a ejecutar desde «Abrir DuckDB».</p>
 <p>La celda que abre <code>webhdfs</code> fija <code>webhdfs.blocksize = 64 * 2**20</code>; si reinicias
-el kernel, vuelve a ejecutarla antes de reescribir ninguna tabla. Con los 4 MiB
-por defecto de <code>fsspec</code>, las escrituras de <code>store_sales</code> se parten en muchas
-tandas y puede reaparecer el error <code>403</code> de «Reintentar una escritura
-rechazada».</p>
+el kernel, vuelve a ejecutarla antes de reescribir ninguna tabla. Si aparece un
+<code>403 Client Error</code> al escribir, comprueba que el kernel usa la compilación de
+<code>fsspec</code> de la lista común (<code>import fsspec; fsspec.__version__</code> debe acabar
+en <code>.post1</code>): con el <code>fsspec</code> estándar el error puede reaparecer de forma
+esporádica. Ejecuta de nuevo la celda de «Preparar Python» y reinicia el kernel.</p>
 <p><code>INSTALL tpcds</code> descarga la extensión de internet la primera vez. Si falla
 con un error de red, comprueba que <code>namenode</code> tiene
 acceso a internet, como para las demás descargas de la sesión.</p>
