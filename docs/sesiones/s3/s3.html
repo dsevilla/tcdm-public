@@ -8184,8 +8184,11 @@ petición que lo hace.</p>
 <p>El volumen (<code>tcdm-26-27-rustfs-s3-data</code>) hace que detener los contenedores
 no borre los objetos; <code>down -v</code>, en cambio, elimina también ese volumen y
 debe reservarse para regenerar completamente el ejercicio.</p>
-<p>Las credenciales del Compose (<code>tcdm_student</code> / <code>tcdm_student_secret</code>) son
-específicas del laboratorio local. Con ellas se ejercitan el mismo
+<p>El Compose da a RustFS una única credencial, con las variables
+<code>RUSTFS_ACCESS_KEY</code> y <code>RUSTFS_SECRET_KEY</code>: la <em>access key</em>
+<code>tcdm_student</code> y la <em>secret key</em> <code>tcdm_student_secret</code>. Con ella se
+firman las peticiones a la API y se entra en la consola web. Es
+específica del laboratorio local, pero con ella se ejercitan el mismo
 protocolo y las mismas bibliotecas que se usarían contra Amazon S3.</p>
 </div>
 </div>
@@ -8208,7 +8211,7 @@ protocolo y las mismas bibliotecas que se usarían contra Amazon S3.</p>
      font-size:26px;line-height:1.42;
      text-align:left;overflow:hidden">
 <div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase">A continuación</div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno hadoop-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code> (consola en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">9001</code>)</li></ul>
+<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible, Inter, Aptos, Segoe UI, Helvetica, Arial, sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno hadoop-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code></li><li style="margin:10px 0">Consola web en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9001</code>: entra con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm_student</code> / <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm_student_secret</code></li></ul>
 </div>
 </div>
 </div>
@@ -8292,11 +8295,22 @@ DataNode ni un NodeManager: es simplemente otro servicio accesible desde
 </tr>
 </tbody>
 </table>
+<p>La consola pide una <em>access key</em> y una <em>secret key</em>, que hacen de
+usuario y contraseña. Entra con la credencial del Compose:
+<code>tcdm_student</code> y <code>tcdm_student_secret</code>.</p>
 <p>Desde dentro de <code>namenode</code> (donde corre este notebook), el servicio se
 alcanza por su nombre DNS interno, <code>rustfs</code>, en el puerto <code>9000</code> — no por
-<code>localhost</code>. La consola web es una ayuda visual; las operaciones de esta
-sesión se hacen desde el notebook, con las mismas bibliotecas que se
-usarían contra AWS.</p>
+<code>localhost</code>. Es el mismo número que usa HDFS (<code>hdfs://namenode:9000</code>),
+y no chocan: un puerto pertenece a una dirección, y <code>namenode</code> y
+<code>rustfs</code> son contenedores distintos, cada uno con la suya. El 9000 del
+NameNode, además, no se publica en tu equipo, así que
+<code>localhost:9000</code> sólo puede ser RustFS. El 9000 para la API y el 9001
+para la consola son los puertos por defecto de RustFS y los habituales
+en los servicios S3-compatibles que se instalan en local; Amazon S3 se
+usa por HTTPS, en el 443.</p>
+<p>La consola web es una ayuda visual; las operaciones de esta sesión se
+hacen desde el notebook, con las mismas bibliotecas que se usarían
+contra AWS.</p>
 <p>Comprueba desde este notebook que el clúster Hadoop sigue respondiendo (esto
 sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 </div>
@@ -9753,7 +9767,8 @@ Mantén RustFS y su bucket disponibles hasta entonces.</p>
 <h3 id="Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">Qué mostrar en el ordenador durante la reunión<a class="anchor-link" href="#Qu%C3%A9-mostrar-en-el-ordenador-durante-la-reuni%C3%B3n">¶</a></h3><p>Ten preparado y a mano, funcionando en tu propio equipo:</p>
 <ol>
 <li>El bucket <code>tcdm-datalake</code> con los objetos bajo <code>raw/tpcds/</code>, en la
-consola de RustFS (<a href="http://localhost:9001">http://localhost:9001</a>) o en la salida de la celda
+consola de RustFS (<a href="http://localhost:9001">http://localhost:9001</a>, con <code>tcdm_student</code> /
+<code>tcdm_student_secret</code>) o en la salida de la celda
 que lista los 18 prefijos de tabla.</li>
 <li>El final de la celda de copia: el número de ficheros Parquet copiados
 de las 18 tablas.</li>
