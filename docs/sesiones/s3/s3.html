@@ -9329,11 +9329,10 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 
 <span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE item"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
-<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT count(*), count(i_item_sk), min(i_item_sk), max(i_item_sk), sum(i_item_sk)</span>
 <span class="s2">    FROM item</span>
-<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">duckdb_summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">duckdb-s3</span><span class="se">\t</span><span class="s2">item</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">duckdb_summary</span><span class="p">)))</span>
 </pre></div>
 </div>

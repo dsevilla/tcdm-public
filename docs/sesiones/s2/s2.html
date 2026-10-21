@@ -9405,7 +9405,7 @@ como fuera de rango, en vez de dejar la condición sin valor.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># fetchone() devuelve una tupla de object; aquí se sabe qué contiene cada campo.</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># fetchall() devuelve filas como una tupla de object; aquí se sabe qué contiene cada campo.</span>
 <span class="n">validation</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">tpcds_db</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT</span>
 <span class="s2">        count(*),</span>
@@ -9418,7 +9418,7 @@ como fuera de rango, en vez de dejar la condición sin valor.</p>
 <span class="s2">            OR NOT coalesce(latitud BETWEEN 27 AND 44 AND longitud BETWEEN -19 AND 5, false)</span>
 <span class="s2">        )</span>
 <span class="s2">    FROM ign_municipios</span>
-<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>  <span class="c1"># type: ignore[assignment]</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore[assignment]</span>
 <span class="n">municipality_count</span><span class="p">,</span> <span class="n">distinct_municipalities</span><span class="p">,</span> <span class="n">province_ids</span><span class="p">,</span> <span class="n">wrong_provinces</span><span class="p">,</span> <span class="n">wrong_values</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">validation</span>
 <span class="p">)</span>
@@ -11503,6 +11503,12 @@ los municipios. Esa conexión conserva la vista <code>ign_municipios_csv</code> 
 filesystem de <code>fsspec</code> con <code>register_filesystem</code>, para que también pueda leer
 las URL <code>hdfs://</code>. A partir de ahí <code>read_parquet</code> recibe una lista de esas
 URL y se comporta como una tabla virtual dentro de cualquier consulta SQL.</p>
+<p>DuckDB 2 lee los Parquet con varios hilos que comparten el mismo fichero
+abierto, y el lector de <code>hdfs-native</code> no admite que dos hilos lo usen a la
+vez (<code>RuntimeError: Already borrowed</code>); además su <code>seek</code> no devuelve la
+posición, que DuckDB sí espera. Por eso no registramos <code>hdfs</code> tal cual, sino
+una variante, <code>ThreadSafeHdfs</code>, cuyos lectores guardan una posición distinta
+para cada hilo y leen con <code>read_range</code>, que no modifica la del fichero.</p>
 <p>Escribir <code>read_parquet</code> con su lista de URLs en cada consulta sería
 pesado, y las consultas no se parecerían a las que se escribirán cuando las
 tablas estén en un catálogo, donde se consulta <code>item</code>, no «los ficheros de
@@ -11559,7 +11565,7 @@ nombre de cada campo y, debajo, su tipo. Los campos son seis:</p>
 <p>En una vista sobre Parquet sólo informan los dos primeros: <code>null</code>
 vale <code>YES</code> en todas las columnas y los tres últimos quedan en <code>NULL</code>,
 porque los ficheros no declaran claves ni valores por defecto.</p>
-<p>La primera fila se pide con <code>LIMIT 1</code>; como <code>fetchone</code> devuelve sólo los
+<p>La primera fila se pide con <code>LIMIT 1</code>; como <code>fetchall</code> devuelve sólo los
 valores, se emparejan con los nombres de columna que ha dado <code>DESCRIBE</code>. El
 resumen de consistencia se calcula aquí como una agregación SQL, no con una
 función de Python:</p>
@@ -11574,7 +11580,59 @@ función de Python:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">hdfs</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hdfs_native.fsspec</span><span class="w"> </span><span class="kn">import</span> <span class="n">HdfsFileSystem</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ThreadSafeReader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Lector de HDFS con una posición propia para cada hilo."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inner</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">inner</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="s2">"position"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">whence</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_SET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">base</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">SEEK_SET</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">SEEK_CUR</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">),</span>
+        <span class="p">}[</span><span class="n">whence</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="n">offset</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">position</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="n">position</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">)</span> <span class="o">-</span> <span class="n">position</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">read_range</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span> <span class="k">if</span> <span class="n">size</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">position</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">exc</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inner</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ThreadSafeHdfs</span><span class="p">(</span><span class="n">HdfsFileSystem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""El filesystem de hdfs-native, con lectores que DuckDB puede usar desde varios hilos."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rb"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">opened</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ThreadSafeReader</span><span class="p">(</span><span class="n">opened</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"rb"</span> <span class="k">else</span> <span class="n">opened</span>
+
+
+<span class="n">duckdb</span><span class="o">.</span><span class="n">register_filesystem</span><span class="p">(</span><span class="n">ThreadSafeHdfs</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">"namenode"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">),</span> <span class="n">connection</span><span class="o">=</span><span class="n">connection</span><span class="p">)</span>
 <span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"hdfs://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 
 <span class="c1"># La vista lleva la lista de URLs escrita en el SQL: CREATE VIEW no admite `?`.</span>
@@ -11585,18 +11643,18 @@ función de Python:</p>
 <span class="c1"># show() recorta las tablas largas; max_rows hace que muestre todas las filas.</span>
 <span class="n">schema</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
-<span class="n">first_row</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="n">first_row</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
     <span class="s2">"SELECT * FROM item ORDER BY i_item_sk LIMIT 1"</span>
-<span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="c1"># DESCRIBE devuelve una fila por columna; su primer campo es el nombre.</span>
 <span class="n">item_column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">column</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Primera fila:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">item_column_names</span><span class="p">,</span> <span class="n">first_row</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="n">summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="n">summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT count(*), count(i_item_sk), min(i_item_sk), max(i_item_sk), sum(i_item_sk)</span>
 <span class="s2">    FROM item</span>
-<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">duckdb</span><span class="se">\t</span><span class="s2">item</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">summary</span><span class="p">)))</span>
 </pre></div>

@@ -329,7 +329,10 @@ esquema existe, arranca con `IS_RESUME=true` para no reinicializarlo.
 
 La rama 3.x del proyecto Hive recibe parches de seguridad igual que cualquier
 rama mantenida, y `apache/hive:3.1.3` sigue siendo la imagen oficial del
-proyecto para esa versión. Su JDK empaquetado es más antiguo que el Java 21
+proyecto para esa versión. Pero esa imagen sólo se publicó para `linux/amd64`,
+así que el curso parte de `dsevilla/hive:3.1.3`: los mismos ficheros de la
+imagen oficial (Hive, Hadoop y Tez, que son Java) sobre un JRE
+multiarquitectura, publicada para `amd64` y `arm64`. Su JDK empaquetado es más antiguo que el Java 21
 del contenedor oficial de Hive 4.2.x, pero eso no afecta a las imágenes
 Hadoop del curso (Java 17): el metastore es un proceso independiente que sólo
 se comunica con ellas mediante Thrift y HDFS. Si en el futuro una versión más
