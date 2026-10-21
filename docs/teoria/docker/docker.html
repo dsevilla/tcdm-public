@@ -43,12 +43,12 @@ Facultad de Informática · Universidad de Murcia</p>
 </thead>
 <tbody>
 <tr>
-<td><code># equipo</code></td>
+<td><code># equipo</code></td>
 <td>Terminal de tu equipo (en Windows, la de WSL2), en la raíz de la distribución: el directorio que contiene <code>s1/</code> y <code>entorno/</code></td>
 <td><code>make -C entorno status</code></td>
 </tr>
 <tr>
-<td><code># namenode</code></td>
+<td><code># namenode</code></td>
 <td>Dentro del contenedor, tras <code>docker exec -it namenode bash</code></td>
 <td><code>su - luser</code></td>
 </tr>
@@ -472,8 +472,10 @@ apt-get clean
 <span class="hljs-keyword">FROM</span> ${BASE_IMAGE}
 
 <span class="hljs-keyword">COPY</span><span class="language-bash"> namenode.sh /tmp/</span>
+<span class="hljs-keyword">COPY</span><span class="language-bash"> namenode-hadoop-xml/ /tmp/namenode-hadoop-xml/</span>
 <span class="hljs-keyword">RUN</span><span class="language-bash"> sh /tmp/namenode.sh &amp;&amp; \
-    <span class="hljs-built_in">rm</span> -f /tmp/namenode.sh</span>
+    <span class="hljs-built_in">rm</span> -f /tmp/namenode.sh /tmp/namenode-hadoop-xml/*.xml &amp;&amp; \
+    <span class="hljs-built_in">rmdir</span> /tmp/namenode-hadoop-xml</span>
 
 <span class="hljs-keyword">COPY</span><span class="language-bash"> requirements-namenode.txt install-python-environment.sh /tmp/</span>
 <span class="hljs-keyword">RUN</span><span class="language-bash"> sh /tmp/install-python-environment.sh &amp;&amp; \
@@ -485,14 +487,14 @@ apt-get clean
 <ul>
 <li><code>ARG</code> antes de <code>FROM</code> permite cambiar la imagen de partida al construir</li>
 <li>No repite <code>ENTRYPOINT</code>: hereda el <code>tini</code> de la base y sólo cambia <code>CMD</code></li>
-<li><code>Dockerfile.datanode</code> es igual, con <code>datanode.sh</code> y sin entorno Python</li>
+<li><code>Dockerfile.datanode</code> es igual, con <code>datanode.sh</code>, <code>datanode-hadoop-xml/</code> y sin entorno Python</li>
 </ul>
 <footer>TCDM · Curso 2026/2027 · Docker y Docker Compose</footer>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="23" data-paginate="true" data-footer="TCDM · Curso 2026/2027 · Docker y Docker Compose" data-theme="tcdm" data-lang="es" lang="es" data-marpit-pagination="23" style="--paginate:true;--footer:TCDM · Curso 2026/2027 · Docker y Docker Compose;--theme:tcdm;--lang:es;" data-marpit-pagination-total="64" data-size="16:9">
 <h1 id="qu%C3%A9-hace-namenodesh-durante-la-construcci%C3%B3n">Qué hace <code>namenode.sh</code> durante la construcción</h1>
 <ol>
-<li>Escribe <code>core-site.xml</code>, <code>hdfs-site.xml</code>, <code>mapred-site.xml</code> y <code>yarn-site.xml</code> con <code>cat &gt; fichero &lt;&lt;'EOF'</code></li>
+<li>Copia <code>core-site.xml</code>, <code>hdfs-site.xml</code>, <code>mapred-site.xml</code> y <code>yarn-site.xml</code> desde <code>namenode-hadoop-xml/</code> (que el Dockerfile ha dejado en <code>/tmp</code>) a <code>$HADOOP_CONF_DIR</code> con <code>install -m 0644 -o hdadmin -g hadoop</code>, para fijar modo y propietario</li>
 <li><strong>Formatea</strong> HDFS: <code>hdfs namenode -format</code> en <code>/var/data/hdfs/namenode</code></li>
 <li>Arranca un NameNode temporal y crea <code>/user/luser</code>, <code>/tmp</code>, <code>/datalake/{raw,silver,gold}</code> y <code>/warehouse</code> con sus permisos</li>
 <li>Para el NameNode y genera <code>/inicio.sh</code></li>
@@ -544,7 +546,7 @@ su - hdadmin -c <span class="hljs-string">&quot;... yarn --daemon start timeline
 <h1 id="la-cach%C3%A9-de-construcci%C3%B3n">La caché de construcción</h1>
 <p>Docker reutiliza una capa si la instrucción y los ficheros que copia no han cambiado, <strong>y</strong> todas las capas anteriores tampoco</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-text">FROM ${BASE_IMAGE}                          ✔ caché
-COPY namenode.sh /tmp/                      ✔ caché (namenode.sh igual)
+COPY namenode.sh, namenode-hadoop-xml/      ✔ caché (mismos ficheros)
 RUN sh /tmp/namenode.sh ...                 ✔ caché
 COPY requirements-namenode.txt ... /tmp/    ✘ cambió requirements-namenode.txt
 RUN sh /tmp/install-python-environment.sh   ✘ se repite
