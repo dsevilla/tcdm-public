@@ -494,6 +494,7 @@ Interfaces locales:
 | Polaris REST | <http://localhost:8181> |
 | Polaris health/metrics | <http://localhost:8182> |
 | Spark UI, mientras haya una aplicación | <http://localhost:4040> |
+| Spark UI de `spark-iceberg` (puertos 4140-4145; el 4040 es de `namenode`) | <http://localhost:4140> |
 
 Las credenciales incluidas son sólo para el laboratorio local. Cambia el
 fichero `.env` si el entorno va a ser accesible desde una red. No se deben usar
