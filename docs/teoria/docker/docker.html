@@ -538,7 +538,7 @@ su - hdadmin -c <span class="hljs-string">&quot;... yarn --daemon start timeline
 <ul>
 <li><code>.</code> es el <strong>contexto</strong>: el directorio cuyos ficheros puede usar <code>COPY</code></li>
 <li><code>-f</code> elige el Dockerfile; <code>-t</code> da nombre y etiqueta a la imagen</li>
-<li>El CI usa <code>docker buildx build --platform linux/amd64,linux/arm64 --push</code> (<code>buildx-createimages.sh</code>): construye las dos arquitecturas y las publica bajo la misma etiqueta. <code>install-hadoop.sh</code> elige el <code>.tar.gz</code> de Hadoop según la arquitectura</li>
+<li>El CI usa <code>docker buildx build --platform linux/&lt;arquitectura&gt; --push</code> (<code>buildx-createimages.sh</code>): cada arquitectura se construye en un runner de esa arquitectura y se publica como <code>&lt;etiqueta&gt;-amd64</code> o <code>&lt;etiqueta&gt;-arm64</code>; <code>merge-manifests.sh</code> las une bajo la misma etiqueta. <code>install-hadoop.sh</code> elige el <code>.tar.gz</code> de Hadoop según la arquitectura</li>
 </ul>
 <footer>TCDM · Curso 2026/2027 · Docker y Docker Compose</footer>
 </section>
