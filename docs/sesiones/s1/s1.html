@@ -8642,7 +8642,10 @@ crean, entre otros, estos directorios:</p>
 <p><code>/user/luser</code> es el directorio de trabajo del usuario de las sesiones. Los
 directorios temporales tienen <em>sticky bit</em>, de forma parecida a <code>/tmp</code> en un
 sistema Unix.</p>
-<p><code>/datalake</code> y <code>/warehouse</code> pertenecen a <code>luser:hadoop</code> con permisos <code>770</code>.</p>
+<p><code>/datalake</code> y <code>/warehouse</code> pertenecen a <code>luser:hadoop</code> con permisos <code>775</code>:
+<code>luser</code> y el grupo <code>hadoop</code> leen y escriben, y «otros» sólo leen y entran
+(<code>r-x</code>). Ese último permiso es el que deja a la interfaz web del NameNode,
+que entra como usuario anónimo, listar esos directorios.</p>
 <p>A partir de la sesión 2, Jupyter se ejecutará en <code>namenode</code>, y desde allí
 se lanzarán como <code>luser</code> los clientes Python y los trabajos Spark. Esos
 clientes leerán HDFS por HTTP (WebHDFS) y recibirán redirecciones hacia
@@ -8816,11 +8819,11 @@ que salga del modo seguro y crea la estructura inicial:</p>
 hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span><span class="m">1777</span><span class="w"> </span>/tmp<span class="w"> </span>/tmp/logs<span class="w"> </span>/tmp/hadoop-yarn/staging
 hdfs<span class="w"> </span>dfs<span class="w"> </span>-chown<span class="w"> </span>luser<span class="w"> </span>/user/luser
 hdfs<span class="w"> </span>dfs<span class="w"> </span>-chown<span class="w"> </span>-R<span class="w"> </span>luser:hadoop<span class="w"> </span>/datalake
-hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span><span class="m">770</span><span class="w"> </span><span class="se">\</span>
+hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span><span class="m">775</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/datalake<span class="w"> </span>/datalake/raw<span class="w"> </span>/datalake/raw/tpcds<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/datalake/silver<span class="w"> </span>/datalake/gold
 hdfs<span class="w"> </span>dfs<span class="w"> </span>-chown<span class="w"> </span>luser:hadoop<span class="w"> </span>/warehouse
-hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span><span class="m">770</span><span class="w"> </span>/warehouse
+hdfs<span class="w"> </span>dfs<span class="w"> </span>-chmod<span class="w"> </span><span class="m">775</span><span class="w"> </span>/warehouse
 </pre></div>
 <p>Después el NameNode se detiene de nuevo; el estado formateado y esos
 directorios pasan a formar parte de la imagen publicada. El metastore y

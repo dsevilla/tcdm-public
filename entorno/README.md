@@ -265,7 +265,9 @@ driver de Spark se ejecutarán como `luser` dentro de `namenode`. Trino fija
 también `HADOOP_USER_NAME=luser`, y el metastore utiliza esa identidad para las
 operaciones auxiliares que realiza contra HDFS. `/datalake`, sus capas `raw`,
 `silver` y `gold`, y `/warehouse` pertenecen a `luser:hadoop` y tienen permisos
-`770`.
+`775`: «otros» necesita `r-x` para que la interfaz web del NameNode, que entra
+como usuario anónimo (`dr.who`), pueda listarlos. Un entorno creado con una
+imagen anterior (permisos `770`) se corrige con la orden de `hdadmin` de S2 y S3.
 
 Los notebooks acceden a HDFS desde Python con `hdfs-native`, un cliente
 nativo escrito en Rust que no necesita Java: habla con el NameNode por RPC en
