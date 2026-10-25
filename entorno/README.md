@@ -265,7 +265,9 @@ driver de Spark se ejecutarán como `luser` dentro de `namenode`. Trino fija
 también `HADOOP_USER_NAME=luser`, y el metastore utiliza esa identidad para las
 operaciones auxiliares que realiza contra HDFS. `/datalake`, sus capas `raw`,
 `silver` y `gold`, y `/warehouse` pertenecen a `luser:hadoop` y tienen permisos
-`770`.
+`775`: «otros» necesita `r-x` para que la interfaz web del NameNode, que entra
+como usuario anónimo (`dr.who`), pueda listarlos. Un entorno creado con una
+imagen anterior (permisos `770`) se corrige con la orden de `hdadmin` de S2 y S3.
 
 Los notebooks acceden a HDFS desde Python con `hdfs-native`, un cliente
 nativo escrito en Rust que no necesita Java: habla con el NameNode por RPC en
@@ -329,7 +331,10 @@ esquema existe, arranca con `IS_RESUME=true` para no reinicializarlo.
 
 La rama 3.x del proyecto Hive recibe parches de seguridad igual que cualquier
 rama mantenida, y `apache/hive:3.1.3` sigue siendo la imagen oficial del
-proyecto para esa versión. Su JDK empaquetado es más antiguo que el Java 21
+proyecto para esa versión. Pero esa imagen sólo se publicó para `linux/amd64`,
+así que el curso parte de `dsevilla/hive:3.1.3`: los mismos ficheros de la
+imagen oficial (Hive, Hadoop y Tez, que son Java) sobre un JRE
+multiarquitectura, publicada para `amd64` y `arm64`. Su JDK empaquetado es más antiguo que el Java 21
 del contenedor oficial de Hive 4.2.x, pero eso no afecta a las imágenes
 Hadoop del curso (Java 17): el metastore es un proceso independiente que sólo
 se comunica con ellas mediante Thrift y HDFS. Si en el futuro una versión más
@@ -491,6 +496,7 @@ Interfaces locales:
 | Polaris REST | <http://localhost:8181> |
 | Polaris health/metrics | <http://localhost:8182> |
 | Spark UI, mientras haya una aplicación | <http://localhost:4040> |
+| Spark UI de `spark-iceberg` (puertos 4140-4145; el 4040 es de `namenode`) | <http://localhost:4140> |
 
 Las credenciales incluidas son sólo para el laboratorio local. Cambia el
 fichero `.env` si el entorno va a ser accesible desde una red. No se deben usar

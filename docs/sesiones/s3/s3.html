@@ -7839,6 +7839,17 @@ textarea,
   background-color: transparent;
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  for (const link of document.querySelectorAll("a[href]")) {
+    const href = link.getAttribute("href");
+    if (href.startsWith("#") || /^(javascript|mailto|tel):/i.test(href)) continue;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+  }
+});
+</script>
 </head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
@@ -8020,19 +8031,7 @@ versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a 
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:linear-gradient(135deg,#0c304d,#174f7a 62%,#a54467);color:#ffffff;
-     border:1px solid transparent;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     display:flex;flex-direction:column;justify-content:center;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="margin:0 auto;max-width:44ch;text-align:left"><h1 align="center" style="color:#ffffff;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 3: un data lake sobre almacenamiento S3-compatible</h1><h2 align="center" style="color:#dceaf4;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Por qué los data lakes se guardan hoy en un almacén de objetos, separado del cómputo</li><li style="margin:10px 0;list-style-position:outside">La API de S3 vista petición a petición con boto3: bucket, clave, prefijo y lecturas por rango</li><li style="margin:10px 0;list-style-position:outside">Copiamos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS a un bucket de RustFS, el servicio S3 local del laboratorio</li><li style="margin:10px 0;list-style-position:outside">Leemos los mismos Parquet con PyArrow, Polars y DuckDB: cambia el camino, no el resultado</li><li style="margin:10px 0;list-style-position:outside">Qué habría que cambiar para usar Amazon S3 real</li></ul></div>
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:linear-gradient(135deg,#0c304d,#174f7a 62%,#a54467);color:#ffffff;border:1px solid transparent;display:flex;flex-direction:column;justify-content:center;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="margin:0 auto;max-width:44ch;text-align:left"><h1 align="center" style="color:#ffffff;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 3: un data lake sobre almacenamiento S3-compatible</h1><h2 align="center" style="color:#dceaf4;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Por qué los data lakes se guardan hoy en un almacén de objetos, separado del cómputo</li><li style="margin:10px 0;list-style-position:outside">La API de S3 vista petición a petición con boto3: bucket, clave, prefijo y lecturas por rango</li><li style="margin:10px 0;list-style-position:outside">Copiamos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS a un bucket de RustFS, el servicio S3 local del laboratorio</li><li style="margin:10px 0;list-style-position:outside">Leemos los mismos Parquet con PyArrow, Polars y DuckDB</li><li style="margin:10px 0;list-style-position:outside">Qué habría que cambiar para usar Amazon S3 real</li></ul></div><hr color="#174f7a" noshade="" size="8" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8045,20 +8044,7 @@ versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a 
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #b3701a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#b3701a" noshade="" size="8" style="display:none"/>
-<div style="color:#b3701a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#b3701a" style="color:inherit"><b>Evaluación de la sesión</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cómo se evalúa esta sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Reunión individual breve con el profesor en una sesión posterior</li><li style="margin:10px 0;list-style-position:outside">Se muestra en vivo, en tu ordenador: el bucket con los Parquet copiados, la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> leída por rango y las tres lecturas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> desde S3</li><li style="margin:10px 0;list-style-position:outside">Se entrega también una memoria breve (una o dos páginas)</li><li style="margin:10px 0;list-style-position:outside">No hace falta memorizar órdenes: sí explicar qué cambia entre HDFS y un almacenamiento de objetos</li></ul>
-<hr color="#b3701a" noshade="" size="2" style="display:none"/>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #b3701a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#b3701a" noshade="" size="8" style="display:none"/><div style="color:#b3701a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#b3701a" style="color:inherit"><b>Evaluación de la sesión</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cómo se evalúa esta sesión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Reunión individual breve con el profesor en una sesión posterior</li><li style="margin:10px 0;list-style-position:outside">Se muestra en vivo, en tu ordenador: el bucket con los Parquet copiados, la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> leída por rango y las tres lecturas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> desde S3</li><li style="margin:10px 0;list-style-position:outside">Se entrega también una memoria breve (una o dos páginas)</li><li style="margin:10px 0;list-style-position:outside">No hace falta memorizar órdenes: sí explicar qué cambia entre HDFS y un almacenamiento de objetos</li></ul><hr color="#b3701a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8071,20 +8057,7 @@ versión nueva. Si hay que descargarlo, <code>namenode</code> necesita acceso a 
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">De rutas HDFS a claves de objeto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">HDFS une almacenamiento y cómputo en los mismos nodos; un almacén de objetos los separa</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs:///datalake/raw/tpcds/item/...</code> pasa a ser <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/item/...</code></li><li style="margin:10px 0;list-style-position:outside">Bucket, clave y prefijo: los «directorios» son sólo texto dentro de la clave</li><li style="margin:10px 0;list-style-position:outside">Un objeto se escribe entero y se lee entero o por rangos; no se modifica ni se renombra</li></ul>
-<hr color="#174f7a" noshade="" size="2" style="display:none"/>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">De rutas HDFS a claves de objeto</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">HDFS une almacenamiento y cómputo en los mismos nodos; un almacén de objetos los separa</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs:///datalake/raw/tpcds/item/...</code> pasa a ser <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/item/...</code></li><li style="margin:10px 0;list-style-position:outside">Bucket, clave y prefijo: los «directorios» son sólo texto dentro de la clave</li><li style="margin:10px 0;list-style-position:outside">Un objeto se escribe entero y se lee entero o por rangos; no se modifica ni se renombra</li><li style="margin:10px 0;list-style-position:outside">S3 es un servicio de almacenamiento de objetos ofrecido por Amazon, pero hay implementaciones locales compatibles con la API de S3, como MinIO o RustFS</li><li style="margin:10px 0;list-style-position:outside">También, por su popularidad, lo ofrecen otros proveedores de nube, como Google Cloud Storage o Azure Blob Storage</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8153,11 +8126,23 @@ cuestan:</p>
 </tr>
 </tbody>
 </table>
-<p>Los Parquet no cambian al copiarlos: conservan su esquema, sus metadatos y
-su firma <code>PAR1</code>. Cambia cómo los obtiene un lector. Y la falta de un
-renombrado barato volverá a aparecer más adelante: es una de las razones
-por las que escribir tablas sobre un almacén de objetos pide algo más que
-directorios, y ese algo es un formato de tabla.</p>
+<p>Los ficheros Parquet no cambian al copiarlos: cada objeto contiene los
+mismos bytes que el fichero de HDFS, con su esquema y sus metadatos. Lo que
+cambia es cómo los obtiene un lector: en lugar de abrir un fichero y leer
+bloques, pide el objeto por HTTP, entero o por rangos de bytes.</p>
+<p>De la tabla anterior, la fila que más afecta a quien escribe datos es la del
+renombrado. En HDFS es una operación de metadatos atómica, y los motores de
+cómputo se apoyan en ella: escriben el resultado en un directorio temporal y
+lo publican con un único renombrado, de modo que un lector ve la salida
+completa o no ve nada. En un almacén de objetos ese truco no está
+disponible: renombrar es copiar cada objeto y borrar el original, y no hay
+atomicidad entre objetos, así que un lector podría encontrar la salida a
+medias. Por eso, para escribir tablas sobre S3 no basta con organizar los
+ficheros en prefijos: hace falta una capa que registre qué ficheros forman
+la tabla en cada momento. Esa capa es un <em>formato de tabla</em>, como Iceberg,
+que se verá más adelante en el curso. En esta sesión cada Parquet se sube
+entero con un <code>PUT</code> y después sólo se lee, así que el problema no llega a
+plantearse.</p>
 <h2 id="RustFS:-la-API-de-S3-sin-una-cuenta-de-AWS">RustFS: la API de S3 sin una cuenta de AWS<a class="anchor-link" href="#RustFS:-la-API-de-S3-sin-una-cuenta-de-AWS">¶</a></h2><p>Como la API de S3 es un protocolo y no un producto, se puede practicar con
 cualquier servicio que la implemente. El laboratorio usa RustFS, que
 arranca en un contenedor y guarda los objetos en un volumen Docker. El
@@ -8184,10 +8169,7 @@ Compose de esta sesión está en <code>entorno/compose-s3.yml</code> y contiene
 </tr>
 </tbody>
 </table>
-<p>RustFS arranca vacío, sin ningún bucket. El bucket <code>tcdm-datalake</code> no lo
-crea el Compose: lo crea este notebook con boto3, para que se vea la
-petición que lo hace.</p>
-<p>El volumen (<code>tcdm-26-27-rustfs-s3-data</code>) hace que detener los contenedores
+<p>RustFS arranca vacío, sin ningún bucket. El volumen (<code>tcdm-26-27-rustfs-s3-data</code>) hace que detener los contenedores
 no borre los objetos; <code>down -v</code>, en cambio, elimina también ese volumen y
 debe reservarse para regenerar completamente el ejercicio.</p>
 <p>El Compose da a RustFS una única credencial, con las variables
@@ -8207,20 +8189,7 @@ protocolo y las mismas bibliotecas que se usarían contra Amazon S3.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno hadoop-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0;list-style-position:outside">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0;list-style-position:outside">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0;list-style-position:outside">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code></li><li style="margin:10px 0;list-style-position:outside">Consola web en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9001</code>: entra con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm_student</code> / <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm_student_secret</code></li></ul>
-<hr color="#174f7a" noshade="" size="2" style="display:none"/>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Arrancar el clúster, RustFS y Jupyter</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">En una terminal de tu equipo: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno hadoop-up</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">make -C entorno s3-up</code></li><li style="margin:10px 0;list-style-position:outside">Jupyter se arranca dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">namenode</code>, como en S2: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">su - luser</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">jupyter lab</code></li><li style="margin:10px 0;list-style-position:outside">RustFS no es un DataNode ni un NodeManager: es otro servicio de la red <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hadoop-cluster</code></li><li style="margin:10px 0;list-style-position:outside">Desde el notebook se llega por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rustfs:9000</code>; desde tu equipo, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9000</code></li><li style="margin:10px 0;list-style-position:outside">Consola web en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">localhost:9001</code>: entra con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm_student</code> / <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm_student_secret</code></li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8338,7 +8307,51 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=13">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Los permisos de <code>/datalake</code> y <code>/warehouse</code> tienen que dejar a «otros» <code>r-x</code> para
+que la interfaz web de HDFS (<a href="http://localhost:9870">http://localhost:9870</a>, <strong>Utilities → Browse the
+file system</strong>) pueda listarlos, como se explicó en S2 («Ver HDFS desde el
+navegador»). La celda siguiente lo comprueba, igual que allí: <code>r-x</code> para
+«otros» (<code>drwxrwxr-x</code>) y <code>HTTP 200</code> en las dos peticiones:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-d<span class="w"> </span>/datalake<span class="w"> </span>/warehouse
+<span class="o">!</span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">"/datalake  -&gt; HTTP %{{http_code}}\n"</span><span class="w"> </span><span class="s2">"http://localhost:9870/webhdfs/v1/datalake?op=LISTSTATUS"</span>
+<span class="o">!</span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">"/warehouse -&gt; HTTP %{{http_code}}\n"</span><span class="w"> </span><span class="s2">"http://localhost:9870/webhdfs/v1/warehouse?op=LISTSTATUS"</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Si no es así, se corrige <strong>en una terminal de tu equipo</strong>, como <code>hdadmin</code>:</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>namenode<span class="w"> </span>su<span class="w"> </span>-<span class="w"> </span>hdadmin<span class="w"> </span>-c<span class="w"> </span><span class="s2">"hdfs dfs -chmod -R o+rX /datalake /warehouse"</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=16">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8346,26 +8359,13 @@ sí es una celda ejecutable, porque sólo habla con HDFS):</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>; con ella se hace la copia</li><li style="margin:10px 0;list-style-position:outside">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0;list-style-position:outside">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul>
-<hr color="#174f7a" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Quién habla con S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">boto3 es el SDK de AWS para Python: cada método del cliente es una operación de la API</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> ofrece S3 con la interfaz de ficheros <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code>, la misma que S2 usó con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>; con ella se hace la copia</li><li style="margin:10px 0;list-style-position:outside">DuckDB trae su propio cliente en la extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code></li><li style="margin:10px 0;list-style-position:outside">Endpoint y credenciales salen de variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code>: el código no nombra RustFS</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8406,7 +8406,7 @@ el mismo fichero desde la URL pública, sin escribir una copia local.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8416,7 +8416,7 @@ el mismo fichero desde la URL pública, sin escribir una copia local.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8431,7 +8431,7 @@ el mismo fichero desde la URL pública, sin escribir una copia local.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8485,7 +8485,7 @@ así que valen para todas las celdas que siguen:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=21">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8505,7 +8505,7 @@ así que valen para todas las celdas que siguen:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8524,7 +8524,7 @@ arranca sin ningún bucket.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=20">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8546,7 +8546,7 @@ arranca sin ningún bucket.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8571,7 +8571,7 @@ la celda contempla los dos casos para servir sin cambios contra AWS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8605,7 +8605,7 @@ la celda contempla los dos casos para servir sin cambios contra AWS.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8617,7 +8617,7 @@ barras forman parte de ella.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8635,7 +8635,7 @@ barras forman parte de ella.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8650,7 +8650,7 @@ el momento de listar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8674,7 +8674,7 @@ el momento de listar.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8691,7 +8691,7 @@ depende todo lo que viene después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8712,7 +8712,7 @@ depende todo lo que viene después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8725,7 +8725,7 @@ nunca fue un directorio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8743,7 +8743,7 @@ nunca fue un directorio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=31">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8751,26 +8751,13 @@ nunca fue un directorio.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copia de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0;list-style-position:outside">Cada fichero se lee de HDFS con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y se escribe en S3 con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): la misma interfaz en los dos lados</li><li style="margin:10px 0;list-style-position:outside">Los bytes fluyen de un fichero abierto al otro, sin pasar por el disco local</li><li style="margin:10px 0;list-style-position:outside">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0;list-style-position:outside">HDFS no se modifica; al terminar debe haber 18 tablas y los mismos ficheros que en HDFS</li></ul>
-<hr color="#174f7a" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Copia de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds</code> de HDFS al bucket</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">La clave de cada objeto se deriva de la ruta HDFS: misma capa, misma fuente, misma tabla</li><li style="margin:10px 0;list-style-position:outside">Cada fichero se lee de HDFS con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y se escribe en S3 con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): la misma interfaz en los dos lados</li><li style="margin:10px 0;list-style-position:outside">Los bytes fluyen de un fichero abierto al otro, sin pasar por el disco local</li><li style="margin:10px 0;list-style-position:outside">Se borra antes el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/tpcds/</code>: repetir el notebook da el mismo conjunto de objetos</li><li style="margin:10px 0;list-style-position:outside">HDFS no se modifica; al terminar debe haber 18 tablas y los mismos ficheros que en HDFS</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8798,7 +8785,7 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8838,7 +8825,7 @@ marcador <code>_SUCCESS</code>, que no es un Parquet.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8857,7 +8844,7 @@ claves por llamada.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8884,7 +8871,7 @@ claves por llamada.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8908,7 +8895,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8936,7 +8923,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=41">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8944,25 +8931,12 @@ HDFS.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #a54467;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#a54467" noshade="" size="8" style="display:none"/>
-<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0;list-style-position:outside">La copia ha usado la API de S3: listar y borrar con boto3, subir con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code></li><li style="margin:10px 0;list-style-position:outside">No se ha creado ningún directorio: la organización está en las claves</li><li style="margin:10px 0;list-style-position:outside">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul>
-<hr color="#a54467" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, ahora como objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3://tcdm-datalake/raw/tpcds/&lt;tabla&gt;/...</code> contiene los mismos Parquet que <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds</code></li><li style="margin:10px 0;list-style-position:outside">La copia ha usado la API de S3: listar y borrar con boto3, subir con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code></li><li style="margin:10px 0;list-style-position:outside">No se ha creado ningún directorio: la organización está en las claves</li><li style="margin:10px 0;list-style-position:outside">HDFS sigue intacto: es la fuente <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> creada en S2</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8970,26 +8944,13 @@ HDFS.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #0c304d;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#0c304d" noshade="" size="8" style="display:none"/>
-<div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div>
-<ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Los objetos terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>, pero ningún lector mira la extensión: ¿cómo sabe que lo son?</li><li style="margin:10px 0;list-style-position:outside">Para leer dos columnas de una tabla, ¿hace falta descargar sus objetos completos?</li></ul>
-<hr color="#0c304d" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Los objetos terminan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">.parquet</code>, pero ningún lector mira la extensión: ¿cómo sabe que lo son?</li><li style="margin:10px 0;list-style-position:outside">Para leer dos columnas de una tabla, ¿hace falta descargar sus objetos completos?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9000,7 +8961,7 @@ las tablas: un prefijo común por cada una.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9024,7 +8985,7 @@ las tablas: un prefijo común por cada una.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9037,7 +8998,7 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9056,7 +9017,7 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9071,7 +9032,7 @@ salieron: mismos nombres y mismos tamaños. En HDFS aparece además
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9090,7 +9051,7 @@ primeros bytes y otro de los ocho últimos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9117,7 +9078,7 @@ primeros bytes y otro de los ocho últimos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9147,7 +9108,7 @@ credenciales:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9155,26 +9116,13 @@ credenciales:</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres lectores para los mismos objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> da a S3 la interfaz <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> de S2: el código de PyArrow y Polars cambia sólo de filesystem</li><li style="margin:10px 0;list-style-position:outside">DuckDB llega por su extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>, con su propia configuración</li><li style="margin:10px 0;list-style-position:outside">Las tres deben dar el mismo resumen que en S2: filas, claves no nulas, mínimo, máximo y suma</li></ul>
-<hr color="#174f7a" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres lectores para los mismos objetos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code> da a S3 la interfaz <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> de S2: el código de PyArrow y Polars cambia sólo de filesystem</li><li style="margin:10px 0;list-style-position:outside">DuckDB llega por su extensión <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>, con su propia configuración</li><li style="margin:10px 0;list-style-position:outside">Las tres deben dar el mismo resumen que en S2: filas, claves no nulas, mínimo, máximo y suma</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9190,7 +9138,7 @@ sin que cambie nada más que el almacenamiento:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9206,7 +9154,7 @@ sin que cambie nada más que el almacenamiento:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9219,7 +9167,7 @@ bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9237,7 +9185,7 @@ bajo el prefijo es Parquet y no hay nada que filtrar:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9253,7 +9201,7 @@ suma.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9289,7 +9237,7 @@ suma.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9302,7 +9250,7 @@ dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9334,7 +9282,7 @@ dimensión pequeña; para colecciones mayores se usará Spark en la sesión 4.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9362,7 +9310,7 @@ propio.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9403,7 +9351,7 @@ propio.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9418,7 +9366,7 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9434,11 +9382,10 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 
 <span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE item"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
-<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="n">duckdb_summary</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"""</span>
 <span class="s2">    SELECT count(*), count(i_item_sk), min(i_item_sk), max(i_item_sk), sum(i_item_sk)</span>
 <span class="s2">    FROM item</span>
-<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">duckdb_summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"TCDM_SUMMARY</span><span class="se">\t</span><span class="s2">duckdb-s3</span><span class="se">\t</span><span class="s2">item</span><span class="se">\t</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">duckdb_summary</span><span class="p">)))</span>
 </pre></div>
 </div>
@@ -9446,7 +9393,7 @@ el propio SQL. El resumen se calcula como una agregación:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9460,7 +9407,7 @@ antes del bucket o del prefijo que se está leyendo que del dato.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9481,7 +9428,7 @@ antes del bucket o del prefijo que se está leyendo que del dato.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9494,7 +9441,7 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9515,7 +9462,7 @@ con él sabe qué rangos pedir a S3 para esas dos columnas:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9530,7 +9477,7 @@ cambiar de almacenamiento no la resuelve.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=69">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9538,25 +9485,12 @@ cambiar de almacenamiento no la resuelve.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #2f6f4f;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#2f6f4f" noshade="" size="8" style="display:none"/>
-<div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia de prefijo, de tabla y de lector</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Lista con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Delimiter="/"</code> el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/</code>: ¿qué «carpetas» aparecen y quién las ha creado?</li><li style="margin:10px 0;list-style-position:outside">Repite la lectura de la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> y del tamaño del pie con un objeto de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code></li><li style="margin:10px 0;list-style-position:outside">Crea con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">CREATE VIEW</code> la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store</code> desde S3 y cuenta las tiendas por provincia (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s_county</code>)</li><li style="margin:10px 0;list-style-position:outside">Lee sólo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit</code> de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> con PyArrow: ¿cuántas filas salen?</li><li style="margin:10px 0;list-style-position:outside">Suma el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Size</code> de los objetos de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store_sales</code> y compáralo con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -du -s</code> de esa tabla</li></ul>
-<hr color="#2f6f4f" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia de prefijo, de tabla y de lector</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Lista con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Delimiter="/"</code> el prefijo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw/</code>: ¿qué «carpetas» aparecen y quién las ha creado?</li><li style="margin:10px 0;list-style-position:outside">Repite la lectura de la firma <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code> y del tamaño del pie con un objeto de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code></li><li style="margin:10px 0;list-style-position:outside">Crea con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">CREATE VIEW</code> la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store</code> desde S3 y cuenta las tiendas por provincia (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s_county</code>)</li><li style="margin:10px 0;list-style-position:outside">Lee sólo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit</code> de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> con PyArrow: ¿cuántas filas salen?</li><li style="margin:10px 0;list-style-position:outside">Suma el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">Size</code> de los objetos de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">store_sales</code> y compáralo con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -du -s</code> de esa tabla</li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9564,25 +9498,12 @@ cambiar de almacenamiento no la resuelve.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #a54467;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#a54467" noshade="" size="8" style="display:none"/>
-<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres caminos, el mismo resumen</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un Parquet empieza y acaba con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code>; su pie dice dónde está cada columna</li><li style="margin:10px 0;list-style-position:outside">Con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code> por rango, un lector trae el pie y sólo las columnas que necesita</li><li style="margin:10px 0;list-style-position:outside">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: las cinco cifras coinciden, y son las de S2</li><li style="margin:10px 0;list-style-position:outside">Sigue sin haber catálogo: la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> es de esta conexión y se construye con la lista de objetos del prefijo</li></ul>
-<hr color="#a54467" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Tres caminos, el mismo resumen</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un Parquet empieza y acaba con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PAR1</code>; su pie dice dónde está cada columna</li><li style="margin:10px 0;list-style-position:outside">Con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">GET</code> por rango, un lector trae el pie y sólo las columnas que necesita</li><li style="margin:10px 0;list-style-position:outside">PyArrow y Polars llegan por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>; DuckDB, por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">httpfs</code>: las cinco cifras coinciden, y son las de S2</li><li style="margin:10px 0;list-style-position:outside">Sigue sin haber catálogo: la vista <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> es de esta conexión y se construye con la lista de objetos del prefijo</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9590,26 +9511,13 @@ cambiar de almacenamiento no la resuelve.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #174f7a;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#174f7a" noshade="" size="8" style="display:none"/>
-<div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del laboratorio a Amazon S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El código no nombra RustFS: servidor y credenciales están en las variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code></li><li style="margin:10px 0;list-style-position:outside">Contra AWS cambian las credenciales y la región, y desaparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_ENDPOINT_URL</code></li><li style="margin:10px 0;list-style-position:outside">DuckDB necesita además otro secreto: sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ENDPOINT</code>, con HTTPS y estilo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">vhost</code></li></ul>
-<hr color="#174f7a" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del laboratorio a Amazon S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El código no nombra RustFS: servidor y credenciales están en las variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code></li><li style="margin:10px 0;list-style-position:outside">Contra AWS cambian las credenciales y la región, y desaparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_ENDPOINT_URL</code></li><li style="margin:10px 0;list-style-position:outside">DuckDB necesita además otro secreto: sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ENDPOINT</code>, con HTTPS y estilo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">vhost</code></li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9686,7 +9594,7 @@ son las mismas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9694,26 +9602,13 @@ son las mismas.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
-<div style="box-sizing:border-box;width:100%;max-width:960px;
-     min-height:420px;margin:20px auto;padding:34px 46px;
-     background:#eaf2f8;color:#1f2933;
-     border:1px solid #c9d6e1;
-     border-top:10px solid #a54467;
-     border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;
-     font-size:26px;line-height:1.42;
-     text-align:left;overflow:hidden">
-<hr color="#a54467" noshade="" size="8" style="display:none"/>
-<div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div>
-<h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0;list-style-position:outside">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0;list-style-position:outside">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0;list-style-position:outside">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0;list-style-position:outside">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><blockquote style="background:#ffffff;color:inherit;border:none;border-left:6px solid #a54467;margin:22px 0 0;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></blockquote>
-<hr color="#a54467" noshade="" size="2" style="display:none"/>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0;list-style-position:outside">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0;list-style-position:outside">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0;list-style-position:outside">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0;list-style-position:outside">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><blockquote style="background:#ffffff;color:inherit;border:none;border-left:6px solid #a54467;margin:22px 0 0;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></blockquote><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9757,7 +9652,7 @@ sesiones posteriores dependan de ellos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
