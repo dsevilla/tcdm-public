@@ -1,6 +1,6 @@
 # tcdm-public
 
-Sitio público para la asignatura Tecnología de Computación de datos Masivos (TCDM) del máster de big data de la UMU, curso 26-27.
+Sitio público para la asignatura Tecnología de Computación de datos Masivos (TCDM) del máster de big data de la UMU, curso 26-27. La [guía docente](https://api.um.es/aulavirtual/guiasdocentes-api/public/v1/guias/6420/P/2026/E/pdf/redirect) está en el Aula Virtual de la Universidad de Murcia.
 
 ## Por dónde empezar
 
