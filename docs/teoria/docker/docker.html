@@ -978,26 +978,26 @@ NAMENODE_IMAGE=prueba/otra:1 \
 <footer>TCDM · Curso 2026/2027 · Docker y Docker Compose</footer>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="46" data-paginate="true" data-footer="TCDM · Curso 2026/2027 · Docker y Docker Compose" data-class="code" data-theme="tcdm" data-lang="es" lang="es" class="code" data-marpit-pagination="46" style="--paginate:true;--footer:TCDM · Curso 2026/2027 · Docker y Docker Compose;--class:code;--theme:tcdm;--lang:es;" data-marpit-pagination-total="64" data-size="16:9">
-<h1 id="salud-y-dependencias-compose-s3yml">Salud y dependencias: <code>compose-s3.yml</code></h1>
+<h1 id="salud-y-dependencias-compose-trinoyml">Salud y dependencias: <code>compose-trino.yml</code></h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-yaml"><span class="hljs-attr">services:</span>
-  <span class="hljs-attr">rustfs-s3:</span>
+  <span class="hljs-attr">rustfs-lakehouse:</span>
     <span class="hljs-attr">image:</span> <span class="hljs-string">rustfs/rustfs:${RUSTFS_VERSION:-latest}</span>
     <span class="hljs-attr">volumes:</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-string">rustfs-s3-data:/data</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">rustfs-data:/data</span>
     <span class="hljs-attr">healthcheck:</span>
       <span class="hljs-attr">test:</span> [<span class="hljs-string">&quot;CMD-SHELL&quot;</span>, <span class="hljs-string">&quot;curl --fail http://127.0.0.1:9000/health &amp;&amp; ...&quot;</span>]
       <span class="hljs-attr">interval:</span> <span class="hljs-string">10s</span>
-  <span class="hljs-attr">s3-client:</span>
+  <span class="hljs-attr">bucket-setup:</span>
     <span class="hljs-attr">image:</span> <span class="hljs-string">amazon/aws-cli:latest</span>
     <span class="hljs-attr">depends_on:</span>
-      <span class="hljs-attr">rustfs-s3:</span>
+      <span class="hljs-attr">rustfs-lakehouse:</span>
         <span class="hljs-attr">condition:</span> <span class="hljs-string">service_healthy</span>     <span class="hljs-comment"># espera a que RustFS responda</span>
     <span class="hljs-attr">entrypoint:</span> [<span class="hljs-string">&quot;/bin/sh&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>]
-    <span class="hljs-attr">command:</span> [<span class="hljs-string">&quot;while :; do sleep 3600; done&quot;</span>]   <span class="hljs-comment"># simplificado</span>
+    <span class="hljs-attr">command:</span> [<span class="hljs-string">&quot;aws s3 mb s3://$${ICEBERG_BUCKET}&quot;</span>]   <span class="hljs-comment"># simplificado</span>
 </code></pre>
 <ul>
 <li><code>healthcheck</code>: Docker ejecuta la prueba y marca <code>healthy</code> o <code>unhealthy</code></li>
-<li><code>s3-client</code> no hace nada: queda vivo para usar <code>aws</code> con <code>docker exec</code></li>
+<li><code>bucket-setup</code> es de un solo uso: espera a RustFS, crea el bucket y termina</li>
 </ul>
 <footer>TCDM · Curso 2026/2027 · Docker y Docker Compose</footer>
 </section>

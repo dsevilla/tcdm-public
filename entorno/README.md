@@ -37,6 +37,41 @@ La orden lista los ficheros que aparta. El notebook publicado llega sin
 salidas: las de la ejecución anterior están en la copia. No actúa sobre una
 copia con commits propios: en ese caso lo indica y no cambia nada.
 
+### Comprobar que la copia y el equipo están al día
+
+`comprobar-entorno.sh` indica si una sesión tiene todo lo necesario. Se
+teclea en una terminal del equipo, desde la raíz de la distribución, con la
+sesión que se va a empezar:
+
+```bash
+bash entorno/comprobar-entorno.sh s3
+```
+
+Comprueba, por este orden:
+
+- las herramientas del curso: `git`, `curl`, `make`, Python 3 con `venv`,
+  Docker en marcha y Docker Compose v2, con la orden concreta para instalar
+  lo que falte;
+- cada fichero de `s1/` hasta la sesión indicada y de `entorno/`, comparado con
+  la última versión publicada en `tcdm-public`. Los notebooks se comparan por
+  el texto de sus celdas, así que guardar las salidas al ejecutarlos no los
+  hace parecer desactualizados;
+- si la copia es un clon de git: la rama (`26-27`) y el commit en que está,
+  frente al último publicado.
+
+Si algo está desactualizado o falta, lo dice fichero a fichero y propone
+`make -C entorno actualizar`. Una copia que aún no tiene el comprobador, o la
+que se quiere comprobar antes de actualizar, lo ejecuta directamente desde la
+publicación, sin descargarlo antes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/entorno/comprobar-entorno.sh | bash -s s3
+```
+
+El comprobador lee `entorno/MANIFIESTO.txt` de la rama publicada. Ese
+fichero lo genera la publicación del material, con la huella de cada fichero
+de las sesiones publicadas y de `entorno/`; no se edita a mano.
+
 ## Jupyter en `namenode`
 
 Desde S2 el kernel de Jupyter se ejecuta dentro de `namenode`. La imagen
@@ -78,8 +113,8 @@ namenode + tres datanodeX
               Trino ─ Hive Metastore ─ PostgreSQL
 ```
 
-La sesión 3 añade un Compose independiente en `compose-s3.yml`: RustFS y un
-contenedor AWS CLI. El bucket `tcdm-datalake` no lo crea el Compose, sino el
+La sesión 3 añade un Compose independiente en `compose-s3.yml`: sólo RustFS.
+El bucket `tcdm-datalake` no lo crea el Compose, sino el
 propio notebook con boto3. No contiene Trino ni un
 catálogo, porque en esa sesión se estudia primero el almacenamiento de
 objetos y los Parquet. El laboratorio posterior definido en `compose-trino.yml`
@@ -129,6 +164,7 @@ distribución.
 | Visual Studio Code no consigue conectar con `http://127.0.0.1:8888` | Jupyter no está arrancado: se cerró su terminal, se pulsó `Ctrl+C` o se pararon los contenedores | Volver a lanzarlo con `make -C entorno jupyter` (o `docker exec -it namenode bash`, `su - luser` y `jupyter lab ...`) y reconectar el kernel |
 | `NameError` al usar una variable definida más arriba | El kernel se ha reiniciado y ha perdido su estado | Ejecutar de nuevo, en orden, las celdas anteriores de las que depende la sección |
 | `make -C entorno status` no muestra en marcha `namenode` y los tres `datanodeN`, o `hdfs dfsadmin -report` lista menos de tres DataNodes | El clúster está parado o todavía arrancando | `make -C entorno hadoop-up`, esperar medio minuto y repetir la comprobación. Si sigue igual, `docker logs namenode --tail=120` |
+| No sé si mi copia o mi equipo están listos para una sesión | Material sin actualizar, herramienta sin instalar o Docker parado | `bash entorno/comprobar-entorno.sh s3` (cambia `s3` por la sesión) |
 | Errores de conexión con `rustfs:9000` (sesión 3) | RustFS no está arrancado | `make -C entorno s3-up` |
 | Falla una descarga: `%pip install`, un fichero de `raw.githubusercontent.com` o el conector de Iceberg al crear la `SparkSession` de las sesiones 7 y 8 | El contenedor `namenode` no tiene salida a Internet | Comprobarlo con `docker exec namenode curl -sI https://github.com` y revisar la red, la VPN o el proxy de Docker |
 | Un contenedor aparece como `Exited (137)`, o el kernel muere durante un cálculo | Docker se ha quedado sin memoria | Asignar más memoria a Docker (ver «Arrancar el clúster › Antes de empezar» en la sesión 1), parar los servicios que la sesión no use y cerrar otros notebooks que tengan una `SparkSession` abierta |
@@ -419,7 +455,7 @@ Las versiones por defecto están en [.env.example](.env.example):
 | RustFS | `rustfs/rustfs:latest` | Almacén S3-compatible. `latest` no fija versión: la validación del curso (test 008 en CI, amd64) corresponde a la imagen que resolvió la última pipeline |
 | Spark | `apache/spark:4.1.3-scala2.13-java21-python3-ubuntu` | Cliente compatible con el runtime Iceberg 4.1/Scala 2.13 |
 | Apache Iceberg | `1.11.0` | Runtime publicado para Spark 4.1/Scala 2.13 |
-| AWS CLI auxiliar | `amazon/aws-cli:2.36.14` | Sólo crea el bucket local de las sesiones |
+| AWS CLI auxiliar | `amazon/aws-cli:latest` | Sólo crea el bucket de Iceberg (`bucket-setup` de `compose-trino.yml`) |
 
 Spark 4.2.0 es más reciente, pero Apache Iceberg 1.11.0 publica el runtime
 `iceberg-spark-runtime-4.1_2.13`; por eso aquí se prioriza una combinación
