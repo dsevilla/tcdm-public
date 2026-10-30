@@ -7881,8 +7881,8 @@ mismas tres bibliotecas— y cambia una sola cosa: dónde están los bytes y
 cómo se piden. Lo que resulte distinto al leerlos se deberá al
 almacenamiento, no al dato.</p>
 <p>No hace falta una cuenta de AWS: el laboratorio arranca un servicio local
-que implementa esa API, y al final se ve qué habría que cambiar para
-apuntar a Amazon S3.</p>
+que implementa esa API. Al final, con el AWS Learner Lab, se repite parte de
+la sesión contra Amazon S3 y se combinan los dos servicios en una consulta.</p>
 <h2 id="Objetivos">Objetivos<a class="anchor-link" href="#Objetivos">¶</a></h2><p>Al terminar la sesión deberías poder:</p>
 <ul>
 <li>explicar por qué un data lake suele guardarse en un almacenamiento de
@@ -7896,7 +7896,8 @@ completo o por rango, <code>DELETE</code>— y usarlas con boto3;</li>
 entero;</li>
 <li>leer los mismos Parquet desde S3 con PyArrow, Polars y DuckDB, y decir
 por qué camino llega cada una a la API;</li>
-<li>señalar qué cambia en la configuración para usar Amazon S3 real;</li>
+<li>señalar qué cambia en la configuración para usar Amazon S3 real, crear
+allí un bucket con boto3 y consultar a la vez RustFS y Amazon S3;</li>
 <li>borrar y regenerar el data lake S3 sin tocar los datos de HDFS.</li>
 </ul>
 <blockquote>
@@ -8450,7 +8451,7 @@ cambiando el entorno, sin tocar una línea.</p>
 <tr>
 <td><code>AWS_SESSION_TOKEN</code></td>
 <td>Token de sesión de las credenciales temporales</td>
-<td>no se define; sólo hace falta con credenciales temporales de AWS, como las de un laboratorio de AWS Academy</td>
+<td>no se define; lo necesitan las credenciales temporales de AWS, como las de un laboratorio de AWS Academy, que se configuran de otra forma (sección «Del laboratorio a Amazon S3»)</td>
 </tr>
 <tr>
 <td><code>AWS_DEFAULT_REGION</code></td>
@@ -8476,8 +8477,6 @@ así que valen para todas las celdas que siguen:</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">env</span> AWS_ENDPOINT_URL=http://rustfs:9000
 <span class="o">%</span><span class="k">env</span> AWS_ACCESS_KEY_ID=tcdm_student
 <span class="o">%</span><span class="k">env</span> AWS_SECRET_ACCESS_KEY=tcdm_student_secret
-<span class="c1"># Sólo con credenciales temporales de AWS (por ejemplo, AWS Academy):</span>
-<span class="c1"># %env AWS_SESSION_TOKEN=&lt;token de sesión&gt;</span>
 <span class="o">%</span><span class="k">env</span> AWS_DEFAULT_REGION=us-east-1
 </pre></div>
 </div>
@@ -9515,7 +9514,7 @@ cambiar de almacenamiento no la resuelve.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del laboratorio a Amazon S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El código no nombra RustFS: servidor y credenciales están en las variables <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_*</code></li><li style="margin:10px 0;list-style-position:outside">Contra AWS cambian las credenciales y la región, y desaparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">AWS_ENDPOINT_URL</code></li><li style="margin:10px 0;list-style-position:outside">DuckDB necesita además otro secreto: sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ENDPOINT</code>, con HTTPS y estilo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">vhost</code></li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del laboratorio a Amazon S3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Las credenciales temporales del AWS Learner Lab van en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">~/.aws/credentials</code>, no en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">%env</code></li><li style="margin:10px 0;list-style-position:outside">Un cliente de boto3 conserva el servidor y las credenciales que tenía al crearse: para Amazon, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">boto3.Session()</code> nueva</li><li style="margin:10px 0;list-style-position:outside">Con boto3 se crea el bucket en Amazon y se copia <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code> desde RustFS; DuckDB une una tabla de cada servicio</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -9527,8 +9526,11 @@ cambiar de almacenamiento no la resuelve.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Del-laboratorio-a-Amazon-S3">Del laboratorio a Amazon S3<a class="anchor-link" href="#Del-laboratorio-a-Amazon-S3">¶</a></h2><p>Nada de lo ejecutado menciona RustFS salvo los valores de las variables.
-Para repetir la sesión contra un bucket de Amazon S3 cambiaría esto:</p>
+<h2 id="Del-laboratorio-a-Amazon-S3">Del laboratorio a Amazon S3<a class="anchor-link" href="#Del-laboratorio-a-Amazon-S3">¶</a></h2><p>Hasta aquí no ha hecho falta una cuenta de AWS. Si tienes el laboratorio de
+AWS Academy (transparencias «Cómo usar el AWS Learner Lab»), esta sección
+repite lo esencial contra Amazon S3 <strong>sin apagar RustFS</strong>: los dos servicios
+quedan activos a la vez, y al final una consulta de DuckDB junta una tabla
+de cada uno. Esto es lo que cambia respecto a RustFS:</p>
 <table>
 <thead>
 <tr>
@@ -9539,24 +9541,19 @@ Para repetir la sesión contra un bucket de Amazon S3 cambiaría esto:</p>
 </thead>
 <tbody>
 <tr>
-<td><code>AWS_ENDPOINT_URL</code></td>
-<td><code>http://rustfs:9000</code></td>
+<td>Servidor</td>
+<td><code>AWS_ENDPOINT_URL=http://rustfs:9000</code></td>
 <td>no se define: el SDK usa el servidor de la región</td>
 </tr>
 <tr>
-<td><code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
-<td>las del Compose</td>
-<td>credenciales de un usuario o un rol de IAM</td>
+<td>Credenciales</td>
+<td><code>AWS_ACCESS_KEY_ID</code> y <code>AWS_SECRET_ACCESS_KEY</code> del Compose</td>
+<td>tres valores temporales (identificador, secreto y token de sesión) que caducan al terminar el laboratorio</td>
 </tr>
 <tr>
-<td><code>AWS_SESSION_TOKEN</code></td>
-<td>no se define</td>
-<td>obligatoria si las credenciales son temporales, como las de un laboratorio de AWS Academy</td>
-</tr>
-<tr>
-<td><code>AWS_DEFAULT_REGION</code></td>
+<td>Región</td>
 <td><code>us-east-1</code>; RustFS no tiene regiones, pero la firma la incluye igualmente</td>
-<td>la región en la que se creó el bucket</td>
+<td><code>us-east-1</code>, la del laboratorio</td>
 </tr>
 <tr>
 <td>Nombre del bucket</td>
@@ -9566,39 +9563,238 @@ Para repetir la sesión contra un bucket de Amazon S3 cambiaría esto:</p>
 <tr>
 <td>Secreto de DuckDB</td>
 <td><code>ENDPOINT</code>, <code>USE_SSL false</code>, <code>URL_STYLE 'path'</code></td>
-<td>sin esos tres campos y con <code>PROVIDER credential_chain</code>, que toma las credenciales de las variables <code>AWS_*</code></td>
+<td>sin esos tres campos y con <code>SESSION_TOKEN</code></td>
 </tr>
 </tbody>
 </table>
-<p>Las celdas de boto3, <code>s3fs</code>, PyArrow y Polars no cambiarían; la que crea
-el bucket ya indica la región cuando no es <code>us-east-1</code>. Tampoco el
-SQL de DuckDB, sólo su secreto, que pasaría a ser:</p>
-<div class="highlight"><pre><span></span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-<span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    CREATE OR REPLACE SECRET tcdm_s3 (</span>
-<span class="sd">        TYPE s3,</span>
-<span class="sd">        PROVIDER credential_chain,</span>
-<span class="sd">        CHAIN 'env'</span>
-<span class="sd">    )</span>
-<span class="sd">    """</span>
-<span class="p">)</span>
+<h3 id="Las-credenciales-del-laboratorio">Las credenciales del laboratorio<a class="anchor-link" href="#Las-credenciales-del-laboratorio">¶</a></h3><p>Inicia el laboratorio (<strong>Start Lab</strong>), espera a que el círculo junto a
+<em>AWS</em> esté en verde y, en <strong>AWS Details → AWS CLI → Show</strong>, copia el bloque
+completo: empieza por <code>[default]</code> y lleva los tres valores. Sustituye por él
+las cuatro líneas de la celda siguiente.</p>
+<p>Se guardan en <code>~/.aws/credentials</code>, el fichero donde boto3 y la CLI de AWS
+buscan las credenciales cuando no hay variables de entorno. Este notebook se
+ejecuta dentro de <code>namenode</code>, así que el fichero <code>~/.aws/credentials</code> de tu
+equipo no se ve desde aquí: la celda crea el de <code>luser</code>. No se usa <code>%env</code>
+porque imprime el valor que fija, y el secreto quedaría escrito en la salida
+de la celda y en el fichero del notebook.</p>
+<p>Las credenciales caducan (al terminar el laboratorio, o a las pocas horas).
+Si una celda de esta sección falla con un error de clave o de token, inicia
+de nuevo el laboratorio, vuelve a pegar el bloque y ejecuta otra vez desde
+esta celda.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_aws" id="cell-id=75">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span>%%bash
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.aws
+cat<span class="w"> </span>&gt;<span class="w"> </span>~/.aws/credentials<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
+<span class="s">[default]</span>
+<span class="s">aws_access_key_id=PEGA_AQUÍ_EL_BLOQUE</span>
+<span class="s">aws_secret_access_key=...</span>
+<span class="s">aws_session_token=...</span>
+<span class="s">EOF</span>
 </pre></div>
-<p><code>CHAIN 'env'</code> limita la búsqueda a las variables de entorno, las mismas
-que usa boto3. DuckDB incluye <code>AWS_SESSION_TOKEN</code> si está definida y la
-ignora si no lo está, así que sirve igual con credenciales permanentes.
-El secreto no lleva endpoint, <code>USE_SSL</code> ni <code>URL_STYLE</code>: los valores por
-defecto de DuckDB ya son los de Amazon S3. Esta celda no se ejecuta en el
-laboratorio, porque RustFS necesita el secreto de la sección anterior.</p>
-<p>El estilo de las URL merece una frase. Amazon S3 pone el bucket en el
-nombre del servidor (<code>tcdm-datalake.s3.us-east-1.amazonaws.com</code>), lo que
-exige que ese nombre exista en el DNS. En un servicio local no existe, y
-por eso el bucket va en la ruta (<code>rustfs:9000/tcdm-datalake</code>). Es una
-diferencia de despliegue, no de la API: las operaciones y las respuestas
-son las mismas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=75">
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Un-cliente-nuevo-para-Amazon-S3">Un cliente nuevo para Amazon S3<a class="anchor-link" href="#Un-cliente-nuevo-para-Amazon-S3">¶</a></h3><p>El cliente <code>s3</code> de antes sigue hablando con RustFS, y debe seguir así:
+<code>boto3.client("s3")</code> crea el cliente con el servidor y las credenciales que
+había <strong>en ese momento</strong>, y no los vuelve a mirar. Con las credenciales
+pasa algo parecido: <code>boto3.client(...)</code> usa una sesión por defecto que se
+crea la primera vez y recuerda las que encontró entonces. Si sólo se
+cambiaran las variables, cualquier <code>boto3.client(...)</code> nuevo seguiría
+firmando con <code>tcdm_student</code>, y Amazon rechazaría la petición porque no
+conoce esa clave.</p>
+<p>Por eso la celda siguiente hace dos cosas. Quita las variables de RustFS, que
+tienen prioridad sobre el fichero de credenciales, y crea una
+<code>boto3.Session()</code> nueva, que busca otra vez las credenciales (ahora, en
+el fichero). De ella salen los clientes de Amazon.</p>
+<p>El primero es el de <strong>STS</strong> (<em>Security Token Service</em>), cuya operación
+<code>get_caller_identity</code> devuelve la cuenta a la que pertenecen las
+credenciales: es la comprobación de que valen (la misma que hace
+<code>aws sts get-caller-identity</code>). El número de cuenta sirve además para dar a
+tu bucket un nombre único en todo AWS. El servidor del cliente de S3 debe
+ser ahora <code>https://s3...amazonaws.com</code>, no <code>http://rustfs:9000</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_aws" id="cell-id=77">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">,</span> <span class="s2">"AWS_ACCESS_KEY_ID"</span><span class="p">,</span> <span class="s2">"AWS_SECRET_ACCESS_KEY"</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="n">aws</span><span class="p">:</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">account</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">aws</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">"sts"</span><span class="p">)</span><span class="o">.</span><span class="n">get_caller_identity</span><span class="p">()[</span><span class="s2">"Account"</span><span class="p">]</span>
+<span class="n">s3_aws</span><span class="p">:</span> <span class="n">BaseClient</span> <span class="o">=</span> <span class="n">aws</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
+<span class="n">AWS_BUCKET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"tcdm-datalake-</span><span class="si">{</span><span class="n">account</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cuenta de AWS: </span><span class="si">{</span><span class="n">account</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Servidor del cliente de Amazon: </span><span class="si">{</span><span class="n">s3_aws</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">endpoint_url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Servidor del cliente de RustFS: </span><span class="si">{</span><span class="n">s3</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">endpoint_url</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Crear-el-bucket-y-copiar-una-tabla">Crear el bucket y copiar una tabla<a class="anchor-link" href="#Crear-el-bucket-y-copiar-una-tabla">¶</a></h3><p>Es la misma operación que en RustFS, <code>create_bucket</code>. En <code>us-east-1</code> no hace
+falta <code>CreateBucketConfiguration</code>. Si repites la celda, Amazon responde que
+el bucket ya es tuyo y se captura esa excepción.</p>
+<p>Para copiar <code>item</code> no hay una orden de «copiar de un servicio a otro»: se
+lee cada objeto de RustFS con <code>get_object</code>, cuyo <code>Body</code> es un flujo, y
+se entrega a <code>upload_fileobj</code>, que lo sube a Amazon en trozos. Los bytes
+pasan por <code>namenode</code> sin escribirse en su disco. Luego, la CLI de AWS
+—que lee el mismo fichero de credenciales— lista el prefijo en Amazon.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_aws" id="cell-id=79">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">s3_aws</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">AWS_BUCKET</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Creado el bucket </span><span class="si">{</span><span class="n">AWS_BUCKET</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">s3_aws</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">BucketAlreadyOwnedByYou</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"El bucket </span><span class="si">{</span><span class="n">AWS_BUCKET</span><span class="si">}</span><span class="s2"> ya existe y es tuyo"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">list_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/"</span><span class="p">):</span>
+    <span class="n">s3_aws</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">S3_BUCKET</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)[</span><span class="s2">"Body"</span><span class="p">],</span> <span class="n">AWS_BUCKET</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Copiado s3://</span><span class="si">{</span><span class="n">AWS_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_aws" id="cell-id=80">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>aws<span class="w"> </span>s3<span class="w"> </span>ls<span class="w"> </span>s3://<span class="o">{</span>AWS_BUCKET<span class="o">}</span>/<span class="o">{</span>S3_PREFIX<span class="o">}</span>/item/
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Una-consulta-sobre-los-dos-servicios">Una consulta sobre los dos servicios<a class="anchor-link" href="#Una-consulta-sobre-los-dos-servicios">¶</a></h3><p>DuckDB no usa boto3, así que necesita su propio secreto para Amazon. Es el
+de RustFS sin <code>ENDPOINT</code>, <code>USE_SSL</code> ni <code>URL_STYLE</code> —los valores por defecto
+de DuckDB ya son los de Amazon S3— y con <code>SESSION_TOKEN</code>. Los tres valores se
+piden a la sesión de boto3, que ya los ha leído del fichero.</p>
+<p>El secreto de RustFS se creó sin <code>SCOPE</code>, así que sirve a cualquier <code>s3://</code>.
+El nuevo lleva <code>SCOPE 's3://tcdm-datalake-&lt;cuenta&gt;'</code>: DuckDB elige, para cada
+URL, el secreto cuyo alcance coincide en más caracteres. Por eso el
+listado de secretos de la celda muestra qué secreto atiende cada bucket, y
+la consulta siguiente puede leer de los dos servicios a la vez.</p>
+<p>Esa consulta suma por categoría el importe de las ventas de <code>store_sales</code>,
+que está en RustFS, uniéndolas con <code>item</code>, que ahora también está en Amazon.
+Ni RustFS ni Amazon ejecutan SQL: el <em>join</em> se calcula en <code>namenode</code>, que
+pide a cada servicio sólo los rangos de las columnas que usa. La fila
+<code>NULL</code> son artículos sin categoría en <code>item</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_aws" id="cell-id=82">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">frozen</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">aws</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span><span class="o">.</span><span class="n">get_frozen_credentials</span><span class="p">()</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    CREATE OR REPLACE SECRET tcdm_aws (</span>
+<span class="sd">        TYPE s3, KEY_ID ?, SECRET ?, SESSION_TOKEN ?, REGION ?, SCOPE ?</span>
+<span class="sd">    )</span>
+<span class="sd">    """</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="n">frozen</span><span class="o">.</span><span class="n">access_key</span><span class="p">,</span>
+        <span class="n">frozen</span><span class="o">.</span><span class="n">secret_key</span><span class="p">,</span>
+        <span class="n">frozen</span><span class="o">.</span><span class="n">token</span><span class="p">,</span>
+        <span class="n">s3_aws</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"s3://</span><span class="si">{</span><span class="n">AWS_BUCKET</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SELECT name, scope FROM duckdb_secrets()"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">connection</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
+<span class="s2">    SELECT i.i_category AS categoría, count(*) AS ventas, round(sum(ss.ss_net_paid)) AS importe</span>
+<span class="s2">    FROM read_parquet('s3://</span><span class="si">{</span><span class="n">S3_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/store_sales/*') AS ss</span>
+<span class="s2">    JOIN read_parquet('s3://</span><span class="si">{</span><span class="n">AWS_BUCKET</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">S3_PREFIX</span><span class="si">}</span><span class="s2">/item/*') AS i ON ss.ss_item_sk = i.i_item_sk</span>
+<span class="s2">    GROUP BY categoría</span>
+<span class="s2">    ORDER BY importe DESC</span>
+<span class="s2">    """</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>El estilo de las URL merece una frase. Amazon S3 pone el bucket en el nombre
+del servidor (<code>tcdm-datalake-&lt;cuenta&gt;.s3.us-east-1.amazonaws.com</code>), lo que
+exige que ese nombre exista en el DNS. En un servicio local no existe, y por
+eso con RustFS el bucket va en la ruta (<code>rustfs:9000/tcdm-datalake</code>). Es una
+diferencia de despliegue, no de la API: las operaciones y las respuestas son
+las mismas.</p>
+<p>El bucket de Amazon sigue ahí cuando termina el laboratorio. Para vaciarlo y
+borrarlo, en una celda:</p>
+<div class="highlight"><pre><span></span><span class="err">!</span><span class="n">aws</span> <span class="n">s3</span> <span class="n">rb</span> <span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="p">{</span><span class="n">AWS_BUCKET</span><span class="p">}</span> <span class="o">--</span><span class="n">force</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9606,13 +9802,13 @@ son las mismas.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0;list-style-position:outside">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0;list-style-position:outside">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0;list-style-position:outside">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0;list-style-position:outside">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><blockquote style="background:#ffffff;color:inherit;border:none;border-left:6px solid #a54467;margin:22px 0 0;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></blockquote><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 3</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un almacén de objetos separa los datos del cómputo: por eso es el soporte habitual de un data lake</li><li style="margin:10px 0;list-style-position:outside">Un objeto es una clave dentro de un bucket; el prefijo agrupa, pero no es un directorio</li><li style="margin:10px 0;list-style-position:outside">El mismo Parquet se lee igual desde HDFS y desde S3: cambia el acceso, no el contenido</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">fsspec</code> da la misma interfaz a HDFS (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs-native</code>) y a S3 (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">s3fs</code>): <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">open</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">find</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">size</code></li><li style="margin:10px 0;list-style-position:outside">Endpoint y credenciales fuera del código permiten pasar de RustFS a Amazon S3</li><li style="margin:10px 0;list-style-position:outside">Con los dos a la vez: un cliente de boto3 por servicio y un secreto de DuckDB con alcance por bucket</li><li style="margin:10px 0;list-style-position:outside">Sigue siendo un conjunto de ficheros: nada dice todavía qué objetos forman una tabla</li></ul><blockquote style="background:#ffffff;color:inherit;border:none;border-left:6px solid #a54467;margin:22px 0 0;padding:12px 16px"><div style="margin-top:0px">Siguiente sesión: Spark como motor de cómputo distribuido sobre estos mismos datos.</div></blockquote><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9656,7 +9852,7 @@ sesiones posteriores dependan de ellos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9684,6 +9880,11 @@ otro S3, y cuáles funcionarían igual entre dos filesystems cualesquiera de
 exactamente el mismo resumen usando dos clientes distintos?</li>
 <li>¿Qué habría que cambiar, y qué no, para ejecutar este notebook contra un
 bucket de Amazon S3?</li>
+<li>Tras cambiar las variables <code>AWS_*</code>, <code>boto3.client("s3")</code> seguía firmando
+con las credenciales de RustFS. ¿Qué recuerda boto3 y cuándo, y qué se hizo
+para que un cliente nuevo usara las de Amazon?</li>
+<li>En el <em>join</em> entre RustFS y Amazon S3, ¿dónde se calcula la unión y qué
+pide DuckDB a cada servicio?</li>
 </ul>
 <h2 id="Evidencias-para-la-siguiente-sesi%C3%B3n">Evidencias para la siguiente sesión<a class="anchor-link" href="#Evidencias-para-la-siguiente-sesi%C3%B3n">¶</a></h2><p>Antes de la siguiente sesión tendrás una reunión individual breve con el
 profesor para revisar el trabajo de esta sesión. Esa reunión combina una
@@ -9706,6 +9907,9 @@ HDFS (36.000 filas).</li>
 <li>Que sabes señalar qué variables <code>AWS_*</code> y qué campos del secreto de
 DuckDB habría que cambiar para usar un bucket real de Amazon S3, y qué
 celdas no cambiarían.</li>
+<li>Si has hecho la sección con el AWS Learner Lab: el listado del prefijo
+<code>raw/tpcds/item/</code> en tu bucket de Amazon y el resultado del <em>join</em> entre
+<code>store_sales</code> (RustFS) e <code>item</code> (Amazon S3).</li>
 </ol>
 <h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
 no se limite a pegar capturas de las salidas anteriores: debe explicar con
