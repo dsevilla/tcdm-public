@@ -7871,13 +7871,8 @@ puedan consultar Spark y Trino?</p>
 <p>El Hive Metastore no es un motor de procesamiento y Trino no es el catálogo.
 El metastore conserva metadatos; Trino consulta y procesa; Spark puede
 utilizar la misma definición si se configura como cliente del catálogo.</p>
-<div class="highlight"><pre><span></span>S2: Parquet sin tabla permanente
-  → S3: Parquet en HDFS y S3-compatible
-  → S4: Spark como motor
-  → S5: organización refinada y particionada
-  → S6: Hive Metastore y Trino comparten la tabla
-  → S7: Iceberg añade gestión de tablas y snapshots
-</pre></div>
+<p>La figura sitúa la sesión en la arquitectura física del laboratorio: cada círculo es un contenedor Docker, y los puntos de color de su interior son los servicios que ejecuta; a la derecha están los servicios, con el color de la sesión que los introduce y una flecha hacia el clúster. En color está lo que ya existe al empezar la sesión y sombreado, lo que llegará en sesiones posteriores; resaltado, lo que esta sesión crea, modifica o usa. S6 añade el Hive Metastore (con su PostgreSQL) y Trino: Spark y Trino comparten desde ahora las definiciones de tabla sobre los ficheros del data lake.</p>
+<p align="center" style="text-align: center;"><img alt="Arquitectura del laboratorio al empezar la sesión 6: se añaden el Hive Metastore con PostgreSQL y Trino" src="https://dsevilla.github.io/tcdm-public/figs/arquitectura-s6.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="1100"/></p>
 <p>La infraestructura definida en <code>entorno/compose-warehouse-hdfs.yml</code> separa
 PostgreSQL, Hive Metastore, Trino y el clúster Hadoop. PostgreSQL almacena el
 repositorio del metastore; Hive Metastore expone la información por Thrift;

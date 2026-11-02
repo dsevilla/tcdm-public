@@ -7872,13 +7872,9 @@ ejecutar un trabajo distribuido sobre los DataNodes?</p>
 </blockquote>
 <p>Spark no se presentará todavía como un sistema de catálogo ni como una
 solución de <em>lakehouse</em>. En esta primera etapa es un motor que lee y escribe
-datos estructurados y que puede ejecutarse localmente o sobre YARN. El
-recorrido completo hasta este punto es:</p>
-<div class="highlight"><pre><span></span>S1: HDFS, YARN y MapReduce
-  → S2: Parquet en /datalake/raw/tpcds, sin catálogo permanente
-  → S3: Parquet sobre un almacenamiento S3-compatible
-  → S4: Spark procesa los Parquet y utiliza YARN
-</pre></div>
+datos estructurados y que puede ejecutarse localmente o sobre YARN.</p>
+<p>La figura sitúa la sesión en la arquitectura física del laboratorio: cada círculo es un contenedor Docker, y los puntos de color de su interior son los servicios que ejecuta; a la derecha están los servicios, con el color de la sesión que los introduce y una flecha hacia el clúster. En color está lo que ya existe al empezar la sesión y sombreado, lo que llegará en sesiones posteriores; resaltado, lo que esta sesión crea, modifica o usa. S4 añade Spark: el driver vive en <code>namenode</code> y los ejecutores, que YARN reparte por los DataNodes, leen los Parquet de <code>/datalake/raw/tpcds</code>.</p>
+<p align="center" style="text-align: center;"><img alt="Arquitectura del laboratorio al empezar la sesión 4: se añade Spark, con su driver y sus ejecutores sobre YARN, que lee el data lake en HDFS" src="https://dsevilla.github.io/tcdm-public/figs/arquitectura-s4.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="1100"/></p>
 <p>Los datos de entrada siguen siendo los de TPC-DS SF3. Se conserva el
 materializado original de <code>/datalake/raw/tpcds</code> y se evita modificarlo
 durante los ejercicios: las transformaciones de Spark escribirán sus

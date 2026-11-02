@@ -7875,14 +7875,9 @@ y eficientes sin convertir todavía el data lake en una tabla gestionada?</p>
 <p>Para responderla mantendremos el mismo TPC-DS SF3 de las sesiones
 anteriores y compararemos tres versiones del mismo dato: la fuente <em>raw</em>
 que ya conoces de S2, una versión refinada <em>silver</em> que construiremos con
-Spark, y un agregado de negocio <em>gold</em> derivado de esa versión refinada. El
-recorrido completo del curso hasta este punto, y el siguiente paso, son:</p>
-<div class="highlight"><pre><span></span>S2: datos fuente como Parquet sin catálogo
-  → S3: los mismos objetos sobre un almacenamiento S3-compatible
-  → S4: Spark procesa los ficheros, en local y sobre YARN
-  → S5: Spark escribe datos silver y un producto gold
-  → S6: el Metastore registra esa organización como tabla Hive
-</pre></div>
+Spark, y un agregado de negocio <em>gold</em> derivado de esa versión refinada.</p>
+<p>La figura sitúa la sesión en la arquitectura física del laboratorio: cada círculo es un contenedor Docker, y los puntos de color de su interior son los servicios que ejecuta; a la derecha están los servicios, con el color de la sesión que los introduce y una flecha hacia el clúster. En color está lo que ya existe al empezar la sesión y sombreado, lo que llegará en sesiones posteriores; resaltado, lo que esta sesión crea, modifica o usa. S5 usa Spark para escribir en el data lake las zonas <code>silver</code> y <code>gold</code>, que hasta ahora estaban vacías.</p>
+<p align="center" style="text-align: center;"><img alt="Arquitectura del laboratorio al empezar la sesión 5: Spark escribe las zonas silver y gold del data lake" src="https://dsevilla.github.io/tcdm-public/figs/arquitectura-s5.svg" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="1100"/></p>
 <p>Al terminar S5 seguimos teniendo un data lake basado en ficheros: que los
 directorios sigan el patrón <code>columna=valor</code> no crea por sí mismo una tabla
 permanente ni proporciona snapshots, transacciones o evolución de esquema.
