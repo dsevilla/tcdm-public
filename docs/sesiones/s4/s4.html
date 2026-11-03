@@ -9435,7 +9435,7 @@ cuál es cuál.</p>
 <p>Por eso, antes de agrupar, sustituimos los <code>null</code> originales por un valor
 de relleno con <code>coalesce</code>, que devuelve el primer valor que no es <code>null</code>.
 Así, tras el <code>rollup</code> o el <code>cube</code>, cualquier <code>null</code> que quede es un
-subtotal. Para <code>i_category</code> usamos la etiqueta <code>"Sin categoría"</code>; para el
+subtotal. Para <code>i_category</code> usamos la etiqueta <code>"&lt;Sin categoría&gt;"</code>; para el
 año, <code>-1</code>, que no puede ser un año real y deja la columna como entero. Es un
 valor <em>centinela</em>: sólo sirve para que esas ventas formen su propio grupo,
 y hay que leerlo como «sin fecha», no como un año.</p>
@@ -9493,7 +9493,7 @@ y hay que leerlo como «sin fecha», no como un año.</p>
 subtotal: un <code>null</code> en <code>i_category</code> con <code>sold_year</code> relleno es el subtotal
 de ese año en todas las categorías; un <code>null</code> en ambas columnas es el total
 general. Las ventas sin fecha (<code>sold_year = -1</code>) y los artículos sin categoría
-(<code>Sin categoría</code>) salen con su valor de relleno: son grupos de datos reales, con su
+(<code>&lt;Sin categoría&gt;</code>) salen con su valor de relleno: son grupos de datos reales, con su
 propia fila y su propio subtotal, y ya no se confunden con un subtotal.</p>
 <p><code>rollup</code> añade subtotales siguiendo el orden de las columnas indicadas
 (primero por <code>sold_year</code>, luego por la combinación de ambas), pero no añade
@@ -9532,7 +9532,7 @@ el subtotal de cada categoría sumando todos los años.</p>
 <code>sold_year</code> a <code>null</code> e <code>i_category</code> con un valor concreto: el beneficio de esa
 categoría sumando todos los años, algo que <code>rollup</code> no calculaba. Como hemos
 etiquetado los <code>null</code> originales, esas filas son siempre subtotales, incluida
-la de <code>Sin categoría</code>, que suma los artículos sin categoría de todos los años.</p>
+la de <code>&lt;Sin categoría&gt;</code>, que suma los artículos sin categoría de todos los años.</p>
 </div>
 </div>
 </div>
@@ -10946,8 +10946,7 @@ NodeManagers de los DataNodes —los mismos <code>datanode1</code>, <code>datano
 <code>datanode3</code> de S1— y sobre los que Spark reparte las tareas.</li>
 </ul>
 <p align="center" style="text-align: center;"><img alt="Animación: spark-submit --master yarn se lanza desde namenode y los ejecutores calculan en datanode1, datanode2 y datanode3" src="https://dsevilla.github.io/tcdm-public/figs/anim-spark-ejecutores.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="832"/></p>
-<p>Una <code>SparkSession</code> no puede cambiar de <code>master</code> una vez construida (como ya
-se explicó en «Instalar PySpark en este notebook»): por eso la sesión local se
+<p>Una <code>SparkSession</code> no puede cambiar de <code>master</code> una vez construida: por eso la sesión local se
 cerró con <code>spark.stop()</code> y esta sección construye otra con <code>.master("yarn")</code>.
 Es la forma habitual de trabajar con Spark en un clúster desde un notebook: el
 driver es el propio kernel y YARN reparte los ejecutores. Existe otra, que es
