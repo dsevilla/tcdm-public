@@ -8439,8 +8439,8 @@ líneas de venta y beneficio neto, sin confundir unas con otras;</li>
 <li>dónde vive el producto <code>gold</code> y qué columnas tiene: una fila por
 año en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con la columna
 <code>sold_year</code> y esas tres métricas. La fila de 2003 sólo cubre el 1 y el
-2 de enero, los dos únicos días de ese año con ventas en TPC-DS, y no
-debe compararse con los años completos;</li>
+2 de enero, porque ahí terminan los datos de TPC-DS, y no debe
+compararse con los años completos;</li>
 <li>qué formato y compresión emplea: Parquet comprimido con Snappy, el
 códec por defecto de Spark (<code>spark.sql.parquet.compression.codec</code>).
 <code>raw</code>, que escribió DuckDB en S2, usa ZSTD: las dos zonas no tienen por
@@ -8842,11 +8842,10 @@ reparten entre unas sesenta combinaciones de año y mes: de media, unas
 enero a julio, unas 46.000 de agosto a octubre y más de 70.000 en
 noviembre y diciembre). Qué granularidad conviene depende de la escala del
 dataset (con SF1000 cada mes pesaría unas trescientas veces más).</p>
-<p>Ese periodo deja además un caso extremo: de 2003 sólo hay ventas de sus
-dos primeros días, así que <code>sold_year=2003</code> tendrá un único directorio,
-<code>sold_month=1</code>, con unas 4.800 líneas: menos de la cuarta parte que el
-mes completo más pequeño. Es una partición diminuta real, no un ejemplo inventado: fíjate en
-ella cuando listemos los directorios y midamos los ficheros.</p>
+<p>De 2003 sólo hay ventas del 1 y el 2 de enero, porque ahí terminan los
+datos de TPC-DS. Así que <code>sold_year=2003</code> tendrá un único directorio,
+<code>sold_month=1</code>, con unas 4.800 líneas y un fichero mucho más pequeño que
+los demás. Lo veremos al listar los directorios.</p>
 </div>
 </div>
 </div>
@@ -9571,8 +9570,8 @@ cada cinco líneas de venta. Es una propiedad de los datos sintéticos de
 TPC-DS, que no imitan los márgenes de una empresa real; lo que importa
 aquí es la métrica (la suma de <code>ws_net_profit</code>), no su signo.</li>
 <li><strong>2003 parece un desplome</strong>: unos 400 pedidos frente a unos 36.000 en
-cada uno de los años anteriores. No lo es: de 2003 sólo hay ventas del
-1 y el 2 de enero. Quien consulta <code>gold</code> no ve el detalle, sólo una fila
+cada uno de los años anteriores. No lo es: los datos de TPC-DS terminan
+el 2 de enero de 2003. Quien consulta <code>gold</code> no ve el detalle, sólo una fila
 por año, y la compararía con las demás. Por eso el contrato dice qué
 periodo cubre esa fila: un producto <code>gold</code> también debe advertir de sus
 periodos incompletos.</li>
@@ -10169,7 +10168,7 @@ del driver.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Comprobar-la-estructura-de-directorios-en-HDFS">Comprobar la estructura de directorios en HDFS<a class="anchor-link" href="#Comprobar-la-estructura-de-directorios-en-HDFS">¶</a></h2><p>Por último, miramos directamente en HDFS la estructura <code>columna=valor</code> que
+<h2 id="Comprobar-la-estructura-de-directorios-en-HDFS">Comprobar la estructura de directorios en HDFS<a class="anchor-link" href="#Comprobar-la-estructura-de-directorios-en-HDFS">¶</a></h2><p>Miramos ahora directamente en HDFS la estructura <code>columna=valor</code> que
 Spark ha creado, y la comparamos con la de la salida de control sin
 particionar y con la del producto <code>gold</code>.</p>
 </div>
@@ -10225,8 +10224,11 @@ directorios, ficheros (incluido <code>_SUCCESS</code>) y tamaño lógico total:<
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Cada entrada <code>sold_year=&lt;año&gt;</code> es un directorio, no un fichero de datos.
-Bajamos un nivel más para ver los subdirectorios mensuales del año elegido
-antes:</p>
+Con <code>-R</code> recorremos el árbol del año elegido antes, y con <code>-h</code> vemos el
+tamaño de cada fichero: doce subdirectorios mensuales, cada uno con un
+único fichero Parquet, el que dejó el <code>repartition</code>. Fíjate en los
+tamaños: los meses de agosto a diciembre pesan bastante más que los de
+enero a julio, la estacionalidad que vimos al diseñar las particiones.</p>
 </div>
 </div>
 </div>
@@ -10238,7 +10240,7 @@ antes:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span><span class="o">{</span>silver_path<span class="o">}</span>/sold_year<span class="o">={</span>sample_year<span class="o">}</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-R<span class="w"> </span>-h<span class="w"> </span><span class="o">{</span>silver_path<span class="o">}</span>/sold_year<span class="o">={</span>sample_year<span class="o">}</span>
 </pre></div>
 </div>
 </div>
@@ -10251,13 +10253,40 @@ antes:</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Y el año 2003, en el que terminan los datos: un solo mes, con un fichero
+varias veces más pequeño que el del mes más pequeño de los años
+completos:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-R<span class="w"> </span>-h<span class="w"> </span><span class="o">{</span>silver_path<span class="o">}</span>/sold_year<span class="o">=</span><span class="m">2003</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Compara esa estructura con la salida de control, que no tiene ningún
 subdirectorio <code>columna=valor</code>: todos los fragmentos Parquet cuelgan
 directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10272,7 +10301,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10283,7 +10312,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10298,20 +10327,21 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Cu%C3%A1nto-pesa-un-fichero">Cuánto pesa un fichero<a class="anchor-link" href="#Cu%C3%A1nto-pesa-un-fichero">¶</a></h3><p>Una última medida sobre la tabla <code>silver</code>: el tamaño medio de sus ficheros
-de datos, que sale de dividir el tamaño lógico total entre el número de
-ficheros de datos. Son las dos cifras que guardó <code>hdfs_count</code> al medir la
-poda, así que no hace falta volver a preguntar a HDFS.</p>
+<h3 id="Cu%C3%A1nto-pesa-un-fichero">Cuánto pesa un fichero<a class="anchor-link" href="#Cu%C3%A1nto-pesa-un-fichero">¶</a></h3><p>Una última medida: el tamaño medio de los ficheros de datos, que sale de
+dividir el tamaño lógico total entre el número de ficheros de datos. Para
+<code>silver</code> son las dos cifras que guardó <code>hdfs_count</code> al medir la poda; para
+la salida de control, que tiene las mismas filas sin particionar, se lo
+preguntamos ahora a HDFS:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10319,30 +10349,48 @@ poda, así que no hace falta volver a preguntar a HDFS.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros de datos: </span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Tamaño medio por fichero: </span><span class="si">{</span><span class="n">silver_total_bytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">full_scan_files</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2"> KiB"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">_</span><span class="p">,</span> <span class="n">control_files</span><span class="p">,</span> <span class="n">control_total_bytes</span> <span class="o">=</span> <span class="n">hdfs_count</span><span class="p">(</span><span class="n">silver_control_path</span><span class="p">)</span>
+<span class="n">control_data_files</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">control_files</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># descarta _SUCCESS</span>
+
+<span class="n">MIB</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"silver:  </span><span class="si">{</span><span class="n">full_scan_files</span><span class="si">}</span><span class="s2"> ficheros de datos, "</span>
+    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">silver_total_bytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">full_scan_files</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">MIB</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MiB de media"</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"control: </span><span class="si">{</span><span class="n">control_data_files</span><span class="si">}</span><span class="s2"> ficheros de datos, "</span>
+    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">control_total_bytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">control_data_files</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">MIB</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MiB de media"</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Compara esa cifra con el tamaño de bloque de este clúster (64 MiB,
-<code>dfs.blocksize</code>, S1) y con lo que S4 explicó sobre los ficheros pequeños:
-¿es la pareja año-mes una buena elección para SF3? ¿Qué cambiarías
-—particionar sólo por <code>sold_year</code>, o reagrupar más filas por fichero— y qué
-pasaría con un dataset mil veces mayor?</p>
+<p>Compara esas cifras con el tamaño de bloque de este clúster (64 MiB,
+<code>dfs.blocksize</code>, S1) y con lo que S4 explicó sobre los ficheros pequeños.
+En SF3 ningún fichero de <code>silver</code> llena ni de lejos un bloque, y
+particionar ha multiplicado el número de ficheros respecto a la salida de
+control para los mismos datos: <strong>la pareja año-mes es más fina de lo que
+este volumen justifica</strong>. Particionar sólo por <code>sold_year</code> daría cinco
+ficheros de unos 10 MiB y uno diminuto para 2003. La mantenemos por
+motivos docentes, porque permite ver la poda en dos niveles.</p>
+<p>Con un dataset mil veces mayor la conclusión cambia: cada mes pesaría
+cientos de MiB, varios bloques, y la pareja año-mes estaría justificada.
+Como decíamos al diseñar las particiones, la granularidad depende de la
+escala. ¿Qué elegirías para SF3 y qué para SF1000: particionar sólo por
+año, mantener año y mes, o reagrupar más filas por fichero?</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10370,13 +10418,13 @@ genérico:</p>
 </tr>
 <tr>
 <td>Refinada sin particionar</td>
-<td><code>/user/luser/s5/web_sales_silver_sin_particionar</code>, un directorio, mismas filas que la fuente menos las que no tienen fecha</td>
+<td><code>/user/luser/s5/web_sales_silver_sin_particionar</code>, un directorio con pocos ficheros grandes (<code>control_data_files</code>), mismas filas que la fuente menos las que no tienen fecha</td>
 <td><code>silver_count</code> filas: <code>raw_count</code> menos <code>missing_date_count</code> (comprobado con <code>assert</code>), no <code>raw_count</code> exacto</td>
 <td>Qué aporta la transformación por sí sola: columnas de negocio limpias, <code>ws_sold_date</code> derivada, líneas sin fecha ya descartadas de forma documentada, sin reorganización física todavía</td>
 </tr>
 <tr>
 <td>Refinada particionada</td>
-<td><code>/datalake/silver/tpcds/web_sales/sold_year=.../sold_month=...</code>, un subdirectorio por combinación año/mes</td>
+<td><code>/datalake/silver/tpcds/web_sales/sold_year=.../sold_month=...</code>, un subdirectorio por combinación año/mes, con un fichero pequeño en cada uno (<code>full_scan_files</code>)</td>
 <td>Las mismas filas que la versión sin particionar, repartidas entre directorios (ver <code>year_counts</code> más arriba)</td>
 <td>Qué datos puede evitar leer una consulta que se limita a un año: compara <code>full_scan_files</code> con <code>filtered_files</code> — si el segundo es menor, la poda de particiones ha descartado directorios completos. La consulta de un cliente, en cambio, abre todos los ficheros</td>
 </tr>
@@ -10390,13 +10438,13 @@ genérico:</p>
 </table>
 <p>Las columnas "Filas" de esta tabla no son números fijos de esta plantilla:
 son los valores impresos por <code>raw_count</code>, <code>silver_count</code>,
-<code>missing_date_count</code>, <code>year_counts</code>, <code>full_scan_files</code> y
-<code>filtered_files</code> en las celdas de arriba, en esta misma ejecución del
+<code>missing_date_count</code>, <code>year_counts</code>, <code>full_scan_files</code>,
+<code>filtered_files</code> y <code>control_data_files</code> en las celdas de arriba, en esta misma ejecución del
 notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=117">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10409,7 +10457,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=118">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=120">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10422,7 +10470,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=121">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10436,7 +10484,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10482,7 +10530,7 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10511,7 +10559,7 @@ no en dónde viven los bytes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10549,7 +10597,7 @@ un ejemplo concreto de esta sesión en qué momento lo has notado.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10621,7 +10669,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=124">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=126">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10635,7 +10683,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10651,7 +10699,7 @@ avances por el curso.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
