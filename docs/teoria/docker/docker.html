@@ -561,7 +561,7 @@ EXPOSE / CMD                                ✘ se repiten (instantáneas)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-paginate="true" data-footer="TCDM · Curso 2026/2027 · Docker y Docker Compose" data-class="code" data-theme="tcdm" data-lang="es" lang="es" class="code" data-marpit-pagination="27" style="--paginate:true;--footer:TCDM · Curso 2026/2027 · Docker y Docker Compose;--class:code;--theme:tcdm;--lang:es" data-marpit-pagination-total="64" data-size="16:9">
 <h1 id="construcci%C3%B3n-en-varias-etapas-desde-s6">Construcción en varias etapas (desde S6)</h1>
 <p><code>entorno/hive-metastore/Dockerfile</code>, que llega con la sesión 6:</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-dockerfile"><span class="hljs-keyword">ARG</span> HIVE_IMAGE=apache/hive:<span class="hljs-number">4.2</span>.<span class="hljs-number">1</span>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-dockerfile"><span class="hljs-keyword">ARG</span> HIVE_IMAGE=apache/hive:standalone-metastore-<span class="hljs-number">4.2</span>.<span class="hljs-number">1</span>
 
 <span class="hljs-keyword">FROM</span> scratch AS postgresql-jdbc
 <span class="hljs-keyword">ARG</span> POSTGRES_JDBC_VERSION=<span class="hljs-number">42.7</span>.<span class="hljs-number">13</span>
@@ -570,11 +570,7 @@ EXPOSE / CMD                                ✘ se repiten (instantáneas)
     /postgresql.jar</span>
 
 <span class="hljs-keyword">FROM</span> ${HIVE_IMAGE}
-<span class="hljs-keyword">USER</span> root
 <span class="hljs-keyword">COPY</span><span class="language-bash"> --from=postgresql-jdbc --<span class="hljs-built_in">chown</span>=hive:hive /postgresql.jar /opt/hive/lib/postgres.jar</span>
-<span class="hljs-keyword">COPY</span><span class="language-bash"> --<span class="hljs-built_in">chmod</span>=755 entrypoint-tcdm.sh /entrypoint-tcdm.sh</span>
-<span class="hljs-keyword">USER</span> hive
-<span class="hljs-keyword">ENTRYPOINT</span><span class="language-bash"> [<span class="hljs-string">&quot;/entrypoint-tcdm.sh&quot;</span>]</span>
 </code></pre>
 <ul>
 <li>La primera etapa (<code>FROM scratch</code>, vacía) sólo descarga y verifica el <code>.jar</code></li>
@@ -977,26 +973,25 @@ NAMENODE_IMAGE=prueba/otra:1 \
 <footer>TCDM · Curso 2026/2027 · Docker y Docker Compose</footer>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="46" data-paginate="true" data-footer="TCDM · Curso 2026/2027 · Docker y Docker Compose" data-class="code" data-theme="tcdm" data-lang="es" lang="es" class="code" data-marpit-pagination="46" style="--paginate:true;--footer:TCDM · Curso 2026/2027 · Docker y Docker Compose;--class:code;--theme:tcdm;--lang:es" data-marpit-pagination-total="64" data-size="16:9">
-<h1 id="salud-y-dependencias-compose-trinoyml">Salud y dependencias: <code>compose-trino.yml</code></h1>
+<h1 id="salud-y-dependencias-compose-warehouse-hdfsyml">Salud y dependencias: <code>compose-warehouse-hdfs.yml</code></h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-yaml"><span class="hljs-attr">services:</span>
-  <span class="hljs-attr">rustfs-lakehouse:</span>
-    <span class="hljs-attr">image:</span> <span class="hljs-string">rustfs/rustfs:${RUSTFS_VERSION:-latest}</span>
+  <span class="hljs-attr">postgresql-metastore:</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">postgres:${POSTGRES_VERSION:-17-alpine}</span>
     <span class="hljs-attr">volumes:</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-string">rustfs-data:/data</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">postgresql-metastore-data:/var/lib/postgresql/data</span>
     <span class="hljs-attr">healthcheck:</span>
-      <span class="hljs-attr">test:</span> [<span class="hljs-string">&quot;CMD-SHELL&quot;</span>, <span class="hljs-string">&quot;curl --fail http://127.0.0.1:9000/health &amp;&amp; ...&quot;</span>]
-      <span class="hljs-attr">interval:</span> <span class="hljs-string">10s</span>
-  <span class="hljs-attr">bucket-setup:</span>
-    <span class="hljs-attr">image:</span> <span class="hljs-string">amazon/aws-cli:latest</span>
+      <span class="hljs-attr">test:</span> [<span class="hljs-string">&quot;CMD-SHELL&quot;</span>, <span class="hljs-string">&quot;pg_isready -U hive -d metastore_db&quot;</span>]
+      <span class="hljs-attr">interval:</span> <span class="hljs-string">5s</span>
+  <span class="hljs-attr">hive-metastore:</span>
     <span class="hljs-attr">depends_on:</span>
-      <span class="hljs-attr">rustfs-lakehouse:</span>
-        <span class="hljs-attr">condition:</span> <span class="hljs-string">service_healthy</span>     <span class="hljs-comment"># espera a que RustFS responda</span>
-    <span class="hljs-attr">entrypoint:</span> [<span class="hljs-string">&quot;/bin/sh&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>]
-    <span class="hljs-attr">command:</span> [<span class="hljs-string">&quot;aws s3 mb s3://$${ICEBERG_BUCKET}&quot;</span>]   <span class="hljs-comment"># simplificado</span>
+      <span class="hljs-attr">postgresql-metastore:</span>
+        <span class="hljs-attr">condition:</span> <span class="hljs-string">service_healthy</span>     <span class="hljs-comment"># espera a que PostgreSQL responda</span>
+    <span class="hljs-attr">healthcheck:</span>                       <span class="hljs-comment"># Thrift (9083) e Iceberg REST (9001)</span>
+      <span class="hljs-attr">test:</span> [<span class="hljs-string">&quot;CMD-SHELL&quot;</span>, <span class="hljs-string">&quot;bash -c &#x27;echo &gt; /dev/tcp/127.0.0.1/9083&#x27; &amp;&amp; curl ...&quot;</span>]
 </code></pre>
 <ul>
 <li><code>healthcheck</code>: Docker ejecuta la prueba y marca <code>healthy</code> o <code>unhealthy</code></li>
-<li><code>bucket-setup</code> es de un solo uso: espera a RustFS, crea el bucket y termina</li>
+<li><code>depends_on</code> con <code>service_healthy</code> arranca cada servicio cuando el anterior ya responde, no sólo cuando su proceso existe</li>
 </ul>
 <footer>TCDM · Curso 2026/2027 · Docker y Docker Compose</footer>
 </section>
@@ -1007,8 +1002,8 @@ NAMENODE_IMAGE=prueba/otra:1 \
     <span class="hljs-attr">build:</span>
       <span class="hljs-attr">context:</span> <span class="hljs-string">./hive-metastore</span>            <span class="hljs-comment"># directorio con el Dockerfile</span>
       <span class="hljs-attr">args:</span>
-        <span class="hljs-attr">HIVE_IMAGE:</span> <span class="hljs-string">apache/hive:${HIVE_VERSION:-3.1.3}</span>
-    <span class="hljs-attr">image:</span> <span class="hljs-string">tcdm/hive-metastore:${HIVE_VERSION:-3.1.3}</span>   <span class="hljs-comment"># nombre de la imagen</span>
+        <span class="hljs-attr">HIVE_IMAGE:</span> <span class="hljs-string">apache/hive:standalone-metastore-${HIVE_VERSION:-4.2.1}</span>
+    <span class="hljs-attr">image:</span> <span class="hljs-string">tcdm/hive-metastore:${HIVE_VERSION:-4.2.1}</span>   <span class="hljs-comment"># nombre de la imagen</span>
   <span class="hljs-attr">trino-hdfs:</span>
     <span class="hljs-attr">volumes:</span>
       <span class="hljs-bullet">-</span> <span class="hljs-string">./trino-hdfs/etc:/etc/trino:ro</span>     <span class="hljs-comment"># configuración desde tu equipo</span>
@@ -1098,8 +1093,7 @@ NAMENODE_IMAGE=prueba/otra:1 \
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash"><span class="hljs-comment"># equipo</span>
 make -n -C entorno clean-hdfs
 </code></pre>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-text">if test -e compose-trino.yml; then docker compose -f compose-trino.yml down -v; fi
-if test -e compose-s3.yml; then docker compose -f compose-s3.yml down -v; fi
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-text">if test -e compose-s3.yml; then docker compose -f compose-s3.yml down -v; fi
 if test -e compose-warehouse-hdfs.yml; then docker compose -f ... down -v; fi
 docker compose -f compose-hadoop-cluster.yml down
 docker volume rm -f tcdm-26-27-namenode-data tcdm-26-27-datanode1-data ...

@@ -9,14 +9,13 @@ export S3_BUCKET
 HADOOP_COMPOSE := docker compose -f compose-hadoop-cluster.yml
 WAREHOUSE_COMPOSE := docker compose -f compose-warehouse-hdfs.yml
 S3_COMPOSE := docker compose -f compose-s3.yml
-LAKEHOUSE_COMPOSE := docker compose -f compose-trino.yml
 
 # Nombres explícitos declarados en compose-hadoop-cluster.yml; deben
 # coincidir con los `volumes:.name:` de ese fichero.
 HDFS_VOLUMES := tcdm-26-27-namenode-data tcdm-26-27-datanode1-data \
 	tcdm-26-27-datanode2-data tcdm-26-27-datanode3-data
 
-.PHONY: actualizar network hadoop-up warehouse-up s3-up lakehouse-up jupyter status stop down clean clean-hdfs
+.PHONY: actualizar network hadoop-up warehouse-up s3-up jupyter status stop down clean clean-hdfs
 
 # Trae la última versión publicada del material sin fusionar nada, para que
 # nunca haya conflictos que resolver. Sustituye a `git pull`, que se niega a
@@ -96,11 +95,6 @@ warehouse-up: hadoop-up
 s3-up: network
 	$(S3_COMPOSE) up -d
 
-# Laboratorio opcional de Iceberg con Polaris, Trino y RustFS (compose-trino.yml).
-# No depende de HDFS ni de RustFS de s3-up: su RustFS tiene otro nombre.
-lakehouse-up: network
-	$(LAKEHOUSE_COMPOSE) up -d --build
-
 # Arranca Jupyter Lab dentro de namenode como luser, con el entorno Python del
 # curso (/opt/tcdm/venv). El token es siempre «tcdm» (el puerto 8888 sólo se
 # publica en 127.0.0.1), así que la dirección que hay que pegar en Visual
@@ -117,7 +111,6 @@ status:
 	$(HADOOP_COMPOSE) ps -a
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) ps -a; fi
 	if test -e compose-s3.yml; then $(S3_COMPOSE) ps -a; fi
-	if test -e compose-trino.yml; then $(LAKEHOUSE_COMPOSE) ps -a; fi
 
 # Parar y borrar: cuatro órdenes, de menos a más destructiva.
 #
@@ -127,7 +120,7 @@ status:
 #   clean-hdfs  clean + borra HDFS          no conserva ningún dato
 #
 # Después de cualquiera de ellas se vuelve a arrancar con `hadoop-up`,
-# `warehouse-up`, `s3-up` o `lakehouse-up`.
+# `warehouse-up` o `s3-up`.
 
 # Para los contenedores sin eliminarlos. No se pierde nada: ni los volúmenes
 # ni lo que hay dentro de cada contenedor (ficheros del directorio de trabajo
@@ -135,28 +128,25 @@ status:
 # posterior reanuda los mismos contenedores. Lo único que no vuelve solo es
 # Jupyter, que hay que lanzar de nuevo.
 stop:
-	if test -e compose-trino.yml; then $(LAKEHOUSE_COMPOSE) stop; fi
 	if test -e compose-s3.yml; then $(S3_COMPOSE) stop; fi
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) stop; fi
 	$(HADOOP_COMPOSE) stop
 
 # Elimina los contenedores y conserva los volúmenes. Sobreviven los datos
 # HDFS (volúmenes namenode-data y datanodeN-data de
-# compose-hadoop-cluster.yml), los metadatos del Hive Metastore, los objetos
-# de S3 y los del laboratorio Iceberg: un `up -d` posterior crea contenedores
+# compose-hadoop-cluster.yml), los metadatos del Hive Metastore y los objetos
+# de S3: un `up -d` posterior crea contenedores
 # nuevos sobre esos mismos volúmenes. Se pierde lo que vivía en la capa de
 # escritura de los contenedores.
 down:
-	if test -e compose-trino.yml; then $(LAKEHOUSE_COMPOSE) down; fi
 	if test -e compose-s3.yml; then $(S3_COMPOSE) down; fi
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) down; fi
 	$(HADOOP_COMPOSE) down
 
 # Como `down`, y además borra el volumen de metadatos de PostgreSQL (Hive
-# Metastore), el de S3 y el del laboratorio Iceberg. El HDFS de Hadoop no se
+# Metastore) y el de S3. El HDFS de Hadoop no se
 # toca aquí: usa `clean-hdfs` para eso, de forma explícita y separada.
 clean:
-	if test -e compose-trino.yml; then $(LAKEHOUSE_COMPOSE) down -v; fi
 	if test -e compose-s3.yml; then $(S3_COMPOSE) down -v; fi
 	if test -e compose-warehouse-hdfs.yml; then $(WAREHOUSE_COMPOSE) down -v; fi
 	$(HADOOP_COMPOSE) down

@@ -8282,7 +8282,7 @@ dejó el estado que necesita esta sesión; el notebook no lo reconstruye.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Configurar el catálogo Iceberg de Spark</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Catálogo tipo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hive</code>, contra el mismo Thrift que usa Trino</li><li style="margin:10px 0;list-style-position:outside">Spark escribe los dos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">MERGE</code> dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">foreachBatch</code></li><li style="margin:10px 0;list-style-position:outside">Trino sólo confirma leyendo, como verificación independiente</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Configurar el catálogo Iceberg de Spark</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Catálogo tipo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rest</code>, el mismo catálogo Iceberg REST que usa Trino</li><li style="margin:10px 0;list-style-position:outside">Spark escribe los dos <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">MERGE</code> dentro de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">foreachBatch</code></li><li style="margin:10px 0;list-style-position:outside">Trino sólo confirma leyendo, como verificación independiente</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8294,18 +8294,18 @@ dejó el estado que necesita esta sesión; el notebook no lo reconstruye.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="C%C3%B3mo-configuramos-el-cat%C3%A1logo-Iceberg-de-Spark">Cómo configuramos el catálogo Iceberg de Spark<a class="anchor-link" href="#C%C3%B3mo-configuramos-el-cat%C3%A1logo-Iceberg-de-Spark">¶</a></h2><p>Esta sesión declara un catálogo Iceberg de Spark respaldado por Hive
-Metastore, exactamente el mismo patrón que ya usan S6 (catálogo Hive
-nativo) y S7 (catálogo Iceberg): <code>spark.sql.catalog.iceberg</code> de tipo
-<code>hive</code>, apuntando al mismo <code>thrift://hive-metastore:9083</code> que usa Trino. A
-partir de esa configuración, Spark lee y escribe <code>iceberg.tcdm.*</code>
+<h2 id="C%C3%B3mo-configuramos-el-cat%C3%A1logo-Iceberg-de-Spark">Cómo configuramos el catálogo Iceberg de Spark<a class="anchor-link" href="#C%C3%B3mo-configuramos-el-cat%C3%A1logo-Iceberg-de-Spark">¶</a></h2><p>Esta sesión declara el mismo catálogo Iceberg de Spark que S7:
+<code>spark.sql.catalog.iceberg</code> de tipo <code>rest</code>, apuntando al catálogo Iceberg
+REST que publica el Hive Metastore (<code>http://hive-metastore:9001/iceberg</code>),
+el mismo que usa Trino. A diferencia de S6 y S7, aquí no hace falta el
+soporte Hive de Spark (<code>enableHiveSupport()</code>): esta sesión sólo trabaja con
+tablas Iceberg. A partir de esa configuración, Spark lee y escribe <code>iceberg.tcdm.*</code>
 directamente con <code>spark.sql(...)</code>: el <code>MERGE INTO</code> que cada micro-lote de
 streaming ejecuta más abajo, en <code>foreachBatch</code>, lo hace Spark, sin ningún
 motor ni tabla intermedios.</p>
-<p>Spark habla con este catálogo con su cliente por defecto porque la versión
-fijada del curso es Hive Metastore <code>3.1.3</code>; la justificación completa está
-en <code>entorno/README.md</code>, sección "Versiones fijadas y compatibilidad". El
-resto de esta sesión usa <code>spark.sql(...)</code> para las dos operaciones que de
+<p>S7 explica por qué el catálogo es REST y no el de tipo <code>hive</code> por Thrift; la
+justificación completa está en <code>entorno/README.md</code>, sección "Versiones
+fijadas y compatibilidad". El resto de esta sesión usa <code>spark.sql(...)</code> para las dos operaciones que de
 verdad importan aquí —el <code>MERGE INTO</code> hacia <em>silver</em> y hacia <em>gold</em> dentro
 de <code>foreachBatch</code>— y sigue usando <code>run_trino(...)</code> en las celdas que sólo
 leen, como comprobación independiente de que ambos motores ven exactamente
@@ -8393,15 +8393,26 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkSession</span>
 
 <span class="n">ICEBERG_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1.11.0"</span>
 <span class="n">ICEBERG_RUNTIME_PACKAGE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
     <span class="sa">f</span><span class="s2">"org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:</span><span class="si">{</span><span class="n">ICEBERG_VERSION</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
-<span class="n">HIVE_METASTORE_URIS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"thrift://hive-metastore:9083"</span>
-<span class="n">WAREHOUSE_DIR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hdfs://namenode:9000/warehouse"</span>
+<span class="c1"># La imagen de namenode trae el runtime de Iceberg en /opt/tcdm/jars. Con una</span>
+<span class="c1"># imagen anterior que no lo tenga, Spark lo descarga de Maven Central.</span>
+<span class="n">ICEBERG_SPARK_JAR</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Path</span><span class="p">(</span><span class="s2">"/opt/tcdm/jars"</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"iceberg-spark-runtime-4.1_2.13-</span><span class="si">{</span><span class="n">ICEBERG_VERSION</span><span class="si">}</span><span class="s2">.jar"</span>
+<span class="p">)</span>
+<span class="n">ICEBERG_JAR_CONF</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span><span class="s2">"spark.jars"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"file://</span><span class="si">{</span><span class="n">ICEBERG_SPARK_JAR</span><span class="si">}</span><span class="s2">"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">ICEBERG_SPARK_JAR</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="k">else</span> <span class="p">{</span><span class="s2">"spark.jars.packages"</span><span class="p">:</span> <span class="n">ICEBERG_RUNTIME_PACKAGE</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">ICEBERG_REST_URI</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"http://hive-metastore:9001/iceberg"</span>
 
 <span class="n">spark</span><span class="p">:</span> <span class="n">SparkSession</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">"TCDM_S8_Streaming"</span><span class="p">)</span>
@@ -8419,14 +8430,13 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.yarn.isPython"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.driver.memory"</span><span class="p">,</span> <span class="s2">"1g"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.shuffle.partitions"</span><span class="p">,</span> <span class="s2">"8"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.jars.packages"</span><span class="p">,</span> <span class="n">ICEBERG_RUNTIME_PACKAGE</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="nb">map</span><span class="o">=</span><span class="n">ICEBERG_JAR_CONF</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span>
         <span class="s2">"spark.sql.extensions"</span><span class="p">,</span> <span class="s2">"org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"</span>
     <span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg"</span><span class="p">,</span> <span class="s2">"org.apache.iceberg.spark.SparkCatalog"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.type"</span><span class="p">,</span> <span class="s2">"hive"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.uri"</span><span class="p">,</span> <span class="n">HIVE_METASTORE_URIS</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.warehouse"</span><span class="p">,</span> <span class="n">WAREHOUSE_DIR</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.type"</span><span class="p">,</span> <span class="s2">"rest"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.uri"</span><span class="p">,</span> <span class="n">ICEBERG_REST_URI</span><span class="p">)</span>
     <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
 <span class="p">)</span>
 <span class="n">sc</span><span class="p">:</span> <span class="n">SparkContext</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sparkContext</span>
@@ -8436,8 +8446,8 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Spark version: </span><span class="si">{</span><span class="n">spark</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> | Master: </span><span class="si">{</span><span class="n">sc</span><span class="o">.</span><span class="n">master</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Paquete Iceberg: </span><span class="si">{</span><span class="n">ICEBERG_RUNTIME_PACKAGE</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Catálogo Iceberg: iceberg (Hive Metastore </span><span class="si">{</span><span class="n">HIVE_METASTORE_URIS</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Paquete Iceberg: </span><span class="si">{</span><span class="n">ICEBERG_RUNTIME_PACKAGE</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">ICEBERG_JAR_CONF</span><span class="p">))</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Catálogo Iceberg: iceberg (Iceberg REST </span><span class="si">{</span><span class="n">ICEBERG_REST_URI</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -10222,8 +10232,168 @@ datos de origen.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El mismo catálogo, en la nube</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">No cambian las tablas, el SQL, el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">MERGE</code> ni la consulta de streaming</li><li style="margin:10px 0;list-style-position:outside">Cambian la URI del catálogo, el esquema de las rutas y el paquete de acceso al almacenamiento</li><li style="margin:10px 0;list-style-position:outside">En la nube, el catálogo puede entregar credenciales temporales por tabla</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Del-laboratorio-a-la-nube:-S3,-GCS-o-Azure">Del laboratorio a la nube: S3, GCS o Azure<a class="anchor-link" href="#Del-laboratorio-a-la-nube:-S3,-GCS-o-Azure">¶</a></h2><p>Todo el curso guarda las tablas Iceberg en HDFS, pero en un entorno
+profesional lo habitual es que vivan en un almacenamiento de objetos: Amazon
+S3, Google Cloud Storage (GCS) o Azure Data Lake Storage Gen2 (ADLS). S3 ya
+mostró ese modelo con RustFS. La buena noticia es que casi nada de esta
+sesión depende de HDFS: los nombres <code>iceberg.tcdm.web_sales</code> y
+<code>iceberg.tcdm.web_sales_by_year</code>, los <code>MERGE INTO</code>, <code>foreachBatch</code> y la
+comprobación de coherencia serían idénticos. Lo que cambia es la
+configuración de la <code>SparkSession</code>, en cuatro puntos.</p>
+<p><strong>1. El catálogo sigue siendo REST, pero lo sirve otro servidor.</strong> La API
+Iceberg REST que usa el notebook (<code>spark.sql.catalog.iceberg.type=rest</code>) es
+la misma que ofrecen los catálogos de los proveedores: AWS Glue y S3 Tables
+en AWS, BigLake metastore en Google Cloud, Unity Catalog en Databricks
+(también sobre Azure), o un Apache Polaris propio. Cambian la <code>uri</code>, el
+<code>warehouse</code> (que cada servidor interpreta a su manera: un identificador de
+cuenta, un bucket o un nombre de catálogo) y la autenticación, que aquí no
+existía porque el laboratorio es local.</p>
+<p><strong>2. Las rutas cambian de esquema.</strong> La ubicación de cada tabla la decide el
+catálogo, igual que aquí decidía el Hive Metastore <code>/warehouse/tcdm.db/...</code>:
+pasa a ser <code>s3://...</code>, <code>gs://...</code> o <code>abfss://...</code>. Iceberg elige la
+implementación de acceso a ficheros (<em>FileIO</em>) según ese esquema: con un
+catálogo REST usa por defecto <code>ResolvingFileIO</code>, que delega en
+<code>HadoopFileIO</code> para <code>hdfs://</code>, <code>S3FileIO</code> para <code>s3://</code>, <code>GCSFileIO</code> para
+<code>gs://</code> y <code>ADLSFileIO</code> para <code>abfss://</code>. Por eso este notebook no declara
+ningún FileIO, y en la nube normalmente tampoco haría falta.</p>
+<p><strong>3. Hay que añadir el paquete de ese FileIO.</strong> <code>iceberg-spark-runtime</code> no
+incluye los SDK de los proveedores. Cada uno tiene su paquete, de la misma
+versión de Iceberg: <code>iceberg-aws-bundle</code>, <code>iceberg-gcp-bundle</code> o
+<code>iceberg-azure-bundle</code>, que se añaden a <code>spark.jars.packages</code>.</p>
+<p><strong>4. Las credenciales.</strong> En HDFS, Spark escribe como <code>luser</code> sin
+autenticarse. En la nube, quien escribe necesita permiso sobre el bucket. Lo
+más cómodo es que lo aporte la máquina que ejecuta Spark (un rol IAM en AWS,
+una cuenta de servicio en Google Cloud o una identidad administrada en
+Azure). Muchos catálogos REST pueden además <strong>entregar credenciales
+temporales</strong> limitadas a cada tabla (<em>credential vending</em>): el cliente lo
+pide con la cabecera <code>X-Iceberg-Access-Delegation: vended-credentials</code>, y
+así el catálogo decide quién puede leer o escribir qué tabla, no sólo quién
+puede ver su definición.</p>
+<p>Como ejemplo, esta sería la <code>SparkSession</code> de esta sesión con las tablas en
+S3 y el catálogo Iceberg REST de AWS Glue, que se autentica firmando cada
+petición con las credenciales de AWS (SigV4). No se ejecuta: el laboratorio
+no tiene acceso a AWS.</p>
+<div class="highlight"><pre><span></span><span class="n">spark</span><span class="p">:</span> <span class="n">SparkSession</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">"TCDM_S8_Streaming"</span><span class="p">)</span>
+    <span class="c1"># ... la misma configuración de recursos, en YARN o en Amazon EMR ...</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span>
+        <span class="s2">"spark.jars.packages"</span><span class="p">,</span>
+        <span class="s2">"org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0,"</span>
+        <span class="s2">"org.apache.iceberg:iceberg-aws-bundle:1.11.0"</span><span class="p">,</span>  <span class="c1"># S3FileIO y SigV4</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span>
+        <span class="s2">"spark.sql.extensions"</span><span class="p">,</span> <span class="s2">"org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg"</span><span class="p">,</span> <span class="s2">"org.apache.iceberg.spark.SparkCatalog"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.type"</span><span class="p">,</span> <span class="s2">"rest"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.uri"</span><span class="p">,</span> <span class="s2">"https://glue.us-east-1.amazonaws.com/iceberg"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.warehouse"</span><span class="p">,</span> <span class="s2">"123456789012"</span><span class="p">)</span>  <span class="c1"># id de la cuenta</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.rest.auth.type"</span><span class="p">,</span> <span class="s2">"sigv4"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.rest.signing-name"</span><span class="p">,</span> <span class="s2">"glue"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.rest.signing-region"</span><span class="p">,</span> <span class="s2">"us-east-1"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+<p>Comparado con la celda de «Construir la SparkSession», sólo cambian el
+paquete adicional, la <code>uri</code>, el <code>warehouse</code> y las tres propiedades de
+autenticación (<code>rest.auth.type=sigv4</code> y la región y el servicio con los que
+se firma). Con otro proveedor cambiarían esas mismas líneas: el paquete de su
+FileIO y la forma de autenticarse ante su catálogo, por ejemplo
+<code>rest.auth.type=google</code> con las credenciales de Google Cloud, u OAuth2 con
+<code>spark.sql.catalog.iceberg.credential</code> en Polaris o Unity Catalog.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>HDFS (este curso)</th>
+<th>S3</th>
+<th>GCS</th>
+<th>ADLS Gen2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ubicación de las tablas</td>
+<td><code>hdfs://namenode:9000/warehouse/...</code></td>
+<td><code>s3://&lt;bucket&gt;/...</code></td>
+<td><code>gs://&lt;bucket&gt;/...</code></td>
+<td><code>abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/...</code></td>
+</tr>
+<tr>
+<td>FileIO de Iceberg</td>
+<td><code>HadoopFileIO</code></td>
+<td><code>S3FileIO</code></td>
+<td><code>GCSFileIO</code></td>
+<td><code>ADLSFileIO</code></td>
+</tr>
+<tr>
+<td>Paquete adicional</td>
+<td>ninguno</td>
+<td><code>iceberg-aws-bundle</code></td>
+<td><code>iceberg-gcp-bundle</code></td>
+<td><code>iceberg-azure-bundle</code></td>
+</tr>
+<tr>
+<td>Catálogo REST habitual</td>
+<td>Hive Metastore</td>
+<td>AWS Glue, S3 Tables, Polaris</td>
+<td>BigLake metastore, Polaris</td>
+<td>Unity Catalog, Polaris</td>
+</tr>
+<tr>
+<td>Credenciales</td>
+<td>ninguna (<code>luser</code>)</td>
+<td>rol IAM o credenciales temporales</td>
+<td>cuenta de servicio</td>
+<td>identidad administrada</td>
+</tr>
+</tbody>
+</table>
+<p>Queda un detalle que no es de Iceberg: la fuente de la consulta de streaming
+(<code>LANDING_PATH</code>) y su <em>checkpoint</em> no son tablas, sino directorios que Spark
+lee y escribe con los conectores de sistema de ficheros de Hadoop. En la nube
+también tendrían que estar en almacenamiento duradero, y para eso se usan
+esos conectores (<code>s3a://</code> con <code>hadoop-aws</code>, <code>gs://</code> con el conector de GCS,
+<code>abfss://</code> con <code>hadoop-azure</code>), que se configuran aparte del catálogo. Un
+<em>checkpoint</em> en el disco local del driver se perdería con la máquina.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Si mañana <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg.tcdm.web_sales</code> pasara a S3, ¿qué líneas de este notebook cambiarías y cuáles quedarían igual?</li><li style="margin:10px 0;list-style-position:outside">¿Qué ventaja tiene que el catálogo entregue las credenciales de cada tabla en vez de dárselas a la máquina?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10248,7 +10418,7 @@ paneles "como código" mediante su API REST.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10308,7 +10478,7 @@ equivalente en S1 (clúster Hadoop) es el borrado de volúmenes con
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10318,7 +10488,7 @@ equivalente en S1 (clúster Hadoop) es el borrado de volúmenes con
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10333,7 +10503,7 @@ equivalente en S1 (clúster Hadoop) es el borrado de volúmenes con
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10366,12 +10536,15 @@ micro-lotes procesados?</li>
 <li>¿Qué parte de esta sesión cambiaría si, en vez de un generador
 simulado, los datos llegaran realmente por Kafka? ¿Qué parte del
 <code>foreachBatch</code> seguiría siendo exactamente igual?</li>
+<li>Si las tablas Iceberg vivieran en S3 con un catálogo REST gestionado, ¿qué
+cuatro aspectos de la configuración de Spark cambiarían? ¿Por qué el código
+de <code>foreachBatch</code> no tendría que cambiar?</li>
 </ul>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10429,7 +10602,7 @@ evidencia de que la ingesta continua es correcta.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=107">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=110">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10443,7 +10616,7 @@ evidencia de que la ingesta continua es correcta.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=108">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

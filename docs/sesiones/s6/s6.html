@@ -8255,7 +8255,7 @@ las sesiones S2-S8; la imagen de <code>namenode</code> ya trae esos paquetes en
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Dos clientes del mismo metastore</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">enableHiveSupport()</code> más la URI Thrift del Hive Metastore</li><li style="margin:10px 0;list-style-position:outside">El cliente Python <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">trino</code> habla con Trino sobre la misma red Docker</li><li style="margin:10px 0;list-style-position:outside">Sin CLI de Trino ni <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code> desde el kernel</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Dos clientes del mismo metastore</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">enableHiveSupport()</code>, la URI Thrift del Hive Metastore y su cliente Hive 4.1.0</li><li style="margin:10px 0;list-style-position:outside">El cliente Python <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">trino</code> habla con Trino sobre la misma red Docker</li><li style="margin:10px 0;list-style-position:outside">Sin CLI de Trino ni <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">docker exec</code> desde el kernel</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8269,8 +8269,9 @@ las sesiones S2-S8; la imagen de <code>namenode</code> ya trae esos paquetes en
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Construir-la-SparkSession-con-soporte-Hive">Construir la SparkSession con soporte Hive<a class="anchor-link" href="#Construir-la-SparkSession-con-soporte-Hive">¶</a></h2><p>A diferencia de S4 —donde Spark leía Parquet directamente por ruta y no
 necesitaba ningún catálogo—, aquí Spark debe hablar con el <strong>mismo</strong> Hive
-Metastore que usa Trino. Eso exige dos configuraciones explícitas, además de
-<code>enableHiveSupport()</code>:</p>
+Metastore que usa Trino. Eso exige cuatro configuraciones explícitas, además
+de <code>enableHiveSupport()</code>. Las dos primeras dicen dónde está el metastore y
+dónde están los datos:</p>
 <ul>
 <li><code>spark.hadoop.hive.metastore.uris</code>: la URI Thrift del metastore,
 <code>thrift://hive-metastore:9083</code>. Es el mismo puerto que declara el
@@ -8278,14 +8279,33 @@ Metastore que usa Trino. Eso exige dos configuraciones explícitas, además de
 <code>entorno/compose-warehouse-hdfs.yml</code>.</li>
 <li><code>spark.sql.warehouse.dir</code>: la ubicación por defecto de las tablas
 administradas, <code>hdfs://namenode:9000/warehouse</code>. Coincide con
-<code>hive.metastore.warehouse.dir</code>, que ese mismo entorno fija en
-<code>entorno/hive-metastore/conf/hive-site.xml</code> para <code>hive-metastore</code>, para
-que Spark y Hive elijan la misma ruta si alguno crea una tabla
+<code>metastore.warehouse.dir</code>, que ese mismo entorno fija en
+<code>entorno/hive-metastore/conf/metastore-site.xml</code> para <code>hive-metastore</code>,
+para que Spark y el metastore elijan la misma ruta si alguno crea una tabla
 administrada sin indicar <code>LOCATION</code>.</li>
 </ul>
-<p>Spark habla con este metastore con su cliente por defecto porque la versión
-fijada del curso es Hive Metastore 3.1.3; la justificación completa está en
-<code>entorno/README.md</code>, sección "Versiones fijadas y compatibilidad".</p>
+<p>Las otras dos no tienen que ver con dónde está el metastore, sino con <strong>qué
+versión</strong> es. El curso usa Hive Metastore 4.2.1, y el cliente Hive que Spark
+incluye por defecto (2.3.10) usa llamadas Thrift que Hive 4 ya no admite: sin
+más ajustes, el primer acceso a una tabla falla con
+<code>Invalid method name: 'get_table'</code>. Spark resuelve ese desajuste cargando, de
+forma aislada, el cliente de otra versión:</p>
+<ul>
+<li><code>spark.sql.hive.metastore.version=4.1.0</code>: la versión del cliente Hive con
+la que Spark habla con el metastore. Es la más reciente que admite Spark
+4.1 y entiende el protocolo del servidor 4.2.1.</li>
+<li><code>spark.sql.hive.metastore.jars</code>: de dónde saca Spark los jars de ese
+cliente, unos 300 MB porque arrastran buena parte de Hive. La imagen de
+<code>namenode</code> ya los trae en <code>/opt/tcdm/hive-metastore-client/4.1.0</code>, y la
+celda los usa con <code>jars=path</code> (y <code>spark.sql.hive.metastore.jars.path</code>). Si
+tu imagen es anterior y no tiene ese directorio, la celda pasa a
+<code>jars=maven</code>: Spark descarga el cliente de Maven Central la primera vez y
+lo guarda en la caché de Ivy de <code>luser</code>, así que esa primera ejecución
+tarda bastante más que las siguientes. La celda imprime cuál de los dos
+modos ha usado.</li>
+</ul>
+<p>La justificación de la versión del metastore está en <code>entorno/README.md</code>,
+sección "Versiones fijadas y compatibilidad".</p>
 <p>Como en la parte distribuida de S4, el driver vive en <code>namenode</code> y YARN
 asigna los ejecutores a los NodeManagers. La celda siguiente cuenta los que
 están <code>RUNNING</code> y solicita, por defecto, un ejecutor por cada uno; YARN decide
@@ -8346,11 +8366,25 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
+<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkSession</span>
 
 <span class="n">HIVE_METASTORE_URIS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"thrift://hive-metastore:9083"</span>
 <span class="n">WAREHOUSE_DIR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hdfs://namenode:9000/warehouse"</span>
+<span class="n">HIVE_CLIENT_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"4.1.0"</span>
+<span class="c1"># La imagen de namenode trae el cliente Hive en este directorio. Con una</span>
+<span class="c1"># imagen anterior que no lo tenga, Spark lo descarga de Maven Central.</span>
+<span class="n">HIVE_CLIENT_DIR</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/opt/tcdm/hive-metastore-client"</span><span class="p">)</span> <span class="o">/</span> <span class="n">HIVE_CLIENT_VERSION</span>
+<span class="n">HIVE_CLIENT_CONF</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"spark.sql.hive.metastore.jars"</span><span class="p">:</span> <span class="s2">"path"</span><span class="p">,</span>
+        <span class="s2">"spark.sql.hive.metastore.jars.path"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"file://</span><span class="si">{</span><span class="n">HIVE_CLIENT_DIR</span><span class="si">}</span><span class="s2">/*.jar"</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">HIVE_CLIENT_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.jar"</span><span class="p">))</span>
+    <span class="k">else</span> <span class="p">{</span><span class="s2">"spark.sql.hive.metastore.jars"</span><span class="p">:</span> <span class="s2">"maven"</span><span class="p">}</span>
+<span class="p">)</span>
 
 <span class="n">spark</span><span class="p">:</span> <span class="n">SparkSession</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">"TCDM_S6_YARN"</span><span class="p">)</span>
@@ -8371,6 +8405,8 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.hadoop.hive.metastore.uris"</span><span class="p">,</span> <span class="n">HIVE_METASTORE_URIS</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.warehouse.dir"</span><span class="p">,</span> <span class="n">WAREHOUSE_DIR</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalogImplementation"</span><span class="p">,</span> <span class="s2">"hive"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.hive.metastore.version"</span><span class="p">,</span> <span class="n">HIVE_CLIENT_VERSION</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="nb">map</span><span class="o">=</span><span class="n">HIVE_CLIENT_CONF</span><span class="p">)</span>
     <span class="o">.</span><span class="n">enableHiveSupport</span><span class="p">()</span>
     <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
 <span class="p">)</span>
@@ -8382,6 +8418,9 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Spark version: </span><span class="si">{</span><span class="n">spark</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> | Master: </span><span class="si">{</span><span class="n">sc</span><span class="o">.</span><span class="n">master</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Metastore URIs: </span><span class="si">{</span><span class="n">HIVE_METASTORE_URIS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"Cliente Hive </span><span class="si">{</span><span class="n">HIVE_CLIENT_VERSION</span><span class="si">}</span><span class="s2">: jars=</span><span class="si">{</span><span class="n">HIVE_CLIENT_CONF</span><span class="p">[</span><span class="s1">'spark.sql.hive.metastore.jars'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warehouse dir: </span><span class="si">{</span><span class="n">WAREHOUSE_DIR</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -8459,7 +8498,8 @@ separado.</p>
 catálogo en SQL: <code>hive.properties</code> da el catálogo <code>hive</code> de las consultas
 <code>hive.tcdm.&lt;tabla&gt;</code>. Esta sesión usa el conector <strong><code>hive</code></strong>, que declara
 tablas sobre ficheros de HDFS (aquí, Parquet) y guarda su definición en
-Hive Metastore; S7 añadirá el conector <code>iceberg</code>, sobre el mismo metastore.</p>
+Hive Metastore; S7 añadirá el conector <code>iceberg</code>, que habla con el mismo
+metastore a través de su catálogo Iceberg REST.</p>
 <div class="highlight"><pre><span></span><span class="c1"># hive.properties</span>
 <span class="na">connector.name</span><span class="o">=</span><span class="s">hive</span>
 <span class="na">hive.metastore</span><span class="o">=</span><span class="s">thrift</span>

@@ -8025,10 +8025,11 @@ versión nueva.</p>
 </pre></div>
 <p>La ruta principal de esta sesión es la de HDFS con Hive Metastore e
 Iceberg, la misma infraestructura de <code>entorno/compose-warehouse-hdfs.yml</code>
-que ya arrancaste en S6. La configuración S3 con RustFS, Polaris y el
-contenedor <code>spark-iceberg</code> que también existe en este entorno es una
-demostración de portabilidad para otro momento del curso, no el primer
-contacto con Iceberg.</p>
+que ya arrancaste en S6. Lo nuevo es cómo se llega al catálogo: el mismo
+Hive Metastore sirve las tablas Iceberg a través de la <strong>API Iceberg REST</strong>,
+el protocolo de catálogo estándar que define el propio proyecto Iceberg, y
+tanto Trino como Spark se conectan a él por ese camino. S8 explica qué
+cambiaría si las tablas vivieran en S3, GCS o Azure en lugar de en HDFS.</p>
 </div>
 </div>
 </div>
@@ -8361,15 +8362,41 @@ contexto por defecto de la conexión.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><code>hive</code> e <code>iceberg</code> deben aparecer los dos: son dos catálogos Trino
-distintos que comparten el mismo Hive Metastore
-(<code>thrift://hive-metastore:9083</code>) como se ve en
-<code>entorno/trino-hdfs/etc/catalog/hive.properties</code> y en
-<code>entorno/trino-hdfs/etc/catalog/iceberg.properties</code>
-(<code>connector.name=iceberg</code>, <code>iceberg.catalog.type=hive_metastore</code>). El
-catálogo <code>hive</code> interpreta las tablas como Parquet/ORC/CSV clásicos; el
-catálogo <code>iceberg</code> interpreta esas mismas entradas de metastore como tablas
-Iceberg cuando su propiedad <code>table_type</code> lo indica. Son dos lentes sobre el
-mismo almacén de metadatos, no dos almacenes distintos.</p>
+distintos respaldados por el mismo Hive Metastore, pero cada uno llega a él
+por una puerta diferente:</p>
+<ul>
+<li><p><code>entorno/trino-hdfs/etc/catalog/hive.properties</code> usa el protocolo Thrift
+clásico de Hive (<code>hive.metastore.uri=thrift://hive-metastore:9083</code>), el
+mismo de S6.</p>
+</li>
+<li><p><code>entorno/trino-hdfs/etc/catalog/iceberg.properties</code> usa la API Iceberg
+REST que el metastore publica en otro puerto:</p>
+<div class="highlight"><pre><span></span><span class="na">connector.name</span><span class="o">=</span><span class="s">iceberg</span>
+<span class="na">iceberg.catalog.type</span><span class="o">=</span><span class="s">rest</span>
+<span class="na">iceberg.rest-catalog.uri</span><span class="o">=</span><span class="s">http://hive-metastore:9001/iceberg</span>
+<span class="na">fs.hadoop.enabled</span><span class="o">=</span><span class="s">true</span>
+</pre></div>
+</li>
+</ul>
+<p>La API Iceberg REST es una especificación abierta (HTTP y JSON) que describe
+las operaciones de un catálogo Iceberg: listar espacios de nombres, cargar
+una tabla, confirmar un nuevo snapshot. Cualquier motor que la hable puede
+usar el catálogo sin incluir el cliente de Hive ni conocer cómo se guardan
+los metadatos por dentro; el servidor traduce cada petición en entradas del
+metastore. Por eso el mismo catálogo sirve igual a Trino que a Spark, o a
+PyIceberg y DuckDB. Cambiar a otro servidor REST (Polaris, Gravitino, AWS
+Glue...) no cambia las consultas, pero sí la configuración de conexión: la
+URI y, según el servidor, el <code>warehouse</code> y las credenciales.</p>
+<p>El catálogo resuelve el nombre de la tabla y dice dónde están sus
+metadatos; no transporta los datos. Trino y Spark siguen leyendo y
+escribiendo los ficheros directamente en HDFS, y por eso necesitan su
+propio acceso al sistema de ficheros: <code>fs.hadoop.enabled=true</code> en la
+configuración de Trino y la configuración de Hadoop de <code>namenode</code> en
+Spark.</p>
+<p>El catálogo <code>hive</code> interpreta las tablas como Parquet/ORC/CSV clásicos; el
+catálogo <code>iceberg</code> ve las tablas que el metastore tiene registradas como
+Iceberg (propiedad <code>table_type=ICEBERG</code>). Son dos lentes sobre el mismo
+almacén de metadatos, no dos almacenes distintos.</p>
 </div>
 </div>
 </div>
@@ -8783,6 +8810,11 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"hive.tcdm.web_sales_by_year_gold:  "</span><span class="p">,</span> <span class="n">comparacion_gold_hive</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s2">"records"</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 <span class="k">if</span> <span class="n">web_sales_by_year_recien_creada</span><span class="p">:</span>
     <span class="k">assert</span> <span class="n">comparacion_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">]</span> <span class="o">==</span> <span class="n">comparacion_gold_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">comparacion_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"beneficio_total"</span><span class="p">]</span>
+        <span class="o">==</span> <span class="n">comparacion_gold_hive</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"beneficio_total"</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Mismas filas y mismo beneficio total en la tabla Iceberg y en la tabla Hive."</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"La tabla ya existía: puede incluir cambios posteriores a su creación (S8)."</span><span class="p">)</span>
 </pre></div>
@@ -8993,7 +9025,7 @@ manifests, no en el listado de particiones del Hive Metastore.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un segundo cliente del mismo catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El catálogo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg</code> de Spark, tipo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hive</code>, habla con el mismo Thrift que Trino</li><li style="margin:10px 0;list-style-position:outside">Ninguna ruta física en el código: sólo el nombre de la tabla</li><li style="margin:10px 0;list-style-position:outside">Misma comparación de negocio, ahora desde Trino y desde Spark</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Un segundo cliente del mismo catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El catálogo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg</code> de Spark, tipo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">rest</code>, usa el mismo catálogo Iceberg REST que Trino</li><li style="margin:10px 0;list-style-position:outside">Ninguna ruta física en el código: sólo el nombre de la tabla</li><li style="margin:10px 0;list-style-position:outside">Misma comparación de negocio, ahora desde Trino y desde Spark</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -9009,37 +9041,45 @@ manifests, no en el listado de particiones del Hive Metastore.</p>
 Trino. Toca ahora construir una <code>SparkSession</code> capaz de leer la misma tabla,
 igual que en S6 hicimos con <code>hive.tcdm.web_sales_silver</code>.</p>
 <h3 id="Configurar-Spark-para-Iceberg">Configurar Spark para Iceberg<a class="anchor-link" href="#Configurar-Spark-para-Iceberg">¶</a></h3><p>Partimos de la misma base de S6 —<code>spark.hadoop.hive.metastore.uris</code>,
-<code>spark.sql.warehouse.dir</code>, <code>spark.sql.catalogImplementation=hive</code> y
-<code>enableHiveSupport()</code>— y añadimos lo necesario para que Spark entienda el
+<code>spark.sql.warehouse.dir</code>, <code>spark.sql.catalogImplementation=hive</code>, el cliente
+Hive 4.1.0 (<code>spark.sql.hive.metastore.version</code> y <code>.jars</code>, con los jars de la
+imagen o, si faltan, descargados de Maven) y
+<code>enableHiveSupport()</code>, que siguen haciendo falta para leer las tablas Hive de
+S6— y añadimos lo necesario para que Spark entienda el
 formato de tabla Iceberg y lo resuelva por catálogo, exactamente igual que
 ya hace con las tablas Hive:</p>
 <ul>
-<li><p><code>spark.jars.packages</code> con la coordenada Maven
-<code>org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0</code>. El sufijo
+<li><p>el runtime de Iceberg para Spark, de coordenada Maven
+<code>org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0</code>. La imagen de
+<code>namenode</code> lo trae en <code>/opt/tcdm/jars</code> y la celda lo pasa con
+<code>spark.jars</code>; con una imagen anterior que no lo tenga, usa
+<code>spark.jars.packages</code> y Spark lo descarga de Maven Central. El sufijo
 <code>4.1_2.13</code> no es arbitrario: identifica la versión de Spark (4.1) y de
-Scala (2.13) para las que se compiló ese conector, y son exactamente las
-que fija <code>entorno/spark/Dockerfile</code>
-(<code>apache/spark:4.1.3-scala2.13-java21-python3-ubuntu</code>,
-<code>ARG ICEBERG_VERSION=1.11.0</code>) para el contenedor <code>spark-iceberg</code> de la ruta
-S3 de este mismo entorno. La versión de PySpark que instala
-<code>entorno/requirements.txt</code> (<code>&gt;4,&lt;4.2</code>) resuelve hoy a la <code>4.1.3</code>, así que usamos la
-misma coordenada Iceberg aquí.</p>
+Scala (2.13) para las que se compiló ese conector. La versión de PySpark
+que instala <code>entorno/requirements.txt</code> (<code>&gt;4,&lt;4.2</code>) resuelve hoy a la
+<code>4.1.3</code>, compilada con Scala 2.13, así que esa es la coordenada que
+corresponde. Iceberg 1.11.0 todavía no publica runtime para Spark 4.2: por
+eso el curso se queda en la rama 4.1.</p>
 </li>
 <li><p><code>spark.sql.extensions</code> con
-<code>org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions</code>, el
-mismo valor que ya declara <code>entorno/spark/spark-defaults.conf</code> para el
-contenedor <code>spark-iceberg</code>: sin esta extensión, Spark no reconoce
+<code>org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions</code>: sin
+esta extensión, Spark no reconoce
 sentencias específicas de Iceberg como <code>CALL</code> a procedimientos del sistema
 o ciertas cláusulas de <code>MERGE INTO</code> que usará S8.</p>
 </li>
-<li><p>un catálogo con nombre <code>iceberg</code>, de tipo <code>hive</code>, apuntando exactamente al
-mismo Hive Metastore que ya usa Trino para su propio catálogo <code>iceberg</code>:</p>
+<li><p>un catálogo con nombre <code>iceberg</code>, de tipo <code>rest</code>, apuntando exactamente al
+mismo catálogo Iceberg REST que ya usa Trino para su propio catálogo
+<code>iceberg</code>:</p>
 <ul>
 <li><code>spark.sql.catalog.iceberg = org.apache.iceberg.spark.SparkCatalog</code></li>
-<li><code>spark.sql.catalog.iceberg.type = hive</code></li>
-<li><code>spark.sql.catalog.iceberg.uri = thrift://hive-metastore:9083</code></li>
-<li><code>spark.sql.catalog.iceberg.warehouse = hdfs://namenode:9000/warehouse</code></li>
+<li><code>spark.sql.catalog.iceberg.type = rest</code></li>
+<li><code>spark.sql.catalog.iceberg.uri = http://hive-metastore:9001/iceberg</code></li>
 </ul>
+<p>En esta configuración no hace falta indicar <code>warehouse</code>: el metastore ya
+sabe dónde crear cada tabla nueva (bajo <code>/warehouse</code>, la misma raíz que
+usa para las tablas Hive) y no pide credenciales. No es una regla de los
+catálogos REST: otros servidores usan <code>warehouse</code> para elegir catálogo o
+cuenta y exigen autenticación, como muestra S8 con AWS Glue.</p>
 </li>
 </ul>
 <p>Con esto, Spark resuelve <code>iceberg.tcdm.web_sales</code> por su nombre de catálogo
@@ -9055,11 +9095,33 @@ Hive nativo: no hace falta ninguna ruta física ni ningún paso adicional.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="El-cat%C3%A1logo-Iceberg-de-Spark-y-el-Hive-Metastore">El catálogo Iceberg de Spark y el Hive Metastore<a class="anchor-link" href="#El-cat%C3%A1logo-Iceberg-de-Spark-y-el-Hive-Metastore">¶</a></h3><p>El catálogo <code>spark.sql.catalog.iceberg</code> de Spark habla con el mismo Hive
-Metastore que usa Trino porque este entorno fija la versión <code>3.1.3</code>; la
-justificación completa —incluyendo por qué no se elige sin más una versión
-más reciente de la rama 4.x— está en <code>entorno/README.md</code>, sección
-"Versiones fijadas y compatibilidad".</p>
+<h3 id="Dos-rutas-hacia-el-mismo-metastore">Dos rutas hacia el mismo metastore<a class="anchor-link" href="#Dos-rutas-hacia-el-mismo-metastore">¶</a></h3><p>La <code>SparkSession</code> de esta sesión carga dos dependencias con funciones
+distintas, una por cada ruta hacia el metastore:</p>
+<div class="highlight"><pre><span></span> Tablas Hive de S6                        Tablas Iceberg de S7 y S8
+ Spark + cliente Hive 4.1.0               Spark + iceberg-spark-runtime, y Trino
+        │ Thrift (puerto 9083)                      │ Iceberg REST (puerto 9001)
+        └──────────────────► Hive Metastore ◄───────┘
+                    nombres, esquemas y ubicaciones; para cada tabla
+                    Iceberg, el puntero a su metadata.json vigente
+                                     │
+        ficheros de datos y de metadatos en HDFS (/datalake, /warehouse):
+        Spark y Trino los leen y escriben directamente, sin pasar por el metastore
+</pre></div>
+<ul>
+<li>El <strong>cliente Hive 4.1.0</strong> sólo hace falta para las tablas Hive de S6, que
+esta sesión lee para compararlas con Iceberg (<code>tcdm.web_sales_silver</code>).
+La imagen de <code>namenode</code> lo trae en <code>/opt/tcdm/hive-metastore-client</code>; con
+una imagen anterior, Spark lo descarga de Maven Central.</li>
+<li>El <strong>runtime de Iceberg</strong> (<code>iceberg-spark-runtime</code>) es lo que permite a
+Spark hablar la API REST y entender el formato de tabla. La imagen lo trae
+en <code>/opt/tcdm/jars</code>; con una imagen anterior, Spark lo descarga de Maven
+Central la primera vez (unos 50 MB) y lo guarda en la caché de Ivy de
+<code>luser</code>, donde lo reutilizan las sesiones siguientes y S8.</li>
+</ul>
+<p>Iceberg ofrece también un catálogo de Spark de tipo <code>hive</code>, que iría por
+Thrift como el de la izquierda, pero no funciona con Hive Metastore 4; el
+detalle está en <code>entorno/README.md</code>, sección "Versiones fijadas y
+compatibilidad".</p>
 <p>Como en la parte distribuida de S4, el driver vive en <code>namenode</code> y YARN
 asigna los ejecutores a los NodeManagers. La celda siguiente cuenta los que
 están <code>RUNNING</code> y solicita, por defecto, un ejecutor por cada uno; YARN decide
@@ -9119,13 +9181,38 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">SparkSession</span>
 
 <span class="n">HIVE_METASTORE_URIS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"thrift://hive-metastore:9083"</span>
 <span class="n">WAREHOUSE_DIR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hdfs://namenode:9000/warehouse"</span>
+<span class="n">HIVE_CLIENT_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"4.1.0"</span>
+<span class="c1"># La imagen de namenode trae el cliente Hive en este directorio. Con una</span>
+<span class="c1"># imagen anterior que no lo tenga, Spark lo descarga de Maven Central.</span>
+<span class="n">HIVE_CLIENT_DIR</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/opt/tcdm/hive-metastore-client"</span><span class="p">)</span> <span class="o">/</span> <span class="n">HIVE_CLIENT_VERSION</span>
+<span class="n">HIVE_CLIENT_CONF</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"spark.sql.hive.metastore.jars"</span><span class="p">:</span> <span class="s2">"path"</span><span class="p">,</span>
+        <span class="s2">"spark.sql.hive.metastore.jars.path"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"file://</span><span class="si">{</span><span class="n">HIVE_CLIENT_DIR</span><span class="si">}</span><span class="s2">/*.jar"</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">HIVE_CLIENT_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.jar"</span><span class="p">))</span>
+    <span class="k">else</span> <span class="p">{</span><span class="s2">"spark.sql.hive.metastore.jars"</span><span class="p">:</span> <span class="s2">"maven"</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">ICEBERG_REST_URI</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"http://hive-metastore:9001/iceberg"</span>
 <span class="n">ICEBERG_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1.11.0"</span>
 <span class="n">ICEBERG_SPARK_PACKAGE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:</span><span class="si">{</span><span class="n">ICEBERG_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="c1"># La imagen de namenode trae el runtime de Iceberg en /opt/tcdm/jars. Con una</span>
+<span class="c1"># imagen anterior que no lo tenga, Spark lo descarga de Maven Central.</span>
+<span class="n">ICEBERG_SPARK_JAR</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Path</span><span class="p">(</span><span class="s2">"/opt/tcdm/jars"</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"iceberg-spark-runtime-4.1_2.13-</span><span class="si">{</span><span class="n">ICEBERG_VERSION</span><span class="si">}</span><span class="s2">.jar"</span>
+<span class="p">)</span>
+<span class="n">ICEBERG_JAR_CONF</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span><span class="s2">"spark.jars"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"file://</span><span class="si">{</span><span class="n">ICEBERG_SPARK_JAR</span><span class="si">}</span><span class="s2">"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">ICEBERG_SPARK_JAR</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="k">else</span> <span class="p">{</span><span class="s2">"spark.jars.packages"</span><span class="p">:</span> <span class="n">ICEBERG_SPARK_PACKAGE</span><span class="p">}</span>
+<span class="p">)</span>
 
 <span class="n">spark</span><span class="p">:</span> <span class="n">SparkSession</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s2">"TCDM_S7_YARN"</span><span class="p">)</span>
@@ -9146,14 +9233,15 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.hadoop.hive.metastore.uris"</span><span class="p">,</span> <span class="n">HIVE_METASTORE_URIS</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.warehouse.dir"</span><span class="p">,</span> <span class="n">WAREHOUSE_DIR</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalogImplementation"</span><span class="p">,</span> <span class="s2">"hive"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.jars.packages"</span><span class="p">,</span> <span class="n">ICEBERG_SPARK_PACKAGE</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.hive.metastore.version"</span><span class="p">,</span> <span class="n">HIVE_CLIENT_VERSION</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="nb">map</span><span class="o">=</span><span class="n">HIVE_CLIENT_CONF</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="nb">map</span><span class="o">=</span><span class="n">ICEBERG_JAR_CONF</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span>
         <span class="s2">"spark.sql.extensions"</span><span class="p">,</span> <span class="s2">"org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"</span>
     <span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg"</span><span class="p">,</span> <span class="s2">"org.apache.iceberg.spark.SparkCatalog"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.type"</span><span class="p">,</span> <span class="s2">"hive"</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.uri"</span><span class="p">,</span> <span class="n">HIVE_METASTORE_URIS</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.warehouse"</span><span class="p">,</span> <span class="n">WAREHOUSE_DIR</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.type"</span><span class="p">,</span> <span class="s2">"rest"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.catalog.iceberg.uri"</span><span class="p">,</span> <span class="n">ICEBERG_REST_URI</span><span class="p">)</span>
     <span class="o">.</span><span class="n">enableHiveSupport</span><span class="p">()</span>
     <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
 <span class="p">)</span>
@@ -9165,9 +9253,12 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Spark version: </span><span class="si">{</span><span class="n">spark</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> | Master: </span><span class="si">{</span><span class="n">sc</span><span class="o">.</span><span class="n">master</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Metastore URIs: </span><span class="si">{</span><span class="n">HIVE_METASTORE_URIS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"Cliente Hive </span><span class="si">{</span><span class="n">HIVE_CLIENT_VERSION</span><span class="si">}</span><span class="s2">: jars=</span><span class="si">{</span><span class="n">HIVE_CLIENT_CONF</span><span class="p">[</span><span class="s1">'spark.sql.hive.metastore.jars'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warehouse dir: </span><span class="si">{</span><span class="n">WAREHOUSE_DIR</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Paquete Iceberg: </span><span class="si">{</span><span class="n">ICEBERG_SPARK_PACKAGE</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Catálogo 'iceberg' configurado como tipo hive contra el mismo metastore."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Paquete Iceberg: </span><span class="si">{</span><span class="n">ICEBERG_SPARK_PACKAGE</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">ICEBERG_JAR_CONF</span><span class="p">))</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Catálogo 'iceberg' configurado como Iceberg REST: </span><span class="si">{</span><span class="n">ICEBERG_REST_URI</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9180,9 +9271,10 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>La primera ejecución de esta celda tarda más de lo habitual: Spark
-tiene que descargar el <code>jar</code> de <code>iceberg-spark-runtime</code> desde Maven Central a
-través de Ivy. Las siguientes ejecuciones reutilizan la caché local.</p>
+<p>La celda imprime de dónde ha tomado Spark el runtime de Iceberg:
+<code>spark.jars</code> si ha usado el de la imagen y <code>spark.jars.packages</code> si ha
+tenido que descargarlo; en ese caso, la primera ejecución tarda más de lo
+habitual, y las siguientes reutilizan la caché local.</p>
 <p>Comprobamos primero que el catálogo Hive nativo de Spark sigue viendo las
 tablas de S6, igual que en esa sesión.</p>
 </div>
@@ -9352,14 +9444,27 @@ descartar.</p>
 declaradas (<code>sold_year</code>, <code>sold_month</code>), que el usuario tuvo que escribir en
 el <code>WHERE</code> sabiendo que existían como columnas de partición. En el segundo,
 filtramos únicamente por <code>ws_sold_date</code> —la columna de negocio, la misma
-que ya usábamos en S2 y S4— y el planificador de Trino traduce ese rango de
-fechas al valor de partición <code>month</code> que corresponde, sin que hayamos
-tenido que mencionar ninguna columna de partición en la consulta. Busca en
-ambos planes la parte del <code>TableScan</code>/<code>IcebergScan</code> para confirmar que el
-filtrado ocurre antes de leer los ficheros de datos y no como un <code>Filter</code>
-posterior.</p>
-<p>Repetimos la comparación con Spark, ahora que ya tenemos las dos tablas
-disponibles en la sesión.</p>
+que ya usábamos en S2 y S4— y no mencionamos ninguna columna de partición.</p>
+<p>En los dos planes, la línea que importa es la del <code>TableScan</code> del
+fragmento <code>SOURCE</code> y las restricciones que lleva debajo:</p>
+<ul>
+<li>Hive: <code>TableScan[table = hive:tcdm:web_sales_silver]</code> seguido de
+<code>sold_year:int:PARTITION_KEY :: [[2000]]</code> y
+<code>sold_month:int:PARTITION_KEY :: [[1]]</code>. El filtro se ha convertido en
+una restricción sobre las claves de partición: Trino sólo listará el
+directorio <code>sold_year=2000/sold_month=1</code>.</li>
+<li>Iceberg: <code>TableScan[table = iceberg:tcdm.web_sales$data@&lt;snapshot&gt; constraint on [ws_sold_date]]</code> seguido de
+<code>ws_sold_date:date :: [[2000-01-01, 2000-02-01)]</code>. La restricción está
+sobre la columna de negocio, y el número que acompaña a <code>@</code> es el
+snapshot que se va a leer. Iceberg traduce después ese rango a la
+partición <code>month</code> de cada fichero, con la información de los manifests.</li>
+</ul>
+<p>En ninguno de los dos aparece un nodo <code>Filter</code> por encima del <code>TableScan</code>:
+el filtro se aplica al elegir qué ficheros leer, no después de leerlos.</p>
+<p>Repetimos la comparación con Spark. Para que el plan muestre la lectura,
+la consulta suma <code>ws_net_paid</code> en lugar de contar filas: con <code>count(*)</code>
+sobre Iceberg, Spark puede responder con las estadísticas de los manifests
+sin leer ningún fichero, y el plan sólo mostraría un <code>LocalTableScan</code>.</p>
 </div>
 </div>
 </div>
@@ -9372,7 +9477,7 @@ disponibles en la sesión.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    SELECT count(*) FROM tcdm.web_sales_silver</span>
+<span class="s1">    SELECT sum(ws_net_paid) FROM tcdm.web_sales_silver</span>
 <span class="s1">    WHERE sold_year = 2000 AND sold_month = 1</span>
 <span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="s2">"formatted"</span><span class="p">)</span>
 </pre></div>
@@ -9390,7 +9495,7 @@ disponibles en la sesión.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">web_sales_spark</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
     <span class="s2">"ws_sold_date &gt;= DATE'2000-01-01' AND ws_sold_date &lt; DATE'2000-02-01'"</span>
-<span class="p">)</span><span class="o">.</span><span class="n">selectExpr</span><span class="p">(</span><span class="s2">"count(*)"</span><span class="p">)</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="s2">"formatted"</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">selectExpr</span><span class="p">(</span><span class="s2">"sum(ws_net_paid)"</span><span class="p">)</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="s2">"formatted"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9398,6 +9503,27 @@ disponibles en la sesión.</p>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>En Spark hay que buscar el nodo de lectura, el número <code>(1)</code> del plan:</p>
+<ul>
+<li>Hive: <code>Scan parquet spark_catalog.tcdm.web_sales_silver</code>, con
+<code>PartitionFilters: [..., (sold_year = 2000), (sold_month = 1)]</code> y una
+<code>Location</code> que ya apunta sólo a <code>.../sold_year=2000/sold_month=1</code>.</li>
+<li>Iceberg: <code>BatchScan iceberg.tcdm.web_sales</code>, con
+<code>IcebergScan(..., snapshotId=..., filters=ws_sold_date IS NOT NULL, ws_sold_date &gt;= 10957, ws_sold_date &lt; 10988, ...)</code>. Las fechas aparecen
+como días transcurridos desde el 1 de enero de 1970 (10957 es el 1 de
+enero de 2000): es el mismo rango sobre la columna de negocio, que Iceberg
+usa para descartar ficheros con sus manifests.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9413,7 +9539,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9426,7 +9552,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9440,7 +9566,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9452,7 +9578,7 @@ convención <code>&lt;tabla&gt;$metadato</code> que ya usaste en S6 para <code>$
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=68">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9472,7 +9598,7 @@ convención <code>&lt;tabla&gt;$metadato</code> que ya usaste en S6 para <code>$
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9500,7 +9626,7 @@ que dejó su creación, y su clave compuesta intacta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9524,7 +9650,59 @@ que dejó su creación, y su clave compuesta intacta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="El-puntero-del-cat%C3%A1logo">El puntero del catálogo<a class="anchor-link" href="#El-puntero-del-cat%C3%A1logo">¶</a></h3><p>Antes de escribir, conviene ver qué guarda exactamente el catálogo de una
+tabla Iceberg. No son los datos ni la lista de ficheros: es un <strong>puntero</strong>
+al <code>metadata.json</code> vigente, que a su vez apunta al snapshot actual y, a
+través de él, a los manifests y los ficheros de datos. Se lo preguntamos
+directamente a la API REST, con la misma petición <code>loadTable</code> que hacen
+Trino y Spark para resolver <code>iceberg.tcdm.&lt;tabla&gt;</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PunteroCatalogo</span><span class="p">:</span>
+    <span class="n">metadata_location</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">snapshot_vigente</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">puntero_del_catalogo</span><span class="p">(</span><span class="n">esquema</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tabla</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PunteroCatalogo</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Pide una tabla al catálogo Iceberg REST y devuelve su puntero y su snapshot vigente.'''</span>
+    <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ICEBERG_REST_URI</span><span class="si">}</span><span class="s2">/v1/namespaces/</span><span class="si">{</span><span class="n">esquema</span><span class="si">}</span><span class="s2">/tables/</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">as</span> <span class="n">respuesta</span><span class="p">:</span>
+        <span class="n">cuerpo</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">respuesta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PunteroCatalogo</span><span class="p">(</span>
+        <span class="n">metadata_location</span><span class="o">=</span><span class="n">cuerpo</span><span class="p">[</span><span class="s2">"metadata-location"</span><span class="p">],</span>
+        <span class="n">snapshot_vigente</span><span class="o">=</span><span class="n">cuerpo</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"current-snapshot-id"</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="n">puntero_antes_insert</span><span class="p">:</span> <span class="n">PunteroCatalogo</span> <span class="o">=</span> <span class="n">puntero_del_catalogo</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_evolution"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"metadata.json vigente:"</span><span class="p">,</span> <span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">metadata_location</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"snapshot vigente:     "</span><span class="p">,</span> <span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">snapshot_vigente</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9540,7 +9718,7 @@ uno real de TPC-DS—, calculamos uno que no puede colisionar:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9554,7 +9732,7 @@ snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9592,7 +9770,7 @@ snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9615,7 +9793,46 @@ snapshots.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Volvemos a preguntar al catálogo después del <code>INSERT</code>. Una escritura en
+Iceberg termina siempre igual: el motor escribe los ficheros de datos, los
+manifests y un <code>metadata.json</code> nuevo, y la confirmación consiste en cambiar
+de forma atómica el puntero del catálogo del fichero anterior al nuevo. Si
+dos escrituras compiten, sólo una consigue cambiarlo; la otra tiene que
+reintentar sobre la versión nueva. El <code>metadata.json</code> anterior no se borra:
+sigue en HDFS, y es lo que permite volver a versiones anteriores.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">puntero_tras_insert</span><span class="p">:</span> <span class="n">PunteroCatalogo</span> <span class="o">=</span> <span class="n">puntero_del_catalogo</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_evolution"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Antes del INSERT: "</span><span class="p">,</span> <span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">metadata_location</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"                  snapshot"</span><span class="p">,</span> <span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">snapshot_vigente</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Después del INSERT:"</span><span class="p">,</span> <span class="n">puntero_tras_insert</span><span class="o">.</span><span class="n">metadata_location</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"                  snapshot"</span><span class="p">,</span> <span class="n">puntero_tras_insert</span><span class="o">.</span><span class="n">snapshot_vigente</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">puntero_tras_insert</span><span class="o">.</span><span class="n">metadata_location</span> <span class="o">!=</span> <span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">metadata_location</span>
+<span class="k">assert</span> <span class="n">puntero_tras_insert</span><span class="o">.</span><span class="n">snapshot_vigente</span> <span class="o">==</span> <span class="n">snapshot_tras_insert_id</span>
+<span class="k">assert</span> <span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">snapshot_vigente</span> <span class="o">==</span> <span class="n">snapshot_inicial_id</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9628,7 +9845,7 @@ simplemente no tienen valor en la columna nueva.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9643,7 +9860,7 @@ simplemente no tienen valor en la columna nueva.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9666,7 +9883,7 @@ simplemente no tienen valor en la columna nueva.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9680,7 +9897,7 @@ esquema y sus filas de entonces.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9705,7 +9922,7 @@ esquema y sus filas de entonces.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9724,7 +9941,7 @@ snapshots con la sintaxis de Spark para tablas de catálogo:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9740,7 +9957,7 @@ snapshots con la sintaxis de Spark para tablas de catálogo:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9756,7 +9973,7 @@ snapshots con la sintaxis de Spark para tablas de catálogo:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9773,7 +9990,7 @@ usamos la sintaxis común de Spark.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9792,7 +10009,7 @@ usamos la sintaxis común de Spark.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=85">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9805,7 +10022,7 @@ usamos la sintaxis común de Spark.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9819,7 +10036,7 @@ usamos la sintaxis común de Spark.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9857,7 +10074,7 @@ el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9872,7 +10089,7 @@ el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9892,7 +10109,7 @@ el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9913,7 +10130,7 @@ todas las particiones de la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9927,7 +10144,7 @@ todas las particiones de la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9944,7 +10161,7 @@ todas las particiones de la tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9958,7 +10175,7 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9986,7 +10203,7 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9999,7 +10216,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10019,7 +10236,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10037,7 +10254,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10057,7 +10274,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10086,7 +10303,7 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10102,7 +10319,7 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10121,7 +10338,7 @@ motor, en lugar de asumir que siempre lo hace.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10137,7 +10354,7 @@ motor, en lugar de asumir que siempre lo hace.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10149,7 +10366,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10169,7 +10386,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10185,7 +10402,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10212,7 +10429,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10234,7 +10451,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10247,7 +10464,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=109">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=114">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10261,7 +10478,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10276,7 +10493,7 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10300,28 +10517,30 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 <span class="s1">        FROM iceberg.tcdm.web_sales LIMIT 3</span>
 <span class="s1">    '''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"8 tandas de 3 filas insertadas por separado en iceberg.tcdm.web_sales_lab_smallfiles."</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Cada INSERT independiente produce su propio fichero de datos y su propio snapshot,"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"que es exactamente lo que queremos observar aquí: no importa que las filas se repitan,"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"esto es una tabla de laboratorio pensada sólo para medir ficheros y manifests."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Cada INSERT independiente produce su propio snapshot y uno o más ficheros de datos:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"no importa que las filas se repitan, esto es una tabla de laboratorio pensada sólo"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"para medir ficheros y manifests."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Cada <code>INSERT</code> produce su propio fichero de datos y su propio
-snapshot. Medimos antes de compactar: número de ficheros de datos, número de
-manifests y número de snapshots.</p>
+<p>Cada <code>INSERT</code> produce su propio snapshot y al menos un fichero de datos;
+cuántos exactamente depende de cómo reparta Trino la escritura, así que
+no lo damos por supuesto: lo mide el inventario. Medimos antes de
+compactar: número de ficheros de datos, número de manifests y número de
+snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10357,7 +10576,7 @@ manifests y número de snapshots.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10376,7 +10595,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10393,7 +10612,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10417,7 +10636,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10431,7 +10650,7 @@ explícitamente. Lo comprobamos en la propia tabla de snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10450,7 +10669,7 @@ explícitamente. Lo comprobamos en la propia tabla de snapshots.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10482,7 +10701,7 @@ borrar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10490,18 +10709,38 @@ borrar.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SET SESSION iceberg.expire_snapshots_min_retention = '0s'"</span><span class="p">)</span>
-<span class="n">resultado_expire</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">ubicacion_lab_smallfiles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ubicacion_de_tabla_iceberg</span><span class="p">(</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE iceberg.tcdm.web_sales_lab_smallfiles"</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ficheros_parquet_en_hdfs</span><span class="p">(</span><span class="n">ubicacion</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Cuenta los ficheros Parquet que hay físicamente bajo data/ de una tabla Iceberg.'''</span>
+    <span class="n">listado</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-ls"</span><span class="p">,</span> <span class="s2">"-R"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ubicacion</span><span class="si">}</span><span class="s2">/data"</span><span class="p">],</span>
+        <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">listado</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">linea</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".parquet"</span><span class="p">))</span>
+
+
+<span class="n">parquet_antes_expirar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">ficheros_parquet_en_hdfs</span><span class="p">(</span><span class="n">ubicacion_lab_smallfiles</span><span class="p">)</span>
+<span class="n">snapshot_antiguo_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ficheros Parquet en HDFS antes de expirar:"</span><span class="p">,</span> <span class="n">parquet_antes_expirar</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ficheros de datos del snapshot vigente:   "</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">])</span>
+
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"SET SESSION iceberg.expire_snapshots_min_retention = '0s'"</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    ALTER TABLE iceberg.tcdm.web_sales_lab_smallfiles</span>
-<span class="s1">    EXECUTE expire_snapshots(retention_threshold =&gt; '0d')</span>
+<span class="s1">    EXECUTE expire_snapshots(retention_threshold =&gt; '0d', retain_last =&gt; 1)</span>
 <span class="s1">'''</span><span class="p">)</span>
-<span class="n">resultado_expire</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10512,33 +10751,123 @@ borrar.</p>
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">snapshots_tras_expirar</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    SELECT snapshot_id, operation FROM iceberg.tcdm."web_sales_lab_smallfiles$snapshots"</span>
 <span class="s1">'''</span><span class="p">)</span>
+<span class="n">referencias_tras_expirar</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT name, type, snapshot_id FROM iceberg.tcdm."web_sales_lab_smallfiles$refs"</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">inventario_tras_expirar</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">inventario_tabla_iceberg</span><span class="p">(</span>
+    <span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_smallfiles"</span>
+<span class="p">)</span>
+<span class="n">parquet_tras_expirar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">ficheros_parquet_en_hdfs</span><span class="p">(</span><span class="n">ubicacion_lab_smallfiles</span><span class="p">)</span>
+
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Snapshots antes de expirar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Snapshots después de expirar: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="p">)</span>
-<span class="n">snapshots_tras_expirar</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Referencias (ramas y etiquetas) que conserva la tabla:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">referencias_tras_expirar</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Inventario después de expirar:"</span><span class="p">,</span> <span class="n">inventario_tras_expirar</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros Parquet en HDFS: </span><span class="si">{</span><span class="n">parquet_antes_expirar</span><span class="si">}</span><span class="s2"> antes, </span><span class="si">{</span><span class="n">parquet_tras_expirar</span><span class="si">}</span><span class="s2"> después"</span><span class="p">)</span>
+
+<span class="n">snapshot_vigente_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+    <span class="n">referencias_tras_expirar</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">referencias_tras_expirar</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"main"</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">[</span><span class="s2">"snapshot_id"</span><span class="p">])</span> <span class="o">==</span> <span class="p">{</span><span class="n">snapshot_vigente_id</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">inventario_tras_expirar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span> <span class="o">==</span> <span class="n">inventario_despues_compactar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s1">'''</span>
+<span class="s1">        SELECT count(*) FROM iceberg.tcdm.web_sales_lab_smallfiles</span>
+<span class="s1">        FOR VERSION AS OF </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span>
+<span class="s1">    '''</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"El snapshot </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span><span class="s2"> sigue siendo consultable."</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>  <span class="c1"># el snapshot ya no existe</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Consultar el snapshot antiguo </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span><span class="s2"> ya no es posible:"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">200</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Tras <code>expire_snapshots</code>, sólo queda el snapshot vigente: los que
-apuntaban a los ocho ficheros pequeños ya no son alcanzables desde el
-historial de la tabla. <code>remove_orphan_files</code> es el procedimiento
-complementario para el caso menos habitual de ficheros huérfanos —escritos
-por una operación interrumpida a medio camino— que ningún snapshot llegó a
-referenciar nunca; comparte la misma protección de retención mínima que
-<code>expire_snapshots</code> por el mismo motivo.</p>
+<p>Lee la salida en este orden:</p>
+<ul>
+<li><strong>Snapshots y referencias</strong>: con <code>retention_threshold =&gt; '0d'</code> y
+<code>retain_last =&gt; 1</code>, Iceberg puede eliminar todos los snapshots salvo el
+último, pero nunca uno que la tabla siga necesitando: el vigente, sus
+antecesores dentro de la retención y los que señale alguna rama o
+etiqueta. Por eso imprimimos <code>$refs</code>: aquí sólo existe la rama <code>main</code>,
+que apunta al snapshot vigente, y ése es el único que queda.</li>
+<li><strong>Ficheros del snapshot vigente</strong>: no cambian. <code>$files</code> describe la
+versión actual de la tabla, y expirar no la modifica.</li>
+<li><strong>Viaje en el tiempo</strong>: consultar el primer snapshot falla, porque ya no
+existe. Esto es lo que se pierde al expirar.</li>
+<li><strong>Ficheros en HDFS</strong>: siguen todos, también los ocho pequeños. Iceberg
+borra un fichero de datos cuando expira el snapshot que lo <strong>eliminó</strong> de
+la tabla, y los ficheros pequeños los eliminó el snapshot <code>replace</code> de la
+compactación, que es precisamente el vigente. Mientras ese snapshot
+exista, Iceberg no los borra.</li>
+</ul>
+<p>Lo comprobamos con una escritura más: el <code>replace</code> deja de ser el vigente,
+y una segunda expiración ya puede retirarlo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=123">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    INSERT INTO iceberg.tcdm.web_sales_lab_smallfiles</span>
+<span class="s1">    SELECT ws_order_number, ws_item_sk, ws_net_paid FROM iceberg.tcdm.web_sales LIMIT 1</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    ALTER TABLE iceberg.tcdm.web_sales_lab_smallfiles</span>
+<span class="s1">    EXECUTE expire_snapshots(retention_threshold =&gt; '0d', retain_last =&gt; 1)</span>
+<span class="s1">'''</span><span class="p">)</span>
+
+<span class="n">inventario_final</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">inventario_tabla_iceberg</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_smallfiles"</span><span class="p">)</span>
+<span class="n">parquet_final</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">ficheros_parquet_en_hdfs</span><span class="p">(</span><span class="n">ubicacion_lab_smallfiles</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Inventario tras escribir y volver a expirar:"</span><span class="p">,</span> <span class="n">inventario_final</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros Parquet en HDFS: </span><span class="si">{</span><span class="n">parquet_tras_expirar</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">parquet_final</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">parquet_final</span> <span class="o">&lt;</span> <span class="n">parquet_tras_expirar</span>
+<span class="k">assert</span> <span class="n">parquet_final</span> <span class="o">==</span> <span class="n">inventario_final</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ahora en HDFS sólo quedan los ficheros que referencia el snapshot vigente."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Ahora sí: en HDFS sólo quedan los ficheros que referencia el snapshot
+vigente, el compactado y el de la última escritura. La compactación libera
+espacio en dos tiempos: reescribe los datos al momento, pero los ficheros
+viejos sólo se borran cuando expira, más tarde, el snapshot que los
+sustituyó.</p>
+<p><code>remove_orphan_files</code> es el procedimiento complementario para el caso menos
+habitual de ficheros huérfanos —escritos por una operación interrumpida a
+medio camino— que ningún snapshot llegó a referenciar nunca; comparte la
+misma protección de retención mínima que <code>expire_snapshots</code> por el mismo
+motivo.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10552,7 +10881,7 @@ referenciar nunca; comparte la misma protección de retención mínima que
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10583,7 +10912,7 @@ Iceberg de Trino.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10608,7 +10937,7 @@ Iceberg de Trino.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10622,7 +10951,7 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10640,7 +10969,7 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10675,7 +11004,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=136">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10689,7 +11018,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10752,7 +11081,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10768,31 +11097,44 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"  después de compactar:"</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"  snapshots antes de expirar:  "</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_smallfiles</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"  snapshots después de expirar:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">"  ficheros Parquet en HDFS antes de expirar, tras expirar y tras la segunda expiración:"</span><span class="p">,</span>
+    <span class="n">parquet_antes_expirar</span><span class="p">,</span>
+    <span class="n">parquet_tras_expirar</span><span class="p">,</span>
+    <span class="n">parquet_final</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Ampliaci%C3%B3n-opcional:-leer-una-tabla-Iceberg-sin-cat%C3%A1logo">Ampliación opcional: leer una tabla Iceberg sin catálogo<a class="anchor-link" href="#Ampliaci%C3%B3n-opcional:-leer-una-tabla-Iceberg-sin-cat%C3%A1logo">¶</a></h2><p>Todo este notebook lee las tablas Iceberg por su nombre de catálogo
-(<code>iceberg.tcdm.&lt;tabla&gt;</code>), tal como haría cualquier despliegue normal de
-Spark con un Hive Metastore compatible. Existe, sin embargo, una vía
-alternativa de lectura que no depende en ningún momento del catálogo:
-resolver directamente el fichero <code>metadata.json</code> vigente de la tabla y
-cargarlo por su ruta física en HDFS. Es una vía útil en cualquier entorno donde
-Spark no tenga configurado un catálogo Iceberg —por ejemplo, un despliegue
-sólo con Trino, o una herramienta de inspección que no quiere depender de
-ningún catálogo—.</p>
+<h2 id="Ampliaci%C3%B3n-opcional:-el-puntero-del-cat%C3%A1logo-y-la-lectura-por-ruta">Ampliación opcional: el puntero del catálogo y la lectura por ruta<a class="anchor-link" href="#Ampliaci%C3%B3n-opcional:-el-puntero-del-cat%C3%A1logo-y-la-lectura-por-ruta">¶</a></h2><p>Todo este notebook lee las tablas Iceberg por su nombre de catálogo
+(<code>iceberg.tcdm.&lt;tabla&gt;</code>). Una vez se conoce el <code>metadata.json</code> vigente de
+una tabla, Spark también puede leer esa versión directamente por su ruta en
+HDFS, sin configurar ningún catálogo: es útil para inspeccionar una tabla
+desde una herramienta que no tiene acceso al catálogo, o para depurar.</p>
+<p>Lo importante es <strong>de dónde sale esa ruta</strong>. No basta con listar el
+directorio <code>metadata/</code> y quedarse con el fichero de nombre mayor: una
+escritura que falló o que perdió una carrera con otra puede haber dejado un
+<code>metadata.json</code> que nunca llegó a confirmarse. La única versión vigente es
+la que señala el catálogo, y eso es precisamente lo que define una
+confirmación en Iceberg: escribir el nuevo <code>metadata.json</code> y cambiar de
+forma atómica el puntero del catálogo, del fichero anterior al nuevo (ver
+la <a href="https://iceberg.apache.org/spec/#overview">especificación de Iceberg</a>).
+Así que la ruta se le pide al catálogo, como en la sección de snapshots.</p>
+<p>La lectura por ruta es sólo para leer: escribir así saltaría el catálogo y
+rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10800,39 +11142,23 @@ ningún catálogo—.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ruta_metadata_json_vigente</span><span class="p">(</span><span class="n">catalogo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">esquema</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tabla</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">'''Devuelve la ruta HDFS del metadata.json vigente de una tabla Iceberg.</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">puntero_by_year</span><span class="p">:</span> <span class="n">PunteroCatalogo</span> <span class="o">=</span> <span class="n">puntero_del_catalogo</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_by_year"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Puntero del catálogo para iceberg.tcdm.web_sales_by_year:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="n">puntero_by_year</span><span class="o">.</span><span class="n">metadata_location</span><span class="p">)</span>
 
-<span class="sd">    No depende del Hive Metastore para nada salvo para preguntarle a Trino</span>
-<span class="sd">    (que sí puede leer la tabla) cuál es su ubicación en HDFS.</span>
-<span class="sd">    '''</span>
-    <span class="n">ddl_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SHOW CREATE TABLE </span><span class="si">{</span><span class="n">catalogo</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">esquema</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">ubicacion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ubicacion_de_tabla_iceberg</span><span class="p">(</span><span class="n">ddl_texto</span><span class="p">)</span>
+<span class="n">listado_metadata</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-ls"</span><span class="p">,</span> <span class="n">puntero_by_year</span><span class="o">.</span><span class="n">metadata_location</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
+<span class="n">n_metadata_json</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+    <span class="mi">1</span> <span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">listado_metadata</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">linea</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".metadata.json"</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros metadata.json en el directorio: </span><span class="si">{</span><span class="n">n_metadata_json</span><span class="si">}</span><span class="s2">; vigente, sólo el del puntero."</span><span class="p">)</span>
 
-    <span class="n">listado</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-ls"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ubicacion</span><span class="si">}</span><span class="s2">/metadata"</span><span class="p">],</span>
-        <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
-
-    <span class="n">ficheros_metadata</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-        <span class="n">linea</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">listado</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">linea</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".metadata.json"</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="k">assert</span> <span class="n">ficheros_metadata</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"no se ha encontrado ningún metadata.json bajo </span><span class="si">{</span><span class="n">ubicacion</span><span class="si">}</span><span class="s2">/metadata"</span>
-    <span class="k">return</span> <span class="n">ficheros_metadata</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">leer_tabla_iceberg_por_ruta</span><span class="p">(</span><span class="n">catalogo</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">esquema</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tabla</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">'''Carga con Spark una tabla Iceberg por su metadata.json vigente, sin pasar por el catálogo.'''</span>
-    <span class="n">ruta_metadata</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ruta_metadata_json_vigente</span><span class="p">(</span><span class="n">catalogo</span><span class="p">,</span> <span class="n">esquema</span><span class="p">,</span> <span class="n">tabla</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"iceberg"</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ruta_metadata</span><span class="p">)</span>
-
-
-<span class="n">web_sales_by_year_por_ruta</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">leer_tabla_iceberg_por_ruta</span><span class="p">(</span>
-    <span class="s2">"iceberg"</span><span class="p">,</span> <span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_by_year"</span>
+<span class="n">web_sales_by_year_por_ruta</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"iceberg"</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">puntero_by_year</span><span class="o">.</span><span class="n">metadata_location</span>
 <span class="p">)</span>
 <span class="n">web_sales_by_year_por_ruta</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 </pre></div>
@@ -10840,7 +11166,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10850,16 +11176,25 @@ ningún catálogo—.</p>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">filas_por_ruta</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">web_sales_by_year_por_ruta</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
 <span class="n">filas_por_catalogo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_by_year"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por ruta física:"</span><span class="p">,</span> <span class="n">filas_por_ruta</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por catálogo:  "</span><span class="p">,</span> <span class="n">filas_por_catalogo</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por ruta (metadata.json vigente):"</span><span class="p">,</span> <span class="n">filas_por_ruta</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas leyendo por catálogo:                    "</span><span class="p">,</span> <span class="n">filas_por_catalogo</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">filas_por_ruta</span> <span class="o">==</span> <span class="n">filas_por_catalogo</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Las dos vías de lectura devuelven el mismo resultado sobre iceberg.tcdm.web_sales_by_year."</span><span class="p">)</span>
+
+<span class="c1"># El metadata.json anterior al INSERT de la sección de snapshots sigue en HDFS.</span>
+<span class="c1"># Leído por ruta, devuelve la versión de entonces: el catálogo ya no lo señala.</span>
+<span class="n">filas_version_anterior</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"iceberg"</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">puntero_antes_insert</span><span class="o">.</span><span class="n">metadata_location</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">filas_version_actual</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">"iceberg.tcdm.web_sales_lab_evolution"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"web_sales_lab_evolution por el puntero anterior al INSERT:"</span><span class="p">,</span> <span class="n">filas_version_anterior</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"web_sales_lab_evolution por catálogo:                     "</span><span class="p">,</span> <span class="n">filas_version_actual</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">filas_version_anterior</span> <span class="o">&lt;</span> <span class="n">filas_version_actual</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=135">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=142">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10873,7 +11208,7 @@ ningún catálogo—.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10922,7 +11257,7 @@ oficiales del curso, como hemos hecho con el prefijo <code>web_sales_lab_</code>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10961,7 +11296,7 @@ seguía existiendo el mismo resultado de negocio después de compactar?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11037,7 +11372,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=146">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11047,7 +11382,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=140">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11062,7 +11397,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=141">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=148">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11115,7 +11450,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=142">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=149">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11129,7 +11464,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

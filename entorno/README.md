@@ -117,11 +117,9 @@ La sesión 3 añade un Compose independiente en `compose-s3.yml`: sólo RustFS.
 El bucket `tcdm-datalake` no lo crea el Compose, sino el
 propio notebook con boto3. No contiene Trino ni un
 catálogo, porque en esa sesión se estudia primero el almacenamiento de
-objetos y los Parquet. El laboratorio posterior definido en `compose-trino.yml`
-añade Polaris, Spark, Trino e Iceberg sobre su propio RustFS. Ese RustFS no
-publica puertos en el equipo, así que puede convivir con el de S3. Lo que no
-debe arrancarse a la vez es el laboratorio HDFS (`compose-warehouse-hdfs.yml`)
-y el de Iceberg: ambos publican Trino en el `8080`.
+objetos y los Parquet. Las tablas Iceberg de S7 y S8 viven en HDFS, con el
+catálogo del warehouse de S6; S8 explica cómo cambiaría la configuración de
+Spark si el almacenamiento fuera S3, GCS o Azure.
 
 Para preparar la infraestructura S3 desde la raíz de la distribución:
 
@@ -179,8 +177,8 @@ Para saber en qué estado está el laboratorio antes de buscar más:
 Los ficheros de configuración y los scripts que entran en los contenedores se
 montan siempre como directorios existentes del repositorio. Por ejemplo,
 `trino-hdfs/etc` se monta en `/etc/trino` —incluyendo su subdirectorio
-`etc/catalog`—; el inicializador de catálogos se monta desde `init` y el
-script de Polaris desde `polaris`.
+`etc/catalog`—, la configuración del metastore desde `hive-metastore/conf`
+y el inicializador de catálogos desde `init`.
 
 Esto evita una fuente habitual de errores con Docker Desktop para macOS: si la
 ruta de origen de un bind mount de un fichero no existe exactamente, Docker
@@ -191,17 +189,9 @@ interprete igual desde distintos sistemas operativos. Todos los directorios
 montados son de solo lectura; los datos que deben persistir usan volúmenes
 nombrados, como `postgresql-metastore-data` y `rustfs-data`.
 
-Hay dos configuraciones de Trino deliberadamente independientes:
-
-| Servicio | Configuración montada | Almacén y catálogo |
-| --- | --- | --- |
-| `trino-hdfs` | `trino-hdfs/etc` (incluye `etc/catalog`) | HDFS + Hive Metastore por Thrift; catálogos `hive` e `iceberg` |
-| `trino` | `trino/etc` (incluye `etc/catalog`) | RustFS/S3 + Polaris mediante Iceberg REST |
-
-No se debe reutilizar `trino/etc/catalog/iceberg.properties` en el servicio HDFS:
-esa configuración apunta a Polaris y a un endpoint S3. Del mismo modo, la
-configuración de `trino-hdfs` no debe copiarse al laboratorio S3. Los dos
-Compose publican el puerto local `8080`, por lo que se arrancan por separado.
+La configuración de Trino (`trino-hdfs/etc/catalog`) declara dos catálogos
+sobre el mismo Hive Metastore: `hive`, por Thrift, y `iceberg`, por Iceberg
+REST.
 
 ## Warehouse y catálogo sobre HDFS
 
@@ -209,8 +199,10 @@ Compose publican el puerto local `8080`, por lo que se arrancan por separado.
 en nodos de almacenamiento ni de ejecución YARN:
 
 - PostgreSQL persiste exclusivamente la base de datos interna del metastore;
-- Hive Metastore expone por Thrift los esquemas, tablas, particiones y
-  ubicaciones;
+- Hive Metastore expone los esquemas, tablas, particiones y ubicaciones por
+  dos puertos: Thrift (`9083`), para el conector `hive` de Trino y el soporte
+  Hive de Spark, e Iceberg REST (`9001`, ruta `/iceberg`), para las tablas
+  Iceberg de Trino y Spark;
 - Trino consulta el metastore, pero lee y escribe directamente los bloques de
   HDFS a través del catálogo `hive` o `iceberg`.
 
@@ -319,69 +311,94 @@ publicado en el host sirve para la interfaz web del NameNode.
 | Componente | Valor por defecto | Criterio |
 | --- | --- | --- |
 | Trino | `483` | Release reproducible; `TRINO_VERSION` permite ensayar una actualización explícita |
-| Hive Metastore | `3.1.3` | Ver justificación abajo |
+| Hive Metastore | `4.2.1` | Imagen oficial `apache/hive:standalone-metastore-4.2.1` (amd64 y arm64); ver justificación abajo |
 | PostgreSQL | `17-alpine` | Rama mantenida, sin el cambio de ruta de volumen de PostgreSQL 18 |
 | pgJDBC | `42.7.13` | Driver actual fijado por versión y suma SHA-256 durante la construcción |
+| Apache Iceberg | `1.11.0` | `iceberg-spark-runtime-4.1_2.13`, compatible con el PySpark `4.1.x` de la imagen. La imagen de `namenode` lo trae en `/opt/tcdm/jars` (descargado de Maven Central y comprobado con su SHA-256 en `make-images/install-python-environment.sh`), y S7 y S8 lo pasan con `spark.jars`; con una imagen anterior, usan `spark.jars.packages` y Spark lo descarga en la primera sesión |
+
+Spark 4.2 es más reciente, pero Iceberg 1.11.0 sólo publica el runtime para
+Spark 4.1 (`iceberg-spark-runtime-4.1_2.13`); por eso se prioriza una
+combinación compatible y reproducible. Cuando Iceberg publique el runtime para
+Spark 4.2, podrán actualizarse juntos PySpark (`requirements.txt` y la imagen)
+y la coordenada de los notebooks.
 
 El Hive Metastore no se usa aquí como motor de consulta: sólo mantiene el
-catálogo de bases de datos, tablas, esquemas y particiones que Spark, Trino e
-Iceberg consultan por Thrift. La política general del curso es preferir
-versiones recientes de cada componente, tanto para evitar la obsolescencia
-como para acercarse a lo que puede encontrarse en un proveedor gestionado
-(por ejemplo AWS Glue Data Catalog). Esa preferencia cede, sin embargo, en
-cuanto una versión más reciente deja de ser compatible con alguna de las
-características que la asignatura necesita mostrar: lo que importa no es la
-versión exacta del metastore, sino que Spark, Trino e Iceberg funcionen sin
-fricción en la mayoría de las operaciones interesantes del curso.
+catálogo de bases de datos, tablas, esquemas y particiones que consultan
+Spark y Trino. La política general del curso es preferir versiones recientes
+de cada componente, tanto para evitar la obsolescencia como para acercarse a
+lo que puede encontrarse en un proveedor gestionado (por ejemplo AWS Glue
+Data Catalog), siempre que Spark, Trino e Iceberg sigan funcionando sin
+fricción en las operaciones interesantes del curso.
 
-Se probó primero Hive Metastore `4.2.1` (revisión de seguridad de la rama
-4.x). Con esa versión, el catálogo Iceberg de Spark (`spark.sql.catalog.*` de
-tipo `hive`) no puede acceder por nombre a ninguna tabla Iceberg: falla con
-`org.apache.thrift.TApplicationException: Invalid method name: 'get_table'`,
-porque `iceberg-spark-runtime` incluye su propio cliente
-`hive-metastore-2.3.10.jar`, que sólo sabe invocar el RPC Thrift clásico
-`get_table`, retirado en Hive Metastore 4.x en favor de `get_table_req`. Es un
-problema conocido y sin resolver en Iceberg (`apache/iceberg#12878`, `#13572`,
-`#13628`), y sólo afecta al catálogo Iceberg: el catálogo Hive nativo de Spark
-(`enableHiveSupport()`) sí puede compensarlo con un *shim* de compatibilidad
-de versión (`spark.sql.hive.metastore.version`/`.jars=maven`), pero
-`HiveCatalog` de Iceberg no usa ese mecanismo.
+**Dos protocolos, un catálogo.** Desde Hive 4.1, el metastore publica,
+además del Thrift clásico, la API Iceberg REST (`metastore.catalog.servlet.port`,
+aquí `http://hive-metastore:9001/iceberg`). El curso la usa para todas las
+tablas Iceberg, desde Trino (`iceberg.catalog.type=rest`) y desde Spark
+(`spark.sql.catalog.iceberg.type=rest`). Thrift queda para las tablas Hive de
+la sesión 6: el conector `hive` de Trino y el soporte Hive de Spark
+(`enableHiveSupport()`). Las dos vías escriben en la misma base de datos del
+metastore, así que una tabla Iceberg creada por REST aparece también en
+`TBLS` con `table_type=ICEBERG`.
 
-Se cambió entonces a Hive Metastore `3.1.3`, la última versión de la rama 3.x
-y una de las dos que Iceberg declara oficialmente soportadas (junto con
-`2.3.10`). Verificado en este entorno: el catálogo Iceberg de Spark funciona
-por nombre sin ningún workaround (`SELECT`, `MERGE INTO`, `CREATE TABLE`), el
-catálogo Hive nativo de Spark deja de necesitar el *shim* de versión, y Trino
-no sufre ninguna regresión (creación/lectura de tablas Hive e Iceberg,
-`ANALYZE` repetido varias veces seguidas, `EXECUTE optimize`,
-`EXECUTE expire_snapshots`). El fallo de repetición de `ANALYZE` documentado
-antes para HMS `4.0.x` es específico de esa versión y no aparece en `3.1.3`
-(comprobado ejecutando `ANALYZE` tres veces seguidas sobre la misma tabla).
+**Por qué no el catálogo Iceberg de tipo `hive`.** El catálogo Iceberg de
+Spark de tipo `hive` habla Thrift directamente y no funciona contra Hive
+Metastore 4.x: falla con `org.apache.thrift.TApplicationException: Invalid
+method name: 'get_table'`, porque `iceberg-spark-runtime` incluye su propio
+cliente `hive-metastore-2.3.10.jar`, que sólo sabe invocar el RPC clásico
+`get_table`, retirado en Hive 4 en favor de `get_table_req`. Es un problema
+conocido y abierto en Iceberg Java (`apache/iceberg#12878`, `#13572`,
+`#13628`); iceberg-rust ya lo corrigió en su propio cliente. Con REST el
+cliente no depende de la versión del servidor: Spark envía peticiones HTTP y
+el metastore las resuelve con su propio código Hive. Hasta noviembre de 2026
+el curso esquivaba el fallo fijando Hive Metastore `3.1.3`, con una imagen
+multiarquitectura propia (`dsevilla/hive:3.1.3`) porque la oficial sólo
+existía para amd64; esa imagen ya no se usa.
 
-El entrypoint de `apache/hive:3.1.3` ejecuta siempre
-`schematool -initSchema`, que falla con `relation "BUCKETING_COLS" already
-exists` cuando el esquema ya está en el volumen de PostgreSQL, es decir, en
-cualquier arranque posterior al primero. Por eso la imagen del curso antepone
-`hive-metastore/entrypoint-tcdm.sh`, que consulta `schematool -info` y, si el
-esquema existe, arranca con `IS_RESUME=true` para no reinicializarlo.
+**Soporte Hive de Spark contra Hive 4.** El catálogo Hive nativo de Spark
+(sesiones 6 y 7) también incluye por defecto un cliente 2.3.10 y falla con
+el mismo `get_table`. A diferencia del de Iceberg, admite cargar otro
+cliente de forma aislada, y así lo hacen los notebooks con
+`spark.sql.hive.metastore.version=4.1.0`, la versión más reciente que admite
+Spark 4.1. Ese cliente son 279 jars (unos 395 MB). La imagen de `namenode` los
+trae en `/opt/tcdm/hive-metastore-client/4.1.0`: los descarga
+`make-images/download-hive-metastore-client.py` durante la construcción,
+llamando al mismo mecanismo de Spark que `jars=maven`
+(`IsolatedClientLoader.forVersion`), para que el conjunto de jars sea el que
+espera la versión de PySpark instalada. Los notebooks usan ese directorio con
+`spark.sql.hive.metastore.jars=path` si existe y, con una imagen anterior que
+no lo tenga, `jars=maven`: Spark descarga el cliente de Maven Central en la
+primera sesión y lo guarda en la caché de Ivy de `luser`. La versión del
+cliente está en `make-images/install-python-environment.sh` y en
+`HIVE_CLIENT_VERSION` de `s6.ipynb` y `s7.ipynb`, y debe coincidir.
 
-La rama 3.x del proyecto Hive recibe parches de seguridad igual que cualquier
-rama mantenida, y `apache/hive:3.1.3` sigue siendo la imagen oficial del
-proyecto para esa versión. Pero esa imagen sólo se publicó para `linux/amd64`,
-así que el curso parte de `dsevilla/hive:3.1.3`: los mismos ficheros de la
-imagen oficial (Hive, Hadoop y Tez, que son Java) sobre un JRE
-multiarquitectura, publicada para `amd64` y `arm64`. Su JDK empaquetado es más antiguo que el Java 21
-del contenedor oficial de Hive 4.2.x, pero eso no afecta a las imágenes
-Hadoop del curso (Java 17): el metastore es un proceso independiente que sólo
-se comunica con ellas mediante Thrift y HDFS. Si en el futuro una versión más
-reciente de Hive Metastore soluciona la incompatibilidad con el catálogo
-Iceberg de Spark, esta decisión debe revisarse; mientras tanto, se documenta
-aquí para que no se pierda por qué se descartó la rama 4.x candidata. La
-comparación puede repetirse sin editar el compose:
+**Configuración del metastore** (`hive-metastore/conf/metastore-site.xml`):
 
-```bash
-HIVE_VERSION=4.2.1 docker compose -f compose-warehouse-hdfs.yml up -d --build
-```
+- Hive 4 separa la raíz de las tablas administradas
+  (`metastore.warehouse.dir`) de la de las externas
+  (`metastore.warehouse.external.dir`). Las dos apuntan a
+  `hdfs://namenode:9000/warehouse`: todas las tablas creadas sin ubicación
+  quedan en `/warehouse/<esquema>.db/<tabla>`, como con Hive 3. El
+  `HiveCatalog` de Iceberg que hay detrás del catálogo REST lee la clave
+  `hive.metastore.warehouse.external.dir`, que por eso se repite con ese
+  nombre.
+- `metastore.metadata.transformer.class` en blanco desactiva el
+  transformador de metadatos de Hive 4. Ese transformador convierte toda
+  tabla administrada que no sea ACID en `EXTERNAL_TABLE` con
+  `external.table.purge=true`, y exige que las dos raíces del warehouse sean
+  distintas. Sin él, una tabla creada sin `LOCATION` es `MANAGED_TABLE` y
+  `DROP TABLE` borra sus datos, mientras que una externa los conserva: la
+  distinción que enseña la sesión 6.
+- El entrypoint de la imagen enlaza los ficheros de `HIVE_CUSTOM_CONF_DIR`
+  sobre `/opt/hive/conf`, de modo que este `metastore-site.xml` sustituye al
+  de la imagen y repite lo que hacía falta de él, incluido
+  `metastore.task.threads.always` (sin esa propiedad aparece en el log un
+  `NoClassDefFoundError` de YARN, sin más efecto).
+- El entrypoint ejecuta `schematool -initOrUpgradeSchema`: crea el esquema
+  en el primer arranque y no hace nada en los siguientes.
+
+El fallo de repetición de `ANALYZE` de Trino documentado para Hive Metastore
+`4.0.x` no aparece con `4.2.1` (comprobado ejecutando `ANALYZE` dos veces
+seguidas sobre la misma tabla).
 
 Los metadatos PostgreSQL permanecen en el volumen
 `tcdm-26-27-postgresql-metastore-data`. Los datos de las tablas permanecen en
@@ -391,7 +408,7 @@ este laboratorio.
 ### Limitaciones a revisar al actualizar versiones
 
 Estas limitaciones de las versiones fijadas (Trino `483`, Iceberg `1.11.0`,
-Spark `4.1.x`, Hive Metastore `3.1.3`) condicionan lo que las sesiones 7 y 8
+Spark `4.1.x`, Hive Metastore `4.2.1`) condicionan lo que las sesiones 7 y 8
 pueden demostrar. Los notebooks las enuncian como un hecho; aquí queda el
 detalle para comprobar, cada vez que se actualice una versión, si alguna ha
 dejado de aplicarse.
@@ -437,50 +454,19 @@ eso las tablas de laboratorio `web_sales_lab_cow` y `web_sales_lab_mor` se
 crean y se modifican con Spark. Si Trino llega a admitir *copy-on-write*, la
 comparación puede hacerse también desde Trino.
 
-**Hive Metastore 4.x.** La incompatibilidad del catálogo Iceberg de Spark
-con Hive Metastore 4.x, descrita más arriba, es el motivo de fijar `3.1.3`.
-Si `HiveCatalog` de Iceberg pasa a usar `get_table_req`, conviene volver a
-valorar la rama 4.x.
+**Catálogo Iceberg de tipo `hive` (sesiones 7 y 8).** El catálogo Iceberg
+de Spark por Thrift no funciona con Hive Metastore 4.x (ver arriba), y por eso
+los notebooks usan el catálogo REST. Si `HiveCatalog` de Iceberg pasa a usar
+`get_table_req`, ambos caminos serían posibles, pero REST sigue siendo el
+preferido por interoperabilidad.
 
-## Laboratorio posterior con S3 e Iceberg REST
-
-## Versiones fijadas
-
-Las versiones por defecto están en [.env.example](.env.example):
-
-| Componente | Imagen o versión | Motivo |
-| --- | --- | --- |
-| Trino | `trinodb/trino:483` | Misma versión fijada que el entorno HDFS |
-| Apache Polaris | `apache/polaris:1.7.0` | Catálogo Iceberg REST con guías oficiales para Trino y Spark |
-| RustFS | `rustfs/rustfs:latest` | Almacén S3-compatible. `latest` no fija versión: la validación del curso (test 008 en CI, amd64) corresponde a la imagen que resolvió la última pipeline |
-| Spark | `apache/spark:4.1.3-scala2.13-java21-python3-ubuntu` | Cliente compatible con el runtime Iceberg 4.1/Scala 2.13 |
-| Apache Iceberg | `1.11.0` | Runtime publicado para Spark 4.1/Scala 2.13 |
-| AWS CLI auxiliar | `amazon/aws-cli:latest` | Sólo crea el bucket de Iceberg (`bucket-setup` de `compose-trino.yml`) |
-
-Spark 4.2.0 es más reciente, pero Apache Iceberg 1.11.0 publica el runtime
-`iceberg-spark-runtime-4.1_2.13`; por eso aquí se prioriza una combinación
-compatible y reproducible. Cuando Iceberg publique el runtime para Spark 4.2,
-se podrá actualizar `SPARK_BASE_IMAGE` y la dependencia conjuntamente.
-
-## Arranque
-
-Desde la raíz de la distribución:
-
-```bash
-cp entorno/.env.example entorno/.env
-docker network inspect hadoop-cluster >/dev/null 2>&1 || \
-  docker network create hadoop-cluster
-
-docker compose -f entorno/compose-hadoop-cluster.yml up -d
-docker compose -f entorno/compose-trino.yml up -d --build
-```
-
-El segundo comando inicia:
-
-- RustFS y el bucket `tcdm-iceberg`, sin puertos publicados en el equipo.
-- Polaris y el catálogo `quickstart_catalog`, con el namespace `demo`.
-- Trino con el catálogo Iceberg REST `iceberg`.
-- Un contenedor Spark preparado para Iceberg 1.11.0.
+**`expire_snapshots` en Spark local.** Con Spark `4.1.3` e Iceberg `1.11.0`,
+`CALL iceberg.system.expire_snapshots(...)` se queda bloqueado
+indefinidamente si la sesión usa `master("local[*]")`, con cualquier tipo de
+catálogo (también `hadoop`): el job de *broadcast* queda esperando sin tareas
+en ejecución. En YARN, que es lo que usan los notebooks, termina en segundos.
+Si alguna vez se prueba un notebook en modo local, conviene tenerlo en
+cuenta.
 
 ## Recursos del clúster Hadoop
 
@@ -519,9 +505,9 @@ El límite máximo conjunto de los cuatro contenedores Hadoop es de 8 vCPU y
 pero se recomienda asignarle al menos 14 GiB para ejecutar cargas Spark que se
 acerquen a los límites. En equipos más ajustados pueden ejecutarse las primeras
 sesiones porque el límite no es una reserva, aunque conviene cerrar otros
-contenedores. Si se ejecutan simultáneamente Trino, Polaris, RustFS y Spark,
-será necesario asignar más memoria a Docker o arrancar sólo los servicios de la
-sesión que se esté realizando.
+contenedores. Si se ejecutan a la vez el warehouse (PostgreSQL, Hive
+Metastore y Trino) y RustFS, puede hacer falta asignar más memoria a Docker o
+arrancar sólo los servicios de la sesión que se esté realizando.
 
 Interfaces locales:
 
@@ -529,86 +515,11 @@ Interfaces locales:
 | --- | --- |
 | Trino | <http://localhost:8080> |
 | YARN Timeline Server | <http://localhost:8188/applicationhistory/> |
-| Polaris REST | <http://localhost:8181> |
-| Polaris health/metrics | <http://localhost:8182> |
 | Spark UI, mientras haya una aplicación | <http://localhost:4040> |
-| Spark UI de `spark-iceberg` (puertos 4140-4145; el 4040 es de `namenode`) | <http://localhost:4140> |
 
 Las credenciales incluidas son sólo para el laboratorio local. Cambia el
 fichero `.env` si el entorno va a ser accesible desde una red. No se deben usar
 estas credenciales en producción.
-
-## Primera prueba con Trino
-
-```bash
-docker exec -it tcdm-trino trino
-```
-
-En la consola de Trino:
-
-```sql
-SHOW CATALOGS;
-SHOW SCHEMAS FROM iceberg;
-CREATE SCHEMA iceberg.demo;
-CREATE TABLE iceberg.demo.events (
-    event_id BIGINT,
-    event_type VARCHAR,
-    created_at TIMESTAMP(6) WITH TIME ZONE
-)
-WITH (format = 'PARQUET');
-INSERT INTO iceberg.demo.events VALUES
-    (1, 'page_view', TIMESTAMP '2026-08-21 10:00:00 UTC'),
-    (2, 'purchase',  TIMESTAMP '2026-08-21 10:05:00 UTC');
-SELECT * FROM iceberg.demo.events ORDER BY event_id;
-```
-
-La tabla y sus datos se registran a través de Polaris y se almacenan en
-RustFS. El mismo nombre `iceberg.demo.events` debe estar disponible desde
-Spark.
-
-## Primera prueba con Spark
-
-El contenedor permanece arrancado para poder abrir una shell Spark cuando se
-quiera:
-
-```bash
-docker exec -it tcdm-spark-iceberg spark-sql
-```
-
-En `spark-sql`:
-
-```sql
-SHOW NAMESPACES;
-SHOW TABLES IN demo;
-SELECT * FROM demo.events ORDER BY event_id;
-CREATE TABLE demo.events_from_spark (
-    event_id BIGINT,
-    source STRING
-) USING iceberg;
-INSERT INTO demo.events_from_spark VALUES (3, 'spark');
-```
-
-La configuración de Spark está en
-[`spark/spark-defaults.conf`](spark/spark-defaults.conf) y descarga durante la
-construcción los dos artefactos necesarios: el runtime Spark de Iceberg y el
-bundle AWS para `S3FileIO`.
-
-## Parada y borrado del laboratorio
-
-`make -C entorno stop`, `down` y `clean` paran también este laboratorio, con el
-mismo significado que para el resto de servicios.
-
-```bash
-docker compose -f entorno/compose-trino.yml down
-docker compose -f entorno/compose-hadoop-cluster.yml down
-```
-
-`down` conserva el volumen de RustFS. Para empezar de cero, eliminando las
-tablas y objetos del laboratorio:
-
-```bash
-docker compose -f entorno/compose-trino.yml down -v
-```
 
 ## Catálogos HTTP considerados
 
@@ -618,23 +529,18 @@ instalación mínima.
 
 | Catálogo | Situación para TCDM 26-27 | Decisión |
 | --- | --- | --- |
-| **Apache Polaris** | Implementación centrada en Iceberg REST, con ejemplos oficiales de Trino y Spark, OAuth2, RBAC y credential vending. | **Elegido** para esta primera versión. |
+| **Apache Polaris** | Implementación centrada en Iceberg REST, con ejemplos oficiales de Trino y Spark, OAuth2, RBAC y credential vending. No admite HDFS como almacenamiento. | Referencia para almacenamiento de objetos (S3, GCS, Azure); S8 muestra cómo se configuraría Spark. |
 | **Apache Gravitino** | Plataforma de metadatos más amplia y con servidor Iceberg REST independiente. Añade capacidades, pero también más superficie y configuración. | Alternativa para una fase de gobierno/metadatos federados. |
 | **Project Nessie** | Catálogo REST compatible con Iceberg y API propia con semántica Git de ramas y commits. Sigue teniendo releases activas, pero sus ramas no son necesarias para el primer laboratorio. | Mantener como alternativa para enseñar branching/versionado. |
-| **Hive Metastore/JDBC** | Opciones muy conocidas y maduras, pero no son un catálogo HTTP REST estándar. | Útiles para comparar con el modelo clásico, no para este camino REST. |
+| **Hive Metastore** | Desde Hive 4.1 publica también la API Iceberg REST sobre el mismo metastore que usan las tablas Hive. | **Elegido** para el camino principal sobre HDFS (sesiones 6-8): un único catálogo con Thrift para Hive y REST para Iceberg. |
+| **JDBC** | Catálogo Iceberg sobre una base de datos relacional; maduro, pero no es un catálogo HTTP REST. | Útil para comparar, no para el camino REST. |
 | **Catálogos gestionados** | Unity Catalog, BigLake o servicios equivalentes reducen la operación, pero dejan de ser un entorno local autocontenido. | Considerarlos sólo al estudiar despliegues cloud. |
-
-Polaris usa aquí el metastore en memoria porque permite arrancar con las
-imágenes publicadas sin construir una imagen adicional. Es suficiente para la
-primera sesión, pero reiniciar el servicio pierde la definición del catálogo
-(los objetos de RustFS permanecen). La siguiente evolución debe usar el
-backend JDBC de Polaris con PostgreSQL; la propia documentación de Polaris
-recomienda PostgreSQL para persistencia y documenta el bootstrap separado del
-servidor.
 
 ## Fuentes de versiones y compatibilidad
 
 - [Versiones oficiales de Apache Hive](https://hive.apache.org/general/downloads/)
+- [API Iceberg REST de Hive Metastore](https://hive.apache.org/docs/latest/admin/iceberg-rest-catalog/)
+- [Fallo `get_table` de Iceberg con Hive Metastore 4](https://github.com/apache/iceberg/issues/12878)
 - [Compatibilidad de Spark con Hive Metastore](https://github.com/apache/spark/blob/master/docs/sql-migration-guide.md#compatibility-with-apache-hive)
 - [Fallo de `ANALYZE` con Hive Metastore 4.0.x](https://github.com/trinodb/trino/issues/26214)
 - [Conector Hive de Trino](https://trino.io/docs/current/connector/hive.html)
@@ -642,8 +548,6 @@ servidor.
 - [Versiones de pgJDBC](https://jdbc.postgresql.org/download/)
 - [Contenedor oficial de Trino](https://trino.io/docs/current/installation/containers.html)
 - [Catálogos REST en Trino 483](https://trino.io/docs/current/object-storage/metastores.html)
-- [Versiones de Apache Polaris](https://polaris.apache.org/downloads/)
-- [Guía oficial Polaris + Trino](https://polaris.apache.org/guides/trino/)
 - [Guía oficial Polaris + Spark](https://polaris.apache.org/guides/spark/)
 - [Spark 4.1.3](https://spark.apache.org/docs/4.1.3/)
 - [Versiones de Apache Iceberg](https://iceberg.apache.org/releases/)
