@@ -7964,7 +7964,7 @@ versión nueva.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">urlopen</span>
 
 <span class="n">SCHEMA_MODULE</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"tcdm_esquema.py"</span><span class="p">)</span>
@@ -7978,7 +7978,7 @@ versión nueva.</p>
     <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
         <span class="n">SCHEMA_MODULE</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
-<span class="o">%</span><span class="n">load_ext</span> <span class="n">tcdm_esquema</span>
+<span class="o">%</span><span class="k">load_ext</span> tcdm_esquema
 </pre></div>
 </div>
 </div>
@@ -8062,7 +8062,8 @@ uno de los hilos conductores de esta sesión.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Objetivos-de-la-sesi%C3%B3n">Objetivos de la sesión<a class="anchor-link" href="#Objetivos-de-la-sesi%C3%B3n">¶</a></h2><p>Al terminar esta sesión deberías poder:</p>
 <ul>
-<li>explicar qué problema resuelve un catálogo frente a una ruta física;</li>
+<li>explicar qué problema resuelve un catálogo frente a una ruta física,
+también cuando una tabla tiene miles de particiones;</li>
 <li>distinguir Hive Metastore, Trino, Spark y PostgreSQL en esta arquitectura;</li>
 <li>registrar Parquet ya existente como tabla externa, sin copiar ni
 transformar los datos;</li>
@@ -8080,6 +8081,8 @@ particiones en el plan de consulta, no sólo en el tiempo de pared;</li>
 <li>calcular estadísticas con <code>ANALYZE</code> y explicar para qué sirven;</li>
 <li>documentar el ciclo de vida de una tabla y el riesgo de borrar datos
 gestionados por accidente;</li>
+<li>apuntar en el catálogo de qué se calcula cada tabla (su linaje) y usarlo
+para saber qué recalcular, y en qué orden, cuando cambia una fuente;</li>
 <li>identificar las limitaciones del Hive Metastore que justifican introducir
 Iceberg en S7.</li>
 </ul>
@@ -8168,7 +8171,7 @@ notebook de S5.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">item</span> \
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-d<span class="w"> </span>/datalake/raw/tpcds/item<span class="w"> </span><span class="err">\</span>
     <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">silver</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales</span> \
     <span class="o">/</span><span class="n">datalake</span><span class="o">/</span><span class="n">gold</span><span class="o">/</span><span class="n">tpcds</span><span class="o">/</span><span class="n">web_sales_by_year</span> \
     <span class="o">/</span><span class="n">warehouse</span>
@@ -8219,7 +8222,7 @@ las sesiones S2-S8; la imagen de <code>namenode</code> ya trae esos paquetes en
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="o">-</span><span class="n">r</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dsevilla</span><span class="o">/</span><span class="n">tcdm</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="mi">26</span><span class="o">-</span><span class="mi">27</span><span class="o">/</span><span class="n">entorno</span><span class="o">/</span><span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">pip</span> install -q -r https://raw.githubusercontent.com/dsevilla/tcdm-public/26-27/entorno/requirements.txt
 </pre></div>
 </div>
 </div>
@@ -8233,7 +8236,7 @@ las sesiones S2-S8; la imagen de <code>namenode</code> ya trae esos paquetes en
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pyspark</span>
@@ -8329,7 +8332,7 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 
 <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"HADOOP_CONF_DIR"</span><span class="p">),</span> <span class="p">(</span>
@@ -8366,7 +8369,7 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkContext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkSession</span>
@@ -8454,7 +8457,7 @@ Metastore.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SHOW DATABASES"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SHOW DATABASES"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -8579,7 +8582,7 @@ la construcción de columnas.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">trino.dbapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Connection</span><span class="p">,</span> <span class="n">Cursor</span>
 
 <span class="n">trino_conn</span><span class="p">:</span> <span class="n">Connection</span> <span class="o">=</span> <span class="n">trino</span><span class="o">.</span><span class="n">dbapi</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
@@ -8611,7 +8614,7 @@ la construcción de columnas.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT 1 AS ping"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT 1 AS ping"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8632,7 +8635,85 @@ conexión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=28">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Para-qu%C3%A9-sirve-un-cat%C3%A1logo">Para qué sirve un catálogo<a class="anchor-link" href="#Para-qu%C3%A9-sirve-un-cat%C3%A1logo">¶</a></h2><p>En S5 escribiste <code>silver</code> y <code>gold</code> como directorios de Parquet, y cada
+lectura tenía que conocer de antemano su ruta física. Un catálogo pone encima
+una capa de tablas: cada una es una fila en una base de datos, con su nombre,
+su ubicación, su esquema y sus particiones. Qué se gana con eso:</p>
+<ul>
+<li><strong>Un sitio donde todo son tablas.</strong> <code>SHOW TABLES FROM hive.tcdm</code> responde
+qué datos hay. Sin catálogo, la respuesta es recorrer <code>/datalake</code> y
+<code>/warehouse</code> con <code>hdfs dfs -ls -R</code> y deducir qué directorio es una tabla,
+cuál una partición y cuál un fichero auxiliar como <code>_SUCCESS</code>.</li>
+<li><strong>Un nombre en lugar de una ruta, el mismo para todos los motores.</strong> Trino
+y Spark consultarán <code>tcdm.web_sales_silver</code> sin escribir ninguna ruta. Si
+los datos cambian de sitio —otro directorio, o el almacenamiento S3 de la
+sesión 3—, se cambia la ubicación en el catálogo y ninguna consulta cambia;
+y tablas en HDFS y en S3 pueden convivir en el mismo esquema <code>tcdm</code>.</li>
+<li><strong>Lo que los ficheros no dicen.</strong> Un Parquet guarda sus columnas y sus
+tipos, pero no que forma parte de una tabla llamada <code>web_sales_silver</code>.
+<code>sold_year</code> y <code>sold_month</code> ni siquiera están dentro de los ficheros: sólo
+aparecen, como texto, en el nombre de los directorios, y es el catálogo el
+que declara que son columnas enteras. Tampoco guardan una descripción, un
+propietario ni de qué otras tablas se calcularon (su linaje, que apuntarás
+al final de la sesión).</li>
+<li><strong>Las particiones, en una tabla indexada.</strong> Es la ventaja que más crece con
+el tamaño. Para saber qué particiones existen y cuáles cumplen el filtro de
+una consulta, un motor sin catálogo tiene que listar directorios cada vez:
+en HDFS, una petición al NameNode por directorio; en S3, peticiones <code>LIST</code>
+que devuelven como mucho 1.000 claves cada una, una detrás de otra.
+<code>web_sales_silver</code> tiene 61 particiones y no se nota. Una tabla de eventos
+particionada por día y por hora durante diez años tiene 87.600: una
+consulta con <code>WHERE hora = 3</code> obligaría a listar los 3.650 directorios de
+día antes de leer un solo byte, y sólo se libra la que filtra por la
+primera columna de partición, porque puede construir la ruta. El metastore
+guarda una fila por partición en <code>PARTITIONS</code>, en PostgreSQL y con índices,
+y Trino le pide sólo las que cumplen el filtro: una consulta SQL en lugar de
+un recorrido del árbol. Verás esa poda en el <code>EXPLAIN</code> filtrado por
+<code>sold_year</code>.</li>
+<li><strong>Estadísticas para el optimizador.</strong> Filas, valores distintos y nulos por
+columna (<code>ANALYZE</code>, más adelante): calcularlas recorriendo los ficheros en
+cada consulta costaría tanto como la propia consulta.</li>
+</ul>
+<p>Una nota sobre el esquema: el <code>CREATE TABLE</code> de Trino que usarás obliga a
+repetir las columnas y los tipos que el Parquet ya guarda. Spark no: puede
+deducirlos de los propios ficheros al registrar la tabla.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Para qué sirve un catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un sitio donde todo son tablas: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW TABLES</code>, no <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -ls -R</code></li><li style="margin:10px 0;list-style-position:outside">Un nombre en lugar de una ruta, el mismo para Trino y Spark: mover los datos no cambia las consultas</li><li style="margin:10px 0;list-style-position:outside">Declara lo que los ficheros no dicen: columnas de partición, descripción, linaje</li><li style="margin:10px 0;list-style-position:outside">Particiones en una tabla indexada: con miles, listar directorios en cada consulta no escala</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Una tabla particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">dia</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hora</code> durante diez años tiene 87.600 directorios. Sin catálogo, ¿cuántos hay que listar para planificar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">WHERE hora = 3</code>? ¿Y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">WHERE dia = DATE '2025-03-01'</code>?</li><li style="margin:10px 0;list-style-position:outside">¿Qué le pregunta Trino al metastore en lugar de listarlos?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8646,7 +8727,54 @@ conexión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Qu%C3%A9-guarda-el-cat%C3%A1logo-y-d%C3%B3nde-viven-las-tablas">Qué guarda el catálogo y dónde viven las tablas<a class="anchor-link" href="#Qu%C3%A9-guarda-el-cat%C3%A1logo-y-d%C3%B3nde-viven-las-tablas">¶</a></h2><p>Antes de registrar ninguna tabla conviene separar dos lugares. Los <strong>datos</strong>
+de una tabla Hive son ficheros en HDFS: los Parquet que escribió S5, con sus
+directorios de partición. El <strong>catálogo</strong> —el Hive Metastore, que lo guarda
+todo en tablas de su base de datos PostgreSQL (<code>metastore_db</code>)— sólo contiene
+metadatos: el nombre de cada base de datos y de cada tabla, su tipo (externa
+o administrada), su ubicación en HDFS y su formato, las columnas con sus
+tipos, las columnas de partición y una fila por cada partición que conoce. Ni
+una sola fila de <code>web_sales</code> entra en PostgreSQL.</p>
+<p>La animación sigue, paso a paso, lo que harás más abajo con
+<code>tcdm.web_sales_silver</code>, y añade al final qué ocurre al borrar una tabla
+externa:</p>
+<p align="center" style="text-align: center;"><img alt="Animación en seis pasos: el catálogo (Hive Metastore con sus tablas DBS, TBLS, SDS, COLUMNS_V2, PARTITION_KEYS y PARTITIONS) frente a los directorios particionados de web_sales en HDFS; CREATE TABLE escribe la definición, count(*) devuelve 0 sin particiones, sync_partition_metadata añade 61, la consulta lee los Parquet y DROP TABLE borra sólo los metadatos" src="https://dsevilla.github.io/tcdm-public/figs/catalogo-hive-s6.gif" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" width="1100"/></p>
+<ol>
+<li><strong>Punto de partida.</strong> Los Parquet de S5 ya están en HDFS, bajo
+<code>/datalake/silver/tpcds/web_sales</code>, en directorios
+<code>sold_year=…/sold_month=…</code>. El catálogo sólo conoce la base de datos
+<code>tcdm</code>.</li>
+<li><strong><code>CREATE TABLE</code></strong> con <code>external_location</code> y <code>partitioned_by</code> escribe en
+el catálogo la tabla y su tipo (<code>TBLS</code>), su ubicación y su formato
+(<code>SDS</code>), sus columnas (<code>COLUMNS_V2</code>) y sus columnas de partición
+(<code>PARTITION_KEYS</code>). No lee ni copia ningún fichero de HDFS.</li>
+<li><strong><code>SELECT count(*)</code> devuelve 0.</strong> <code>PARTITIONS</code> está vacía, así que Trino
+no sabe qué directorios leer, aunque los ficheros estén ahí.</li>
+<li><strong><code>hive.system.sync_partition_metadata</code></strong> recorre los directorios bajo la
+ubicación de la tabla y añade a <code>PARTITIONS</code> una fila por cada uno (61),
+cada una con su propia ubicación.</li>
+<li><strong>Catálogo y ficheros, conectados.</strong> Trino obtiene del metastore el
+esquema y las ubicaciones y lee los Parquet directamente de HDFS: los
+datos nunca pasan por el metastore.</li>
+<li><strong><code>DROP TABLE</code> sobre una tabla externa</strong> borra sus filas del catálogo y
+deja intactos los ficheros. Lo comprobarás al final de la sesión con
+<code>drop_demo_external</code>; con una tabla administrada, en cambio, <code>DROP</code>
+borra también sus ficheros.</li>
+</ol>
+<p><code>DBS</code>, <code>TBLS</code>, <code>SDS</code>, <code>COLUMNS_V2</code>, <code>PARTITION_KEYS</code> y <code>PARTITIONS</code> son los
+nombres reales de esas tablas en PostgreSQL: en la actividad «Mira dentro del
+metastore» las consultarás con <code>psql</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8684,7 +8812,7 @@ modelos; en S7 será también la zona de las tablas Iceberg.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8698,7 +8826,7 @@ modelos; en S7 será también la zona de las tablas Iceberg.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8719,7 +8847,7 @@ leerla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8727,13 +8855,13 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"CREATE SCHEMA IF NOT EXISTS hive.tcdm"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"CREATE SCHEMA IF NOT EXISTS hive.tcdm"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8741,14 +8869,14 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># Las columnas que declara el CREATE TABLE siguiente, con su significado.</span>
-<span class="o">%</span><span class="n">esquema</span> <span class="n">item</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Las columnas que declara el CREATE TABLE siguiente, con su significado.</span>
+<span class="o">%</span><span class="k">esquema</span> item
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8756,7 +8884,7 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.item"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.item"</span><span class="p">)</span>
 
 <span class="n">create_item_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CREATE TABLE hive.tcdm.item (</span>
@@ -8794,7 +8922,7 @@ leerla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8802,13 +8930,13 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.item"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.item"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8816,13 +8944,13 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.item"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.item"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8830,7 +8958,7 @@ leerla.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">item_count</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.item"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">item_count</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.item"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">item_count</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">item_count</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">36_000</span>
@@ -8840,7 +8968,7 @@ leerla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8854,7 +8982,7 @@ de la sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8862,7 +8990,7 @@ de la sesión.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    COMMENT ON TABLE hive.tcdm.item IS</span>
 <span class="s1">    'Dimensión de productos de TPC-DS SF3, registrada como tabla externa sobre /datalake/raw/tpcds/item (ver S2).'</span>
 <span class="s1">'''</span><span class="p">)</span>
@@ -8873,7 +9001,7 @@ de la sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8889,7 +9017,7 @@ existía.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=45">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8903,7 +9031,7 @@ existía.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8926,7 +9054,7 @@ en el listado de columnas de Trino, ir al final.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8934,25 +9062,25 @@ en el listado de columnas de Trino, ir al final.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="o">%%</span><span class="n">esquema</span>
-<span class="c1"># Las columnas de web_sales que conserva la tabla silver de S5.</span>
-<span class="n">ws_order_number</span>
-<span class="n">ws_item_sk</span>
-<span class="n">ws_bill_customer_sk</span>
-<span class="n">ws_bill_addr_sk</span>
-<span class="n">ws_sold_timestamp</span>
-<span class="n">ws_quantity</span>
-<span class="n">ws_list_price</span>
-<span class="n">ws_ext_discount_amt</span>
-<span class="n">ws_ext_sales_price</span>
-<span class="n">ws_net_paid</span>
-<span class="n">ws_net_profit</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">esquema</span>
+# Las columnas de web_sales que conserva la tabla silver de S5.
+ws_order_number
+ws_item_sk
+ws_bill_customer_sk
+ws_bill_addr_sk
+ws_sold_timestamp
+ws_quantity
+ws_list_price
+ws_ext_discount_amt
+ws_ext_sales_price
+ws_net_paid
+ws_net_profit
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8960,7 +9088,7 @@ en el listado de columnas de Trino, ir al final.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_silver"</span><span class="p">)</span>
 
 <span class="n">create_web_sales_silver_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CREATE TABLE hive.tcdm.web_sales_silver (</span>
@@ -8991,7 +9119,7 @@ en el listado de columnas de Trino, ir al final.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8999,13 +9127,13 @@ en el listado de columnas de Trino, ir al final.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.web_sales_silver"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=46">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9019,7 +9147,7 @@ en el listado de columnas de Trino, ir al final.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9029,7 +9157,7 @@ en el listado de columnas de Trino, ir al final.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9037,7 +9165,7 @@ en el listado de columnas de Trino, ir al final.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">before_repair</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">before_repair</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.web_sales_silver"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">before_repair</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -9045,7 +9173,7 @@ en el listado de columnas de Trino, ir al final.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9071,7 +9199,7 @@ hace las dos cosas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9079,7 +9207,7 @@ hace las dos cosas.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">sync_partitions_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sync_partitions_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CALL hive.system.sync_partition_metadata(</span>
 <span class="s1">    schema_name =&gt; 'tcdm',</span>
 <span class="s1">    table_name =&gt; 'web_sales_silver',</span>
@@ -9092,7 +9220,7 @@ hace las dos cosas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9100,7 +9228,7 @@ hace las dos cosas.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">after_repair</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">after_repair</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.web_sales_silver"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">after_repair</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">after_repair</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -9111,7 +9239,7 @@ hace las dos cosas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9137,7 +9265,7 @@ normales.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9145,7 +9273,7 @@ normales.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">partitions_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">partitions_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
     <span class="s1">'SELECT * FROM hive.tcdm."web_sales_silver$partitions" ORDER BY sold_year, sold_month'</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Particiones registradas: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">partitions_df</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -9155,7 +9283,7 @@ normales.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9168,7 +9296,7 @@ normales.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=55">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9182,7 +9310,7 @@ normales.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9199,7 +9327,7 @@ Para salir, <code>\q</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9213,7 +9341,7 @@ de filas y bytes leídos por cada operador.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9221,7 +9349,7 @@ de filas y bytes leídos por cada operador.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">explain_unfiltered</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_unfiltered</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
     <span class="s2">"EXPLAIN SELECT count(*) FROM hive.tcdm.web_sales_silver"</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">explain_unfiltered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
@@ -9230,7 +9358,7 @@ de filas y bytes leídos por cada operador.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9238,7 +9366,7 @@ de filas y bytes leídos por cada operador.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">explain_filtered</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_filtered</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
 <span class="w">    </span><span class="sd">'''EXPLAIN SELECT count(*) FROM hive.tcdm.web_sales_silver</span>
 <span class="sd">    WHERE sold_year = 2000 AND sold_month = 1'''</span>
 <span class="p">)</span>
@@ -9249,7 +9377,7 @@ de filas y bytes leídos por cada operador.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9264,7 +9392,7 @@ bytes se leyeron realmente en cada caso.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9272,7 +9400,7 @@ bytes se leyeron realmente en cada caso.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">explain_analyze_filtered</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_analyze_filtered</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
 <span class="w">    </span><span class="sd">'''EXPLAIN ANALYZE SELECT count(*) FROM hive.tcdm.web_sales_silver</span>
 <span class="sd">    WHERE sold_year = 2000 AND sold_month = 1'''</span>
 <span class="p">)</span>
@@ -9283,7 +9411,7 @@ bytes se leyeron realmente en cada caso.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9296,7 +9424,7 @@ filas y bytes leídos que ofrece <code>EXPLAIN ANALYZE</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9310,7 +9438,7 @@ filas y bytes leídos que ofrece <code>EXPLAIN ANALYZE</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9328,7 +9456,7 @@ lugar de convertirlo a coma flotante — importante para un agregado de dinero.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9336,7 +9464,7 @@ lugar de convertirlo a coma flotante — importante para un agregado de dinero.<
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_by_year_gold"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_by_year_gold"</span><span class="p">)</span>
 
 <span class="n">create_gold_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CREATE TABLE hive.tcdm.web_sales_by_year_gold (</span>
@@ -9356,7 +9484,7 @@ lugar de convertirlo a coma flotante — importante para un agregado de dinero.<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9364,13 +9492,13 @@ lugar de convertirlo a coma flotante — importante para un agregado de dinero.<
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.web_sales_by_year_gold"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.web_sales_by_year_gold"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9378,7 +9506,7 @@ lugar de convertirlo a coma flotante — importante para un agregado de dinero.<
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">gold_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">gold_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
     <span class="s2">"SELECT * FROM hive.tcdm.web_sales_by_year_gold ORDER BY sold_year"</span>
 <span class="p">)</span>
 <span class="n">gold_df</span>
@@ -9388,7 +9516,7 @@ lugar de convertirlo a coma flotante — importante para un agregado de dinero.<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9404,7 +9532,7 @@ encuentra en el fichero; no infiere el esquema por sí solo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9416,63 +9544,6 @@ conozca el nombre lógico de las tablas, sin saber nada de rutas HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW SCHEMAS FROM hive"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW TABLES FROM hive.tcdm"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Estad%C3%ADsticas-antes-y-despu%C3%A9s-de-ANALYZE">Estadísticas antes y después de <code>ANALYZE</code><a class="anchor-link" href="#Estad%C3%ADsticas-antes-y-despu%C3%A9s-de-ANALYZE">¶</a></h3><p>El metastore puede guardar estadísticas por columna (número de valores
-distintos aproximado, fracción de nulos, tamaño medio...) que el planificador
-de Trino usa para elegir el orden de los <code>JOIN</code> o el tipo de agregación. Esas
-estadísticas no se calculan solas: hace falta pedirlas explícitamente con
-<code>ANALYZE</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW STATS FOR hive.tcdm.web_sales_silver"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -9481,7 +9552,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"ANALYZE hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW SCHEMAS FROM hive"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9495,13 +9566,28 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW STATS FOR hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW TABLES FROM hive.tcdm"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Estad%C3%ADsticas-antes-y-despu%C3%A9s-de-ANALYZE">Estadísticas antes y después de <code>ANALYZE</code><a class="anchor-link" href="#Estad%C3%ADsticas-antes-y-despu%C3%A9s-de-ANALYZE">¶</a></h3><p>El metastore puede guardar estadísticas por columna (número de valores
+distintos aproximado, fracción de nulos, tamaño medio...) que el planificador
+de Trino usa para elegir el orden de los <code>JOIN</code> o el tipo de agregación. Esas
+estadísticas no se calculan solas: hace falta pedirlas explícitamente con
+<code>ANALYZE</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9509,7 +9595,49 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">explain_filtered_tras_analyze</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW STATS FOR hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"ANALYZE hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW STATS FOR hive.tcdm.web_sales_silver"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_filtered_tras_analyze</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span>
 <span class="w">    </span><span class="sd">'''EXPLAIN SELECT count(*) FROM hive.tcdm.web_sales_silver</span>
 <span class="sd">    WHERE sold_year = 2000 AND sold_month = 1'''</span>
 <span class="p">)</span>
@@ -9520,7 +9648,7 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9542,7 +9670,7 @@ volver a lanzar <code>ANALYZE</code>; si no, el optimizador decide con cifras vi
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=82">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9555,7 +9683,7 @@ volver a lanzar <code>ANALYZE</code>; si no, el optimizador decide con cifras vi
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=79">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=83">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9569,7 +9697,7 @@ volver a lanzar <code>ANALYZE</code>; si no, el optimizador decide con cifras vi
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9583,7 +9711,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9591,13 +9719,13 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SHOW TABLES IN tcdm"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SHOW TABLES IN tcdm"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9605,7 +9733,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
 
 <span class="n">web_sales_silver_spark</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">"tcdm.web_sales_silver"</span><span class="p">)</span>
 <span class="n">web_sales_silver_spark</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
@@ -9614,7 +9742,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9622,7 +9750,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''SELECT sold_year, sold_month, count(*) AS lineas_de_venta</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''SELECT sold_year, sold_month, count(*) AS lineas_de_venta</span>
 <span class="s1">    FROM tcdm.web_sales_silver</span>
 <span class="s1">    GROUP BY sold_year, sold_month</span>
 <span class="s1">    ORDER BY sold_year, sold_month'''</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
@@ -9632,7 +9760,7 @@ código, sólo el nombre lógico <code>tcdm.web_sales_silver</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9644,7 +9772,7 @@ partición tal como las ve el mismo metastore.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9652,14 +9780,14 @@ partición tal como las ve el mismo metastore.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE FORMATTED tcdm.web_sales_silver"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE FORMATTED tcdm.web_sales_silver"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9676,7 +9804,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9684,7 +9812,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">gold_spark_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">gold_spark_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
     <span class="s2">"SELECT sold_year, pedidos, lineas_de_venta, beneficio_neto FROM tcdm.web_sales_by_year_gold ORDER BY sold_year"</span>
 <span class="p">)</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span>
 <span class="n">gold_spark_df</span>
@@ -9693,7 +9821,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9701,7 +9829,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">comparacion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">comparacion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
     <span class="n">gold_spark_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">"_trino"</span><span class="p">,</span> <span class="s2">"_spark"</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_trino"</span><span class="p">]</span> <span class="o">=</span> <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_trino"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
@@ -9721,7 +9849,7 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9734,7 +9862,7 @@ ficheros y filtrar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9742,7 +9870,7 @@ ficheros y filtrar después.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SELECT * FROM tcdm.web_sales_silver WHERE sold_year = 2000 AND sold_month = 1"</span><span class="p">)</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SELECT * FROM tcdm.web_sales_silver WHERE sold_year = 2000 AND sold_month = 1"</span><span class="p">)</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span>
     <span class="s2">"formatted"</span>
 <span class="p">)</span>
 </pre></div>
@@ -9751,7 +9879,7 @@ ficheros y filtrar después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9773,7 +9901,7 @@ de leer la tabla con Spark—, pero es el motivo por el que a veces una tabla
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9787,7 +9915,7 @@ de leer la tabla con Spark—, pero es el motivo por el que a veces una tabla
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9800,7 +9928,7 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9808,7 +9936,7 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_by_year_managed_demo"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.web_sales_by_year_managed_demo"</span><span class="p">)</span>
 
 <span class="n">ctas_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'''</span>
 <span class="s1">CREATE TABLE hive.tcdm.web_sales_by_year_managed_demo</span>
@@ -9822,7 +9950,7 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=95">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9830,14 +9958,14 @@ Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.web_sales_by_year_managed_demo"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW CREATE TABLE hive.tcdm.web_sales_by_year_managed_demo"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9853,7 +9981,7 @@ Lo comprobamos directamente en HDFS:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9861,14 +9989,14 @@ Lo comprobamos directamente en HDFS:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">-</span><span class="n">R</span> <span class="o">-</span><span class="n">h</span> <span class="o">/</span><span class="n">warehouse</span><span class="o">/</span><span class="n">tcdm</span><span class="o">.</span><span class="n">db</span><span class="o">/</span><span class="n">web_sales_by_year_managed_demo</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>-R<span class="w"> </span>-h<span class="w"> </span>/warehouse/tcdm.db/web_sales_by_year_managed_demo
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9882,7 +10010,7 @@ registrar una ubicación existente y pedirle al motor que gestione una nueva.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9895,7 +10023,7 @@ sobre una ruta de trabajo propia bajo <code>/user/luser/s6</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9903,8 +10031,8 @@ sobre una ruta de trabajo propia bajo <code>/user/luser/s6</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span>
-<span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">rm</span> <span class="o">-</span><span class="n">r</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-mkdir<span class="w"> </span>-p<span class="w"> </span>/user/luser/s6
+<span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-rm<span class="w"> </span>-r<span class="w"> </span>-f<span class="w"> </span>/user/luser/s6/drop_demo_external
 
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.drop_demo_managed"</span><span class="p">)</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS hive.tcdm.drop_demo_external"</span><span class="p">)</span>
@@ -9929,7 +10057,7 @@ sobre una ruta de trabajo propia bajo <code>/user/luser/s6</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9940,7 +10068,7 @@ sobre una ruta de trabajo propia bajo <code>/user/luser/s6</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9948,14 +10076,14 @@ sobre una ruta de trabajo propia bajo <code>/user/luser/s6</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">warehouse</span><span class="o">/</span><span class="n">tcdm</span><span class="o">.</span><span class="n">db</span><span class="o">/</span><span class="n">drop_demo_managed</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>/warehouse/tcdm.db/drop_demo_managed<span class="w"> </span>/user/luser/s6/drop_demo_external
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9966,7 +10094,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=108">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9979,7 +10107,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9987,7 +10115,7 @@ HDFS.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE hive.tcdm.drop_demo_managed"</span><span class="p">)</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"DROP TABLE hive.tcdm.drop_demo_external"</span><span class="p">)</span>
@@ -10009,7 +10137,7 @@ HDFS.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10017,14 +10145,14 @@ HDFS.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">ls</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-ls<span class="w"> </span>/user/luser/s6/drop_demo_external
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10039,7 +10167,7 @@ decisión aparte:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10047,13 +10175,13 @@ decisión aparte:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">hdfs</span> <span class="n">dfs</span> <span class="o">-</span><span class="n">rm</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">luser</span><span class="o">/</span><span class="n">s6</span><span class="o">/</span><span class="n">drop_demo_external</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">!</span>hdfs<span class="w"> </span>dfs<span class="w"> </span>-rm<span class="w"> </span>-r<span class="w"> </span>/user/luser/s6/drop_demo_external
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=109">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=113">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10066,7 +10194,7 @@ decisión aparte:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=114">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10079,7 +10207,7 @@ decisión aparte:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=111">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=115">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10087,13 +10215,386 @@ decisión aparte:</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Buenas prácticas de catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Cada tabla con propietario, descripción, ubicación y contrato de esquema y claves</li><li style="margin:10px 0;list-style-position:outside">Particiones justificadas por las consultas; estadísticas generadas y revisadas cuando hacen falta</li><li style="margin:10px 0;list-style-position:outside">Fuente y derivadas tienen ciclos de vida distintos: borrar una derivada nunca borra su fuente</li><li style="margin:10px 0;list-style-position:outside">La limpieza va separada de las consultas normales</li><li style="margin:10px 0;list-style-position:outside">El metastore no da transacciones ni historial de versiones: eso motiva Iceberg en S7</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Linaje: de dónde sale cada tabla</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El metastore sabe dónde está cada tabla, pero no de qué se calculó</li><li style="margin:10px 0;list-style-position:outside">Lo apuntamos en sus propiedades, con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">TBLPROPERTIES</code></li><li style="margin:10px 0;list-style-position:outside">Con eso, la lista de qué recalcular cuando cambia una fuente</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Linaje:-de-qu%C3%A9-depende-cada-tabla">Linaje: de qué depende cada tabla<a class="anchor-link" href="#Linaje:-de-qu%C3%A9-depende-cada-tabla">¶</a></h2><p>Las tablas de esta sesión no son independientes. S5 calculó <code>silver</code> a
+partir de los Parquet de <code>raw</code> y <code>gold</code> a partir de <code>silver</code>, y la tabla
+administrada de laboratorio salió de <code>gold</code> con un CTAS:</p>
+<div class="highlight"><pre><span></span>/datalake/raw/tpcds/web_sales
+    → tcdm.web_sales_silver                    (S5: filtra y añade sold_year y sold_month)
+        → tcdm.web_sales_by_year_gold          (S5: agrega por año)
+            → tcdm.web_sales_by_year_managed_demo   (S6: CTAS)
+</pre></div>
+<p>Esa cadena es el <strong>linaje</strong> (<em>lineage</em>) de cada tabla: de qué datos sale y
+qué proceso la escribe. Sirve para responder una pregunta que llegará en S8,
+cuando empiecen a llegar ventas nuevas a <code>raw</code>: <strong>si cambia una fuente, ¿qué
+tablas hay que recalcular, y en qué orden?</strong> Y también la contraria: si un
+número de <code>gold</code> está mal, ¿de qué datos viene?</p>
+<p>El metastore guarda la ubicación de cada tabla, pero no quién escribió esos
+ficheros ni a partir de qué: para él, <code>gold</code> es una tabla externa más. El
+linaje hay que apuntarlo, y el catálogo es el sitio natural, porque es donde
+todos los motores buscan las tablas. Cada tabla admite <strong>propiedades</strong>:
+pares clave-valor que el metastore guarda con ella en su tabla
+<code>TABLE_PARAMS</code> de PostgreSQL, la misma donde queda el comentario de
+<code>COMMENT ON TABLE</code>. Usaremos dos claves propias del curso:</p>
+<ul>
+<li><code>tcdm.linaje.origenes</code>: de qué tablas (<code>tcdm.…</code>) o rutas de HDFS se
+calcula, separadas por comas;</li>
+<li><code>tcdm.linaje.proceso</code>: qué proceso la escribe, para saber qué volver a
+ejecutar.</li>
+</ul>
+<p>Las fijamos desde Spark con <code>ALTER TABLE … SET TBLPROPERTIES</code>. <code>tcdm.item</code> no
+lleva ninguna: no se calcula a partir de nada, sólo apunta a los Parquet de
+<code>raw</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=117">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">linaje</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"tcdm.web_sales_silver"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"tcdm.linaje.origenes"</span><span class="p">:</span> <span class="s2">"hdfs://namenode:9000/datalake/raw/tpcds/web_sales"</span><span class="p">,</span>
+        <span class="s2">"tcdm.linaje.proceso"</span><span class="p">:</span> <span class="s2">"S5: filtrar las ventas sin fecha y añadir sold_year y sold_month"</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"tcdm.web_sales_by_year_gold"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"tcdm.linaje.origenes"</span><span class="p">:</span> <span class="s2">"tcdm.web_sales_silver"</span><span class="p">,</span>
+        <span class="s2">"tcdm.linaje.proceso"</span><span class="p">:</span> <span class="s2">"S5: agregar silver por año"</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"tcdm.web_sales_by_year_managed_demo"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"tcdm.linaje.origenes"</span><span class="p">:</span> <span class="s2">"tcdm.web_sales_by_year_gold"</span><span class="p">,</span>
+        <span class="s2">"tcdm.linaje.proceso"</span><span class="p">:</span> <span class="s2">"S6: CTAS de la tabla gold"</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="n">tabla</span><span class="p">,</span> <span class="n">propiedades</span> <span class="ow">in</span> <span class="n">linaje</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">asignaciones</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">clave</span><span class="si">}</span><span class="s2">' = '</span><span class="si">{</span><span class="n">valor</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">clave</span><span class="p">,</span> <span class="n">valor</span> <span class="ow">in</span> <span class="n">propiedades</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ALTER TABLE </span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2"> SET TBLPROPERTIES (</span><span class="si">{</span><span class="n">asignaciones</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2">: linaje apuntado en el metastore."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Spark ha escrito las propiedades en el metastore, y Trino las lee de ahí. Su
+conector Hive las expone en la tabla oculta <code>"&lt;tabla&gt;$properties"</code>, con una
+columna por clave:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=119">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT "tcdm.linaje.origenes", "tcdm.linaje.proceso"</span>
+<span class="s1">    FROM hive.tcdm."web_sales_by_year_gold$properties"</span>
+<span class="s1">'''</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Qu%C3%A9-hay-que-recalcular-si-cambia-una-fuente">Qué hay que recalcular si cambia una fuente<a class="anchor-link" href="#Qu%C3%A9-hay-que-recalcular-si-cambia-una-fuente">¶</a></h3><p>Con el linaje en el catálogo, la lista de dependencias se calcula en lugar de
+recordarla. La celda siguiente recorre las tablas de <code>tcdm</code> y lee, de cada
+una, su ubicación, si está particionada y sus dos propiedades de linaje. Una
+tabla depende de un cambio de dos maneras:</p>
+<ul>
+<li><strong>lee directamente los ficheros que cambian</strong>, porque su ubicación es esa
+ruta, como <code>tcdm.item</code> sobre <code>/datalake/raw/tpcds/item</code>. No hay que
+recalcularla: una tabla externa no copia los datos, sólo apunta a ellos. Si
+está particionada, sí hay que registrar las particiones nuevas, como
+hiciste con <code>sync_partition_metadata</code>;</li>
+<li><strong>se calcula a partir de lo que cambia</strong>, porque lo nombra en
+<code>tcdm.linaje.origenes</code>. Hay que volver a ejecutar su proceso, y como sus
+ficheros cambian, lo mismo vale para las tablas que se calculan a partir
+de ella.</li>
+</ul>
+<p>El orden importa: <code>gold</code> no se puede recalcular antes que <code>silver</code>. La
+función ordena las tablas afectadas con <code>graphlib.TopologicalSorter</code>, de la
+biblioteca estándar de Python, de modo que cada una aparece después de todas
+las tablas de las que se calcula.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">graphlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologicalSorter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnalysisException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">Row</span>
+
+<span class="n">CLAVE_ORIGENES</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"tcdm.linaje.origenes"</span>
+<span class="n">CLAVE_PROCESO</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"tcdm.linaje.proceso"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">nodo</span><span class="p">(</span><span class="n">referencia</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Una tabla se nombra `tcdm.tabla`; una ruta, sin `hdfs://servidor:puerto`.'''</span>
+    <span class="n">referencia</span> <span class="o">=</span> <span class="n">referencia</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">referencia</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">referencia</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">referencia</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TablaConLinaje</span><span class="p">:</span>
+    <span class="n">nombre</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ubicacion</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">particionada</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">origenes</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">proceso</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">leer_linaje</span><span class="p">(</span><span class="n">base_de_datos</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TablaConLinaje</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">'''Lee del metastore la ubicación y las propiedades de linaje de cada tabla.'''</span>
+    <span class="n">tablas</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TablaConLinaje</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">tabla</span> <span class="ow">in</span> <span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="p">(</span><span class="n">base_de_datos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tabla</span><span class="o">.</span><span class="n">isTemporary</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">nombre</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base_de_datos</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">tabla</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">detalle</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Row</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DESCRIBE TABLE EXTENDED </span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+            <span class="n">filas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Row</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SHOW TBLPROPERTIES </span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">AnalysisException</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">: no se puede leer desde Spark (</span><span class="si">{</span><span class="n">error</span><span class="o">.</span><span class="n">getCondition</span><span class="p">()</span><span class="si">}</span><span class="s2">), se omite."</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">propiedades</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">fila</span><span class="p">[</span><span class="s2">"key"</span><span class="p">]:</span> <span class="n">fila</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="k">for</span> <span class="n">fila</span> <span class="ow">in</span> <span class="n">filas</span><span class="p">}</span>
+        <span class="n">ubicacion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">f</span><span class="p">[</span><span class="s2">"data_type"</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">detalle</span> <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s2">"col_name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Location"</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="n">tablas</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span> <span class="o">=</span> <span class="n">TablaConLinaje</span><span class="p">(</span>
+            <span class="n">nombre</span><span class="o">=</span><span class="n">nombre</span><span class="p">,</span>
+            <span class="n">ubicacion</span><span class="o">=</span><span class="n">nodo</span><span class="p">(</span><span class="n">ubicacion</span><span class="p">),</span>
+            <span class="n">particionada</span><span class="o">=</span><span class="nb">any</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">"col_name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"# Partition Information"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">detalle</span><span class="p">),</span>
+            <span class="n">origenes</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span>
+                <span class="n">nodo</span><span class="p">(</span><span class="n">origen</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">origen</span> <span class="ow">in</span> <span class="n">propiedades</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CLAVE_ORIGENES</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">origen</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="p">),</span>
+            <span class="n">proceso</span><span class="o">=</span><span class="n">propiedades</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CLAVE_PROCESO</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">tablas</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">afectadas</span><span class="p">(</span><span class="n">cambio</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tablas</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TablaConLinaje</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Las tablas a las que llega un cambio en `cambio` (una tabla o una ruta), en orden.'''</span>
+    <span class="n">motivo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">pendientes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodo</span><span class="p">(</span><span class="n">cambio</span><span class="p">)]</span>
+    <span class="k">while</span> <span class="n">pendientes</span><span class="p">:</span>
+        <span class="n">actual</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">pendientes</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tabla</span> <span class="ow">in</span> <span class="n">tablas</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">tabla</span><span class="o">.</span><span class="n">nombre</span> <span class="ow">in</span> <span class="n">motivo</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">tabla</span><span class="o">.</span><span class="n">ubicacion</span> <span class="o">==</span> <span class="n">actual</span><span class="p">:</span>
+                <span class="n">motivo</span><span class="p">[</span><span class="n">tabla</span><span class="o">.</span><span class="n">nombre</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"lee los ficheros de </span><span class="si">{</span><span class="n">actual</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">elif</span> <span class="n">actual</span> <span class="ow">in</span> <span class="n">tabla</span><span class="o">.</span><span class="n">origenes</span><span class="p">:</span>
+                <span class="n">motivo</span><span class="p">[</span><span class="n">tabla</span><span class="o">.</span><span class="n">nombre</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"se calcula a partir de </span><span class="si">{</span><span class="n">actual</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">pendientes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tabla</span><span class="o">.</span><span class="n">nombre</span><span class="p">)</span>
+    <span class="c1"># Cada tabla, después de todas las afectadas de las que se calcula.</span>
+    <span class="n">grafo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">nombre</span><span class="p">:</span> <span class="p">[</span><span class="n">origen</span> <span class="k">for</span> <span class="n">origen</span> <span class="ow">in</span> <span class="n">tablas</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">origenes</span> <span class="k">if</span> <span class="n">origen</span> <span class="ow">in</span> <span class="n">motivo</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="n">motivo</span>
+    <span class="p">}</span>
+    <span class="n">filas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="n">TopologicalSorter</span><span class="p">(</span><span class="n">grafo</span><span class="p">)</span><span class="o">.</span><span class="n">static_order</span><span class="p">():</span>
+        <span class="n">tabla</span><span class="p">:</span> <span class="n">TablaConLinaje</span> <span class="o">=</span> <span class="n">tablas</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">motivo</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"lee"</span><span class="p">):</span>
+            <span class="n">hacer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">"registrar las particiones nuevas"</span>
+                <span class="k">if</span> <span class="n">tabla</span><span class="o">.</span><span class="n">particionada</span>
+                <span class="k">else</span> <span class="s2">"nada: ya ve los datos nuevos"</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hacer</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"recalcular (</span><span class="si">{</span><span class="n">tabla</span><span class="o">.</span><span class="n">proceso</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'proceso sin apuntar'</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="k">if</span> <span class="n">tabla</span><span class="o">.</span><span class="n">particionada</span><span class="p">:</span>
+                <span class="n">hacer</span> <span class="o">+=</span> <span class="s2">" y registrar sus particiones"</span>
+        <span class="n">filas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">"tabla"</span><span class="p">:</span> <span class="n">nombre</span><span class="p">,</span> <span class="s2">"por qué le afecta"</span><span class="p">:</span> <span class="n">motivo</span><span class="p">[</span><span class="n">nombre</span><span class="p">],</span> <span class="s2">"qué hay que hacer"</span><span class="p">:</span> <span class="n">hacer</span><span class="p">}</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">filas</span><span class="p">)</span>
+
+
+<span class="n">tablas_linaje</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TablaConLinaje</span><span class="p">]</span> <span class="o">=</span> <span class="n">leer_linaje</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"tabla"</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">nombre</span><span class="p">,</span>
+            <span class="s2">"ubicación"</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">ubicacion</span><span class="p">,</span>
+            <span class="s2">"particionada"</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">particionada</span><span class="p">,</span>
+            <span class="s2">"orígenes"</span><span class="p">:</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">origenes</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tablas_linaje</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Antes de ejecutar la celda siguiente: si llegan ventas nuevas a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake/raw/tpcds/web_sales</code>, ¿qué tablas hay que recalcular, y en qué orden?</li><li style="margin:10px 0;list-style-position:outside">¿Y si cambian los Parquet de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code>?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">afectadas</span><span class="p">(</span><span class="s2">"hdfs://namenode:9000/datalake/raw/tpcds/web_sales"</span><span class="p">,</span> <span class="n">tablas_linaje</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Ventas nuevas en <code>raw</code> obligan a recalcular <code>silver</code> y registrar sus
+particiones nuevas, después <code>gold</code> y por último la tabla de laboratorio, en
+ese orden, aunque ni <code>gold</code> ni la tabla de laboratorio lean <code>raw</code>
+directamente: el cambio les llega a través de las tablas de las que se
+calculan. Compáralo con un cambio en los Parquet de <code>item</code>:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">afectadas</span><span class="p">(</span><span class="s2">"hdfs://namenode:9000/datalake/raw/tpcds/item"</span><span class="p">,</span> <span class="n">tablas_linaje</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>tcdm.item</code> ve los datos nuevos en cuanto existen, sin recalcular nada, y
+ninguna tabla del curso se calcula a partir de ella, así que la lista
+termina ahí.</p>
+<p>En S8 los datos nuevos llegan a otra ruta de <code>raw</code>,
+<code>/datalake/raw/streaming/web_sales_incremental</code>, y la sesión hace lo que dice
+esta lista, pero de forma incremental y continua: cada micro-lote se fusiona
+con <code>MERGE INTO</code> en la tabla <em>silver</em> de Iceberg y desde ella en la <em>gold</em>,
+en ese orden, sin recalcularlas enteras.</p>
+<p>Este linaje es <strong>declarado</strong>: lo hemos escrito a mano, y nada impide que se
+quede viejo si alguien cambia el proceso de S5 sin actualizar las
+propiedades. En una plataforma real lo <strong>capturan los motores</strong> al ejecutar
+cada trabajo: Spark, Trino o Airflow informan de qué leyeron y qué
+escribieron mediante OpenLineage, y catálogos como DataHub, OpenMetadata o
+Unity Catalog dibujan el grafo de dependencias, incluso columna a columna. La
+idea es la misma que aquí: el linaje vive en el catálogo, junto a las
+tablas.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=127">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El linaje, en el catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Propiedades de tabla: pares clave-valor en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">TABLE_PARAMS</code>, visibles desde Spark y Trino</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm.linaje.origenes</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm.linaje.proceso</code>: de qué sale cada tabla y quién la escribe</li><li style="margin:10px 0;list-style-position:outside">Si cambia <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>: recalcular <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code>, después <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>, después lo que salga de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0;list-style-position:outside">Una tabla que sólo apunta a los ficheros no se recalcula</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Amplía el linaje</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Crea con un CTAS una tabla de laboratorio a partir de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> (ventas por mes), apunta su linaje y busca dónde aparece en la lista al cambiar <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code></li><li style="margin:10px 0;list-style-position:outside">En <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">psql</code>, consulta las filas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">"TABLE_PARAMS"</code> de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_by_year_gold</code>: ¿qué otras propiedades guarda el metastore?</li><li style="margin:10px 0;list-style-position:outside">¿Qué devuelve <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">afectadas</code> para <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm.web_sales_silver</code>? ¿Y para la ruta de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>?</li><li style="margin:10px 0;list-style-position:outside">Borra la tabla de laboratorio al terminar</li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=129">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Buenas prácticas de catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Cada tabla con propietario, descripción, ubicación y contrato de esquema y claves</li><li style="margin:10px 0;list-style-position:outside">Particiones justificadas por las consultas; estadísticas generadas y revisadas cuando hacen falta</li><li style="margin:10px 0;list-style-position:outside">Fuente y derivadas tienen ciclos de vida distintos: borrar una derivada nunca borra su fuente</li><li style="margin:10px 0;list-style-position:outside">Cada derivada apunta su linaje: de qué sale y qué proceso la escribe</li><li style="margin:10px 0;list-style-position:outside">La limpieza va separada de las consultas normales</li><li style="margin:10px 0;list-style-position:outside">El metastore no da transacciones ni historial de versiones: eso motiva Iceberg en S7</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10112,6 +10613,8 @@ datos de la tabla;</li>
 y para siempre;</li>
 <li>las tablas fuente y las tablas derivadas tienen ciclos de vida distintos:
 borrar una tabla derivada nunca debe poder borrar su fuente;</li>
+<li>cada tabla derivada apunta su linaje: de qué tablas o rutas se calcula y
+qué proceso la escribe;</li>
 <li>una regeneración no borra datos ajenos;</li>
 <li>las operaciones de limpieza están separadas de las consultas normales, como
 se hace en la última sección de este notebook.</li>
@@ -10127,13 +10630,16 @@ introducir Iceberg en S7.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Preguntas-para-interpretar-la-experiencia">Preguntas para interpretar la experiencia<a class="anchor-link" href="#Preguntas-para-interpretar-la-experiencia">¶</a></h2><ul>
+<li>Si <code>web_sales_silver</code> tuviera miles de particiones, ¿qué tendría que
+hacer un motor sin catálogo para planificar una consulta filtrada por
+<code>sold_month</code>? ¿Qué hace en su lugar Trino con el metastore?</li>
 <li>¿Qué diferencia observable hay entre <code>tcdm.item</code> y
 <code>tcdm.web_sales_by_year_managed_demo</code> en cuanto a lo que ocurre en HDFS al
 ejecutar el <code>CREATE TABLE</code>?</li>
@@ -10156,6 +10662,10 @@ sesión lo demuestra?</li>
 ejecutas <code>DROP TABLE</code> sobre ella? ¿Y si en su lugar borraras la tabla
 administrada <code>tcdm.web_sales_by_year_managed_demo</code>? ¿Por qué la respuesta
 es distinta en cada caso?</li>
+<li>¿Qué tablas habría que recalcular, y en qué orden, si llegaran ventas
+nuevas a <code>/datalake/raw/tpcds/web_sales</code>? ¿Por qué <code>tcdm.item</code> no se
+recalcula nunca? ¿Qué respondería la lista si alguien cambiara el proceso
+de S5 sin actualizar las propiedades de linaje?</li>
 <li>¿Qué limitación del Hive Metastore, de las mencionadas en «Buenas
 prácticas de catálogo y data lake», esperarías que resolviera un formato
 de tabla como Iceberg?</li>
@@ -10164,7 +10674,7 @@ de tabla como Iceberg?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10194,6 +10704,9 @@ desde Trino y desde Spark, comprobando que coinciden fila a fila.</li>
 <li>El <code>SHOW CREATE TABLE</code> de <code>tcdm.web_sales_by_year_managed_demo</code> y el
 listado HDFS de su ubicación bajo <code>/warehouse/tcdm.db/</code>, comparado con el
 de una tabla externa.</li>
+<li>La propiedad <code>tcdm.linaje.origenes</code> de <code>tcdm.web_sales_by_year_gold</code>
+leída desde Trino, y la lista de tablas que habría que recalcular si
+cambiara <code>/datalake/raw/tpcds/web_sales</code>, en su orden.</li>
 <li>Que sabes explicar, con tus propias palabras, la diferencia entre
 eliminar la definición de una tabla externa y eliminar una tabla
 administrada.</li>
@@ -10204,13 +10717,15 @@ tus propias palabras qué papel tiene cada pieza de la arquitectura
 (PostgreSQL, Hive Metastore, Trino y Spark); qué diferencia hay entre una
 tabla externa y una administrada, y qué ocurre con los datos al borrar cada
 una; por qué la tabla particionada devolvía cero filas hasta sincronizar
-sus particiones; para qué sirven las estadísticas de <code>ANALYZE</code>; y qué
+sus particiones; qué es el linaje de una tabla y cómo lo has apuntado; para qué sirven las estadísticas de <code>ANALYZE</code>; y qué
 limitaciones del metastore justifican introducir Iceberg.</p>
 <h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una sentencia. Debes poder
 explicar:</p>
 <ul>
-<li>qué problema resuelve un catálogo frente a una ruta física, y qué guarda
-y qué no guarda el Hive Metastore;</li>
+<li>qué problema resuelve un catálogo frente a una ruta física, también con
+miles de particiones, y qué guarda y qué no guarda el Hive Metastore;</li>
+<li>qué es el linaje de una tabla, dónde se puede guardar y cómo responde a
+la pregunta de qué recalcular cuando cambia una fuente;</li>
 <li>por qué el metastore no es un motor de consultas y Trino no es un
 catálogo, y qué significa que Spark y Trino sean dos clientes de la misma
 definición de tabla;</li>
@@ -10229,7 +10744,7 @@ evolución segura del esquema.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10239,7 +10754,7 @@ evolución segura del esquema.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10247,14 +10762,14 @@ evolución segura del esquema.</li>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10305,7 +10820,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=118">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=136">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10313,13 +10828,13 @@ volumen y afecta sólo a sus propios servicios.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 6</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Nombres, esquemas y particiones compartidos entre Trino y Spark</li><li style="margin:10px 0;list-style-position:outside">Sin transacciones, sin historial de versiones, sin política de calidad: por eso llega Iceberg</li><li style="margin:10px 0;list-style-position:outside">S7 construye sobre esta misma tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 6</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Nombres, esquemas y particiones compartidos entre Trino y Spark</li><li style="margin:10px 0;list-style-position:outside">El linaje en las propiedades de tabla: qué recalcular cuando cambia <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code></li><li style="margin:10px 0;list-style-position:outside">Sin transacciones, sin historial de versiones, sin política de calidad: por eso llega Iceberg</li><li style="margin:10px 0;list-style-position:outside">S7 construye sobre esta misma tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
