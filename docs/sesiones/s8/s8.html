@@ -8537,9 +8537,9 @@ en vez de fallar más adelante con un error críptico de <code>MERGE INTO</code>
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">described_columns</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">'''Convertir el esquema de Spark de una tabla en un diccionario columna -&gt; tipo.'''</span>
-    <span class="k">assert</span> <span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">tableExists</span><span class="p">(</span>
-        <span class="n">table_name</span>
-    <span class="p">),</span> <span class="sa">f</span><span class="s2">"No existe </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">. ¿Se ha ejecutado S7 antes que esta sesión?"</span>
+    <span class="k">assert</span> <span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">tableExists</span><span class="p">(</span><span class="n">table_name</span><span class="p">),</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"No existe </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">. ¿Se ha ejecutado S7 antes que esta sesión?"</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">field</span><span class="o">.</span><span class="n">dataType</span><span class="o">.</span><span class="n">simpleString</span><span class="p">()</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span><span class="o">.</span><span class="n">schema</span><span class="p">}</span>
 
 
@@ -10125,9 +10125,9 @@ beneficio neto).</p>
     <span class="n">comparison</span><span class="p">[</span><span class="s2">"beneficio_neto_batch"</span><span class="p">]</span> <span class="o">-</span> <span class="n">comparison</span><span class="p">[</span><span class="s2">"beneficio_neto_incremental"</span><span class="p">]</span>
 <span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
 
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="nb">len</span><span class="p">(</span><span class="n">comparison</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_recomputed_gold</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">incremental_gold</span><span class="p">)</span>
-<span class="p">),</span> <span class="s2">"Faltan años en una de las dos versiones"</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">comparison</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_recomputed_gold</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">incremental_gold</span><span class="p">),</span> <span class="p">(</span>
+    <span class="s2">"Faltan años en una de las dos versiones"</span>
+<span class="p">)</span>
 <span class="k">assert</span> <span class="p">(</span><span class="n">comparison</span><span class="p">[</span><span class="s2">"pedidos_batch"</span><span class="p">]</span> <span class="o">==</span> <span class="n">comparison</span><span class="p">[</span><span class="s2">"pedidos_incremental"</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="k">assert</span> <span class="p">(</span><span class="n">comparison</span><span class="p">[</span><span class="s2">"lineas_de_venta_batch"</span><span class="p">]</span> <span class="o">==</span> <span class="n">comparison</span><span class="p">[</span><span class="s2">"lineas_de_venta_incremental"</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="k">assert</span> <span class="p">(</span><span class="n">comparison</span><span class="p">[</span><span class="s2">"diferencia_beneficio"</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>

@@ -8979,9 +8979,9 @@ reinicia el kernel.</p>
 
 <span class="k">assert</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"namenode"</span><span class="p">,</span> <span class="s2">"El kernel no se ejecuta dentro de namenode"</span>
 <span class="k">assert</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/opt/tcdm/venv/"</span><span class="p">),</span> <span class="s2">"El kernel no usa /opt/tcdm/venv"</span>
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="n">fsspec</span><span class="o">.</span><span class="n">get_filesystem_class</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s2">"hdfs_native.fsspec"</span>
-<span class="p">),</span> <span class="s2">"hdfs:// no usa hdfs-native: ejecuta de nuevo la celda %pip anterior y reinicia el kernel"</span>
+<span class="k">assert</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">get_filesystem_class</span><span class="p">(</span><span class="s2">"hdfs"</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s2">"hdfs_native.fsspec"</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"hdfs:// no usa hdfs-native: ejecuta de nuevo la celda %pip anterior y reinicia el kernel"</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -11059,7 +11059,9 @@ DuckDB:</p>
 
 <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/item"</span>
 <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="n">path</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ficheros de datos: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -11733,7 +11735,9 @@ función de Python:</p>
 
 <span class="n">table_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/item"</span>
 <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-    <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="n">path</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">table_path</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/_SUCCESS"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 <span class="p">)</span>
 <span class="n">urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"hdfs://</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
 

@@ -8413,9 +8413,9 @@ almacén de metadatos, no dos almacenes distintos.</p>
 
 <span class="n">nombres_s6</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tablas_s6</span><span class="p">[</span><span class="s2">"Table"</span><span class="p">])</span>
 <span class="k">for</span> <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"item"</span><span class="p">,</span> <span class="s2">"web_sales_silver"</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold"</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="p">(</span>
-        <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="n">nombres_s6</span>
-    <span class="p">),</span> <span class="sa">f</span><span class="s2">"falta hive.tcdm.</span><span class="si">{</span><span class="n">tabla_esperada</span><span class="si">}</span><span class="s2">: ejecuta S6 antes de continuar"</span>
+    <span class="k">assert</span> <span class="n">tabla_esperada</span> <span class="ow">in</span> <span class="n">nombres_s6</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"falta hive.tcdm.</span><span class="si">{</span><span class="n">tabla_esperada</span><span class="si">}</span><span class="s2">: ejecuta S6 antes de continuar"</span>
+    <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Las tres tablas Hive de S6 están registradas."</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -8437,9 +8437,9 @@ almacén de metadatos, no dos almacenes distintos.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"hive.tcdm.web_sales_silver:"</span><span class="p">,</span> <span class="n">filas_silver</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">],</span> <span class="s2">"filas"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"hive.tcdm.web_sales_by_year_gold:"</span><span class="p">,</span> <span class="n">filas_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">],</span> <span class="s2">"filas"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="nb">int</span><span class="p">(</span><span class="n">filas_silver</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
-<span class="p">),</span> <span class="s2">"web_sales_silver está vacía: repite la sincronización de particiones de S6"</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_silver</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"web_sales_silver está vacía: repite la sincronización de particiones de S6"</span>
+<span class="p">)</span>
 <span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_gold</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"web_sales_by_year_gold está vacía: repite S5/S6"</span>
 </pre></div>
 </div>
@@ -8745,9 +8745,9 @@ exactamente igual que en la tabla Hive de origen.</p>
 <span class="s1">        )) AS claves_distintas</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">clave_compuesta</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">clave_compuesta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span>
-    <span class="n">clave_compuesta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"claves_distintas"</span><span class="p">]</span>
-<span class="p">),</span> <span class="s2">"la clave (ws_order_number, ws_item_sk) ha dejado de ser única: revisa el CTAS"</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">clave_compuesta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">clave_compuesta</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"claves_distintas"</span><span class="p">]),</span> <span class="p">(</span>
+    <span class="s2">"la clave (ws_order_number, ws_item_sk) ha dejado de ser única: revisa el CTAS"</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"La clave (ws_order_number, ws_item_sk) sigue siendo única en iceberg.tcdm.web_sales."</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -8933,9 +8933,9 @@ después desde Python.</p>
 
 <span class="n">ubicacion_web_sales</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ubicacion_de_tabla_iceberg</span><span class="p">(</span><span class="n">ddl_web_sales_texto</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Ubicación real de iceberg.tcdm.web_sales:"</span><span class="p">,</span> <span class="n">ubicacion_web_sales</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">ubicacion_web_sales</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
-    <span class="s2">"hdfs://namenode:9000/warehouse/tcdm.db/web_sales-"</span>
-<span class="p">),</span> <span class="s2">"la ubicación no sería la esperada bajo /warehouse/tcdm.db/"</span>
+<span class="k">assert</span> <span class="n">ubicacion_web_sales</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"hdfs://namenode:9000/warehouse/tcdm.db/web_sales-"</span><span class="p">),</span> <span class="p">(</span>
+    <span class="s2">"la ubicación no sería la esperada bajo /warehouse/tcdm.db/"</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9778,9 +9778,9 @@ snapshots.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="p">(</span>
-    <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_inicial</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-<span class="p">),</span> <span class="s2">"debería haber un snapshot más tras el INSERT"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapshots_lab_inicial</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"debería haber un snapshot más tras el INSERT"</span>
+<span class="p">)</span>
 <span class="n">snapshot_inicial_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">])</span>
 <span class="n">snapshot_tras_insert_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
     <span class="n">snapshots_tras_insert</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshots_tras_insert</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">]</span>
@@ -9873,9 +9873,9 @@ simplemente no tienen valor en la columna nueva.</p>
 <span class="s1">    FROM iceberg.tcdm.web_sales_lab_evolution</span>
 <span class="s1">'''</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">filas_tras_evolucion</span><span class="p">)</span>
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="nb">int</span><span class="p">(</span><span class="n">filas_tras_evolucion</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas_con_canal"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="p">),</span> <span class="s2">"las filas antiguas no deberían tener valor en la columna nueva"</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas_tras_evolucion</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas_con_canal"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+    <span class="s2">"las filas antiguas no deberían tener valor en la columna nueva"</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Las filas anteriores a la evolución de esquema se siguen leyendo, con canal_venta a NULL."</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -10374,12 +10374,16 @@ tener con qué comparar después.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_join_antes_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_join_antes_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    EXPLAIN SELECT w.ws_order_number, i.i_category</span>
 <span class="s1">    FROM iceberg.tcdm.web_sales w</span>
 <span class="s1">    JOIN hive.tcdm.item i ON w.ws_item_sk = i.i_item_sk</span>
 <span class="s1">    WHERE i.i_category_id = 1</span>
-<span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="s1">'''</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">explain_join_antes_texto</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -10410,12 +10414,16 @@ tener con qué comparar después.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_join_despues_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">explain_join_despues_texto</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
 <span class="s1">    EXPLAIN SELECT w.ws_order_number, i.i_category</span>
 <span class="s1">    FROM iceberg.tcdm.web_sales w</span>
 <span class="s1">    JOIN hive.tcdm.item i ON w.ws_item_sk = i.i_item_sk</span>
 <span class="s1">    WHERE i.i_category_id = 1</span>
-<span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+<span class="s1">'''</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">explain_join_despues_texto</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">()</span>

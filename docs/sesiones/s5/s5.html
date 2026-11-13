@@ -8908,12 +8908,10 @@ escribir el producto <code>gold</code>.</p>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.dataframe</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">col</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">countDistinct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">col</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">countDistinct</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">to_date</span><span class="p">,</span> <span class="n">when</span><span class="p">,</span> <span class="n">year</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">max</span> <span class="k">as</span> <span class="n">spark_max</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">min</span> <span class="k">as</span> <span class="n">spark_min</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">month</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">spark_sum</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_date</span><span class="p">,</span> <span class="n">when</span><span class="p">,</span> <span class="n">year</span>
 
 <span class="n">web_sales_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/web_sales"</span>
 <span class="n">web_sales</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">web_sales_path</span><span class="p">)</span>
@@ -9308,9 +9306,9 @@ sola agregación cuenta los nulos de las cuatro columnas:</p>
 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">key_columns</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Líneas con </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> nulo: </span><span class="si">{</span><span class="n">null_keys</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="n">null_keys</span><span class="p">[</span><span class="s2">"ws_order_number"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">null_keys</span><span class="p">[</span><span class="s2">"ws_item_sk"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="p">),</span> <span class="sa">f</span><span class="s2">"Las claves que identifican la línea no pueden ser nulas: </span><span class="si">{</span><span class="n">null_keys</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">assert</span> <span class="n">null_keys</span><span class="p">[</span><span class="s2">"ws_order_number"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">null_keys</span><span class="p">[</span><span class="s2">"ws_item_sk"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"Las claves que identifican la línea no pueden ser nulas: </span><span class="si">{</span><span class="n">null_keys</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9348,9 +9346,9 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 
 <span class="nb">print</span><span class="p">(</span><span class="n">year_month_bounds</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="n">year_month_bounds</span><span class="p">[</span><span class="s2">"min_month"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">year_month_bounds</span><span class="p">[</span><span class="s2">"max_month"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">12</span>
-<span class="p">),</span> <span class="sa">f</span><span class="s2">"sold_month debe estar en el rango 1-12: </span><span class="si">{</span><span class="n">year_month_bounds</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">assert</span> <span class="n">year_month_bounds</span><span class="p">[</span><span class="s2">"min_month"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">year_month_bounds</span><span class="p">[</span><span class="s2">"max_month"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">12</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"sold_month debe estar en el rango 1-12: </span><span class="si">{</span><span class="n">year_month_bounds</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
 
 <span class="c1"># Las cifras que la sección anterior prometía comparar con las</span>
 <span class="c1"># cardinalidades descartadas como partición principal.</span>
@@ -9679,9 +9677,9 @@ exactamente el declarado, ahora también en la nulabilidad:</p>
 <span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span>
 <span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">schema</span> <span class="o">==</span> <span class="n">web_sales_by_year_schema</span>
-<span class="p">),</span> <span class="sa">f</span><span class="s2">"El fichero de gold no tiene el esquema declarado: </span><span class="si">{</span><span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">assert</span> <span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">schema</span> <span class="o">==</span> <span class="n">web_sales_by_year_schema</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"El fichero de gold no tiene el esquema declarado: </span><span class="si">{</span><span class="n">web_sales_by_year_read_back</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9787,9 +9785,9 @@ declarado en el contrato:</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="p">(</span>
-    <span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">schema</span> <span class="o">==</span> <span class="n">web_sales_silver_schema</span>
-<span class="p">),</span> <span class="sa">f</span><span class="s2">"La tabla silver releída no tiene el esquema declarado: </span><span class="si">{</span><span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="s2">"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">schema</span> <span class="o">==</span> <span class="n">web_sales_silver_schema</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"La tabla silver releída no tiene el esquema declarado: </span><span class="si">{</span><span class="n">web_sales_silver_read_back</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"El esquema de silver releído desde HDFS es el declarado en el contrato."</span><span class="p">)</span>
 </pre></div>
 </div>
