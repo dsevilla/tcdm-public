@@ -8001,7 +8001,7 @@ versión nueva.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:linear-gradient(135deg,#0c304d,#174f7a 62%,#a54467);color:#ffffff;border:1px solid transparent;display:flex;flex-direction:column;justify-content:center;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="margin:0 auto;max-width:44ch;text-align:left"><h1 align="center" style="color:#ffffff;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 5: buenas prácticas de data lake y particionado físico</h1><h2 align="center" style="color:#dceaf4;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El mismo TPC-DS SF3 en tres versiones: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0;list-style-position:outside">Contratos, calidad y mantenimiento: un data lake no es un directorio lleno de ficheros</li><li style="margin:10px 0;list-style-position:outside">Spark escribe una tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> particionada y un producto <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0;list-style-position:outside">La evidencia de que particionar ayuda se lee en el plan, no en el reloj</li></ul></div><hr color="#174f7a" noshade="" size="8" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:linear-gradient(135deg,#0c304d,#174f7a 62%,#a54467);color:#ffffff;border:1px solid transparent;display:flex;flex-direction:column;justify-content:center;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="margin:0 auto;max-width:44ch;text-align:left"><h1 align="center" style="color:#ffffff;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;text-align:center;margin:0 0 22px">Sesión 5: buenas prácticas de data lake y particionado físico</h1><h2 align="center" style="color:#dceaf4;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:30px;text-align:center;margin:18px 0 8px">Cómo vamos a recorrer la sesión</h2><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El mismo TPC-DS SF3 en tres versiones: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0;list-style-position:outside">Contratos, calidad y mantenimiento: un data lake no es un directorio lleno de ficheros</li><li style="margin:10px 0;list-style-position:outside">Spark escribe una tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> particionada y un producto <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></li><li style="margin:10px 0;list-style-position:outside">La evidencia de que particionar ayuda se lee en el plan y en los ficheros leídos; el reloj sólo la acompaña</li></ul></div><hr color="#174f7a" noshade="" size="8" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8040,7 +8040,10 @@ venta;</li>
 <li>observar el descubrimiento automático de particiones al releer una tabla
 particionada por su ruta raíz, y comparar una lectura completa con una
 lectura filtrada mirando el plan físico y los ficheros efectivamente
-leídos, no el tiempo de reloj;</li>
+leídos, y usar el tiempo de ejecución sólo como indicio complementario;</li>
+<li>comprobar con un ejercicio que una consulta por otra clave (el cliente)
+que no se beneficia de la partición por año y mes sí mejora con una
+segunda tabla de laboratorio ordenada por esa clave;</li>
 <li>describir qué límites sigue teniendo una colección de Parquet
 particionada sin catálogo, como preparación para S6.</li>
 </ul>
@@ -8396,7 +8399,7 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">El contrato de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Qué contiene: 11 de las 33 columnas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de SF3 más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, particionada por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code>; las demás se quedan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code></li><li style="margin:10px 0;list-style-position:outside">Qué claves conserva: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> + <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_item_sk</code> identifican la línea; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_item_sk</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_bill_customer_sk</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_bill_addr_sk</code> enlazan con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">customer</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">customer_address</code></li><li style="margin:10px 0;list-style-position:outside">De dónde sale la fecha: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se derivan de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0;list-style-position:outside">Qué mide <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: pedidos distintos, líneas de venta y beneficio neto, una fila por año (la de 2003 sólo cubre dos días)</li><li style="margin:10px 0;list-style-position:outside">Qué columnas y tipos tiene cada salida: un esquema de Spark declarado en código</li><li style="margin:10px 0;list-style-position:outside">Formato: Parquet con Snappy, el códec por defecto de Spark (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> usa ZSTD)</li><li style="margin:10px 0;list-style-position:outside">Cómo se regenera y quién lo mantiene: este notebook, en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> desde <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code> es un marcador de generación, no un dato</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Por qué las capas generadas necesitan un contrato</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> llega de fuera y no se toca; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> las genera nuestro código a partir de otras tablas</li><li style="margin:10px 0;list-style-position:outside">Los ficheros Parquet de una tabla generada no dicen de dónde vienen, qué se descartó ni cómo se calculó cada columna</li><li style="margin:10px 0;list-style-position:outside">Cada capa se apoya en la anterior: un cambio sin documentar en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> llega a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> sin que nadie lo vea</li><li style="margin:10px 0;list-style-position:outside">El contrato de cada tabla generada fija su origen y linaje, su esquema, su regeneración y su responsable</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -8408,66 +8411,139 @@ algún día cruzara esas fuentes con TPC-DS escribiría un conjunto nuevo en
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Contratos-y-nombres">Contratos y nombres<a class="anchor-link" href="#Contratos-y-nombres">¶</a></h3><p>Cada salida de datos debe tener una ruta estable y documentada. Para
-<code>/datalake/silver/tpcds/web_sales</code> y <code>/datalake/gold/tpcds/web_sales_by_year</code>,
-el contrato que aplicaremos en esta sesión —y que documentamos aquí mismo,
-en lugar de dejarlo sólo en la cabeza de quien escribió el código— indica:</p>
+<h3 id="Por-qu%C3%A9-silver-y-gold-necesitan-un-contrato">Por qué <code>silver</code> y <code>gold</code> necesitan un contrato<a class="anchor-link" href="#Por-qu%C3%A9-silver-y-gold-necesitan-un-contrato">¶</a></h3><p>La zona <code>raw</code> tiene un origen externo: alguien ingirió esos ficheros y
+el curso se compromete a no tocarlos. <code>silver</code> y <code>gold</code> son distintas:
+no las trae nadie de fuera, <strong>las genera nuestro código</strong> a partir de
+otras tablas del data lake. Esa diferencia obliga a dejar por escrito
+cosas que en <code>raw</code> no hacía falta explicar. Una tabla generada no se
+explica por sí sola: viendo sus ficheros Parquet no se sabe de qué
+tabla de partida salen, qué filas y columnas se descartaron por el
+camino, cómo se calculó cada columna derivada, ni cómo volver a
+producirla si se estropea. Además, las capas dependen unas de otras
+(<code>gold</code> se construye sobre <code>silver</code>, y <code>silver</code> sobre <code>raw</code>), de modo
+que un cambio o un error no documentado en una capa se propaga a las
+siguientes sin que quien las consume pueda verlo.</p>
+<p>Por eso, en una arquitectura con capas generadas, cada tabla de <code>silver</code>
+y de <code>gold</code> lleva un <strong>contrato</strong>: la descripción escrita y comprobable
+de qué es esa tabla y cómo se obtiene. Un contrato cubre, al menos:</p>
 <ul>
-<li>qué tabla y escala de TPC-DS contiene: <code>web_sales</code> de TPC-DS SF3;</li>
-<li>qué columnas conserva o añade, en qué orden y con qué tipos: 11 de las
-33 columnas de <code>web_sales</code>, las que usan las consultas que esperamos
-sobre la tabla (se enumeran en la sección de transformación) —la línea
-(pedido y artículo), quién compra
-y dónde factura, la marca de tiempo, la cantidad y los importes de
-venta, descuento, pago y beneficio—, más <code>ws_sold_date</code> (derivada) y
-las particiones <code>sold_year</code>, <code>sold_month</code>. Las otras 22 (envío, perfil
-demográfico, página y sitio web, almacén, promoción, costes mayoristas,
-impuestos y cupones) se quedan sólo en <code>raw</code>: quien las necesite las
-lee de allí;</li>
-<li>de dónde salen las columnas derivadas: de <code>ws_sold_timestamp</code>, con
-<code>to_date</code>, <code>year</code> y <code>month</code>; las líneas sin fecha no entran en <code>silver</code>;</li>
-<li>qué claves conserva y para qué sirven: <code>ws_order_number</code> y <code>ws_item_sk</code>
-identifican juntas cada línea de venta y no pueden faltar;
-<code>ws_item_sk</code>, <code>ws_bill_customer_sk</code> y <code>ws_bill_addr_sk</code> son las claves
-de unión con <code>item</code>, <code>customer</code> y <code>customer_address</code>. Las dos últimas
-pueden venir nulas desde la fuente —TPC-DS deja a propósito algunas
-líneas sin cliente o sin domicilio de facturación, como viste en S2 y
-S4—, y <code>silver</code> las conserva tal cual: quien la cruce con <code>customer</code> o
-<code>customer_address</code> debe saber que esas líneas no encontrarán pareja;</li>
-<li>qué significa cada métrica del producto <code>gold</code>: pedidos distintos,
-líneas de venta y beneficio neto, sin confundir unas con otras;</li>
-<li>dónde vive el producto <code>gold</code> y qué columnas tiene: una fila por
-año en <code>/datalake/gold/tpcds/web_sales_by_year</code>, con la columna
-<code>sold_year</code> y esas tres métricas. La fila de 2003 sólo cubre el 1 y el
-2 de enero, porque ahí terminan los datos de TPC-DS, y no debe
-compararse con los años completos;</li>
-<li>qué formato y compresión emplea: Parquet comprimido con Snappy, el
-códec por defecto de Spark (<code>spark.sql.parquet.compression.codec</code>).
-<code>raw</code>, que escribió DuckDB en S2, usa ZSTD: las dos zonas no tienen por
-qué compartir códec, pero el contrato debe decir cuál usa cada una;</li>
-<li>qué columnas se utilizan para particionar: <code>sold_year</code> y <code>sold_month</code>,
-en ese orden;</li>
-<li>cómo se regenera cada salida: <code>silver</code> y <code>gold</code> se reconstruyen
-volviendo a ejecutar las celdas de la sección "Ejercicio de
-transformación con Spark" de este notebook, que escriben siempre en modo
-<code>overwrite</code> (primero <code>silver</code>, y <code>gold</code> a partir de <code>silver</code>, no de
-<code>raw</code>);</li>
-<li>quién la mantiene: este notebook de S5 es el único que escribe
-<code>silver</code> y <code>gold</code>. Quien cambie su transformación cambia a la vez este
+<li><strong>Origen y linaje (<em>lineage</em>)</strong>: de qué tablas y columnas parte y con
+qué transformación. Permite reconstruir la tabla y saber qué
+productos posteriores se ven afectados si cambia una de sus fuentes.</li>
+<li><strong>Esquema</strong>: columnas, orden, tipos, claves y valores que pueden o no
+ser nulos. Es lo que el consumidor necesita para usar la tabla sin
+leer el código que la generó.</li>
+<li><strong>Significado</strong>: qué representa cada columna o métrica, y qué no debe
+confundirse con ella.</li>
+<li><strong>Forma de almacenamiento</strong>: ruta, formato, compresión y
+particionado.</li>
+<li><strong>Regeneración y responsable</strong>: cómo se vuelve a producir y quién
+responde de ella y de sus cambios.</li>
+</ul>
+<p>El contrato sirve a dos públicos. Quien consume la tabla sabe qué puede
+asumir sobre ella; quien la mantiene sabe qué debe seguir cumpliéndose
+cuando cambie la transformación, y puede convertir esa descripción en
+comprobaciones automáticas, que es lo que haremos con el esquema más abajo, en «Los esquemas de
+<code>silver</code> y <code>gold</code>».</p>
+<p>En esta sesión generamos sólo dos tablas, y por eso sólo escribimos dos
+contratos: los de <code>/datalake/silver/tpcds/web_sales</code> y
+<code>/datalake/gold/tpcds/web_sales_by_year</code>. Son un <strong>ejemplo</strong>: en un data
+lake real habría que especificar de este modo todas y cada una de las
+tablas de <code>silver</code> y de <code>gold</code>, y no se debería publicar ninguna sin su
+contrato.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Contratos y nombres: el ejemplo de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code></h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Cada tabla generada necesita su contrato; aquí lo escribimos para las dos que genera esta sesión, como ejemplo</li><li style="margin:10px 0;list-style-position:outside"><strong>Origen:</strong> <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> sale de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> de TPC-DS SF3 en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code>; <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code> sale de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li><li style="margin:10px 0;list-style-position:outside"><strong>Columnas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code>:</strong> 11 de las 33 de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales</code> más <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>; las demás se quedan en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code></li><li style="margin:10px 0;list-style-position:outside"><strong>Derivadas:</strong> <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> se calculan a partir de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0;list-style-position:outside"><strong>Claves:</strong> <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_order_number</code> + <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_item_sk</code> identifican la línea; las claves de unión con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">item</code>, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">customer</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">customer_address</code> pueden venir nulas</li><li style="margin:10px 0;list-style-position:outside"><strong>Métricas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>:</strong> pedidos distintos, líneas de venta y beneficio neto, una fila por año (2003 sólo cubre dos días)</li><li style="margin:10px 0;list-style-position:outside"><strong>Esquema:</strong> columnas y tipos de cada salida, declarados como esquema de Spark en la sección siguiente</li><li style="margin:10px 0;list-style-position:outside"><strong>Formato:</strong> Parquet con Snappy, el códec por defecto de Spark (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> usa ZSTD)</li><li style="margin:10px 0;list-style-position:outside"><strong>Regeneración y responsable:</strong> este notebook, en modo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">overwrite</code></li><li style="margin:10px 0;list-style-position:outside"><strong><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">_SUCCESS</code>:</strong> marcador de generación, no un dato</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Contratos-y-nombres">Contratos y nombres<a class="anchor-link" href="#Contratos-y-nombres">¶</a></h3><p>Cada tabla generada debe tener una ruta estable y documentada. Como
+ejemplo, escribimos aquí el contrato de las dos tablas que genera esta
+sesión: <code>/datalake/silver/tpcds/web_sales</code> y
+<code>/datalake/gold/tpcds/web_sales_by_year</code>. Lo documentamos en este
+mismo notebook, en lugar de dejarlo sólo en la cabeza de quien escribió
+el código, y para cada una de las dos tablas indica:</p>
+<ul>
+<li><strong>Origen:</strong> <code>silver/tpcds/web_sales</code> se genera a partir de la tabla
+<code>web_sales</code> de TPC-DS SF3 que está en <code>raw</code>; la tabla
+<code>gold/tpcds/web_sales_by_year</code> se genera a partir de <code>silver</code>, no de
+<code>raw</code>.</li>
+<li><strong>Columnas de <code>silver</code>:</strong> conserva 11 de las 33 columnas de
+<code>web_sales</code>, las que usan las consultas que esperamos sobre la tabla
+(se enumeran en la sección de transformación) —la línea (pedido y
+artículo), quién compra y dónde factura, la marca de tiempo, la
+cantidad y los importes de venta, descuento, pago y beneficio—, y
+añade <code>ws_sold_date</code> (derivada) y las particiones <code>sold_year</code> y
+<code>sold_month</code>, en este orden y con los tipos que fija el esquema. Las
+otras 22 (envío, perfil demográfico, página y sitio web, almacén,
+promoción, costes mayoristas, impuestos y cupones) se quedan sólo en
+<code>raw</code>: quien las necesite las lee de allí.</li>
+<li><strong>Columnas derivadas:</strong> <code>ws_sold_date</code>, <code>sold_year</code> y <code>sold_month</code> se
+calculan a partir de <code>ws_sold_timestamp</code>, con <code>to_date</code>, <code>year</code> y
+<code>month</code>; las líneas sin fecha no entran en <code>silver</code>.</li>
+<li><strong>Claves:</strong> <code>ws_order_number</code> y <code>ws_item_sk</code> identifican juntas cada
+línea de venta y no pueden faltar; <code>ws_item_sk</code>, <code>ws_bill_customer_sk</code>
+y <code>ws_bill_addr_sk</code> son las claves de unión con <code>item</code>, <code>customer</code> y
+<code>customer_address</code>. Las dos últimas pueden venir nulas desde la
+fuente —TPC-DS deja a propósito algunas líneas sin cliente o sin
+domicilio de facturación, como viste en S2 y S4—, y <code>silver</code> las
+conserva tal cual: quien la cruce con <code>customer</code> o <code>customer_address</code>
+debe saber que esas líneas no encontrarán pareja.</li>
+<li><strong>Métricas de <code>gold</code>:</strong> pedidos distintos, líneas de venta y beneficio
+neto, sin confundir unas con otras.</li>
+<li><strong>Ubicación y columnas de <code>gold</code>:</strong> una fila por año en
+<code>/datalake/gold/tpcds/web_sales_by_year</code>, con la columna <code>sold_year</code> y
+esas tres métricas. La fila de 2003 sólo cubre el 1 y el 2 de enero,
+porque ahí terminan los datos de TPC-DS, y no debe compararse con los
+años completos.</li>
+<li><strong>Formato y compresión:</strong> Parquet comprimido con Snappy, el códec por
+defecto de Spark (<code>spark.sql.parquet.compression.codec</code>). <code>raw</code>, que
+escribió DuckDB en S2, usa ZSTD: las zonas no tienen por qué compartir
+códec, pero el contrato de cada tabla debe decir cuál usa.</li>
+<li><strong>Particionado:</strong> <code>silver</code> se particiona por <code>sold_year</code> y
+<code>sold_month</code>, en ese orden: se escribe en directorios
+<code>sold_year=.../sold_month=...</code>. Qué es el particionado y por qué se eligen
+esas dos columnas se explica más abajo, en «Por qué particionar un data
+lake de ficheros» y en «Diseño de las particiones».</li>
+<li><strong>Regeneración:</strong> <code>silver</code> y <code>gold</code> se reconstruyen volviendo a
+ejecutar las celdas de la sección "Ejercicio de transformación con
+Spark" de este notebook, que escriben siempre en modo <code>overwrite</code>
+(primero <code>silver</code>, y <code>gold</code> a partir de <code>silver</code>, no de <code>raw</code>).</li>
+<li><strong>Responsable:</strong> este notebook de S5 es el único que escribe <code>silver</code>
+y <code>gold</code>. Quien cambie su transformación cambia a la vez este
 contrato, los esquemas declarados en la sección siguiente y las
-sesiones que dependen de ellos (las tablas de S6 y el esquema de S8);</li>
-<li>qué ficheros auxiliares no deben leerse como datos: en particular,
-<code>_SUCCESS</code> es un marcador de generación, no un fragmento Parquet, y no
-debe incluirse en los patrones de lectura.</li>
+sesiones que dependen de ellos (las tablas de S6 y el esquema de S8).</li>
+<li><strong>Ficheros auxiliares:</strong> <code>_SUCCESS</code> es un marcador de generación, no
+un fragmento Parquet, y no debe incluirse en los patrones de lectura.</li>
 </ul>
 <p>Las columnas y sus tipos no se quedan en esta lista: la sección siguiente
 los escribe como esquemas de Spark, que el notebook usará para comprobar
-lo que escribe y para leer lo que ha escrito.</p>
+lo que escribe y para leer lo que ha escrito. El resto del contrato
+(origen, significado, regeneración y responsable) queda aquí, en prosa,
+y es lo que debería escribirse igualmente para cualquier otra tabla
+generada.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8523,7 +8599,7 @@ releer la salida. Que una columna no tenga nulos lo comprueban los
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8582,7 +8658,7 @@ releer la salida. Que una columna no tenga nulos lo comprueban los
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8599,7 +8675,7 @@ ha quedado en HDFS es lo declarado; y al leer <code>silver</code> para construir
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8613,7 +8689,7 @@ ha quedado en HDFS es lo declarado; y al leer <code>silver</code> para construir
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8649,7 +8725,7 @@ detienen el notebook si no se cumplen.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8662,7 +8738,7 @@ detienen el notebook si no se cumplen.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8670,13 +8746,70 @@ detienen el notebook si no se cumplen.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Qué significa particionar</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Directorios <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">columna=valor</code>: aquí, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year=.../sold_month=...</code></li><li style="margin:10px 0;list-style-position:outside">Una consulta que se limita a unos valores de esas columnas no abre los demás directorios</li><li style="margin:10px 0;list-style-position:outside">Spark descubre <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> a partir de la ruta, sin metastore</li><li style="margin:10px 0;list-style-position:outside">No es una partición de ejecución de Spark, ni un bloque HDFS, ni un <em>split</em>, ni una partición Iceberg</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Por qué particionar un data lake de ficheros</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Un data lake no tiene motor de base de datos con índices propios: sólo hay ficheros en HDFS</li><li style="margin:10px 0;list-style-position:outside">Sin más información, responder «ventas de enero de 1999» obliga a abrir todos los ficheros de la tabla</li><li style="margin:10px 0;list-style-position:outside">Se puede ahorrar lectura en tres niveles: columnas (formato columnar), grupos de filas (<em>predicate pushdown</em>) y ficheros enteros (particionado)</li><li style="margin:10px 0;list-style-position:outside">Particionar es el ahorro más barato: se decide con el nombre del directorio, sin abrir ningún fichero</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Por-qu%C3%A9-particionar-un-data-lake-de-ficheros">Por qué particionar un data lake de ficheros<a class="anchor-link" href="#Por-qu%C3%A9-particionar-un-data-lake-de-ficheros">¶</a></h2><p>En una base de datos, el propio servidor gestiona dónde guardan las filas,
+mantiene índices y estadísticas, y sabe ir directo a lo que pide una
+consulta. En el data lake que construimos no hay nada de eso: hay
+directorios y ficheros Parquet en HDFS, y los motores que los consultan
+(Spark ahora, Trino en S6) sólo ven una lista de ficheros. Si esa lista no
+trae ninguna organización, para responder «ventas de enero de 1999» el
+motor no tiene más remedio que abrir todos los ficheros de la tabla y
+comprobar qué filas cumplen la condición. Con SF3 es asumible; con una tabla
+de cientos de gigabytes, no.</p>
+<p>Hay tres niveles en los que un motor puede evitar leer lo que no necesita,
+del más fino al más grueso:</p>
+<ul>
+<li><strong>Columnas.</strong> Parquet es columnar: si la consulta sólo necesita dos
+columnas, el lector no toca las demás (<em>projection pushdown</em>, que ya
+viste en S4).</li>
+<li><strong>Grupos de filas dentro de un fichero.</strong> Parquet guarda el mínimo y el
+máximo de cada columna por grupo de filas; el motor entrega la condición
+al lector (<em>predicate pushdown</em>, <code>PushedFilters</code> en el plan) y éste se
+salta los grupos que no pueden cumplirla. Pero hay que abrir cada
+fichero, al menos para leer su pie, y sólo funciona si los valores
+están agrupados: si cada grupo contiene valores de todo el rango, el
+mínimo y el máximo no descartan nada.</li>
+<li><strong>Ficheros enteros.</strong> Es lo que hace el particionado: agrupar las filas
+en directorios según el valor de una o varias columnas, de modo que
+una consulta que filtra por esa columna sólo lista y abre los
+directorios que corresponden (<em>partition pruning</em>, <code>PartitionFilters</code>
+en el plan). Es el ahorro más barato, porque se decide con el nombre de
+la ruta, sin abrir un solo fichero, y se combina con los otros dos
+dentro de los ficheros que sí hay que leer.</li>
+</ul>
+<p>El resto de la sección explica cómo funciona y cuándo conviene, y también
+hasta dónde llega: el particionado por directorios es una herramienta
+útil pero limitada, y entender sus límites es lo que explica por qué
+existen los formatos de tabla como Iceberg.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Qué significa particionar</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Convención de Hive: directorios <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">columna=valor</code>, anidables; aquí, <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year=.../sold_month=...</code></li><li style="margin:10px 0;list-style-position:outside">Una consulta que se limita a unos valores de esas columnas no abre los demás directorios (<em>partition pruning</em>)</li><li style="margin:10px 0;list-style-position:outside">Los valores viven en la ruta, no dentro de los Parquet; cada fichero conserva su propio esquema y estadísticas</li><li style="margin:10px 0;list-style-position:outside">Spark descubre <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> a partir de la ruta, sin metastore</li><li style="margin:10px 0;list-style-position:outside">No es una partición de ejecución de Spark, ni un bloque HDFS, ni un <em>split</em>, ni una partición Iceberg</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8696,9 +8829,31 @@ que vamos a construir, la estructura de directorios tendrá esta forma:</p>
 │   └── ...
 └── ...
 </pre></div>
+<p>Esta organización viene de Apache Hive, que en HDFS guardaba cada
+partición de una tabla en un subdirectorio <code>columna=valor</code>. Se ha
+convertido en una convención que leen sin más Spark, Trino, DuckDB, Polars
+o PyArrow, y por eso se habla de particionado <em>estilo Hive</em> aunque no haga
+falta Hive para usarlo. Tiene tres rasgos que conviene tener claros:</p>
+<ul>
+<li><strong>Niveles anidados.</strong> Cada columna de partición añade un nivel de
+directorios, en el orden en que se declara: aquí <code>sold_year</code> primero y
+<code>sold_month</code> dentro. Una consulta por año lee un único subárbol;
+una consulta por año y mes lee un único directorio hoja.</li>
+<li><strong>El valor está en la ruta, no en los ficheros.</strong> Spark no escribe
+<code>sold_year</code> ni <code>sold_month</code> dentro de los Parquet de cada directorio: el
+valor se deduce del nombre del directorio, y por eso aparece como columna
+al leer la ruta raíz.</li>
+<li><strong>Cada fichero es autónomo.</strong> Cada Parquet lleva en su pie su propio
+esquema y las estadísticas de sus grupos de filas, de modo que no hay un
+fichero central que describa la tabla. Eso permite escribir o reemplazar
+una partición sin tocar las demás, pero también significa que nada
+obliga a que todas tengan el mismo esquema: si una partición antigua
+y otra nueva difieren, Spark necesita la opción <code>mergeSchema</code> para
+reconciliarlas.</li>
+</ul>
 <p>Una consulta que se limita a un <code>sold_year</code> (y, más aún, a un <code>sold_year</code> y
 un <code>sold_month</code>) puede evitar leer directorios completos que no contienen
-datos relevantes. Spark puede descubrir esas columnas a partir de la ruta,
+datos relevantes: es la poda de particiones (<em>partition pruning</em>). Spark puede descubrir esas columnas a partir de la ruta,
 incluso sin un Hive Metastore de por medio: al leer la ruta raíz de la
 tabla, <code>sold_year</code> y <code>sold_month</code> aparecen como columnas normales del
 DataFrame aunque no estén dentro de ningún fichero Parquet. Cuando haga
@@ -8766,7 +8921,7 @@ vamos a construir aquí.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8774,12 +8929,76 @@ vamos a construir aquí.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">¿Puedes tener muchas particiones de ejecución de Spark sobre una tabla con una única partición Hive, o al revés?</li><li style="margin:10px 0;list-style-position:outside">Nombra algo que hayas medido en S4 o medirás hoy en S5 que demuestra que son unidades distintas</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Límites del particionado por directorios</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><strong>Una sola organización:</strong> los datos se agrupan por un único criterio a la vez; las consultas por otro atributo, como el cliente, siguen abriendo todo</li><li style="margin:10px 0;list-style-position:outside"><strong>Más columnas, más directorios:</strong> cada nivel multiplica el número de directorios; sólo sirven columnas de pocos valores distintos</li><li style="margin:10px 0;list-style-position:outside"><strong>Hay que filtrar por la columna de partición:</strong> un filtro por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code> no poda, porque Spark no sabe que la fecha determina el año y el mes</li><li style="margin:10px 0;list-style-position:outside"><strong>Cambiarlo es reescribir:</strong> pasar de mes a día obliga a reescribir los datos y a avisar a quien lea por ruta</li><li style="margin:10px 0;list-style-position:outside"><strong>Qué hacer entonces:</strong> ordenar dentro de los ficheros, <em>bucketing</em>, copias con otra partición o un formato de tabla como Iceberg (S7)</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="L%C3%ADmites-del-particionado-por-directorios">Límites del particionado por directorios<a class="anchor-link" href="#L%C3%ADmites-del-particionado-por-directorios">¶</a></h3><p>El particionado estilo Hive es sencillo y funciona, pero tiene límites que
+conviene conocer antes de apoyarse en él:</p>
+<ul>
+<li><strong>Sólo hay una organización física.</strong> Las filas están en un único árbol
+de directorios, así que los datos quedan agrupados por un criterio (aquí,
+el tiempo) y por ningún otro. Las consultas que filtran por otro
+atributo no se benefician: ya lo anticipó la consulta 5, el historial de
+compras de un cliente (<code>SELECT ... FROM web_sales_silver WHERE ws_bill_customer_sk = &lt;cliente&gt;</code>), que seguirá abriendo todos los ficheros,
+y lo comprobaremos en los planes.</li>
+<li><strong>Más de un atributo no sale gratis.</strong> Si se quiere particionar por
+varios, hay que anidar más niveles, y el número de directorios es el
+producto de los valores distintos de cada columna: año × mes × región
+puede dar cientos de directorios con muy pocos datos, el problema de los
+ficheros pequeños. Por eso sólo valen columnas con pocos valores
+distintos, y las de muchos valores (cliente, artículo, pedido) quedan
+descartadas. Además, el orden de los niveles importa: los datos quedan
+agrupados sobre todo por el primero (aquí, el año), y el segundo sólo
+subdivide cada grupo.</li>
+<li><strong>La partición es un dato visible.</strong> Para que se pode, la consulta tiene
+que filtrar por la columna de partición (<code>sold_year</code>, <code>sold_month</code>), no
+por la fecha de la que se derivó (<code>ws_sold_date</code>). Quien consulta tiene
+que conocer esas columnas auxiliares, y el motor no puede deducir la
+relación por sí solo.</li>
+<li><strong>Cambiar el esquema de particiones es reescribir.</strong> Pasar de mes a día,
+o añadir una columna, significa reescribir todos los datos y avisar a
+todo lo que lea por la ruta antigua.</li>
+<li><strong>Los directorios no son una tabla.</strong> El motor lista los directorios en
+cada consulta, y no hay transacciones ni versiones: quien lee mientras se
+escribe puede ver una partición a medio hacer (lo recuerda la sección
+«Buenas prácticas que quedan pendientes del catálogo», al final de esta
+sesión).</li>
+</ul>
+<p>¿Qué se hace entonces cuando una consulta necesita otro atributo?
+Hay varias salidas, ninguna perfecta:</p>
+<ul>
+<li><strong>Ordenar los datos</strong> por ese atributo dentro de los ficheros, para que
+las estadísticas de Parquet (mínimo y máximo por grupo de filas)
+permitan saltarse la mayoría con <em>predicate pushdown</em>. No crea
+directorios, pero sólo sirve si la ordenación se mantiene.</li>
+<li><strong>Agrupar en cubos</strong> (<em>bucketing</em>): repartir las filas en un número fijo
+de ficheros según un hash de la columna, útil para columnas de muchos
+valores como el cliente.</li>
+<li><strong>Mantener copias</strong> de la tabla con otra organización: en <code>silver</code>, una
+segunda tabla con las mismas filas y su propio contrato, a costa de
+duplicar espacio y de tener que mantenerlas sincronizadas.</li>
+<li><strong>Usar un formato de tabla</strong> que gestione el particionado por ti.
+Iceberg lo hace: declara las particiones como transformaciones de las
+columnas (<code>month(ws_sold_date)</code>, <code>bucket(N, ws_bill_customer_sk)</code>...),
+de modo que quien consulta filtra por la fecha sin saber cómo está
+particionada la tabla, permite combinar varios criterios, y permite
+cambiar el esquema de particiones sin reescribir lo ya escrito. S7
+retoma exactamente estos límites —transformaciones de partición ocultas,
+ordenación y ficheros pequeños— sobre la misma tabla <code>web_sales</code>.</li>
+</ul>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8787,61 +9006,73 @@ vamos a construir aquí.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Primero, las consultas que esperamos sobre la tabla: de ellas salen las columnas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y las candidatas a partición</li><li style="margin:10px 0;list-style-position:outside">Criterios: que las consultas se limiten a menudo a esa columna, cardinalidad moderada, ficheros útiles</li><li style="margin:10px 0;list-style-position:outside">Cardinalidades reales de SF3: pedidos, artículos y clientes frente a años y meses</li><li style="margin:10px 0;list-style-position:outside">Por qué <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code> no vale y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code>/<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> sí</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir bien la columna de partición</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><strong>Primero, las consultas:</strong> de las que esperamos sobre la tabla salen las columnas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y las candidatas a partición</li><li style="margin:10px 0;list-style-position:outside"><strong>Criterios:</strong> consultas que se limitan a menudo a esa columna, pocos valores distintos, directorios grandes, ficheros útiles</li><li style="margin:10px 0;list-style-position:outside"><strong>Cardinalidades reales de SF3:</strong> pedidos, artículos y clientes tienen muchísimos valores; años y meses, unas decenas</li><li style="margin:10px 0;list-style-position:outside"><strong>Lo que usamos para dividir:</strong> <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code>, en ese orden, derivadas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_timestamp</code></li><li style="margin:10px 0;list-style-position:outside"><strong>Lo que descartamos:</strong> las claves, la marca de tiempo y la fecha completa, por demasiados directorios</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Dise%C3%B1o-de-las-particiones">Diseño de las particiones<a class="anchor-link" href="#Dise%C3%B1o-de-las-particiones">¶</a></h2><p>Las columnas de partición deben elegirse a partir de las consultas y del
-tamaño de los datos, no por costumbre. Una buena elección debe: ser una
-columna a la que las consultas que se esperan sobre la tabla se limiten
-habitualmente; tener una cardinalidad moderada (ni una única partición gigante, ni
-miles de particiones diminutas); producir directorios suficientemente
-grandes como para que merezca la pena evitar leerlos; poder explicarse con
-una frase a quien vaya a consultar la tabla; y no generar un número
-excesivo de ficheros pequeños, el mismo problema que ya vimos en S4 con
-<code>repartition</code> frente a <code>coalesce</code>.</p>
-<p>Para <code>web_sales</code> vamos a añadir a la tabla <code>sold_year</code> y <code>sold_month</code>,
-derivadas de la fecha de venta. Es una elección docente comprensible porque
-permite consultar por tiempo —"ventas de 2001", "ventas de enero de
-1999"— sin necesidad de explicar nada más sobre el dominio.</p>
-<p>En cambio, <code>ws_bill_customer_sk</code>, <code>ws_item_sk</code> y <code>ws_order_number</code> son
-malas columnas de partición principal, y no por casualidad: las tres
-identifican entidades con muchísimos valores distintos dentro de
-<code>web_sales</code> (clientes, artículos y pedidos), muy por encima del número de
-años o meses distintos que aparecen en las ventas. Particionar por una
-columna así produciría un directorio por cada cliente, artículo o pedido,
-casi todos con uno o muy pocos ficheros diminutos: exactamente el problema
-de los "ficheros pequeños" que penaliza tanto a HDFS (metadatos del
-NameNode por fichero) como a cualquier motor que después tenga que abrir
-todos esos directorios. En la sección siguiente partiremos de las consultas
-que esperamos sobre la tabla y comprobaremos estas cardinalidades con
-datos reales de SF3.</p>
-<p>La propia marca de tiempo de la venta (<code>ws_sold_timestamp</code>) sufre un
-problema parecido: tiene casi un valor distinto por pedido. Ni siquiera la
-fecha sin la hora serviría, porque produciría un directorio por día, más de
-mil entre el 2 de enero de 1998 y el 2 de enero de 2003, el periodo de
-ventas de SF3. Por eso derivamos <code>sold_year</code> y <code>sold_month</code>
-en lugar de particionar directamente por la fecha.</p>
-<p>Por último, la elección entre particionar sólo por <code>sold_year</code> o por la
-pareja <code>sold_year, sold_month</code> debe relacionarse con el tamaño real de los
-fragmentos resultantes, no con una preferencia a priori: más niveles de
-partición no significan automáticamente más rendimiento, sobre todo si
-cada partición mensual termina teniendo un único fichero pequeño. Para
-SF3 usaremos la pareja <code>sold_year, sold_month</code> y, más abajo, mediremos qué
-tamaño tienen los ficheros que resultan. Las 2.160.165 líneas de SF3 se
-reparten entre unas sesenta combinaciones de año y mes: de media, unas
-35.000 líneas por mes, pero con mucha estacionalidad (unas 20.000 de
-enero a julio, unas 46.000 de agosto a octubre y más de 70.000 en
-noviembre y diciembre). Qué granularidad conviene depende de la escala del
-dataset (con SF1000 cada mes pesaría unas trescientas veces más).</p>
+tamaño de los datos, no por costumbre. Primero los criterios, después lo que
+usamos en <code>web_sales</code> y por qué descartamos el resto.</p>
+<h3 id="Criterios-para-elegir-una-columna-de-partici%C3%B3n">Criterios para elegir una columna de partición<a class="anchor-link" href="#Criterios-para-elegir-una-columna-de-partici%C3%B3n">¶</a></h3><p>Una buena columna de partición cumple, a la vez:</p>
+<ul>
+<li><strong>Las consultas se limitan a ella.</strong> La mayoría de las consultas
+esperadas filtran por esa columna; si no, la poda casi nunca se activa.</li>
+<li><strong>Pocos valores distintos.</strong> Ni una única partición gigante, ni miles de
+particiones diminutas.</li>
+<li><strong>Directorios grandes.</strong> Cada directorio debe tener datos suficientes
+para que merezca la pena evitar leerlo.</li>
+<li><strong>Fácil de explicar.</strong> Debe poder describirse en una frase a quien vaya a
+consultar la tabla.</li>
+<li><strong>Pocos ficheros pequeños.</strong> Es el mismo problema que ya vimos en S4 con
+<code>repartition</code> frente a <code>coalesce</code>.</li>
+</ul>
+<h3 id="Qu%C3%A9-usamos-para-dividir-web_sales">Qué usamos para dividir <code>web_sales</code><a class="anchor-link" href="#Qu%C3%A9-usamos-para-dividir-web_sales">¶</a></h3><ul>
+<li><strong>Columnas de partición:</strong> <code>sold_year</code> y <code>sold_month</code>, en ese orden. No
+existen en <code>raw</code>: las derivamos de <code>ws_sold_timestamp</code>, y <code>silver</code> las
+añade como columnas nuevas.</li>
+<li><strong>Por qué el tiempo:</strong> las consultas 1 a 4 se limitan a un año, a unos
+meses o a un trimestre ("ventas de 2001", "ventas de enero de 1999"), y
+se explica sin saber nada más del dominio.</li>
+<li><strong>Qué directorios resultan:</strong> una carpeta por año, y dentro una por mes.
+Las 2.160.165 líneas de SF3 se reparten entre unas sesenta combinaciones
+de año y mes: de media, unas 35.000 líneas por mes.</li>
+</ul>
+<h3 id="Qu%C3%A9-descartamos-y-por-qu%C3%A9">Qué descartamos y por qué<a class="anchor-link" href="#Qu%C3%A9-descartamos-y-por-qu%C3%A9">¶</a></h3><ul>
+<li><strong><code>ws_bill_customer_sk</code>, <code>ws_item_sk</code> y <code>ws_order_number</code>:</strong> identifican
+entidades (clientes, artículos y pedidos) con muchísimos valores
+distintos, muy por encima del número de años o meses que aparecen en las
+ventas. Particionar por una de ellas crearía un directorio por cliente,
+artículo o pedido, casi todos con uno o muy pocos ficheros diminutos:
+exactamente el problema de los "ficheros pequeños" que penaliza tanto a
+HDFS (metadatos del NameNode por fichero) como a cualquier motor que
+después tenga que abrir todos esos directorios. Comprobaremos estas
+cardinalidades con datos reales de SF3 en la sección siguiente.</li>
+<li><strong><code>ws_sold_timestamp</code>:</strong> tiene casi un valor distinto por pedido, el
+mismo problema que las claves.</li>
+<li><strong>La fecha sin la hora (<code>ws_sold_date</code>):</strong> produciría un directorio por
+día, más de mil entre el 2 de enero de 1998 y el 2 de enero de 2003, el
+periodo de ventas de SF3. Por eso derivamos <code>sold_year</code> y <code>sold_month</code> en
+lugar de particionar directamente por la fecha.</li>
+<li><strong>Sólo <code>sold_year</code>:</strong> es la alternativa más gruesa. Elegir entre ella y
+la pareja <code>sold_year, sold_month</code> debe relacionarse con el tamaño real de
+los fragmentos resultantes, no con una preferencia a priori: más niveles
+de partición no significan automáticamente más rendimiento, sobre todo
+si cada partición mensual termina teniendo un único fichero pequeño.
+Para SF3 usaremos la pareja y, más abajo, mediremos qué tamaño tienen
+los ficheros que resultan.</li>
+</ul>
+<h3 id="Qu%C3%A9-tama%C3%B1o-tendr%C3%A1n-las-particiones">Qué tamaño tendrán las particiones<a class="anchor-link" href="#Qu%C3%A9-tama%C3%B1o-tendr%C3%A1n-las-particiones">¶</a></h3><p>La media de unas 35.000 líneas por mes esconde mucha estacionalidad: unas
+20.000 de enero a julio, unas 46.000 de agosto a octubre y más de 70.000 en
+noviembre y diciembre. Qué granularidad conviene depende además de la
+escala del dataset: con SF1000 cada mes pesaría unas trescientas veces más.</p>
 <p>De 2003 sólo hay ventas del 1 y el 2 de enero, porque ahí terminan los
 datos de TPC-DS. Así que <code>sold_year=2003</code> tendrá un único directorio,
 <code>sold_month=1</code>, con unas 4.800 líneas y un fichero mucho más pequeño que
@@ -8850,7 +9081,7 @@ los demás. Lo veremos al listar los directorios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8869,12 +9100,15 @@ cardinalidad de esas candidatas; conservar las columnas de negocio necesarias y 
 fechas con <code>assert</code>; escribir la salida
 particionada; escribir además una salida de control sin particionar; y
 agregar desde <code>silver</code> los pedidos, las líneas y el beneficio por año para
-escribir el producto <code>gold</code>.</p>
+escribir el producto <code>gold</code>. Después se relee <code>silver</code>, se comparan los
+planes, los ficheros leídos y los tiempos de una lectura completa y de las
+consultas de un año y de un cliente, y un ejercicio construye una segunda
+tabla de laboratorio organizada por cliente.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8884,7 +9118,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8899,7 +9133,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8907,11 +9141,9 @@ escribir el producto <code>gold</code>.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.dataframe</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.dataframe</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">col</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">countDistinct</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">to_date</span><span class="p">,</span> <span class="n">when</span><span class="p">,</span> <span class="n">year</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">max</span> <span class="k">as</span> <span class="n">spark_max</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">min</span> <span class="k">as</span> <span class="n">spark_min</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.functions</span><span class="w"> </span><span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">spark_sum</span>
 
 <span class="n">web_sales_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds/web_sales"</span>
 <span class="n">web_sales</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">web_sales_path</span><span class="p">)</span>
@@ -8924,7 +9156,7 @@ escribir el producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8986,7 +9218,69 @@ el tiempo y las de negocio de S2:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Las mismas seis consultas en SQL, sobre <code>web_sales_silver</code> (el nombre que
+daremos en SQL a la tabla refinada), con un año de ejemplo y <code>&lt;cliente&gt;</code> como marcador; en
+el notebook los elegiremos con datos reales. Las consultas 1 a 4 se limitan
+a un periodo; la 5, a un cliente; la 6 no filtra:</p>
+<div class="highlight"><pre><span></span><span class="c1">-- 1. Evolución mensual de un año</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">sold_month</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">pedidos</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_ext_sales_price</span><span class="p">)</span><span class="w">         </span><span class="k">AS</span><span class="w"> </span><span class="n">ventas</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_paid</span><span class="p">)</span><span class="w">                </span><span class="k">AS</span><span class="w"> </span><span class="n">pagado</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_profit</span><span class="p">)</span><span class="w">              </span><span class="k">AS</span><span class="w"> </span><span class="n">beneficio</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2001</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_month</span><span class="p">;</span>
+
+<span class="c1">-- 2. Campaña de Navidad: noviembre y diciembre de un año</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">sold_month</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">pedidos</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_paid</span><span class="p">)</span><span class="w">                </span><span class="k">AS</span><span class="w"> </span><span class="n">pagado</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_profit</span><span class="p">)</span><span class="w">              </span><span class="k">AS</span><span class="w"> </span><span class="n">beneficio</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2001</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">)</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_month</span><span class="p">;</span>
+
+<span class="c1">-- 3. Artículos más vendidos de un trimestre</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">ws_item_sk</span><span class="p">,</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_quantity</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">unidades</span><span class="p">,</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_ext_sales_price</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ventas</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2001</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="mi">3</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">ws_item_sk</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">unidades</span><span class="w"> </span><span class="k">DESC</span><span class="w"> </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+
+<span class="c1">-- 4. Descuento medio de cada mes frente al precio de lista</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">sold_month</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_ext_discount_amt</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_list_price</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ws_quantity</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">descuento_medio</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2001</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_month</span><span class="p">;</span>
+
+<span class="c1">-- 5. Historial de compras de un cliente (el que más pedidos tiene en S2)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">,</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="p">,</span><span class="w"> </span><span class="n">ws_net_paid</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">cliente</span><span class="o">&gt;</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="p">;</span>
+
+<span class="c1">-- 6. Compras por región (provincia) de facturación y distribución horaria (toda la tabla)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">ca</span><span class="p">.</span><span class="n">ca_county</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">provincia</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">lineas</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="n">ws</span>
+<span class="k">JOIN</span><span class="w"> </span><span class="n">customer_address</span><span class="w"> </span><span class="n">ca</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">ws</span><span class="p">.</span><span class="n">ws_bill_addr_sk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ca</span><span class="p">.</span><span class="n">ca_address_sk</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">ca</span><span class="p">.</span><span class="n">ca_county</span><span class="p">;</span>
+
+<span class="k">SELECT</span><span class="w"> </span><span class="n">hour</span><span class="p">(</span><span class="n">ws_sold_timestamp</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">hora</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">lineas</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">hour</span><span class="p">(</span><span class="n">ws_sold_timestamp</span><span class="p">)</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">hora</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9008,11 +9302,30 @@ la ayuda. Entre las candidatas decide la cardinalidad, que comprobamos a
 continuación: una partición sólo es útil si tiene pocos valores distintos
 y cada uno reúne muchas filas.</li>
 </ul>
+<p>Hay además una tercera decisión que en esta sesión dejamos sin tomar:
+<strong>cuántas tablas tiene <code>silver</code></strong>. La zona refinada no tiene por qué
+contener una sola tabla por cada tabla de <code>raw</code>. Si una consulta frecuente
+necesita los mismos datos organizados por otra clave —aquí, la consulta 5,
+el historial de compras de un cliente (<code>WHERE ws_bill_customer_sk = ...</code>),
+frente a las consultas 1 a 4, por tiempo—, una opción es
+generar una segunda tabla en <code>silver</code> con las mismas filas (o sólo con las
+columnas que esa consulta usa), organizada de otra manera: por ejemplo,
+ordenada o agrupada en cubos por <code>ws_bill_customer_sk</code>, bajo una ruta como
+<code>/datalake/silver/tpcds/web_sales_by_customer</code>. Cada tabla llevaría su
+propio contrato (origen, esquema, particionado, regeneración) y se
+reconstruiría desde <code>raw</code> con la misma regla. El precio es duplicar espacio
+y tener más salidas que mantener sincronizadas. En la transformación
+principal de esta sesión no lo hacemos: construimos una única tabla de
+<code>silver</code>, particionada por tiempo, y medimos lo que le cuesta a la consulta
+5. Más abajo, un ejercicio te pide construir esa segunda tabla, pero como
+tabla de laboratorio en <code>/user/luser/s5</code>, fuera del contrato, para medir
+cuánto se gana. La salida de control sin particionar que escribiremos más
+abajo tampoco es esto: sólo sirve para comparar.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9025,7 +9338,7 @@ partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=42">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9038,7 +9351,23 @@ partición principal.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> A partir de aquí, antes de cada consulta de Spark escribimos su equivalente en SQL, para poder leerla en cualquiera de los dos lenguajes. No se ejecuta aquí: en S4 se podía ejecutar registrando el DataFrame con <code>createOrReplaceTempView</code>, y en S6 las tablas tendrán nombre en el metastore. Usamos <code>web_sales</code> para la lectura de <code>raw</code> y <code>web_sales_silver</code> para la tabla refinada. Esta consulta cuenta los valores distintos de las tres claves:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">)</span><span class="w">     </span><span class="k">AS</span><span class="w"> </span><span class="n">pedidos</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_item_sk</span><span class="p">)</span><span class="w">          </span><span class="k">AS</span><span class="w"> </span><span class="n">articulos_distintos</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">clientes_distintos</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9058,7 +9387,7 @@ partición principal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9076,14 +9405,16 @@ menudo como las consultas 1 a 4 a un periodo, pero particionar por
 en SF3, casi todos con un puñado de líneas. Esa consulta necesita otra
 organización: ordenar o agrupar las filas por cliente, para que las
 estadísticas de Parquet permitan saltarse la mayor parte de cada fichero,
-algo que veremos con Iceberg en S7. Al comparar los planes, más abajo,
-comprobaremos que con la partición por año y mes la consulta 5 sigue
+algo que veremos con Iceberg en S7. En un data lake de ficheros, la otra
+salida es la segunda tabla de <code>silver</code> que se describió arriba, con las
+mismas filas organizadas por cliente; la construirás en un ejercicio más
+abajo. Al comparar los planes, más abajo, comprobaremos que con la partición por año y mes la consulta 5 sigue
 abriendo todos los ficheros.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9096,7 +9427,28 @@ negocio del contrato y derivamos de <code>ws_sold_timestamp</code> tres columnas
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=46">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> La transformación que construye <code>silver</code> es una consulta de selección con columnas derivadas y un filtro:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">,</span><span class="w"> </span><span class="n">ws_item_sk</span><span class="p">,</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="p">,</span><span class="w"> </span><span class="n">ws_bill_addr_sk</span><span class="p">,</span>
+<span class="w">       </span><span class="n">ws_sold_timestamp</span><span class="p">,</span>
+<span class="w">       </span><span class="n">to_date</span><span class="p">(</span><span class="n">ws_sold_timestamp</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ws_sold_date</span><span class="p">,</span>
+<span class="w">       </span><span class="n">ws_quantity</span><span class="p">,</span><span class="w"> </span><span class="n">ws_list_price</span><span class="p">,</span><span class="w"> </span><span class="n">ws_ext_discount_amt</span><span class="p">,</span><span class="w"> </span><span class="n">ws_ext_sales_price</span><span class="p">,</span>
+<span class="w">       </span><span class="n">ws_net_paid</span><span class="p">,</span><span class="w"> </span><span class="n">ws_net_profit</span><span class="p">,</span>
+<span class="w">       </span><span class="k">year</span><span class="p">(</span><span class="n">ws_sold_timestamp</span><span class="p">)</span><span class="w">    </span><span class="k">AS</span><span class="w"> </span><span class="n">sold_year</span><span class="p">,</span>
+<span class="w">       </span><span class="k">month</span><span class="p">(</span><span class="n">ws_sold_timestamp</span><span class="p">)</span><span class="w">   </span><span class="k">AS</span><span class="w"> </span><span class="n">sold_month</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9127,7 +9479,7 @@ negocio del contrato y derivamos de <code>ws_sold_timestamp</code> tres columnas
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9142,7 +9494,7 @@ mensaje del <code>assert</code> la nombra:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9170,7 +9522,7 @@ mensaje del <code>assert</code> la nombra:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9185,7 +9537,7 @@ distinta de la que esperan S6, S7 y S8.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9201,7 +9553,22 @@ que la única pérdida de filas es exactamente esa, ni una más ni una menos:</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Los tres recuentos son tres consultas:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales</span><span class="p">;</span><span class="w">                                   </span><span class="c1">-- raw_count</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">;</span><span class="w">                            </span><span class="c1">-- silver_count</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span><span class="w">   </span><span class="c1">-- missing_date_count</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9227,7 +9594,7 @@ que la única pérdida de filas es exactamente esa, ni una más ni una menos:</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9243,7 +9610,23 @@ abajo), esta celda también lo detecta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Cuenta las filas de <code>silver</code> con alguna de las cuatro columnas de fecha nula:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="n">ws_sold_date</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">   </span><span class="k">OR</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9267,7 +9650,7 @@ abajo), esta celda también lo detecta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9283,7 +9666,24 @@ sola agregación cuenta los nulos de las cuatro columnas:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Cuenta, para cada clave, las líneas en que es nula:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="n">COUNT_IF</span><span class="p">(</span><span class="n">ws_order_number</span><span class="w">     </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">,</span>
+<span class="w">       </span><span class="n">COUNT_IF</span><span class="p">(</span><span class="n">ws_item_sk</span><span class="w">          </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ws_item_sk</span><span class="p">,</span>
+<span class="w">       </span><span class="n">COUNT_IF</span><span class="p">(</span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="p">,</span>
+<span class="w">       </span><span class="n">COUNT_IF</span><span class="p">(</span><span class="n">ws_bill_addr_sk</span><span class="w">     </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ws_bill_addr_sk</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9315,7 +9715,7 @@ sola agregación cuenta los nulos de las cuatro columnas:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9329,7 +9729,24 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Los límites de año y mes, y el número de combinaciones distintas:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="k">MIN</span><span class="p">(</span><span class="n">sold_year</span><span class="p">)</span><span class="w">  </span><span class="k">AS</span><span class="w"> </span><span class="n">min_year</span><span class="p">,</span><span class="w">  </span><span class="k">MAX</span><span class="p">(</span><span class="n">sold_year</span><span class="p">)</span><span class="w">  </span><span class="k">AS</span><span class="w"> </span><span class="n">max_year</span><span class="p">,</span>
+<span class="w">       </span><span class="k">MIN</span><span class="p">(</span><span class="n">sold_month</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">min_month</span><span class="p">,</span><span class="w"> </span><span class="k">MAX</span><span class="p">(</span><span class="n">sold_month</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">max_month</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">;</span>
+
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">sold_year</span><span class="p">,</span><span class="w"> </span><span class="n">sold_month</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9338,10 +9755,10 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">year_month_bounds</span><span class="p">:</span> <span class="n">Row</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">web_sales_silver</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
-    <span class="n">spark_min</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_year"</span><span class="p">),</span>
-    <span class="n">spark_max</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"max_year"</span><span class="p">),</span>
-    <span class="n">spark_min</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_month"</span><span class="p">),</span>
-    <span class="n">spark_max</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"max_month"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_year"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"max_year"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"min_month"</span><span class="p">),</span>
+    <span class="n">F</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s2">"sold_month"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"max_month"</span><span class="p">),</span>
 <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">year_month_bounds</span><span class="p">)</span>
@@ -9359,7 +9776,7 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=70">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9372,7 +9789,7 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9385,7 +9802,7 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9399,7 +9816,7 @@ máximo, y escribir su comprobación es una de las actividades de más abajo.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9420,7 +9837,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9444,7 +9861,7 @@ en lugar de acumular ficheros duplicados.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9464,7 +9881,7 @@ los ficheros y sólo quedan en el nombre de los directorios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9478,7 +9895,7 @@ los ficheros y sólo quedan en el nombre de los directorios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9497,14 +9914,17 @@ los ficheros y sólo quedan en el nombre de los directorios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Agregar-el-producto-gold">Agregar el producto <em>gold</em><a class="anchor-link" href="#Agregar-el-producto-gold">¶</a></h3><p>El producto <code>gold</code> responde a una pregunta de negocio concreta —"pedidos,
-líneas de venta y beneficio neto por año"— y se calcula agregando desde
+<h3 id="Agregar-el-producto-gold">Agregar el producto <em>gold</em><a class="anchor-link" href="#Agregar-el-producto-gold">¶</a></h3><p>El producto <code>gold</code> responde a una pregunta de negocio concreta:</p>
+<blockquote>
+<p>"pedidos, líneas de venta y beneficio neto por año",</p>
+</blockquote>
+<p>y se calcula agregando desde
 <code>silver</code>, no releyendo <code>raw</code>: la celda lee la tabla que acabamos de escribir
 en <code>silver_path</code> y agrupa por <code>sold_year</code>, una columna que Spark reconstruye
 a partir de los nombres de directorio (lo veremos con detalle al releer la
@@ -9524,7 +9944,26 @@ que importa es la que hicimos antes de escribir.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> El producto <code>gold</code> es esta agregación sobre <code>silver</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="n">sold_year</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">pedidos</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w">                        </span><span class="k">AS</span><span class="w"> </span><span class="n">lineas_de_venta</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_profit</span><span class="p">)</span><span class="w">              </span><span class="k">AS</span><span class="w"> </span><span class="n">beneficio_neto</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_year</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_year</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9541,7 +9980,7 @@ que importa es la que hicimos antes de escribir.</p>
     <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
         <span class="n">countDistinct</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"pedidos"</span><span class="p">),</span>
         <span class="n">count</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"lineas_de_venta"</span><span class="p">),</span>
-        <span class="n">spark_sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">),</span>
+        <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"beneficio_neto"</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span>
 <span class="p">)</span>
@@ -9554,7 +9993,7 @@ que importa es la que hicimos antes de escribir.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9578,7 +10017,7 @@ periodos incompletos.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9592,7 +10031,7 @@ orden y tipos, como en <code>silver</code>, antes de escribir:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9620,7 +10059,7 @@ orden y tipos, como en <code>silver</code>, antes de escribir:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9633,7 +10072,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=72">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9652,7 +10091,7 @@ ficheros diminutos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9664,7 +10103,7 @@ exactamente el declarado, ahora también en la nulabilidad:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9686,7 +10125,7 @@ exactamente el declarado, ahora también en la nulabilidad:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9700,7 +10139,7 @@ contrato no promete <code>nullable=False</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=89">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9713,7 +10152,7 @@ contrato no promete <code>nullable=False</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=77">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9721,13 +10160,13 @@ contrato no promete <code>nullable=False</code>.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">La evidencia de que la poda funciona</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Releer por la ruta raíz: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> aparecen sin metastore de por medio</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code> en el plan y el recuento de ficheros en HDFS: qué abre Spark de verdad, no lo que devuelve <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">inputFiles()</code></li><li style="margin:10px 0;list-style-position:outside">El tiempo de un portátil no es evidencia: caches, carga y Docker lo dominan</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">La evidencia de que la poda funciona</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Releer por la ruta raíz: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_year</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month</code> aparecen sin metastore de por medio</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code> en el plan y el recuento de ficheros en HDFS: qué abre Spark de verdad, no lo que devuelve <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">inputFiles()</code></li><li style="margin:10px 0;list-style-position:outside">El tiempo de un portátil no basta como evidencia: caches, carga y Docker lo dominan; se mide después, como complemento</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9739,7 +10178,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9756,7 +10195,7 @@ sin mencionar los subdirectorios de partición en ningún sitio.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9777,7 +10216,7 @@ declarado en el contrato:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9795,7 +10234,7 @@ declarado en el contrato:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9807,7 +10246,8 @@ depende de cachés del sistema operativo, de la carga del equipo, de Docker
 y de cuántas veces se haya ejecutado ya la misma consulta antes. Lo que sí
 podemos observar de forma reproducible es el <strong>plan físico</strong> de la consulta
 y el <strong>número de ficheros que Spark decide abrir</strong> antes de leer una sola
-fila. Eso es lo que vamos a comparar, no un cronómetro.</p>
+fila. Eso es lo que vamos a comparar primero; más abajo medimos también el
+tiempo, pero sólo como indicio complementario.</p>
 <p>Compararemos tres lecturas de <code>silver</code>: la completa; la de la consulta 1
 de «Qué consultas esperamos sobre <code>silver</code>», que se limita a un año; y la
 de la consulta 5, que se limita a un cliente. Primero elegimos, con datos
@@ -9815,7 +10255,23 @@ reales, el año: el que tenga más líneas de venta en la tabla <code>silver</co
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Líneas por año, de más a menos (<code>show()</code> las muestra todas y <code>first()</code> se queda con la primera):</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="n">sold_year</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">count</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sold_year</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="k">count</span><span class="w"> </span><span class="k">DESC</span><span class="p">,</span><span class="w"> </span><span class="n">sold_year</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9838,7 +10294,7 @@ reales, el año: el que tenga más líneas de venta en la tabla <code>silver</co
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9849,7 +10305,25 @@ respondió con DuckDB.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> El cliente con más pedidos distintos:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">pedidos</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">pedidos</span><span class="w"> </span><span class="k">DESC</span><span class="p">,</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span>
+<span class="k">LIMIT</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9871,7 +10345,7 @@ respondió con DuckDB.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=101">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9879,12 +10353,32 @@ respondió con DuckDB.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Con el año elegido: ¿qué fracción de los ficheros leerá la consulta de ese año?</li><li style="margin:10px 0;list-style-position:outside">¿Y la consulta del cliente? ¿Lee menos ficheros o sólo devuelve menos filas?</li><li style="margin:10px 0;list-style-position:outside">¿Y un filtro por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit &gt; 0</code>?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Con el año elegido: ¿qué fracción de los ficheros leerá la consulta de ese año?</li><li style="margin:10px 0;list-style-position:outside">¿Y la consulta del cliente (la 5: historial de compras de un cliente)? ¿Lee menos ficheros o sólo devuelve menos filas?</li><li style="margin:10px 0;list-style-position:outside">¿Y un filtro por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit &gt; 0</code>?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=102">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Las tres lecturas que vamos a comparar son estas (<code>&lt;año&gt;</code> y <code>&lt;cliente&gt;</code> son los valores elegidos en las celdas anteriores):</p>
+<div class="highlight"><pre><span></span><span class="c1">-- full_scan: lectura completa</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">;</span>
+
+<span class="c1">-- filtered: un año (consulta 1, sin la agregación)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">año</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">-- customer_query: un cliente (consulta 5, sin la ordenación ni las otras columnas)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">cliente</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9903,7 +10397,7 @@ respondió con DuckDB.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9913,7 +10407,7 @@ respondió con DuckDB.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9928,7 +10422,7 @@ respondió con DuckDB.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9941,7 +10435,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9956,7 +10450,7 @@ después de leer todas las filas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9968,7 +10462,7 @@ condiciones que Spark entrega al lector de Parquet.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9983,7 +10477,7 @@ condiciones que Spark entrega al lector de Parquet.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9997,13 +10491,14 @@ mínimo y el máximo de la columna) demuestren que no contienen a ese
 cliente. Pero <code>silver</code> no está ordenada por cliente: cada grupo de filas
 reúne clientes de casi todo el rango, y esas estadísticas apenas
 descartan nada. Es lo que anticipaba la sección de cardinalidades: esta
-consulta no se resuelve con particiones, sino ordenando los datos, algo
-que veremos con Iceberg en S7.</p>
+consulta no se resuelve con particiones, sino ordenando los datos: lo
+probarás en un ejercicio más abajo, tras medir los tiempos, con una segunda
+tabla de laboratorio, y en S7 veremos cómo se hace dentro de una misma tabla con Iceberg.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10015,7 +10510,22 @@ una acción sobre cada una.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Equivalente en SQL.</strong> Contar las filas de cada una de las tres lecturas:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">año</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">cliente</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10038,7 +10548,7 @@ una acción sobre cada una.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10067,7 +10577,7 @@ cuenta como fichero: se resta, porque no es un dato.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10101,7 +10611,7 @@ cuenta como fichero: se resta, porque no es un dato.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=116">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10114,11 +10624,107 @@ esos cinco años reúne 12 de los 61 ficheros, uno por mes. Por tanto
 debería coincidir con lo que mostró la interfaz de Spark para la consulta
 de ese año. Esa diferencia de ficheros —no el tiempo que ha tardado la
 celda— es la evidencia que vamos a citar en la tabla comparativa de más
-abajo.</p>
+abajo. El tiempo lo medimos justo después, como complemento.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=100">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="El-tiempo-de-cada-consulta">El tiempo de cada consulta<a class="anchor-link" href="#El-tiempo-de-cada-consulta">¶</a></h3><p>Los ficheros y los bytes leídos son la evidencia principal de la poda, pero
+también podemos medir cuánto tarda cada consulta. Para que la comparación
+sea justa, las cinco consultas hacen el mismo trabajo, una suma sobre una
+columna, y sólo cambian la tabla y el filtro. Cada una se ejecuta una vez
+para calentar (cargar clases, planificar) y se anota la mediana de cinco
+ejecuciones más. En SQL:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_profit</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="p">;</span><span class="w">                                   </span><span class="c1">-- lectura completa</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_profit</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">sold_year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">año</span><span class="o">&gt;</span><span class="p">;</span><span class="w">           </span><span class="c1">-- un año</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">ws_net_profit</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">cliente</span><span class="o">&gt;</span><span class="p">;</span><span class="w">  </span><span class="c1">-- un cliente</span>
+<span class="c1">-- y las dos últimas, igual, sobre la salida de control sin particionar</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">statistics</span><span class="w"> </span><span class="kn">import</span> <span class="n">median</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">perf_counter</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">median_seconds</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">object</span><span class="p">],</span> <span class="n">repetitions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Mediana, en segundos, de varias ejecuciones de action (la primera se descarta)."""</span>
+    <span class="n">action</span><span class="p">()</span>
+    <span class="n">durations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repetitions</span><span class="p">):</span>
+        <span class="n">started</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">action</span><span class="p">()</span>
+        <span class="n">durations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">median</span><span class="p">(</span><span class="n">durations</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">total_profit</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">object</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">table</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s2">"ws_net_profit"</span><span class="p">))</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+
+<span class="n">silver_control</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">silver_control_path</span><span class="p">)</span>
+
+<span class="n">timings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"silver, lectura completa"</span><span class="p">:</span> <span class="n">median_seconds</span><span class="p">(</span><span class="n">total_profit</span><span class="p">(</span><span class="n">full_scan</span><span class="p">)),</span>
+    <span class="sa">f</span><span class="s2">"silver, un año (</span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">)"</span><span class="p">:</span> <span class="n">median_seconds</span><span class="p">(</span><span class="n">total_profit</span><span class="p">(</span><span class="n">filtered</span><span class="p">)),</span>
+    <span class="sa">f</span><span class="s2">"control, un año (</span><span class="si">{</span><span class="n">sample_year</span><span class="si">}</span><span class="s2">)"</span><span class="p">:</span> <span class="n">median_seconds</span><span class="p">(</span>
+        <span class="n">total_profit</span><span class="p">(</span><span class="n">silver_control</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_year</span><span class="p">))</span>
+    <span class="p">),</span>
+    <span class="sa">f</span><span class="s2">"silver, un cliente (</span><span class="si">{</span><span class="n">sample_customer</span><span class="si">}</span><span class="s2">)"</span><span class="p">:</span> <span class="n">median_seconds</span><span class="p">(</span><span class="n">total_profit</span><span class="p">(</span><span class="n">customer_query</span><span class="p">)),</span>
+    <span class="sa">f</span><span class="s2">"control, un cliente (</span><span class="si">{</span><span class="n">sample_customer</span><span class="si">}</span><span class="s2">)"</span><span class="p">:</span> <span class="n">median_seconds</span><span class="p">(</span>
+        <span class="n">total_profit</span><span class="p">(</span><span class="n">silver_control</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_customer</span><span class="p">))</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">seconds</span> <span class="ow">in</span> <span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">35</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">seconds</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">7.0f</span><span class="si">}</span><span class="s2"> ms"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>No hay <code>assert</code> sobre estos tiempos: dependen de la carga del equipo, de las
+cachés y de YARN, y con SF3 las diferencias son pequeñas y pueden invertirse
+de una ejecución a otra. Lo que esperamos es que la consulta de un año tarde
+menos sobre <code>silver</code> que sobre la salida de control, porque lee una fracción
+de los ficheros, y que la del cliente no mejore con la partición por año y
+mes, porque abre todos.</p>
+<p>Para ver qué pasaría con más datos, repetimos este mismo experimento fuera
+del clúster, con PySpark local y datos de TPC-DS generados con SF3 y con
+SF30 (diez veces más). Con SF3, la consulta de un año tardó prácticamente lo
+mismo en las dos tablas (91 frente a 102 ms): el coste fijo de
+planificar y lanzar la consulta tapa la diferencia de lectura. Con SF30,
+la diferencia pasó a ser de 2 veces (116 frente a 234 ms): lo que ahorra la
+poda es proporcional a los datos que no se leen, y el coste fijo ya no lo
+tapa. Es el argumento a favor de particionar: la ventaja que ahora ves en
+ficheros y en bytes crece con el tamaño de la tabla, aunque con este
+volumen apenas se note en segundos. Son cifras de una máquina y una
+ejecución, no una referencia.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=120">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10126,13 +10732,129 @@ abajo.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el filtro y compara la poda</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Escribe la consulta 2, noviembre y diciembre de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sample_year</code>: ¿cuántos ficheros lee ahora?</li><li style="margin:10px 0;list-style-position:outside">Filtra sólo por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month = 12</code>: ¿se poda algo? ¿En qué se diferencia de filtrar sólo por año?</li><li style="margin:10px 0;list-style-position:outside">Repite la consulta del cliente sobre la salida de control sin particionar: ¿cambia algo en su plan o en los ficheros que lee?</li><li style="margin:10px 0;list-style-position:outside">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit &gt; 1000</code>: ¿aparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code>? ¿Dónde aparece el filtro?</li><li style="margin:10px 0;list-style-position:outside">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code> en lugar de por año: ¿se poda? ¿Por qué no, si la fecha determina el año?</li><li style="margin:10px 0;list-style-position:outside">Lee un único directorio <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month=</code> por su ruta, con y sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">basePath</code>: ¿qué columnas cambian?</li><li style="margin:10px 0;list-style-position:outside">Escribe una copia con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">partitionBy("sold_year")</code> en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s5</code> y compara ficheros y tamaño medio</li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Ejercicio: una segunda tabla de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> por cliente</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">La consulta: historial de compras de un cliente (consulta 5), <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">WHERE ws_bill_customer_sk = &lt;cliente&gt;</code></li><li style="margin:10px 0;list-style-position:outside">Escribe una copia con sus cuatro columnas ordenada por cliente con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">orderBy</code>, y otra sin ordenar con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">repartition(8)</code></li><li style="margin:10px 0;list-style-position:outside">Compara <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> y las dos copias: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PushedFilters</code>, ficheros y bytes leídos, y tiempo con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">median_seconds</code></li><li style="margin:10px 0;list-style-position:outside">Qué cuesta: espacio en HDFS, y qué habría que añadir al contrato</li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=101">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=121">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Ejercicio:-una-segunda-tabla-de-silver-para-la-consulta-del-cliente">Ejercicio: una segunda tabla de <code>silver</code> para la consulta del cliente<a class="anchor-link" href="#Ejercicio:-una-segunda-tabla-de-silver-para-la-consulta-del-cliente">¶</a></h3><p><strong>La consulta.</strong> Es la consulta 5 de la lista de arriba: el historial de
+compras de un cliente —el que tiene más pedidos, <code>sample_customer</code>—, con el
+número de pedido, la fecha y hora y el importe pagado de cada línea,
+ordenado por fecha. Es la que sale perdiendo con la partición por año y mes,
+porque <code>silver</code> no está organizada por cliente y la consulta abre todos los
+ficheros. En SQL:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="n">ws_order_number</span><span class="p">,</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="p">,</span><span class="w"> </span><span class="n">ws_net_paid</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">web_sales_silver</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">ws_bill_customer_sk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">cliente</span><span class="o">&gt;</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">ws_sold_timestamp</span><span class="p">;</span>
+</pre></div>
+<p>En Spark, sobre una tabla <code>table</code> cualquiera con esas columnas:</p>
+<div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">)</span> <span class="o">==</span> <span class="n">sample_customer</span><span class="p">)</span> \
+     <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"ws_order_number"</span><span class="p">,</span> <span class="s2">"ws_sold_timestamp"</span><span class="p">,</span> <span class="s2">"ws_net_paid"</span><span class="p">)</span> \
+     <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">)</span>
+</pre></div>
+<p><strong>Qué hay que hacer.</strong> Para resolverla sin tocar <code>silver</code>, construye dos
+copias de laboratorio con las mismas cuatro columnas que usa la consulta,
+una ordenada por cliente y otra sin ordenar. La segunda sirve para separar
+dos efectos: leer cuatro columnas en lugar de once, y tener los datos
+ordenados.</p>
+<ol>
+<li>Parte de <code>web_sales_silver_read_back</code>, la lectura de <code>silver</code> que ya
+tienes, no de <code>raw</code>, y quédate sólo con <code>ws_bill_customer_sk</code>,
+<code>ws_order_number</code>, <code>ws_sold_timestamp</code> y <code>ws_net_paid</code>.</li>
+<li><strong>Copia ordenada.</strong> Ordénala con <code>orderBy("ws_bill_customer_sk")</code>, el
+mismo <code>orderBy</code> de S4, y escríbela sin <code>partitionBy</code> en
+<code>/user/luser/s5/web_sales_silver_por_cliente</code>. Al ordenar, Spark reparte
+las filas por rangos de cliente y las ordena dentro de cada fichero: cada
+fichero reúne un rango de clientes, y el mínimo y el máximo que Parquet
+guarda por grupo de filas dejan de abarcar a casi todos.</li>
+<li><strong>Copia sin ordenar.</strong> Escribe las mismas cuatro columnas con
+<code>repartition(8)</code>, sin ordenar, en
+<code>/user/luser/s5/web_sales_cuatro_columnas_sin_ordenar</code>. Ambas son tablas
+de laboratorio, como la salida de control, y por eso van bajo la ruta de
+trabajo y no bajo <code>/datalake</code>.</li>
+<li>Ejecuta la consulta sobre <code>silver</code> y sobre las dos copias, y compara el
+plan (<code>PushedFilters</code>), los <em>files read</em> y <em>size of files read</em> de la
+interfaz de Spark, el tamaño de cada salida en HDFS
+(<code>hdfs dfs -count -h</code>) y el tiempo, con <code>median_seconds</code> de la sección
+anterior.</li>
+</ol>
+<p>Después, responde con tus palabras: ¿qué ha mejorado y qué sigue igual? ¿El
+número de ficheros leídos baja, o lo que baja es otra cosa? ¿Qué parte de la
+mejora se debe a leer menos columnas y qué parte a la ordenación? ¿Qué le
+habrías tenido que añadir al contrato de <code>silver</code> si esta tabla fuera a
+quedarse? ¿Y qué ocurriría con las consultas 1 a 4 si sólo existiera esta
+tabla?</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=122">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Tu solución: escribe las dos copias y ejecuta la consulta del cliente sobre las tres tablas</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Tus observaciones:</strong></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Qu%C3%A9-cabe-esperar">Qué cabe esperar<a class="anchor-link" href="#Qu%C3%A9-cabe-esperar">¶</a></h4><p>En la simulación fuera del clúster (PySpark local, SF3 y SF30), la consulta
+del cliente sobre la copia ordenada tardó la mitad que sobre <code>silver</code> con SF3
+(99 frente a 230 ms) y cuatro veces menos con SF30 (111 frente a 473 ms), y
+frente a la copia de cuatro columnas sin ordenar la diferencia fue mayor aún.
+El número de ficheros leídos no bajó: se abren todos los de la copia, y lo
+que ahorra el lector de Parquet son los grupos de filas cuyo rango de
+clientes no incluye al elegido. Parte del ahorro en bytes viene también de
+que los datos ordenados se comprimen mejor. Compara estas cifras con las
+tuyas: lo importante es el orden de magnitud y cómo crece con el tamaño de
+la tabla, no los milisegundos.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=125">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia el filtro y compara la poda</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Escribe la consulta 2, noviembre y diciembre de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sample_year</code>: ¿cuántos ficheros lee ahora?</li><li style="margin:10px 0;list-style-position:outside">Filtra sólo por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month = 12</code>: ¿se poda algo? ¿En qué se diferencia de filtrar sólo por año?</li><li style="margin:10px 0;list-style-position:outside">Repite la consulta del cliente (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">WHERE ws_bill_customer_sk = &lt;cliente&gt;</code>) sobre la salida de control sin particionar: ¿cambia algo en su plan o en los ficheros que lee?</li><li style="margin:10px 0;list-style-position:outside">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_net_profit &gt; 1000</code>: ¿aparece <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">PartitionFilters</code>? ¿Dónde aparece el filtro?</li><li style="margin:10px 0;list-style-position:outside">Filtra por <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ws_sold_date</code> en lugar de por año: ¿se poda? ¿Por qué no, si la fecha determina el año?</li><li style="margin:10px 0;list-style-position:outside">Lee un único directorio <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">sold_month=</code> por su ruta, con y sin <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">basePath</code>: ¿qué columnas cambian?</li><li style="margin:10px 0;list-style-position:outside">Escribe una copia con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">partitionBy("sold_year")</code> en <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s5</code> y compara ficheros y tamaño medio</li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10145,7 +10867,7 @@ del driver.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10160,7 +10882,7 @@ del driver.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=103">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10172,7 +10894,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=104">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10187,7 +10909,7 @@ particionar y con la del producto <code>gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10200,7 +10922,7 @@ directorios, ficheros (incluido <code>_SUCCESS</code>) y tamaño lógico total:<
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10215,7 +10937,7 @@ directorios, ficheros (incluido <code>_SUCCESS</code>) y tamaño lógico total:<
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10230,7 +10952,7 @@ enero a julio, la estacionalidad que vimos al diseñar las particiones.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10245,7 +10967,7 @@ enero a julio, la estacionalidad que vimos al diseñar las particiones.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=109">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10257,7 +10979,7 @@ completos:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10272,7 +10994,7 @@ completos:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=111">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10284,7 +11006,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=112">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10299,7 +11021,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=113">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10310,7 +11032,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10325,7 +11047,7 @@ directamente de la ruta:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10339,7 +11061,7 @@ preguntamos ahora a HDFS:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10365,7 +11087,7 @@ preguntamos ahora a HDFS:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=142">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10388,7 +11110,7 @@ año, mantener año y mes, o reagrupar más filas por fichero?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=118">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10442,7 +11164,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=144">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10455,7 +11177,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=120">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10468,7 +11190,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=146">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10482,7 +11204,7 @@ notebook. Vuelve a mirarlos si repites la sesión más adelante.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10530,7 +11252,7 @@ ruta física de <code>web_sales</code>— antes de ver cómo un catálogo los re
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=123">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=148">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10567,7 +11289,7 @@ no en dónde viven los bytes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10608,7 +11330,7 @@ un ejemplo concreto de esta sesión en qué momento lo has notado.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10683,7 +11405,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=126">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=151">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10697,7 +11419,7 @@ una celda no es una evidencia fiable;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10713,7 +11435,7 @@ empezar»; no ejecutes <code>clean-hdfs</code> mientras avances por el curso.</p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=153">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
