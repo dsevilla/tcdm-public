@@ -513,7 +513,7 @@ Interfaces locales:
 
 | Servicio | URL |
 | --- | --- |
-| Trino | <http://localhost:8080> |
+| Trino | <http://localhost:18080> |
 | YARN Timeline Server | <http://localhost:8188/applicationhistory/> |
 | Spark UI, mientras haya una aplicación | <http://localhost:4040> |
 

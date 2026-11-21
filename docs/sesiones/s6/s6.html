@@ -8565,10 +8565,10 @@ directamente de HDFS.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Abrir-la-conexi%C3%B3n-con-Trino">Abrir la conexión con Trino<a class="anchor-link" href="#Abrir-la-conexi%C3%B3n-con-Trino">¶</a></h2><p>Usamos el paquete <code>trino</code> (PyPI) en lugar de la CLI: <code>trino.dbapi.connect</code>
 habla el protocolo HTTP de Trino directamente contra el servicio
-<code>trino-hdfs</code> de la red <code>hadoop-cluster</code>, en el puerto <code>8080</code> — el mismo
-puerto que expone <code>entorno/compose-warehouse-hdfs.yml</code>, sólo que aquí no hace
-falta el mapeo <code>127.0.0.1:8080:8080</code> porque el notebook ya vive dentro de esa
-red. Definimos una pequeña función auxiliar que ejecuta SQL y devuelve un
+<code>trino-hdfs</code> de la red <code>hadoop-cluster</code>, en su puerto interno <code>8080</code>. Compose
+publica ese servicio en el equipo como <code>127.0.0.1:18080</code>; el kernel no usa
+ese puerto publicado porque ya vive dentro de la red Docker y se conecta al
+nombre del servicio. Definimos una pequeña función auxiliar que ejecuta SQL y devuelve un
 <code>DataFrame</code> de pandas, para no repetir en cada celda la apertura de cursor y
 la construcción de columnas.</p>
 </div>
@@ -8975,10 +8975,10 @@ leerla.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Un metastore no sólo guarda esquema y ubicación: también puede guardar un
-comentario de tabla. Lo añadimos con <code>COMMENT ON TABLE</code> y lo comprobamos en
-el propio <code>SHOW CREATE TABLE</code> — es lo que hace ejecutable la buena práctica
-de «cada tabla tiene un propietario y una descripción» que veremos al final
-de la sesión.</p>
+comentario de tabla. Lo añadimos a <code>item</code> con <code>COMMENT ON TABLE</code> y lo
+comprobamos en <code>SHOW CREATE TABLE</code>. Es un ejemplo de cómo documentar una
+tabla; al final resumiremos por qué conviene dar propietario y descripción
+a cada tabla del catálogo.</p>
 </div>
 </div>
 </div>
@@ -9192,7 +9192,9 @@ conector, <code>system.sync_partition_metadata</code>, dentro del esquema <code>
 cada catálogo Hive — aquí, <code>hive.system.sync_partition_metadata</code>. Por eso
 usamos esa llamada, y no <code>MSCK REPAIR TABLE</code>, para pedirle a Trino que
 sincronice el metastore con los directorios que encuentre bajo
-<code>external_location</code>. El parámetro <code>mode</code> indica qué sincronizar: <code>ADD</code>
+<code>external_location</code>. Acabamos de borrar y recrear esta definición, así que
+el metastore no conserva particiones anteriores: basta con añadir las que
+ya existen en HDFS. El parámetro <code>mode</code> indica qué sincronizar: <code>ADD</code>
 registra las particiones que existen en HDFS y faltan en el metastore,
 <code>DROP</code> elimina las del metastore cuyo directorio ya no existe, y <code>FULL</code>
 hace las dos cosas.</p>
@@ -9211,7 +9213,7 @@ hace las dos cosas.</p>
 <span class="s1">CALL hive.system.sync_partition_metadata(</span>
 <span class="s1">    schema_name =&gt; 'tcdm',</span>
 <span class="s1">    table_name =&gt; 'web_sales_silver',</span>
-<span class="s1">    mode =&gt; 'FULL')</span>
+<span class="s1">    mode =&gt; 'ADD')</span>
 <span class="s1">'''</span>
 <span class="n">run_trino</span><span class="p">(</span><span class="n">sync_partitions_sql</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Particiones sincronizadas."</span><span class="p">)</span>
@@ -9580,10 +9582,11 @@ conozca el nombre lógico de las tablas, sin saber nada de rutas HDFS.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Estad%C3%ADsticas-antes-y-despu%C3%A9s-de-ANALYZE">Estadísticas antes y después de <code>ANALYZE</code><a class="anchor-link" href="#Estad%C3%ADsticas-antes-y-despu%C3%A9s-de-ANALYZE">¶</a></h3><p>El metastore puede guardar estadísticas por columna (número de valores
-distintos aproximado, fracción de nulos, tamaño medio...) que el planificador
-de Trino usa para elegir el orden de los <code>JOIN</code> o el tipo de agregación. Esas
-estadísticas no se calculan solas: hace falta pedirlas explícitamente con
-<code>ANALYZE</code>.</p>
+distintos aproximado, fracción de nulos, tamaño medio...) que Trino usa al
+estimar el coste de un plan. En consultas con <code>JOIN</code>, esas estimaciones
+pueden influir en su orden; aquí veremos cómo cambian las estimaciones de
+filas de una consulta filtrada. Las estadísticas no se calculan solas: hay
+que pedirlas explícitamente con <code>ANALYZE</code>.</p>
 </div>
 </div>
 </div>
@@ -9654,19 +9657,20 @@ estadísticas no se calculan solas: hace falta pedirlas explícitamente con
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Compara ambas tablas de estadísticas: antes de <code>ANALYZE</code>, la mayoría
-de columnas numéricas (<code>nulls_fraction</code>, <code>distinct_values_count</code>,
-<code>data_size</code>) aparecen vacías o son estimaciones muy toscas basadas sólo en el
-tamaño de los ficheros; después, cada columna trae una estimación calculada
-sobre los datos reales, y la fila final añade <code>row_count</code>. Los <code>EXPLAIN</code> de
-unas celdas más arriba se ejecutaron <strong>antes</strong> de este <code>ANALYZE</code>, así que
-planificaron sin estas estadísticas de columna. La celda anterior ha
-repetido el <code>EXPLAIN</code> de la misma consulta filtrada: compáralo con el de
-antes de <code>ANALYZE</code> y fíjate en las líneas <code>Estimates</code>, donde el número de
-filas estimado deja de aparecer como desconocido (<code>?</code>). El optimizador ya
-dispone de estas estadísticas para decidir el plan. Son una foto del momento en
-que se calculan: si llegan particiones nuevas o cambian los datos hay que
-volver a lanzar <code>ANALYZE</code>; si no, el optimizador decide con cifras viejas.</p>
+<p>Compara ambas tablas de estadísticas. Antes de <code>ANALYZE</code>, varias columnas
+aparecen vacías o con estimaciones toscas; después, Trino muestra
+estimaciones por columna y <code>row_count</code> en la fila final. <code>SHOW STATS</code> no
+sustituye a un recuento exacto como <code>COUNT(DISTINCT ...)</code>. En una tabla
+Hive particionada, los valores distintos pueden diferir del total real;
+la estimación global puede depender de cómo Trino agrega las estadísticas
+de cada partición. No interpretes esa
+diferencia como filas perdidas. Antes de <code>ANALYZE</code>, los <code>EXPLAIN</code> de más
+arriba planificaron sin estas estadísticas de columna. El <code>EXPLAIN</code>
+repetido deja ver en <code>Estimates</code> cómo el optimizador recibe una estimación
+de filas en lugar de <code>?</code>. Esta consulta sólo tiene un recuento: no muestra
+un cambio de orden de <code>JOIN</code> ni de agregación. Las estadísticas son una
+foto del momento; si llegan particiones nuevas o cambian los datos, vuelve
+a lanzar <code>ANALYZE</code>.</p>
 </div>
 </div>
 </div>
@@ -9678,7 +9682,7 @@ volver a lanzar <code>ANALYZE</code>; si no, el optimizador decide con cifras vi
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Las estadísticas no se calculan solas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW STATS</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code>: vacío o estimaciones toscas</li><li style="margin:10px 0;list-style-position:outside">Después: una estimación por columna y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">row_count</code> en la fila final</li><li style="margin:10px 0;list-style-position:outside">El planificador las usa en el próximo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">EXPLAIN</code>, no en el anterior</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Las estadísticas no se calculan solas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW STATS</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code>: vacío o estimaciones toscas</li><li style="margin:10px 0;list-style-position:outside">Después: estimaciones por columna y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">row_count</code>; los valores distintos pueden ser aproximados</li><li style="margin:10px 0;list-style-position:outside">El <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">EXPLAIN</code> muestra las estimaciones disponibles para el planificador</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -9799,8 +9803,9 @@ líneas <code>Partition Provider</code> / <code># Partition Information</code> d
 <code>sold_year</code> y <code>sold_month</code>. Spark no ha vuelto a preguntar "dónde están los
 datos": lo ha leído del mismo metastore que consultó Trino.</p>
 <h3 id="Comparar-el-resultado-de-negocio">Comparar el resultado de negocio<a class="anchor-link" href="#Comparar-el-resultado-de-negocio">¶</a></h3><p>Repetimos, con Spark, la misma pregunta de negocio que ya respondió Trino
-sobre <code>tcdm.web_sales_by_year_gold</code>, y comprobamos que ambos motores
-devuelven exactamente los mismos números sobre la misma definición de tabla.</p>
+sobre <code>tcdm.web_sales_by_year_gold</code>. El cruce externo conserva los años
+que aparezcan en un solo resultado, y la comprobación de unicidad asegura
+que comparamos una fila por año en cada motor.</p>
 </div>
 </div>
 </div>
@@ -9829,9 +9834,21 @@ devuelven exactamente los mismos números sobre la misma definición de tabla.</
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">comparacion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-    <span class="n">gold_spark_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">"_trino"</span><span class="p">,</span> <span class="s2">"_spark"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">assert</span> <span class="ow">not</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">empty</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gold_spark_df</span><span class="o">.</span><span class="n">empty</span>
+
+<span class="n">comparacion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">gold_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+    <span class="n">gold_spark_df</span><span class="p">,</span>
+    <span class="n">on</span><span class="o">=</span><span class="s2">"sold_year"</span><span class="p">,</span>
+    <span class="n">how</span><span class="o">=</span><span class="s2">"outer"</span><span class="p">,</span>
+    <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">"_trino"</span><span class="p">,</span> <span class="s2">"_spark"</span><span class="p">),</span>
+    <span class="n">validate</span><span class="o">=</span><span class="s2">"one_to_one"</span><span class="p">,</span>
+    <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="k">assert</span> <span class="n">comparacion</span><span class="p">[</span><span class="s2">"_merge"</span><span class="p">]</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="s2">"both"</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="p">(</span>
+    <span class="s2">"Los años de Trino y Spark no coinciden: revisa la columna _merge."</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">comparacion</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gold_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gold_spark_df</span><span class="p">)</span>
+<span class="n">comparacion</span> <span class="o">=</span> <span class="n">comparacion</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">"_merge"</span><span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_trino"</span><span class="p">]</span> <span class="o">=</span> <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_trino"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_spark"</span><span class="p">]</span> <span class="o">=</span> <span class="n">comparacion</span><span class="p">[</span><span class="s2">"beneficio_neto_spark"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">comparacion</span><span class="p">[</span><span class="s2">"diferencia_beneficio"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -9924,7 +9941,9 @@ de leer la tabla con Spark—, pero es el motivo por el que a veces una tabla
 <h2 id="Tabla-administrada:-tcdm.web_sales_by_year_managed_demo">Tabla administrada: <code>tcdm.web_sales_by_year_managed_demo</code><a class="anchor-link" href="#Tabla-administrada:-tcdm.web_sales_by_year_managed_demo">¶</a></h2><p>Para cerrar la comparación externa/administrada, creamos una tabla de
 laboratorio con <code>CREATE TABLE ... AS SELECT</code> (CTAS) a partir de la tabla gold
 que ya registramos. No se declara ningún <code>external_location</code>: dejamos que
-Hive/Trino elijan la ubicación bajo <code>/warehouse</code>.</p>
+Hive/Trino elijan la ubicación bajo <code>/warehouse</code>. La celda siguiente borra
+primero la tabla administrada si ya existía; al repetirla también se borran
+sus ficheros anteriores y se crea una copia nueva.</p>
 </div>
 </div>
 </div>
@@ -10602,7 +10621,8 @@ tablas.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Buenas-pr%C3%A1cticas-de-cat%C3%A1logo-y-data-lake">Buenas prácticas de catálogo y data lake<a class="anchor-link" href="#Buenas-pr%C3%A1cticas-de-cat%C3%A1logo-y-data-lake">¶</a></h2><p>El metastore permite formalizar las decisiones de S5:</p>
 <ul>
-<li>cada tabla tiene un propietario y una descripción;</li>
+<li>cada tabla debería tener un propietario y una descripción; este notebook
+demuestra la descripción con <code>item</code> como ejemplo;</li>
 <li>la ubicación física está documentada;</li>
 <li>el esquema y las claves tienen un contrato;</li>
 <li>las columnas de partición se justifican por las consultas que se van a
@@ -10782,6 +10802,9 @@ la reunión de evidencias, que la necesita, y bórrala después. <strong>Nunca</
 apliques el mismo razonamiento a las tablas externas, cuyo <code>DROP TABLE</code>
 sólo afecta al catálogo; y no elimines sus definiciones antes de terminar
 S7, que parte de ellas.</p>
+<p>Las órdenes <code>docker compose</code> de la tabla se ejecutan en una terminal de tu
+equipo, desde la raíz de la distribución; los <code>DROP TABLE</code> se ejecutan en
+el cliente Trino indicado en cada caso.</p>
 <table>
 <thead>
 <tr>
@@ -10809,7 +10832,7 @@ S7, que parte de ellas.</p>
 <tr>
 <td>Eliminar el warehouse por completo (destructivo)</td>
 <td><code>docker compose -f entorno/compose-warehouse-hdfs.yml down -v --remove-orphans</code></td>
-<td>Borra también el volumen de PostgreSQL: se pierde todo el contenido del Hive Metastore, incluidas las definiciones de esta sesión. No borra ni <code>/datalake</code> ni <code>/warehouse</code> en HDFS: los ficheros Parquet de las tablas externas y los de la tabla administrada de laboratorio (si no se borró antes) seguirían ahí, ahora sin ninguna definición de catálogo que los describa. Tras volver a levantar el warehouse haría falta repetir los <code>CREATE TABLE</code> de este notebook.</td>
+<td>Borra también el volumen de PostgreSQL y las definiciones del metastore, pero no <code>/datalake</code> ni <code>/warehouse</code> en HDFS. Si la tabla administrada de laboratorio seguía creada, sus ficheros quedan huérfanos bajo <code>/warehouse/tcdm.db/web_sales_by_year_managed_demo</code>; antes de repetir su CTAS, bórralos con <code>!hdfs dfs -rm -r -f /warehouse/tcdm.db/web_sales_by_year_managed_demo</code> en una celda del kernel de <code>namenode</code>.</td>
 </tr>
 </tbody>
 </table>
