@@ -7859,7 +7859,8 @@ document.addEventListener("DOMContentLoaded", () => {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">Sesión 7 — Iceberg: del data lake al lakehouse, evolución y optimización<a class="anchor-link" href="#Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">¶</a></h1><p>Esta sesión reúne, de forma deliberada, dos bloques: la creación y evolución
+<h1 id="Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">Sesión 7 — Iceberg: del data lake al lakehouse, evolución y optimización<a class="anchor-link" href="#Sesi%C3%B3n-7-%E2%80%94-Iceberg:-del-data-lake-al-lakehouse,-evoluci%C3%B3n-y-optimizaci%C3%B3n">¶</a></h1><p><strong>En clase guardaremos una versión de las ventas, cambiaremos la tabla y volveremos a leer aquella versión.</strong></p>
+<p>Esta sesión reúne, de forma deliberada, dos bloques: la creación y evolución
 de una tabla Iceberg, y la medición y optimización de esa misma tabla. Van
 juntos porque comparten la tabla de trabajo, el dataset TPC-DS SF3 que
 ya conoces de S2-S6 y buena parte del vocabulario: no tiene sentido medir
@@ -8033,8 +8034,21 @@ cambiaría si las tablas vivieran en S3, GCS o Azure en lugar de en HDFS.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Del catálogo al historial</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">En S6 dos motores podían encontrar la misma tabla.</li><li style="margin:10px 0;list-style-position:outside">Hoy les pediremos leer la misma versión después de una escritura.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8082,8 +8096,21 @@ ofrecer.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Qué tendremos que demostrar</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Localiza la versión vigente y compara una lectura histórica en dos motores.</li><li style="margin:10px 0;list-style-position:outside">Justifica una decisión de almacenamiento con un plan o un inventario.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8127,7 +8154,7 @@ reconocer cuándo una optimización concreta no aporta beneficio real.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=12">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8140,8 +8167,21 @@ reconocer cuándo una optimización concreta no aporta beneficio real.</li>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Reconocer el estado de S6</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Comprueba las rutas HDFS y las tres tablas Hive.</li><li style="margin:10px 0;list-style-position:outside">Silver debe tener ventas y gold una fila por año.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8199,7 +8239,7 @@ anteriores no existe todavía, ejecuta antes esos dos notebooks.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=12">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8217,7 +8257,7 @@ anteriores no existe todavía, ejecuta antes esos dos notebooks.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8240,7 +8280,7 @@ sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8250,7 +8290,7 @@ sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8264,7 +8304,7 @@ sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8288,8 +8328,21 @@ sesión.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Localizar los catálogos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Abre la conexión de S6 y lista los catálogos de Trino.</li><li style="margin:10px 0;list-style-position:outside">Busca los nombres que usarás como prefijo en SQL.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8305,7 +8358,7 @@ contexto por defecto de la conexión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8340,7 +8393,7 @@ contexto por defecto de la conexión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8354,8 +8407,21 @@ contexto por defecto de la conexión.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Dos catálogos en Trino</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Identifica hive e iceberg en el listado.</li><li style="margin:10px 0;list-style-position:outside">Usaremos uno para leer las fuentes y el otro para crear las tablas de S8.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8400,7 +8466,7 @@ almacén de metadatos, no dos almacenes distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=21">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8422,7 +8488,7 @@ almacén de metadatos, no dos almacenes distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8446,7 +8512,7 @@ almacén de metadatos, no dos almacenes distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=23">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=28">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8460,7 +8526,7 @@ almacén de metadatos, no dos almacenes distintos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8496,8 +8562,21 @@ tener que listar a ciegas todo el almacenamiento como haría un <code>MSCK REPAI
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Situar Iceberg entre los formatos de tabla</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Compara cómo estos formatos organizan versiones sobre ficheros.</li><li style="margin:10px 0;list-style-position:outside">El ejemplo que seguiremos en ambos motores usa Iceberg.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8563,7 +8642,7 @@ vuelven en S8, donde se compara su efecto físico sobre una tabla Iceberg.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8576,7 +8655,7 @@ vuelven en S8, donde se compara su efecto físico sobre una tabla Iceberg.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8590,7 +8669,7 @@ vuelven en S8, donde se compara su efecto físico sobre una tabla Iceberg.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8630,7 +8709,7 @@ año con <code>sold_year</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8656,7 +8735,7 @@ ws_net_profit
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=30">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8701,7 +8780,7 @@ ws_net_profit
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8720,7 +8799,7 @@ exactamente igual que en la tabla Hive de origen.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8755,7 +8834,7 @@ exactamente igual que en la tabla Hive de origen.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8767,7 +8846,7 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8790,7 +8869,7 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=35">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8823,7 +8902,7 @@ fuente <code>hive.tcdm.web_sales_by_year_gold</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8837,7 +8916,7 @@ de la sesión, la misma que ya demostramos en S6 con las tablas Hive.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8856,7 +8935,7 @@ de la sesión, la misma que ya demostramos en S6 con las tablas Hive.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8872,7 +8951,7 @@ vistazo cuáles son desechables y cuáles no.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=45">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8885,22 +8964,34 @@ vistazo cuáles son desechables y cuáles no.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=46">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Localizar los ficheros de una tabla</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Obtén la ubicación con SHOW CREATE TABLE y abre ese directorio en HDFS.</li><li style="margin:10px 0;list-style-position:outside">Distingue los Parquet de los ficheros que describen la versión.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Observar-la-definici%C3%B3n-y-la-ubicaci%C3%B3n">Observar la definición y la ubicación<a class="anchor-link" href="#Observar-la-definici%C3%B3n-y-la-ubicaci%C3%B3n">¶</a></h2><p>No debemos suponer dónde ha quedado físicamente la tabla: el catálogo puede
-elegir un directorio con un sufijo único, como ya viste en S6 con
-<code>web_sales_by_year_managed_demo</code>. Lo confirmamos con <code>SHOW CREATE TABLE</code> y
+elegir un directorio con un sufijo único. Lo confirmamos con <code>SHOW CREATE TABLE</code> y
 extraemos la ubicación real con una expresión regular, para usarla
 después desde Python.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8916,7 +9007,7 @@ después desde Python.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8942,7 +9033,7 @@ después desde Python.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8958,7 +9049,7 @@ directorio <code>data</code> (los ficheros Parquet) del directorio <code>metadat
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8971,7 +9062,7 @@ ubicación que acaba de confirmar Trino.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=45">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8985,8 +9076,21 @@ ubicación que acaba de confirmar Trino.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=53">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Leer el listado de HDFS</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Identifica un fichero de ventas y el directorio de metadatos.</li><li style="margin:10px 0;list-style-position:outside">Sigue la relación entre una versión de la tabla y sus ficheros.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9017,7 +9121,7 @@ manifests, no en el listado de particiones del Hive Metastore.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=47">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9031,7 +9135,7 @@ manifests, no en el listado de particiones del Hive Metastore.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9088,8 +9192,21 @@ Hive nativo: no hace falta ninguna ruta física ni ningún paso adicional.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Seguir la ruta de una consulta</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Identifica la conexión Thrift para Hive y la conexión REST para Iceberg.</li><li style="margin:10px 0;list-style-position:outside">Localiza después dónde están los ficheros que ambos motores leen.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9137,7 +9254,7 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9173,7 +9290,7 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=51">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9265,7 +9382,7 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9280,7 +9397,7 @@ tablas de S6, igual que en esa sesión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9299,7 +9416,7 @@ tablas de S6, igual que en esa sesión.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9313,7 +9430,7 @@ físicamente.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9329,7 +9446,7 @@ físicamente.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9342,7 +9459,7 @@ devuelven exactamente el mismo resultado sobre la misma tabla Iceberg.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9369,8 +9486,21 @@ devuelven exactamente el mismo resultado sobre la misma tabla Iceberg.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=58">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Filtrar el mismo mes</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">En Hive filtraremos por año y mes. En Iceberg usaremos la fecha de venta.</li><li style="margin:10px 0;list-style-position:outside">Busca en ambos planes cómo se limita la lectura.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9397,7 +9527,7 @@ descartar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9415,7 +9545,7 @@ descartar.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9433,8 +9563,21 @@ descartar.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Comparar los dos filtros</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Busca qué condición se aplicó en cada lectura.</li><li style="margin:10px 0;list-style-position:outside">Relaciona el mes solicitado con la transformación que declaró el escritor.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9468,7 +9611,7 @@ sin leer ningún fichero, y el plan sólo mostraría un <code>LocalTableScan</co
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9485,7 +9628,7 @@ sin leer ningún fichero, y el plan sólo mostraría un <code>LocalTableScan</co
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9502,7 +9645,7 @@ sin leer ningún fichero, y el plan sólo mostraría un <code>LocalTableScan</co
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9523,7 +9666,7 @@ usa para descartar ficheros con sus manifests.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9539,7 +9682,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=77">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9552,7 +9695,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9566,7 +9709,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9578,7 +9721,7 @@ convención <code>&lt;tabla&gt;$metadato</code> que ya usaste en S6 para <code>$
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=69">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9597,8 +9740,21 @@ convención <code>&lt;tabla&gt;$metadato</code> que ya usaste en S6 para <code>$
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=81">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Guardar un estado de referencia</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Anota el snapshot de la copia de laboratorio antes de insertar.</li><li style="margin:10px 0;list-style-position:outside">Compararemos ese identificador con el estado posterior.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9621,12 +9777,11 @@ experimenta con nuevas versiones, columnas nuevas y viajes en el tiempo,
 trabajamos sobre una <strong>copia de laboratorio</strong>,
 <code>iceberg.tcdm.web_sales_lab_evolution</code>, creada con el mismo CTAS y que
 podemos manipular con total libertad sin afectar a la tabla que reutilizará
-S8. <code>iceberg.tcdm.web_sales</code> queda así con un único snapshot, exactamente el
-que dejó su creación, y su clave compuesta intacta.</p>
+S8.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9650,7 +9805,7 @@ que dejó su creación, y su clave compuesta intacta.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9665,7 +9820,7 @@ Trino y Spark para resolver <code>iceberg.tcdm.&lt;tabla&gt;</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=73">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9702,7 +9857,7 @@ Trino y Spark para resolver <code>iceberg.tcdm.&lt;tabla&gt;</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9718,7 +9873,7 @@ uno real de TPC-DS—, calculamos uno que no puede colisionar:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9732,7 +9887,7 @@ snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9770,7 +9925,7 @@ snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9793,7 +9948,7 @@ snapshots.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9809,7 +9964,7 @@ sigue en HDFS, y es lo que permite volver a versiones anteriores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9832,7 +9987,7 @@ sigue en HDFS, y es lo que permite volver a versiones anteriores.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9845,7 +10000,7 @@ simplemente no tienen valor en la columna nueva.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9860,7 +10015,7 @@ simplemente no tienen valor en la columna nueva.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9883,7 +10038,7 @@ simplemente no tienen valor en la columna nueva.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9897,7 +10052,7 @@ esquema y sus filas de entonces.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9922,7 +10077,7 @@ esquema y sus filas de entonces.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9941,7 +10096,7 @@ snapshots con la sintaxis de Spark para tablas de catálogo:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=98">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9957,7 +10112,7 @@ snapshots con la sintaxis de Spark para tablas de catálogo:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9973,24 +10128,21 @@ snapshots con la sintaxis de Spark para tablas de catálogo:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Y viajamos en el tiempo desde Spark con la opción <code>versionAsOf</code> del
-lector Iceberg —la misma opción nativa que usa Spark para cualquier tabla
-que soporte viajar en el tiempo, no una opción propia de Iceberg— apuntando
-siempre al mismo identificador de tabla del catálogo. Iceberg admite un
-identificador de snapshot o el nombre de una rama/etiqueta como valor de
-<code>versionAsOf</code>. El conector Iceberg tiene además sus propias opciones de
-lectura, <code>snapshot-id</code> y <code>as-of-timestamp</code>, que seleccionan lo mismo; aquí
-usamos la sintaxis común de Spark.</p>
+<p>Y volvemos a leer ese snapshot desde Spark. El lector de Spark para tablas
+Iceberg ofrece las opciones <code>snapshot-id</code> (para seleccionar un snapshot
+concreto) y <code>as-of-timestamp</code> (para seleccionar el snapshot vigente en una
+marca temporal, en milisegundos). Aquí usamos <code>snapshot-id</code> con el mismo
+identificador que consultó Trino.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9998,18 +10150,19 @@ usamos la sintaxis común de Spark.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark_snapshot_inicial</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">"versionAsOf"</span><span class="p">,</span> <span class="n">snapshot_inicial_id</span><span class="p">)</span><span class="o">.</span><span class="n">table</span><span class="p">(</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark_snapshot_inicial</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">"snapshot-id"</span><span class="p">,</span> <span class="n">snapshot_inicial_id</span><span class="p">)</span><span class="o">.</span><span class="n">table</span><span class="p">(</span>
     <span class="s2">"iceberg.tcdm.web_sales_lab_evolution"</span>
 <span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas en el snapshot inicial (Spark):"</span><span class="p">,</span> <span class="n">spark_snapshot_inicial</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
-<span class="k">assert</span> <span class="n">spark_snapshot_inicial</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">conteo_snapshot_inicial</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
+<span class="n">filas_iniciales_spark</span> <span class="o">=</span> <span class="n">spark_snapshot_inicial</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filas en el snapshot inicial (Spark):"</span><span class="p">,</span> <span class="n">filas_iniciales_spark</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">filas_iniciales_spark</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">conteo_snapshot_inicial</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Trino y Spark coinciden al viajar en el tiempo al mismo snapshot."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=102">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10017,12 +10170,12 @@ usamos la sintaxis común de Spark.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cada escritura añade un snapshot</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El CTAS inicial y cada <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">INSERT</code> producen snapshots <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">append</code></li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ALTER TABLE ADD COLUMN</code> no reescribe el histórico de datos</li><li style="margin:10px 0;list-style-position:outside">Trino (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FOR VERSION AS OF</code>) y Spark (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">versionAsOf</code>) leen exactamente el mismo estado antiguo</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cada escritura añade un snapshot</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">El CTAS inicial y cada <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">INSERT</code> producen snapshots <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">append</code></li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ALTER TABLE ADD COLUMN</code> no reescribe el histórico de datos</li><li style="margin:10px 0;list-style-position:outside">Trino (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">FOR VERSION AS OF</code>) y Spark (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">snapshot-id</code>) leen el mismo estado antiguo</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=103">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10036,7 +10189,7 @@ usamos la sintaxis común de Spark.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10074,7 +10227,7 @@ el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=93">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10089,7 +10242,7 @@ el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=106">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10109,7 +10262,7 @@ el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=95">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=107">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10130,7 +10283,7 @@ todas las particiones de la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=96">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=108">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10144,7 +10297,7 @@ todas las particiones de la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=97">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10161,7 +10314,7 @@ todas las particiones de la tabla.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=110">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10175,7 +10328,7 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=99">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10203,7 +10356,7 @@ efímera —sólo para esta comparación— para poder consultarla con SQL.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=100">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10216,7 +10369,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=101">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10236,7 +10389,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=114">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10254,7 +10407,7 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=103">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=115">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10273,8 +10426,21 @@ sobre <code>ws_sold_timestamp</code>.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=116">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=104">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Interpretar la poda</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Localiza en cada plan la columna que restringe la lectura.</li><li style="margin:10px 0;list-style-position:outside">Distingue las particiones descartadas de los grupos de filas que puede saltar Parquet.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10303,7 +10469,7 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=105">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10318,8 +10484,21 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=106">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Comparar dos planes de unión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Observa las estadísticas de las claves antes y después de ANALYZE.</li><li style="margin:10px 0;list-style-position:outside">Comprueba si cambia la estrategia del JOIN con item.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=120">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10327,18 +10506,24 @@ tabla externa no toca los Parquet de <code>/datalake/raw</code>.</p>
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Estad%C3%ADsticas">Estadísticas<a class="anchor-link" href="#Estad%C3%ADsticas">¶</a></h3><p>Las estadísticas ayudan al planificador a estimar filas, tamaños y el coste
 de un <code>JOIN</code>, pero conviene no confundir varias capas: las estadísticas de
-los footers de Parquet (mínimo, máximo, nulos por columna, por fichero),
-las estadísticas de tabla/partición del Hive Metastore que ya viste en S6
-con <code>ANALYZE</code>, y las estadísticas de tabla propias de Iceberg, que agregan
-la información de los manifests. <code>ANALYZE</code> sobre una tabla Iceberg en Trino
-alimenta esta última capa.</p>
+los footers de Parquet (mínimo, máximo y nulos por columna y fichero), las
+estadísticas de tabla/partición del Hive Metastore que ya viste en S6 con
+<code>ANALYZE</code>, y las estadísticas extendidas propias de Iceberg.</p>
+<p>En Trino 483, la recopilación de estadísticas extendidas al escribir está
+activada por defecto. Como <code>web_sales</code> se creó con un CTAS de Trino y este
+notebook se puede volver a ejecutar sobre una tabla existente, primero
+borramos esas estadísticas extendidas con <code>drop_extended_stats</code>. Esto no
+cambia filas ni esquema; deja una línea de base repetible para comparar
+<code>SHOW STATS</code> antes y después de <code>ANALYZE</code>. Trino documenta que, si ya se
+recopilaron estadísticas para todas las columnas, hay que borrarlas antes
+de volver a ejecutar <code>ANALYZE</code>.</p>
 <p>No prejuzgamos el resultado: comparamos el plan antes y después, y
 explicamos si la información adicional cambia realmente la decisión del
 motor, en lugar de asumir que siempre lo hace.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=107">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10346,7 +10531,8 @@ motor, en lugar de asumir que siempre lo hace.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">stats_antes</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW STATS FOR iceberg.tcdm.web_sales"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s2">"ALTER TABLE iceberg.tcdm.web_sales EXECUTE drop_extended_stats"</span><span class="p">)</span>
+<span class="n">stats_antes</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SHOW STATS FOR iceberg.tcdm.web_sales"</span><span class="p">)</span>
 <span class="n">stats_antes</span>
 </pre></div>
 </div>
@@ -10354,7 +10540,7 @@ motor, en lugar de asumir que siempre lo hace.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=108">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10366,7 +10552,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=109">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10390,7 +10576,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=110">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=124">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10406,7 +10592,7 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=111">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10437,29 +10623,28 @@ tener con qué comparar después.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=112">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Compara <code>stats_antes</code> y <code>stats_despues</code>: antes de <code>ANALYZE</code>, columnas
-como <code>distinct_values_count</code> o <code>data_size</code> suelen venir vacías o son
-estimaciones muy toscas basadas sólo en el tamaño de los ficheros; después,
-cada columna trae una estimación calculada sobre los datos reales, y
-aparece <code>row_count</code> en la fila final. Ahora bien: en una tabla tan pequeña
-como la de esta sesión (SF3, un par de millones de líneas de venta), es
-perfectamente posible que <code>explain_join_antes_texto</code> y
+<p>Compara <code>stats_antes</code> y <code>stats_despues</code>: la primera captura se hace
+después de borrar las estadísticas extendidas, para que la comparación sea
+repetible aunque Trino las hubiera recogido al escribir o en una ejecución
+anterior. <code>ANALYZE</code> vuelve a calcular estadísticas de columna para esta
+tabla; observa los valores que devuelve <code>SHOW STATS</code>, sin suponer que cada
+campo ni el plan del <code>JOIN</code> vaya a cambiar.</p>
+<p>Es perfectamente posible que <code>explain_join_antes_texto</code> y
 <code>explain_join_despues_texto</code> resulten idénticos —Trino puede elegir el mismo
-tipo de <code>JOIN</code> con o sin estadísticas si el volumen de datos ya es pequeño
-de por sí—. Si es tu caso, esa es precisamente la lección: las estadísticas
-informan al optimizador, no lo obligan a cambiar de plan, y <code>ANALYZE</code> no es
-una operación que "siempre acelera la consulta" sino una que "siempre
-mejora la información disponible", que son cosas distintas.</p>
+tipo de <code>JOIN</code> aunque tenga más información—. Si es tu caso, esa es
+precisamente la lección: las estadísticas informan al optimizador, no lo
+obligan a cambiar de plan. <code>ANALYZE</code> aporta información; no garantiza que
+una consulta siempre se ejecute más deprisa.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=113">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10467,12 +10652,12 @@ mejora la información disponible", que son cosas distintas.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code> informa, no obliga</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW STATS</code> antes de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code>: estimaciones toscas o vacías</li><li style="margin:10px 0;list-style-position:outside">Después: una estimación por columna y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">row_count</code> en la fila final</li><li style="margin:10px 0;list-style-position:outside">Que el plan del <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">JOIN</code> no cambie también es una lección válida</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code> informa, no obliga</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Quitamos las estadísticas extendidas para obtener una línea de base repetible</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code> vuelve a calcular estadísticas de columna</li><li style="margin:10px 0;list-style-position:outside">El plan del <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">JOIN</code> puede seguir igual: decide el optimizador</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=114">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10486,7 +10671,7 @@ mejora la información disponible", que son cosas distintas.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=115">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10501,7 +10686,7 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=116">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10534,7 +10719,7 @@ pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=117">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10548,7 +10733,7 @@ snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=118">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10578,13 +10763,20 @@ snapshots.</p>
     <span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_smallfiles"</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Antes de compactar:"</span><span class="p">,</span> <span class="n">inventario_antes_compactar</span><span class="p">)</span>
+
+<span class="n">sql_control_compactacion</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">    SELECT count(*) AS lineas, sum(ws_net_paid) AS importe</span>
+<span class="s2">    FROM iceberg.tcdm.web_sales_lab_smallfiles</span>
+<span class="s2">"""</span>
+<span class="n">control_antes</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="n">sql_control_compactacion</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">control_antes</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=119">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10600,10 +10792,12 @@ estrategia—. Aquí seguimos con Trino porque es el motor que ha creado
 esta tabla de laboratorio, y la compactación por tamaño
 (<code>strategy =&gt; 'binpack'</code>, la que activa <code>EXECUTE optimize</code> sin más
 parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
+<p>En la salida de <code>optimize</code>, fíjate en cuántos ficheros se reescribieron y
+cuántos se añadieron; la siguiente celda mide el inventario neto de la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=120">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10620,7 +10814,7 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=121">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10638,13 +10832,17 @@ parámetros) se comporta igual desde cualquiera de los dos catálogos.</p>
 <span class="nb">print</span><span class="p">(</span>
     <span class="sa">f</span><span class="s2">"De </span><span class="si">{</span><span class="n">inventario_antes_compactar</span><span class="p">[</span><span class="s1">'ficheros'</span><span class="p">]</span><span class="si">}</span><span class="s2"> ficheros de datos a </span><span class="si">{</span><span class="n">inventario_despues_compactar</span><span class="p">[</span><span class="s1">'ficheros'</span><span class="p">]</span><span class="si">}</span><span class="s2">."</span>
 <span class="p">)</span>
+
+<span class="n">control_despues</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="n">sql_control_compactacion</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">control_despues</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">control_antes</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">control_despues</span><span class="p">),</span> <span class="s2">"Han cambiado las líneas o el importe al compactar"</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=122">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10658,7 +10856,7 @@ explícitamente. Lo comprobamos en la propia tabla de snapshots.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=123">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10676,8 +10874,21 @@ explícitamente. Lo comprobamos en la propia tabla de snapshots.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=138">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">¿Cuándo se libera espacio?</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Cuenta por separado las versiones disponibles y los Parquet físicos.</li><li style="margin:10px 0;list-style-position:outside">Expira versiones en la copia compactada y vuelve a medir.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10701,15 +10912,13 @@ lanzado sin pensar no borre por accidente una versión que otro proceso
 —posiblemente uno de larga duración, como un <code>INSERT OVERWRITE</code> distribuido
 o un lector con una consulta abierta desde hace horas— todavía necesita
 leer. En un entorno docente, donde queremos ver el efecto en la misma
-sesión, hace falta bajar deliberadamente ese mínimo con una propiedad de
-sesión, sabiendo que en una tabla real de producción este mismo gesto
-debería ir acompañado de una política de retención explícita y de la
-certeza de que ningún lector depende ya de las versiones que se van a
-borrar.</p>
+sesión, bajamos deliberadamente el mínimo sólo mientras dura cada
+<code>expire_snapshots</code>. Después restauramos la propiedad de la sesión para no
+dejar abierta esa protección reducida.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=140">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10739,16 +10948,19 @@ borrar.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Ficheros de datos del snapshot vigente:   "</span><span class="p">,</span> <span class="n">inventario_despues_compactar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">])</span>
 
 <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SET SESSION iceberg.expire_snapshots_min_retention = '0s'"</span><span class="p">)</span>
-<span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    ALTER TABLE iceberg.tcdm.web_sales_lab_smallfiles</span>
-<span class="s1">    EXECUTE expire_snapshots(retention_threshold =&gt; '0d', retain_last =&gt; 1)</span>
-<span class="s1">'''</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">        ALTER TABLE iceberg.tcdm.web_sales_lab_smallfiles</span>
+<span class="s1">        EXECUTE expire_snapshots(retention_threshold =&gt; '0d', retain_last =&gt; 1)</span>
+<span class="s1">    '''</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s2">"RESET SESSION iceberg.expire_snapshots_min_retention"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10779,24 +10991,29 @@ borrar.</p>
     <span class="n">referencias_tras_expirar</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">referencias_tras_expirar</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"main"</span><span class="p">,</span> <span class="s2">"snapshot_id"</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="p">)</span>
 <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">[</span><span class="s2">"snapshot_id"</span><span class="p">])</span> <span class="o">==</span> <span class="p">{</span><span class="n">snapshot_vigente_id</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">snapshot_antiguo_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">snapshots_tras_expirar</span><span class="p">[</span><span class="s2">"snapshot_id"</span><span class="p">])</span>
 <span class="k">assert</span> <span class="n">inventario_tras_expirar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span> <span class="o">==</span> <span class="n">inventario_despues_compactar</span><span class="p">[</span><span class="s2">"ficheros"</span><span class="p">]</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s1">'''</span>
-<span class="s1">        SELECT count(*) FROM iceberg.tcdm.web_sales_lab_smallfiles</span>
-<span class="s1">        FOR VERSION AS OF </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span>
-<span class="s1">    '''</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"El snapshot </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span><span class="s2"> sigue siendo consultable."</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>  <span class="c1"># el snapshot ya no existe</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Consultar el snapshot antiguo </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span><span class="s2"> ya no es posible:"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">200</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"El snapshot </span><span class="si">{</span><span class="n">snapshot_antiguo_id</span><span class="si">}</span><span class="s2"> ya no figura en $snapshots y no se puede seleccionar."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=142">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Interpretar la expiración</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Localiza el identificador al que apunta main.</li><li style="margin:10px 0;list-style-position:outside">Compara el inventario de esa versión con los Parquet que siguen en HDFS.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10812,8 +11029,8 @@ etiqueta. Por eso imprimimos <code>$refs</code>: aquí sólo existe la rama <cod
 que apunta al snapshot vigente, y ése es el único que queda.</li>
 <li><strong>Ficheros del snapshot vigente</strong>: no cambian. <code>$files</code> describe la
 versión actual de la tabla, y expirar no la modifica.</li>
-<li><strong>Viaje en el tiempo</strong>: consultar el primer snapshot falla, porque ya no
-existe. Esto es lo que se pierde al expirar.</li>
+<li><strong>Viaje en el tiempo</strong>: el identificador del primer snapshot ya no aparece
+en <code>$snapshots</code>, así que esa versión ya no se puede seleccionar.</li>
 <li><strong>Ficheros en HDFS</strong>: siguen todos, también los ocho pequeños. Iceberg
 borra un fichero de datos cuando expira el snapshot que lo <strong>eliminó</strong> de
 la tabla, y los ficheros pequeños los eliminó el snapshot <code>replace</code> de la
@@ -10825,7 +11042,7 @@ y una segunda expiración ya puede retirarlo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=144">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10837,10 +11054,14 @@ y una segunda expiración ya puede retirarlo.</p>
 <span class="s1">    INSERT INTO iceberg.tcdm.web_sales_lab_smallfiles</span>
 <span class="s1">    SELECT ws_order_number, ws_item_sk, ws_net_paid FROM iceberg.tcdm.web_sales LIMIT 1</span>
 <span class="s1">'''</span><span class="p">)</span>
-<span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
-<span class="s1">    ALTER TABLE iceberg.tcdm.web_sales_lab_smallfiles</span>
-<span class="s1">    EXECUTE expire_snapshots(retention_threshold =&gt; '0d', retain_last =&gt; 1)</span>
-<span class="s1">'''</span><span class="p">)</span>
+<span class="n">run_trino</span><span class="p">(</span><span class="s2">"SET SESSION iceberg.expire_snapshots_min_retention = '0s'"</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">        ALTER TABLE iceberg.tcdm.web_sales_lab_smallfiles</span>
+<span class="s1">        EXECUTE expire_snapshots(retention_threshold =&gt; '0d', retain_last =&gt; 1)</span>
+<span class="s1">    '''</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s2">"RESET SESSION iceberg.expire_snapshots_min_retention"</span><span class="p">)</span>
 
 <span class="n">inventario_final</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">inventario_tabla_iceberg</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">,</span> <span class="s2">"web_sales_lab_smallfiles"</span><span class="p">)</span>
 <span class="n">parquet_final</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">ficheros_parquet_en_hdfs</span><span class="p">(</span><span class="n">ubicacion_lab_smallfiles</span><span class="p">)</span>
@@ -10856,7 +11077,7 @@ y una segunda expiración ya puede retirarlo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=129">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10875,7 +11096,7 @@ motivo.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=130">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=146">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10889,7 +11110,7 @@ motivo.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=131">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10916,11 +11137,13 @@ una consulta posterior: un <em>sort order</em> es una pista para el escritor y p
 el planificador, no un contrato sobre el resultado.</p>
 <p>Creamos una tercera tabla de laboratorio con un <em>sort order</em> declarado sobre
 <code>ws_item_sk</code>, usando la propiedad <code>sorted_by</code> que expone el conector
-Iceberg de Trino.</p>
+Iceberg de Trino. <code>SHOW CREATE TABLE</code> confirma esa declaración; no medimos
+planes ni lecturas de la tabla ordenada, así que aquí no demostramos una
+mejora de rendimiento.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=132">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=148">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10945,7 +11168,7 @@ Iceberg de Trino.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=149">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10959,7 +11182,7 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=150">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10976,8 +11199,21 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=151">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=135">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cuándo interesa ordenar por varias columnas</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Piensa en consultas que alternan dos filtros frecuentes.</li><li style="margin:10px 0;list-style-position:outside">Usaremos ese ejemplo para interpretar Z-order y sus límites en el laboratorio.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11012,7 +11248,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=136">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=153">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11025,8 +11261,21 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Elegir una organización</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Compara el filtro de cada consulta con el plan y el inventario de ficheros.</li><li style="margin:10px 0;list-style-position:outside">Justifica una elección usando una salida del notebook.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11049,7 +11298,7 @@ una cifra de tiempo de pared poco fiable en este entorno.</p>
 <tbody>
 <tr>
 <td>Parquet no particionado (<code>raw</code>)</td>
-<td>Sin poda posible; hay que recorrer todo <code>web_sales</code></td>
+<td>Sin poda de particiones; el footer aún puede permitir saltar <em>row groups</em></td>
 <td><code>explain_raw</code>, sección "Particiones de datos"</td>
 </tr>
 <tr>
@@ -11069,8 +11318,8 @@ una cifra de tiempo de pared poco fiable en este entorno.</p>
 </tr>
 <tr>
 <td>Iceberg compactada</td>
-<td>Menos ficheros, mismo resultado de negocio</td>
-<td><code>inventario_despues_compactar</code></td>
+<td>Menos ficheros, mismas líneas e importe</td>
+<td><code>inventario_despues_compactar</code>, <code>control_antes</code> y <code>control_despues</code></td>
 </tr>
 <tr>
 <td>Iceberg con <em>sort order</em> (<code>web_sales_lab_sorted</code>)</td>
@@ -11089,7 +11338,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11116,8 +11365,21 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=157">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Leer una versión por su ruta</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Obtén del catálogo el metadata.json vigente.</li><li style="margin:10px 0;list-style-position:outside">Compara el recuento por ruta con el de catálogo y después consulta un puntero anterior.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11142,7 +11404,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=140">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=159">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11174,7 +11436,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=141">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=160">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11202,7 +11464,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=142">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=161">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11216,7 +11478,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=143">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=162">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11264,8 +11526,21 @@ oficiales del curso, como hemos hecho con el prefijo <code>web_sales_lab_</code>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=163">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Explicar una decisión</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Escoge una de las preguntas y localiza la celda que permite responderla.</li><li style="margin:10px 0;list-style-position:outside">Usa su salida para justificar tu respuesta.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11303,8 +11578,21 @@ seguía existiendo el mismo resultado de negocio después de compactar?</li>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=165">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Preparar la demostración</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Elige una salida del notebook que muestre un cambio medible.</li><li style="margin:10px 0;list-style-position:outside">Explica qué hiciste, qué esperabas y qué observaste.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11380,7 +11668,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=146">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11390,7 +11678,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=147">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11404,8 +11692,21 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=169">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=148">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Decidir qué conservar</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Localiza los datos y metadatos que necesitarás al volver al laboratorio.</li><li style="margin:10px 0;list-style-position:outside">Lee las consecuencias de cada orden antes de elegirla.</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=170">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11458,7 +11759,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=149">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=171">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11472,7 +11773,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=172">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

@@ -157,3 +157,7 @@ clean:
 # eliminados, así que primero ejecuta `clean`.
 clean-hdfs: clean
 	docker volume rm -f $(HDFS_VOLUMES)
+
+-include metabase/reglas.mk
+-include airflow/reglas.mk
+-include dagster/reglas.mk
