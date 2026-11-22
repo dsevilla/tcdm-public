@@ -9718,6 +9718,7 @@ el usuario; en Iceberg, el propio formato de tabla.</p>
 <h2 id="Snapshots-y-evoluci%C3%B3n">Snapshots y evolución<a class="anchor-link" href="#Snapshots-y-evoluci%C3%B3n">¶</a></h2><p><code>iceberg.tcdm.web_sales</code> ya tiene un primer snapshot: el que produjo el
 propio CTAS. Lo consultamos con la tabla de metadatos <code>$snapshots</code>, la misma
 convención <code>&lt;tabla&gt;$metadato</code> que ya usaste en S6 para <code>$partitions</code>.</p>
+<p><strong>Pregunta para el primer bloque.</strong> ¿Qué versión estoy leyendo? Antes de insertar, anota el identificador del snapshot, el puntero del catálogo y el recuento de la copia. Tras el INSERT predice qué leerá una consulta del snapshot anterior.</p>
 </div>
 </div>
 </div>
@@ -9997,6 +9998,7 @@ sigue en HDFS, y es lo que permite volver a versiones anteriores.</p>
 futuro por qué canal llegó cada línea de venta—. Es una evolución segura:
 no cambia ni renombra ninguna columna existente, y las filas ya escritas
 simplemente no tienen valor en la columna nueva.</p>
+<p><strong>Predicción.</strong> Antes de consultar de nuevo los snapshots, decide si añadir esta columna necesita reescribir los ficheros y qué valor tendrá para las ventas antiguas. Distingue un cambio del esquema de una nueva escritura de filas.</p>
 </div>
 </div>
 </div>
@@ -10222,6 +10224,7 @@ comprobación es la más básica: leer sólo las columnas necesarias y aplicar
 el filtro lo antes posible. Retomamos la comparación de S2 y S4 entre
 <code>SELECT *</code> y una proyección estrecha con filtro, ahora sobre
 <code>iceberg.tcdm.web_sales</code>.</p>
+<p><strong>Pregunta para el segundo bloque.</strong> ¿Qué trabajo evita la organización física? Compara los planes del mismo filtro temporal en Hive e Iceberg y busca las restricciones que cada motor puede aplicar. En la compactación separa el inventario físico de la comprobación de líneas e importe: responden a preguntas distintas.</p>
 </div>
 </div>
 </div>
@@ -10681,6 +10684,7 @@ metadatos que hay que leer para planificar una consulta. Para hacer visible
 el problema sin arriesgar ninguna de las dos tablas de referencia, creamos
 una tabla de laboratorio y la llenamos con varias tandas deliberadamente
 pequeñas: <code>iceberg.tcdm.web_sales_lab_smallfiles</code>.</p>
+<p><strong>Predicción.</strong> ¿Qué debería cambiar en el inventario después de compactar? ¿Qué dos cifras de negocio deberían conservarse? Anótalo antes de ejecutar la reescritura y contrástalo con las dos comprobaciones posteriores.</p>
 </div>
 </div>
 </div>
@@ -11102,7 +11106,7 @@ motivo.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Ordenación física y Z-order</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ORDER BY</code> ordena el resultado de una consulta, no los ficheros en disco</li><li style="margin:10px 0;list-style-position:outside">Un <em>sort order</em> de tabla organiza los datos dentro de cada fichero y aprovecha el mínimo/máximo por fichero</li><li style="margin:10px 0;list-style-position:outside">Es una pista para el escritor y el planificador, no una garantía sobre el orden de lectura</li><li style="margin:10px 0;list-style-position:outside">Z-order combina varias columnas de filtrado: aquí queda como ampliación documentada, no ejecutada</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Ordenación física y Z-order</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ORDER BY</code> ordena el resultado de una consulta, no los ficheros en disco</li><li style="margin:10px 0;list-style-position:outside">Un <em>sort order</em> de tabla organiza los datos dentro de cada fichero y aprovecha el mínimo/máximo por fichero</li><li style="margin:10px 0;list-style-position:outside">Es una pista para el escritor y el planificador, no una garantía sobre el orden de lectura</li><li style="margin:10px 0;list-style-position:outside">Z-order organiza una copia de ventas por dos claves de filtrado</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -11217,7 +11221,7 @@ resultados, y no persiste ningún cambio en la tabla.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Z-order">Z-order<a class="anchor-link" href="#Z-order">¶</a></h3><p>Z-order es una técnica que combina varias columnas de filtrado en un único
+<h3 id="Ampliaci%C3%B3n-de-lectura:-Z-order">Ampliación de lectura: Z-order<a class="anchor-link" href="#Ampliaci%C3%B3n-de-lectura:-Z-order">¶</a></h3><p>Z-order es una técnica que combina varias columnas de filtrado en un único
 criterio de organización física, útil cuando las consultas filtran a veces
 por una columna y a veces por otra, no siempre por la misma.</p>
 <p>Esta sesión lo presenta sin ejecutarlo, porque con las versiones del
@@ -11246,7 +11250,158 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=153">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=153">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    CREATE TABLE IF NOT EXISTS iceberg.tcdm.web_sales_lab_zorder</span>
+<span class="s1">    USING iceberg AS</span>
+<span class="s1">    SELECT ws_order_number, ws_item_sk</span>
+<span class="s1">    FROM iceberg.tcdm.web_sales</span>
+<span class="s1">    WHERE ws_order_number IS NOT NULL AND ws_item_sk IS NOT NULL</span>
+<span class="s1">    LIMIT 100000</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">control_z_antes</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT count(*) AS lineas, sum(ws_order_number) AS suma_pedidos,</span>
+<span class="s1">           sum(ws_item_sk) AS suma_articulos</span>
+<span class="s1">    FROM iceberg.tcdm.web_sales_lab_zorder</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">control_z_antes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"lineas"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="n">ficheros_z_antes</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT file_path, record_count, file_size_in_bytes</span>
+<span class="s1">    FROM iceberg.tcdm."web_sales_lab_zorder$files"</span>
+<span class="s1">    WHERE content = 0 ORDER BY file_path</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">clave_z</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT ws_order_number, ws_item_sk FROM iceberg.tcdm.web_sales_lab_zorder</span>
+<span class="s1">    ORDER BY ws_order_number, ws_item_sk LIMIT 1</span>
+<span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Control antes:"</span><span class="p">,</span> <span class="n">control_z_antes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ficheros antes:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ficheros_z_antes</span><span class="p">))</span>
+<span class="n">display</span><span class="p">(</span><span class="n">ficheros_z_antes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Clave que buscaremos:"</span><span class="p">,</span> <span class="n">clave_z</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Guardamos el resultado de una consulta y las rutas de los ficheros que
+contienen sus filas. Después pedimos a Spark que reescriba todos los ficheros
+de la copia con Z-order sobre <code>ws_item_sk</code> y <code>ws_order_number</code>. El resultado
+del procedimiento informa de la reescritura. No presupongas que el número de
+ficheros seleccionados por esta consulta pequeña vaya a disminuir.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=155">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">pedido_z</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clave_z</span><span class="p">[</span><span class="s2">"ws_order_number"</span><span class="p">])</span>
+<span class="n">articulo_z</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clave_z</span><span class="p">[</span><span class="s2">"ws_item_sk"</span><span class="p">])</span>
+<span class="n">consulta_z</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'''</span>
+<span class="s1">    SELECT count(*) AS lineas, count(DISTINCT "$path") AS ficheros_con_filas</span>
+<span class="s1">    FROM iceberg.tcdm.web_sales_lab_zorder</span>
+<span class="s1">    WHERE ws_order_number = </span><span class="si">{</span><span class="n">pedido_z</span><span class="si">}</span><span class="s1"> AND ws_item_sk = </span><span class="si">{</span><span class="n">articulo_z</span><span class="si">}</span>
+<span class="s1">'''</span>
+<span class="n">resultado_z_antes</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="n">consulta_z</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Consulta antes:"</span><span class="p">,</span> <span class="n">resultado_z_antes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    CALL iceberg.system.rewrite_data_files(</span>
+<span class="s1">        table =&gt; 'tcdm.web_sales_lab_zorder',</span>
+<span class="s1">        strategy =&gt; 'sort',</span>
+<span class="s1">        sort_order =&gt; 'zorder(ws_item_sk, ws_order_number)',</span>
+<span class="s1">        options =&gt; map('rewrite-all', 'true')</span>
+<span class="s1">    )</span>
+<span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=157">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">control_z_despues</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT count(*) AS lineas, sum(ws_order_number) AS suma_pedidos,</span>
+<span class="s1">           sum(ws_item_sk) AS suma_articulos</span>
+<span class="s1">    FROM iceberg.tcdm.web_sales_lab_zorder</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">ficheros_z_despues</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT file_path, record_count, file_size_in_bytes</span>
+<span class="s1">    FROM iceberg.tcdm."web_sales_lab_zorder$files"</span>
+<span class="s1">    WHERE content = 0 ORDER BY file_path</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="n">resultado_z_despues</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="n">consulta_z</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">control_z_antes</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">control_z_despues</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">int</span><span class="p">(</span><span class="n">resultado_z_antes</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"lineas"</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">resultado_z_despues</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"lineas"</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Control después:"</span><span class="p">,</span> <span class="n">control_z_despues</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ficheros antes y después:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ficheros_z_antes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ficheros_z_despues</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Rutas añadidas:"</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">ficheros_z_despues</span><span class="p">[</span><span class="s2">"file_path"</span><span class="p">])</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">ficheros_z_antes</span><span class="p">[</span><span class="s2">"file_path"</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Consulta antes:"</span><span class="p">,</span> <span class="n">resultado_z_antes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Consulta después:"</span><span class="p">,</span> <span class="n">resultado_z_despues</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span>
+    <span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT committed_at, snapshot_id, operation</span>
+<span class="s1">    FROM iceberg.tcdm."web_sales_lab_zorder$snapshots" ORDER BY committed_at</span>
+<span class="s1">'''</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>El recuento y las sumas comprueban que el conjunto conserva esas medidas,
+y la consulta comprueba una clave concreta. Las rutas y los snapshots
+muestran el efecto de la reescritura. El número de ficheros con filas del
+filtro puede mantenerse igual en una tabla pequeña. Para evaluar una mejora
+de lectura hace falta una carga representativa y métricas de ficheros o bytes
+leídos, con la misma consulta y las mismas condiciones antes y después.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=159">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11259,7 +11414,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=154">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=160">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11273,7 +11428,7 @@ ficheros por sus mínimos y máximos se note.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=155">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=161">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11325,9 +11480,9 @@ una cifra de tiempo de pared poco fiable en este entorno.</p>
 <td><code>ddl_lab_sorted</code></td>
 </tr>
 <tr>
-<td>Iceberg y Z-order</td>
-<td>No se ejecuta: Trino no lo ofrece y <code>rewrite_data_files</code> de Spark no admite columnas <code>DECIMAL</code> ni la tabla con <em>sort order</em> declarado por Trino</td>
-<td>sección "Z-order" más arriba</td>
+<td>Iceberg con Z-order</td>
+<td>Reescritura de una copia por dos claves; comparar resultados y ficheros</td>
+<td><code>control_z_antes</code>, <code>control_z_despues</code> y <code>ficheros_z_antes</code></td>
 </tr>
 </tbody>
 </table>
@@ -11336,7 +11491,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=156">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=162">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11363,7 +11518,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=157">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=163">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11377,7 +11532,7 @@ líneas de venta no es lo mismo que el número de pedidos distintos.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=158">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11402,7 +11557,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=159">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=165">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11434,7 +11589,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=160">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=166">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11462,7 +11617,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=161">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=167">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11476,7 +11631,7 @@ rompería esa confirmación atómica para todos los demás motores.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=162">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=168">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11524,7 +11679,7 @@ oficiales del curso, como hemos hecho con el prefijo <code>web_sales_lab_</code>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=163">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=169">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11538,7 +11693,7 @@ oficiales del curso, como hemos hecho con el prefijo <code>web_sales_lab_</code>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=170">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11565,10 +11720,8 @@ declaramos al crear <code>iceberg.tcdm.web_sales_lab_sorted</code>? ¿Qué garan
 cada uno y qué no garantiza ninguno de los dos?</li>
 <li>¿Por qué Trino impide expirar snapshots con una retención de cero días
 por defecto? ¿Qué riesgo concreto evita ese límite de 7 días?</li>
-<li>Z-order sólo puede pedirse desde Spark con
-<code>CALL iceberg.system.rewrite_data_files(...)</code>, no desde Trino.
-¿Qué dos restricciones impiden demostrarlo en esta sesión, y qué tipo
-de consultas justificarían aplicarlo?</li>
+<li>¿Qué compara la práctica de Z-order antes y después? ¿Qué dato adicional
+necesitarías para concluir que una consulta realmente leyó menos ficheros?</li>
 <li>Antes de compactar <code>iceberg.tcdm.web_sales_lab_smallfiles</code>, ¿qué problema
 concreto estabas resolviendo? ¿Cómo lo mediste, y cómo comprobaste que
 seguía existiendo el mismo resultado de negocio después de compactar?</li>
@@ -11576,7 +11729,7 @@ seguía existiendo el mismo resultado de negocio después de compactar?</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=165">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=171">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11590,7 +11743,7 @@ seguía existiendo el mismo resultado de negocio después de compactar?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=172">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11626,9 +11779,8 @@ con <code>item</code>.</li>
 <li>Que sabes explicar, con tus propias palabras, la diferencia entre
 <code>ORDER BY</code>, un <em>sort order</em> de tabla y la ordenación local frente a
 global.</li>
-<li>Que sabes explicar qué es Z-order, desde qué motor se puede pedir y por
-qué esta sesión no lo ejecuta (columnas <code>DECIMAL</code> no admitidas; tabla con
-un <em>sort order</em> ya declarado).</li>
+<li>La comparación de resultados y ficheros de la copia de Z-order, junto
+con una explicación de lo que esa comparación permite observar.</li>
 <li>Una conclusión propia, de una o dos frases, sobre cuándo una optimización
 de las vistas en esta sesión ayuda de verdad y cuándo no merece la
 pena aplicarla en TPC-DS SF3.</li>
@@ -11666,7 +11818,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=167">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=173">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11676,7 +11828,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=168">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=174">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11690,7 +11842,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=169">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=175">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11704,7 +11856,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=170">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=176">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11713,7 +11865,7 @@ planificador sin obligarlo a cambiar de plan;</li>
 <h2 id="Detener-y-limpiar">Detener y limpiar<a class="anchor-link" href="#Detener-y-limpiar">¶</a></h2><p>Estas operaciones se muestran como texto, no como celdas de código, para
 que un «ejecutar todo» de este notebook no las dispare por accidente. Las
 tablas de laboratorio de esta sesión —<code>web_sales_lab_evolution</code>,
-<code>web_sales_lab_smallfiles</code> y <code>web_sales_lab_sorted</code>— son recursos
+<code>web_sales_lab_smallfiles</code>, <code>web_sales_lab_sorted</code> y <code>web_sales_lab_zorder</code>— son recursos
 desechables: consérvalas hasta la reunión de evidencias, que las necesita,
 y bórralas después. <strong>Nunca</strong> apliques el mismo
 razonamiento a <code>iceberg.tcdm.web_sales</code> ni a
@@ -11730,7 +11882,7 @@ borrarlas o expirar sus snapshots obligaría a repetir esta sesión entera.</p>
 <tbody>
 <tr>
 <td>Eliminar las tablas de laboratorio</td>
-<td><code>DROP TABLE iceberg.tcdm.web_sales_lab_evolution</code>, <code>DROP TABLE iceberg.tcdm.web_sales_lab_smallfiles</code>, <code>DROP TABLE iceberg.tcdm.web_sales_lab_sorted</code> (desde el cliente Trino de este notebook, o <code>docker exec trino-hdfs trino --user luser --execute "..."</code> desde una terminal)</td>
+<td><code>DROP TABLE iceberg.tcdm.web_sales_lab_evolution</code>, <code>DROP TABLE iceberg.tcdm.web_sales_lab_smallfiles</code>, <code>DROP TABLE iceberg.tcdm.web_sales_lab_sorted</code>, <code>DROP TABLE iceberg.tcdm.web_sales_lab_zorder</code> (desde el cliente Trino de este notebook, o <code>docker exec trino-hdfs trino --user luser --execute "..."</code> desde una terminal)</td>
 <td>Borra tanto la entrada del metastore como los ficheros Parquet y los metadatos Iceberg de cada tabla: son tablas administradas, su ciclo de vida de datos depende del catálogo.</td>
 </tr>
 <tr>
@@ -11757,7 +11909,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=171">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=177">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11765,13 +11917,13 @@ volumen y afecta sólo a sus propios servicios.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 7</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Iceberg coordina metadatos, snapshots y evolución de esquema y particionado</li><li style="margin:10px 0;list-style-position:outside">Optimizar es medir antes y después, no aplicar una técnica a ciegas</li><li style="margin:10px 0;list-style-position:outside">Z-order queda documentado como ampliación, no como paso ejecutado</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg.tcdm.web_sales</code> e <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg.tcdm.web_sales_by_year</code> quedan intactas para S8</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 7</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Iceberg coordina metadatos, snapshots y evolución de esquema y particionado</li><li style="margin:10px 0;list-style-position:outside">Optimizar es medir antes y después, no aplicar una técnica a ciegas</li><li style="margin:10px 0;list-style-position:outside">Z-order reorganiza una copia por dos claves y conserva sus resultados</li><li style="margin:10px 0;list-style-position:outside"><code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg.tcdm.web_sales</code> e <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">iceberg.tcdm.web_sales_by_year</code> quedan intactas para S8</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=172">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=178">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

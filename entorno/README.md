@@ -413,7 +413,7 @@ pueden demostrar. Los notebooks las enuncian como un hecho; aquí queda el
 detalle para comprobar, cada vez que se actualice una versión, si alguna ha
 dejado de aplicarse.
 
-**Z-order (sesión 7).** La sección «Z-order» se presenta sin ejecutar.
+**Z-order (sesión 7).** La sesión incluye una práctica con una tabla sin orden declarado y dos claves enteras. Esa práctica está pendiente de validación integrada en CI. En la tabla con orden declarado se han observado estas limitaciones:
 
 - El conector Iceberg de Trino no ofrece Z-order: `ALTER TABLE ... EXECUTE
   optimize` sólo compacta por tamaño de fichero.
@@ -440,9 +440,8 @@ dejado de aplicarse.
   ([apache/iceberg#10346](https://github.com/apache/iceberg/issues/10346)).
   No se ha probado sobre una tabla de laboratorio sin `sorted_by`.
 
-Cuando una versión lo resuelva, la sección debe pasar a ser una demostración
-ejecutada y medida (inventario de ficheros y plan antes y después), y las
-preguntas y evidencias de la sesión que la mencionan deben actualizarse.
+Al actualizar las versiones, comprobar de nuevo ambas limitaciones en la
+tabla ordenada y revisar los ejemplos de la sesión.
 
 ***Copy-on-write* desde Trino (sesión 8).** El conector Iceberg de Trino
 sólo implementa *merge-on-read* para `UPDATE`, `DELETE` y `MERGE`, y rechaza
