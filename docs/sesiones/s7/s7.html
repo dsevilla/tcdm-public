@@ -8687,6 +8687,9 @@ metadatos. Es exactamente el mismo patrón "fuente externa → tabla
 administrada" que ya viste en S6 con <code>web_sales_by_year_managed_demo</code>, sólo
 que ahora la tabla administrada no es una tabla Hive más: es una tabla
 Iceberg.</p>
+<p>Que sea administrada es lo que permite a Iceberg ofrecer consultas ACID, como
+se adelantó en S6: sólo el motor escribe en ese directorio, así que puede
+registrar cada escritura como una versión nueva y atómica de la tabla.</p>
 <p>Estas dos tablas son las que usará también S8 para practicar ingesta
 continua con Spark Structured Streaming, así que sus nombres y columnas se
 mantienen exactamente como las dejamos aquí durante el resto del curso.</p>
@@ -9110,6 +9113,11 @@ configuración de la tabla.</li>
 <li><code>metadata/*.avro</code> y <code>metadata/snap-*.avro</code>: los manifests y la lista de
 manifests de cada snapshot.</li>
 </ul>
+<p>Los ficheros de <code>data/</code> son Parquet corrientes y otras herramientas pueden
+leerlos, pero el directorio no dice qué ficheros forman la versión vigente de
+la tabla: lo dicen los manifests. Un directorio de datos puede contener
+ficheros de versiones anteriores, y por eso la sección de expirar snapshots
+cuenta los Parquet de HDFS antes y después de expirar.</p>
 <p>Compáralo mentalmente con lo que ya conoces de
 <code>hive.tcdm.web_sales_silver</code> en S6: allí los directorios
 <code>sold_year=2000/sold_month=1/</code> son columnas de partición reales, declaradas

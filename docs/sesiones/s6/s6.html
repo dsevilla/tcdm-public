@@ -8081,8 +8081,9 @@ también cuando una tabla tiene miles de particiones;</li>
 <li>distinguir Hive Metastore, Trino, Spark y PostgreSQL en esta arquitectura;</li>
 <li>registrar Parquet ya existente como tabla externa, sin copiar ni
 transformar los datos;</li>
-<li>distinguir una tabla externa de una tabla administrada, y saber en qué
-ubicación física vive cada una;</li>
+<li>distinguir una tabla externa de una tabla administrada, saber en qué
+ubicación física vive cada una y qué ventaja da que una tabla tenga un
+único dueño;</li>
 <li>consultar la ubicación, el esquema y las propiedades de una tabla con
 <code>SHOW CREATE TABLE</code> y <code>DESCRIBE</code>;</li>
 <li>inspeccionar las particiones que conoce el metastore de una tabla Hive
@@ -8097,8 +8098,13 @@ particiones en el plan de consulta, no sólo en el tiempo de pared;</li>
 gestionados por accidente;</li>
 <li>apuntar en el catálogo de qué se calcula cada tabla (su linaje) y usarlo
 para saber qué recalcular, y en qué orden, cuando cambia una fuente;</li>
+<li>registrar con Spark todas las tablas de <code>raw</code>, comprobar que Trino las lee
+y explicar cuándo una tabla registrada por un motor no la entiende el otro;</li>
+<li>buscar en el catálogo por nombre, por comentario y por ubicación, con
+<code>information_schema</code> en Trino y con un inventario en Spark;</li>
 <li>identificar las limitaciones del Hive Metastore que justifican introducir
-Iceberg en S7.</li>
+Iceberg en S7, y explicar por qué Iceberg se construye sobre una tabla
+administrada del warehouse.</li>
 </ul>
 </div>
 </div>
@@ -8314,27 +8320,15 @@ para que Spark y el metastore elijan la misma ruta si alguno crea una tabla
 administrada sin indicar <code>LOCATION</code>.</li>
 </ul>
 <p>Las otras dos no tienen que ver con dónde está el metastore, sino con <strong>qué
-versión</strong> es. El curso usa Hive Metastore 4.2.1, y el cliente Hive que Spark
-incluye por defecto (2.3.10) usa llamadas Thrift que Hive 4 ya no admite: sin
-más ajustes, el primer acceso a una tabla falla con
-<code>Invalid method name: 'get_table'</code>. Spark resuelve ese desajuste cargando, de
+versión</strong> es. El curso usa Hive Metastore 4.2.1.
 forma aislada, el cliente de otra versión:</p>
 <ul>
 <li><code>spark.sql.hive.metastore.version=4.1.0</code>: la versión del cliente Hive con
 la que Spark habla con el metastore. Es la más reciente que admite Spark
 4.1 y entiende el protocolo del servidor 4.2.1.</li>
 <li><code>spark.sql.hive.metastore.jars</code>: de dónde saca Spark los jars de ese
-cliente, unos 300 MB porque arrastran buena parte de Hive. La imagen de
-<code>namenode</code> ya los trae en <code>/opt/tcdm/hive-metastore-client/4.1.0</code>, y la
-celda los usa con <code>jars=path</code> (y <code>spark.sql.hive.metastore.jars.path</code>). Si
-tu imagen es anterior y no tiene ese directorio, la celda pasa a
-<code>jars=maven</code>: Spark descarga el cliente de Maven Central la primera vez y
-lo guarda en la caché de Ivy de <code>luser</code>, así que esa primera ejecución
-tarda bastante más que las siguientes. La celda imprime cuál de los dos
-modos ha usado.</li>
+cliente, unos 300 MB porque arrastran buena parte de Hive.</li>
 </ul>
-<p>La justificación de la versión del metastore está en <code>entorno/README.md</code>,
-sección "Versiones fijadas y compatibilidad".</p>
 <p>Como en la parte distribuida de S4, el driver vive en <code>namenode</code> y YARN
 asigna los ejecutores a los NodeManagers. La celda siguiente cuenta los que
 están <code>RUNNING</code> y solicita, por defecto, un ejecutor por cada uno; YARN decide
@@ -8861,6 +8855,33 @@ ligado al ciclo de vida de la tabla.</p>
 <p>En el laboratorio se usará esta zona para una única tabla de trabajo
 (<code>tcdm.web_sales_by_year_managed_demo</code>), creada sólo para comparar ambos
 modelos; en S7 será también la zona de las tablas Iceberg.</p>
+<h3 id="Por-qu%C3%A9-interesa-que-el-warehouse-tenga-un-%C3%BAnico-due%C3%B1o">Por qué interesa que el warehouse tenga un único dueño<a class="anchor-link" href="#Por-qu%C3%A9-interesa-que-el-warehouse-tenga-un-%C3%BAnico-due%C3%B1o">¶</a></h3><p>En una tabla administrada el catálogo y el motor son los únicos dueños del
+directorio: eligen la ubicación, escriben cada fichero, lo borran y nadie más
+toca ahí. Eso da tres ventajas que una tabla externa, cuyo directorio
+pertenece a otro proceso, no puede dar:</p>
+<ul>
+<li><strong>Un único ciclo de vida.</strong> Crear la tabla y sus datos, o borrar la tabla y
+sus datos, es una sola operación: no quedan ficheros huérfanos ni nombres
+sin datos.</li>
+<li><strong>El catálogo sabe qué ficheros son de la tabla</strong>, porque los ha escrito él.
+En una tabla externa los ha escrito otro (Spark en S5) y por eso hará falta
+más abajo un paso de descubrimiento de particiones.</li>
+<li><strong>Puede guardar sus propios metadatos junto a los datos.</strong> Ésta es la
+ventaja que aprovecha Iceberg: una tabla Iceberg es una tabla administrada
+cuyo directorio contiene, además de los Parquet, metadatos propios que
+registran cada escritura como una versión nueva de la tabla. Como sólo el
+motor escribe ahí, puede hacer cada escritura <strong>atómica</strong> (un lector ve la
+tabla antes o después de escribir, nunca a medias) y <strong>aislada</strong> de otras
+escrituras. Eso, junto con la consistencia y la durabilidad, son las
+garantías <strong>ACID</strong> de una transacción de base de datos. Los datos siguen
+siendo Parquet en HDFS y otras herramientas pueden leerlos, pero qué
+ficheros forman la tabla en cada momento lo decide el catálogo con los
+metadatos de Iceberg, no el contenido del directorio. S7 lo muestra.</li>
+</ul>
+<p>Ser administrada es una condición necesaria, no suficiente. La tabla
+administrada de esta sesión es una tabla Hive: sus ficheros los gestiona el
+motor, pero no hay versiones ni transacciones sobre ellos. Para eso hace
+falta, además, el formato de tabla de S7.</p>
 </div>
 </div>
 </div>
@@ -9107,8 +9128,9 @@ existía.</p>
 <code>sold_year=&lt;año&gt;/sold_month=&lt;mes&gt;/</code>. Las columnas, su orden y sus tipos
 son los del esquema que S5 declaró como contrato de esta salida
 (<code>web_sales_silver_schema</code>) y comprobó al escribirla y al releerla,
-escritos con los nombres de tipo de Trino: el <code>timestamp_ntz</code> de Spark es
-aquí un <code>TIMESTAMP</code>, que en Trino no lleva zona. Las columnas de negocio
+escritos con los nombres de tipo de Trino: el <code>timestamp</code> de Spark es
+aquí un <code>TIMESTAMP</code> de Trino, que no lleva zona; los valores son los que S5
+escribió, en UTC. Las columnas de negocio
 son las del catálogo de <code>web_sales</code> que documentó S2, salvo
 <code>ws_sold_date</code>, un <code>DATE</code> que S5 derivó de <code>ws_sold_timestamp</code>. Las dos últimas columnas, <code>sold_year</code> y <code>sold_month</code>, son las columnas de
 partición que
@@ -10327,7 +10349,7 @@ decisión aparte:</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Dos ciclos de vida distintos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Tabla externa: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DROP TABLE</code> sólo borra el nombre del catálogo</li><li style="margin:10px 0;list-style-position:outside">Tabla administrada: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DROP TABLE</code> borra también los Parquet bajo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/warehouse</code></li><li style="margin:10px 0;list-style-position:outside">La comparación observable es <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -ls</code>, no el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW CREATE TABLE</code></li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Dos ciclos de vida distintos</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Tabla externa: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DROP TABLE</code> sólo borra el nombre del catálogo</li><li style="margin:10px 0;list-style-position:outside">Tabla administrada: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DROP TABLE</code> borra también los Parquet bajo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/warehouse</code></li><li style="margin:10px 0;list-style-position:outside">La comparación observable es <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">hdfs dfs -ls</code>, no el <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW CREATE TABLE</code></li><li style="margin:10px 0;list-style-position:outside">Un único dueño de los ficheros es lo que permite a Iceberg dar ACID en S7</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
@@ -10340,12 +10362,73 @@ decisión aparte:</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia las tablas y observa</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Copia dos meses de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s6/silver_copia</code>, regístralos como tabla externa particionada y sincroniza: ¿cuántas particiones ve?</li><li style="margin:10px 0;list-style-position:outside">Añade un tercer mes a la copia y cuenta antes y después de sincronizar</li><li style="margin:10px 0;list-style-position:outside">Declara <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">beneficio_neto</code> como <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DOUBLE</code> en una tabla nueva sobre la ruta de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: ¿cuándo y cómo se queja Trino?</li><li style="margin:10px 0;list-style-position:outside">Calcula <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code> de una sola partición (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">partitions = ARRAY[ARRAY['2000','1']]</code>) y mira <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW STATS</code>: ¿qué cambia?</li><li style="margin:10px 0;list-style-position:outside">Borra las tablas nuevas al terminar; no toques las tres de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake</code></li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Cambia las tablas y observa</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Crea tu propia tabla administrada, con Trino o con Spark, y averigua dónde guarda sus ficheros</li><li style="margin:10px 0;list-style-position:outside">Copia dos meses de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code> a <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/user/luser/s6/silver_copia</code>, regístralos como tabla externa particionada y sincroniza: ¿cuántas particiones ve?</li><li style="margin:10px 0;list-style-position:outside">Añade un tercer mes a la copia y cuenta antes y después de sincronizar</li><li style="margin:10px 0;list-style-position:outside">Declara <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">beneficio_neto</code> como <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DOUBLE</code> en una tabla nueva sobre la ruta de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">gold</code>: ¿cuándo y cómo se queja Trino?</li><li style="margin:10px 0;list-style-position:outside">Calcula <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">ANALYZE</code> de una sola partición (<code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">partitions = ARRAY[ARRAY['2000','1']]</code>) y mira <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">SHOW STATS</code>: ¿qué cambia?</li><li style="margin:10px 0;list-style-position:outside">Borra las tablas nuevas al terminar; no toques las tres de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake</code></li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=124">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=124">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Ejercicio:-tu-propia-tabla-administrada">Ejercicio: tu propia tabla administrada<a class="anchor-link" href="#Ejercicio:-tu-propia-tabla-administrada">¶</a></h3><p>Crea una tabla administrada de laboratorio, <code>tcdm.web_sales_lab_2000</code>, con las
+ventas de <code>tcdm.web_sales_silver</code> del año 2000 (<code>sold_year = 2000</code>). Puedes
+hacerlo con <strong>Trino</strong> o con <strong>Spark</strong>, a tu elección, pero sin indicar
+ubicación: que sea el motor quien la elija.</p>
+<ul>
+<li>En Trino, un <code>CREATE TABLE ... WITH (format = 'PARQUET') AS SELECT ...</code>,
+como el de la tabla administrada anterior, y sin <code>external_location</code>.</li>
+<li>En Spark, un <code>CREATE TABLE ... STORED AS PARQUET AS SELECT ...</code> con
+<code>spark.sql(...)</code>, sin <code>LOCATION</code>.</li>
+</ul>
+<p>Después, con el <strong>otro</strong> motor, comprueba lo siguiente:</p>
+<ol>
+<li>Que ve la tabla y que su recuento de filas coincide con el de <code>silver</code>
+filtrada por <code>sold_year = 2000</code>.</li>
+<li>Su ubicación (<code>SHOW CREATE TABLE</code> en Trino, <code>DESCRIBE FORMATTED</code> en
+Spark): ¿cuelga de <code>/warehouse/tcdm.db</code>?</li>
+<li>Los ficheros que hay en esa ubicación, con <code>!hdfs dfs -ls -R</code>: ¿quién los
+ha escrito, tú o el motor? ¿Cuántos hay, en comparación con los de
+<code>silver</code> del año 2000?</li>
+</ol>
+<p>Para terminar, borra la tabla con <code>DROP TABLE</code> y comprueba con <code>hdfs dfs -ls</code>
+que su directorio ha desaparecido. No toques las tres tablas externas de
+<code>/datalake</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=125">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Tu solución: crea la tabla administrada, comprueba su ubicación y sus ficheros con el otro motor, y bórrala</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=126">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Tus observaciones:</strong></p>
+<p><em>Responde también: ¿qué ventaja te ha dado que sea el motor el único que
+escribe en ese directorio? ¿Qué garantía no tendrías si dos procesos
+escribieran en él a la vez?</em></p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=127">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10359,7 +10442,7 @@ decisión aparte:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=125">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10398,7 +10481,7 @@ lleva ninguna: no se calcula a partir de nada, sólo apunta a los Parquet de
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=126">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=129">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10431,7 +10514,7 @@ lleva ninguna: no se calcula a partir de nada, sólo apunta a los Parquet de
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=127">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10443,7 +10526,7 @@ columna por clave:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=128">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10460,7 +10543,7 @@ columna por clave:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=129">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=132">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10474,7 +10557,7 @@ columna por clave:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=130">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10502,7 +10585,7 @@ las tablas de las que se calcula.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=131">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=134">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10624,7 +10707,7 @@ las tablas de las que se calcula.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=132">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=135">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10637,7 +10720,7 @@ las tablas de las que se calcula.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=133">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=136">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10652,7 +10735,7 @@ las tablas de las que se calcula.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=134">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=137">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10666,7 +10749,7 @@ calculan. Compáralo con un cambio en los Parquet de <code>item</code>:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=135">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=138">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10681,7 +10764,7 @@ calculan. Compáralo con un cambio en los Parquet de <code>item</code>:</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=136">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=139">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10706,7 +10789,7 @@ tablas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=137">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=140">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10719,7 +10802,7 @@ tablas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=138">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=141">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10732,7 +10815,61 @@ tablas.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=139">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=142">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Ejercicio:-una-tabla-derivada-con-su-linaje">Ejercicio: una tabla derivada con su linaje<a class="anchor-link" href="#Ejercicio:-una-tabla-derivada-con-su-linaje">¶</a></h3><p>Crea una tabla administrada de laboratorio, <code>tcdm.web_sales_lab_por_mes</code>, con
+las ventas de <code>tcdm.web_sales_silver</code> agregadas por mes: <code>sold_year</code>,
+<code>sold_month</code>, el número de líneas de venta y la suma de <code>ws_net_paid</code>. Hazlo
+con <strong>Trino</strong> o con <strong>Spark</strong>, a tu elección.</p>
+<p>Después, con Spark, que es quien sabe fijar propiedades en esta sesión:</p>
+<ol>
+<li>Apunta su linaje con <code>ALTER TABLE ... SET TBLPROPERTIES</code>: de qué tabla
+se calcula (<code>tcdm.linaje.origenes</code>) y con qué proceso
+(<code>tcdm.linaje.proceso</code>).</li>
+<li>Vuelve a leer el linaje del esquema con <code>leer_linaje("tcdm")</code> y pregunta a
+<code>afectadas</code> qué habría que recalcular si cambiara la ruta de <code>raw</code> de
+<code>web_sales</code>: ¿aparece tu tabla, y después de cuáles?</li>
+<li>Comprueba desde Trino que sus propiedades se leen en
+<code>"web_sales_lab_por_mes$properties"</code>.</li>
+</ol>
+<p>Para terminar, borra la tabla de laboratorio y vuelve a preguntar a <code>afectadas</code>:
+¿qué cambia en la lista?</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=143">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Tu solución: crea la tabla por mes, apunta su linaje, consulta afectadas y bórrala</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Tus observaciones:</strong></p>
+<p><em>Si no hubieras apuntado el linaje, ¿qué habría devuelto <code>afectadas</code> para tu
+tabla? ¿Y si hubieras apuntado un origen equivocado?</em></p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=145">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10740,13 +10877,699 @@ tablas.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Buenas prácticas de catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Cada tabla con propietario, descripción, ubicación y contrato de esquema y claves</li><li style="margin:10px 0;list-style-position:outside">Particiones justificadas por las consultas; estadísticas generadas y revisadas cuando hacen falta</li><li style="margin:10px 0;list-style-position:outside">Fuente y derivadas tienen ciclos de vida distintos: borrar una derivada nunca borra su fuente</li><li style="margin:10px 0;list-style-position:outside">Cada derivada apunta su linaje: de qué sale y qué proceso la escribe</li><li style="margin:10px 0;list-style-position:outside">La limpieza va separada de las consultas normales</li><li style="margin:10px 0;list-style-position:outside">El metastore no da transacciones ni historial de versiones: eso motiva Iceberg en S7</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Registrar el resto del data lake</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Hasta ahora, tres tablas: un catálogo sólo vale lo que cubre</li><li style="margin:10px 0;list-style-position:outside">Las 17 tablas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> que faltan, con el esquema que infiere Spark</li><li style="margin:10px 0;list-style-position:outside">El tipo de fecha con hora que entienden los dos motores, y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=140">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=146">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Registrar-todo-raw-con-Spark">Registrar todo <code>raw</code> con Spark<a class="anchor-link" href="#Registrar-todo-raw-con-Spark">¶</a></h2><p>Un catálogo sólo ayuda a encontrar lo que tiene registrado. Con tres tablas,
+<code>SHOW TABLES</code> apenas mejora un <code>hdfs dfs -ls</code>; con todas las del data lake,
+el catálogo pasa a ser el sitio donde buscar. Registramos ahora las 17 tablas
+de <code>/datalake/raw/tpcds</code> que faltan (<code>item</code> ya la tienes).</p>
+<p>Hay que decidir dos cosas:</p>
+<ul>
+<li><strong>Quién las registra: Spark.</strong> Con Trino habría que escribir las columnas de
+cada tabla, como hiciste con <code>item</code>. Un Parquet ya guarda sus columnas y
+sus tipos, así que dejamos que Spark los lea de los ficheros
+(<code>spark.read.parquet(ruta).schema</code>) y no tecleamos 17 esquemas.</li>
+<li><strong>Qué nombre: <code>raw_&lt;tabla&gt;</code>.</strong> S7 creará en este mismo espacio de nombres
+<code>tcdm</code> tablas Iceberg como <code>web_sales</code>, y una tabla Hive con ese nombre
+chocaría con ella. El prefijo también deja ver en qué capa está cada tabla.</li>
+</ul>
+<p>Aprovechamos para documentarlas: al esquema inferido le añadimos como
+comentario la descripción del apéndice de S2, la misma que muestra
+<code>%esquema</code>, tanto de la tabla como de cada columna. Eso permitirá buscar por
+significado, no sólo por nombre.</p>
+<p>Una precisión sobre los tipos, que conviene ver antes de registrar nada: DuckDB
+guarda las fechas con hora como «timestamp sin zona», y Spark 4 las infiere
+por defecto como <code>timestamp_ntz</code>. Probémoslo con <code>web_returns</code>, que tiene una.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=147">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS tcdm.raw_ntz_demo"</span><span class="p">)</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span>
+    <span class="s2">"CREATE TABLE tcdm.raw_ntz_demo USING parquet "</span>
+    <span class="s2">"LOCATION 'hdfs://namenode:9000/datalake/raw/tpcds/web_returns'"</span>
+<span class="p">)</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DESCRIBE tcdm.raw_ntz_demo"</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">"col_name = 'wr_returned_timestamp'"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">descripcion_trino</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">run_trino</span><span class="p">(</span><span class="s2">"DESCRIBE hive.tcdm.raw_ntz_demo"</span><span class="p">)</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS tcdm.raw_ntz_demo"</span><span class="p">)</span>
+<span class="n">descripcion_trino</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=148">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Spark ve <code>wr_returned_timestamp</code> como <code>timestamp_ntz</code>, y Trino no ve ninguna de
+las columnas de la tabla: sólo una de relleno, <code>col</code>. Cuando una tabla lleva un
+tipo que Hive no conoce, Spark la guarda en el metastore en un formato propio
+que el metastore no sabe describir, y Trino, que lee el metastore, se queda sin
+esquema.</p>
+<p>La solución es no dejar que Spark infiera ese tipo: se lee el esquema de los
+ficheros y se <strong>fuerza</strong> a <code>timestamp</code> todo campo <code>timestamp_ntz</code> antes de
+crear la tabla. Es lo que hace la función <code>registrar</code> de la celda siguiente.
+Los valores que se leen son los mismos mientras la zona horaria sea UTC, como
+aquí. Así el registro tampoco depende de quién escribió el Parquet ni de la
+versión de Spark que lo escribió.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=149">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructField</span><span class="p">,</span> <span class="n">StructType</span><span class="p">,</span> <span class="n">TimestampNTZType</span><span class="p">,</span> <span class="n">TimestampType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tcdm_esquema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">load_schema</span>
+
+<span class="n">HDFS_RAIZ</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hdfs://namenode:9000"</span>
+<span class="n">RAW_TPCDS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"/datalake/raw/tpcds"</span>
+
+<span class="n">apendice</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">load_schema</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">listar_directorios</span><span class="p">(</span><span class="n">patron</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">'''Los directorios de HDFS que encajan con un patrón, como rutas sin servidor.'''</span>
+    <span class="n">salida</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"hdfs"</span><span class="p">,</span> <span class="s2">"dfs"</span><span class="p">,</span> <span class="s2">"-ls"</span><span class="p">,</span> <span class="s2">"-d"</span><span class="p">,</span> <span class="n">patron</span><span class="p">],</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">linea</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">salida</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">linea</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"d"</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">literal</span><span class="p">(</span><span class="n">texto</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Un texto como literal entre comillas simples de Spark SQL.'''</span>
+    <span class="k">return</span> <span class="n">texto</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\\\</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"'"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">'"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">registrar</span><span class="p">(</span>
+    <span class="n">tabla</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">ruta</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">descripcion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">comentarios</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">particiones</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Registra `tcdm.&lt;tabla&gt;` sobre los Parquet de `ruta`, con el esquema que infiere Spark.</span>
+
+<span class="sd">    Todo `timestamp_ntz` se declara `timestamp`, el único tipo de fecha con hora que</span>
+<span class="sd">    entienden Spark y Trino. Si hay columnas de partición, se descubren sus directorios.</span>
+<span class="sd">    '''</span>
+    <span class="n">comentarios</span> <span class="o">=</span> <span class="n">comentarios</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">inferido</span><span class="p">:</span> <span class="n">StructType</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="n">ruta</span><span class="p">)</span><span class="o">.</span><span class="n">schema</span>
+    <span class="n">declarado</span><span class="p">:</span> <span class="n">StructType</span> <span class="o">=</span> <span class="n">StructType</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">StructField</span><span class="p">(</span>
+                <span class="n">campo</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">TimestampType</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">campo</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span> <span class="n">TimestampNTZType</span><span class="p">)</span> <span class="k">else</span> <span class="n">campo</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span>
+                <span class="n">campo</span><span class="o">.</span><span class="n">nullable</span><span class="p">,</span>
+                <span class="p">{</span><span class="s2">"comment"</span><span class="p">:</span> <span class="n">comentarios</span><span class="p">[</span><span class="n">campo</span><span class="o">.</span><span class="n">name</span><span class="p">]}</span> <span class="k">if</span> <span class="n">campo</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">comentarios</span> <span class="k">else</span> <span class="p">{},</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">campo</span> <span class="ow">in</span> <span class="n">inferido</span><span class="o">.</span><span class="n">fields</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">sentencia</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"CREATE TABLE tcdm.</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">declarado</span><span class="o">.</span><span class="n">toDDL</span><span class="p">()</span><span class="si">}</span><span class="s2">) USING parquet"</span>
+    <span class="k">if</span> <span class="n">particiones</span><span class="p">:</span>
+        <span class="n">sentencia</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" PARTITIONED BY (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">particiones</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">if</span> <span class="n">descripcion</span><span class="p">:</span>
+        <span class="n">sentencia</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" COMMENT '</span><span class="si">{</span><span class="n">literal</span><span class="p">(</span><span class="n">descripcion</span><span class="p">)</span><span class="si">}</span><span class="s2">'"</span>
+    <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DROP TABLE IF EXISTS tcdm.</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sentencia</span><span class="si">}</span><span class="s2"> LOCATION '</span><span class="si">{</span><span class="n">ruta</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">particiones</span><span class="p">:</span>
+        <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">"MSCK REPAIR TABLE tcdm.</span><span class="si">{</span><span class="n">tabla</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="n">tablas_raw</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">ruta</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ruta</span> <span class="ow">in</span> <span class="n">listar_directorios</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RAW_TPCDS</span><span class="si">}</span><span class="s2">/*"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ruta</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/item"</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="k">for</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="n">tablas_raw</span><span class="p">:</span>
+    <span class="n">descripciones</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">description</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">apendice</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+    <span class="n">registrar</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"raw_</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">HDFS_RAIZ</span><span class="si">}{</span><span class="n">RAW_TPCDS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="n">apendice</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="n">descripciones</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Registradas </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tablas_raw</span><span class="p">)</span><span class="si">}</span><span class="s2"> tablas de raw en el metastore."</span><span class="p">)</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"SHOW TABLES IN tcdm LIKE 'raw_*'"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Spark ha escrito esas definiciones en el metastore. Falta comprobar lo que
+decía la regla del principio: que <strong>Trino lee igual</strong> lo que Spark ha
+registrado. Contamos las filas de cada tabla con los dos motores y las
+comparamos.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=151">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">filas_por_tabla</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="n">tablas_raw</span><span class="p">:</span>
+    <span class="n">filas_spark</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tcdm.raw_</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="n">filas_trino</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+        <span class="n">run_trino</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SELECT count(*) AS filas FROM hive.tcdm.raw_</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">filas_por_tabla</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">"tabla"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"raw_</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"filas en Spark"</span><span class="p">:</span> <span class="n">filas_spark</span><span class="p">,</span> <span class="s2">"filas en Trino"</span><span class="p">:</span> <span class="n">filas_trino</span><span class="p">}</span>
+    <span class="p">)</span>
+
+<span class="n">comparacion_raw</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">filas_por_tabla</span><span class="p">)</span>
+<span class="k">assert</span> <span class="p">(</span><span class="n">comparacion_raw</span><span class="p">[</span><span class="s2">"filas en Spark"</span><span class="p">]</span> <span class="o">==</span> <span class="n">comparacion_raw</span><span class="p">[</span><span class="s2">"filas en Trino"</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="n">comparacion_raw</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Los dos motores cuentan lo mismo en las 17 tablas. Quedaba la promesa sobre las
+fechas con hora: <code>raw_web_sales</code> tiene <code>ws_sold_timestamp</code>, y la primera y la
+última venta deben ser las mismas vistas desde Spark y desde Trino.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=153">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">extremos_sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"SELECT min(ws_sold_timestamp) AS primera, max(ws_sold_timestamp) AS ultima FROM </span><span class="si">{}</span><span class="s2">"</span>
+<span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="n">extremos_sql</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"tcdm.raw_web_sales"</span><span class="p">))</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">motor</span><span class="o">=</span><span class="s2">"Spark"</span><span class="p">),</span>
+        <span class="n">run_trino</span><span class="p">(</span><span class="n">extremos_sql</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"hive.tcdm.raw_web_sales"</span><span class="p">))</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">motor</span><span class="o">=</span><span class="s2">"Trino"</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=154">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Y-silver,-que-escribi%C3%B3-Spark">Y <code>silver</code>, que escribió Spark<a class="anchor-link" href="#Y-silver,-que-escribi%C3%B3-Spark">¶</a></h3><p><code>silver</code> es una sola tabla, <code>web_sales_silver</code>, y la registraste con una DDL de
+Trino con las columnas escritas. Sus Parquet los escribió Spark en S5, que ya
+declara <code>ws_sold_timestamp</code> como <code>timestamp</code>, así que Spark puede registrarlos
+infiriendo el esquema, con sus columnas de partición, y Trino los lee. Lo
+comprobamos sobre los mismos ficheros, con una tabla de prueba que borramos al
+terminar. Usa la misma función <code>registrar</code>, que fuerza el tipo por si esa
+<code>silver</code> viniera de una versión anterior de S5, que escribía <code>timestamp_ntz</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=155">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">registrar</span><span class="p">(</span>
+    <span class="s2">"silver_spark_demo"</span><span class="p">,</span>
+    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">HDFS_RAIZ</span><span class="si">}</span><span class="s2">/datalake/silver/tpcds/web_sales"</span><span class="p">,</span>
+    <span class="n">particiones</span><span class="o">=</span><span class="p">(</span><span class="s2">"sold_year"</span><span class="p">,</span> <span class="s2">"sold_month"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">filas_silver</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"web_sales_silver, DDL de Trino, desde Trino"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+        <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) FROM hive.tcdm.web_sales_silver"</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s2">"silver_spark_demo, Spark infiere, desde Trino"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+        <span class="n">run_trino</span><span class="p">(</span><span class="s2">"SELECT count(*) FROM hive.tcdm.silver_spark_demo"</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s2">"silver_spark_demo, Spark infiere, desde Spark"</span><span class="p">:</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">"tcdm.silver_spark_demo"</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span>
+<span class="p">}</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s2">"DROP TABLE IF EXISTS tcdm.silver_spark_demo"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">filas_silver</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">filas_silver</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">filas_silver</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"filas"</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=156">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Los tres recuentos coinciden: Spark y Trino se entienden sobre <code>silver</code> tanto si
+la DDL la escribe Trino como si la infiere Spark. <code>web_sales_silver</code> se queda
+con la DDL de Trino porque así se ve en esta sesión un <code>CREATE TABLE</code> con
+columnas, con <code>partitioned_by</code> y con el descubrimiento de particiones de
+Trino; no por una limitación.</p>
+<p>La regla queda así: se infiere siempre que se pueda, <strong>se fuerza <code>timestamp</code>
+donde Spark infiera <code>timestamp_ntz</code></strong>, y se comprueba que el otro motor lee lo
+registrado. Registrar con un motor es cómodo mientras los dos entiendan los
+mismos tipos.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=157">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Todo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> en el catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">17 tablas registradas con Spark, que infiere las columnas de los Parquet</li><li style="margin:10px 0;list-style-position:outside">Comentarios de tabla y de columna tomados del apéndice de S2</li><li style="margin:10px 0;list-style-position:outside">Trino lee lo que Spark registra, mientras los tipos existan en los dos</li><li style="margin:10px 0;list-style-position:outside">Las fechas con hora se registran como <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">timestamp</code>, no <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">timestamp_ntz</code>, que Trino no entiende; también <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">silver</code></li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=158">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Buscar en el catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Con Trino: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">information_schema</code>, por nombre y por significado</li><li style="margin:10px 0;list-style-position:outside">Con Spark: un inventario del catálogo y sus ubicaciones</li><li style="margin:10px 0;list-style-position:outside">Qué hay en el data lake que el catálogo no conoce</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=159">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">¿En qué tablas aparecerá una columna con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">customer</code> en el nombre?</li><li style="margin:10px 0;list-style-position:outside">¿Qué tablas de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">tcdm</code> crees que no tienen comentario?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=160">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Buscar-en-el-cat%C3%A1logo-con-Trino">Buscar en el catálogo con Trino<a class="anchor-link" href="#Buscar-en-el-cat%C3%A1logo-con-Trino">¶</a></h2><p>Cada catálogo de Trino tiene su propio <code>information_schema</code>, con las vistas
+estándar de SQL <code>tables</code> y <code>columns</code>. Son metadatos del metastore servidos
+como tablas, y se consultan con SQL normal: <code>hive.information_schema.columns</code>
+tiene una fila por cada columna de cada tabla de <code>hive</code>, con su tipo y su
+comentario. Además, <code>system.metadata.table_comments</code> da el comentario de cada
+tabla.</p>
+<p>Primero, por nombre: ¿dónde aparece algo del cliente? Los nombres de TPC-DS
+llevan un prefijo por tabla (<code>ws_</code>, <code>c_</code>...), por eso filtramos con
+<code>LIKE '%customer%'</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=161">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT table_name, column_name, data_type</span>
+<span class="s1">    FROM hive.information_schema.columns</span>
+<span class="s1">    WHERE table_schema = 'tcdm' AND column_name LIKE '</span><span class="si">%c</span><span class="s1">ustomer%'</span>
+<span class="s1">    ORDER BY table_name, ordinal_position</span>
+<span class="s1">'''</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=162">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Ahora por significado. El nombre no siempre dice de qué trata una columna,
+pero el comentario que le pusimos al registrarla sí: buscamos las columnas
+cuya descripción habla de descuentos.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=163">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT table_name, column_name, comment</span>
+<span class="s1">    FROM hive.information_schema.columns</span>
+<span class="s1">    WHERE table_schema = 'tcdm' AND lower(comment) LIKE '</span><span class="si">%d</span><span class="s1">escuento%'</span>
+<span class="s1">    ORDER BY table_name, ordinal_position</span>
+<span class="s1">'''</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=164">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Por último, una auditoría: las tablas que no tienen comentario. Es la
+práctica de «cada tabla con su descripción» convertida en una consulta que
+se puede repetir.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=165">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run_trino</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT table_name</span>
+<span class="s1">    FROM system.metadata.table_comments</span>
+<span class="s1">    WHERE catalog_name = 'hive' AND schema_name = 'tcdm' AND comment IS NULL</span>
+<span class="s1">    ORDER BY table_name</span>
+<span class="s1">'''</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=166">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><code>information_schema</code> tiene dos límites. Es de un solo catálogo: las tablas
+Iceberg de S7 estarán en <code>iceberg.information_schema</code>, no en éste. Y no
+guarda la ubicación ni las propiedades de la tabla: eso sólo se obtiene con
+<code>SHOW CREATE TABLE</code> o con <code>"&lt;tabla&gt;$properties"</code>, tabla a tabla. Para buscar
+por ubicación o por linaje usamos Spark.</p>
+<h2 id="Buscar-con-Spark:-un-inventario-del-cat%C3%A1logo">Buscar con Spark: un inventario del catálogo<a class="anchor-link" href="#Buscar-con-Spark:-un-inventario-del-cat%C3%A1logo">¶</a></h2><p>Spark no ofrece un <code>information_schema</code> sobre el metastore de Hive. Lo que
+tiene es la API <code>spark.catalog</code>: <code>listTables</code> y <code>listColumns</code> devuelven las
+tablas y las columnas, y <code>DESCRIBE TABLE EXTENDED</code> la ubicación (es lo que ya
+usa <code>leer_linaje</code>). Con ellas montamos un inventario, un DataFrame con una
+fila por columna, lo registramos como vista temporal y lo consultamos con SQL:
+el catálogo, convertido en datos como cualquier otro.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=167">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+
+<span class="nb">type</span> <span class="n">FilaInventario</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">construir_inventario</span><span class="p">(</span><span class="n">base_de_datos</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">'''Una fila por columna de cada tabla de la base de datos, con los datos de su tabla.'''</span>
+    <span class="n">del_catalogo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TablaConLinaje</span><span class="p">]</span> <span class="o">=</span> <span class="n">leer_linaje</span><span class="p">(</span><span class="n">base_de_datos</span><span class="p">)</span>
+    <span class="n">filas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FilaInventario</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tabla</span> <span class="ow">in</span> <span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="p">(</span><span class="n">base_de_datos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tabla</span><span class="o">.</span><span class="n">isTemporary</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">nombre</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base_de_datos</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">tabla</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">ubicacion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">del_catalogo</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">ubicacion</span> <span class="k">if</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="n">del_catalogo</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="k">for</span> <span class="n">columna</span> <span class="ow">in</span> <span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listColumns</span><span class="p">(</span><span class="n">nombre</span><span class="p">):</span>
+            <span class="n">filas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">tabla</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">tabla</span><span class="o">.</span><span class="n">tableType</span><span class="p">,</span>
+                    <span class="n">tabla</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                    <span class="n">ubicacion</span><span class="p">,</span>
+                    <span class="n">columna</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">columna</span><span class="o">.</span><span class="n">dataType</span><span class="p">,</span>
+                    <span class="n">columna</span><span class="o">.</span><span class="n">isPartition</span><span class="p">,</span>
+                    <span class="n">columna</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span>
+        <span class="n">filas</span><span class="p">,</span>
+        <span class="n">schema</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"tabla string, tipo_de_tabla string, descripcion_tabla string, ubicacion string, "</span>
+            <span class="s2">"columna string, tipo string, es_particion boolean, comentario string"</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="n">inventario</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">construir_inventario</span><span class="p">(</span><span class="s2">"tcdm"</span><span class="p">)</span>
+<span class="n">inventario</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="p">(</span><span class="s2">"inventario"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">inventario</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2"> columnas en </span><span class="si">{</span><span class="n">inventario</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">'tabla'</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="si">}</span><span class="s2"> tablas."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=168">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Primera búsqueda, por ubicación: cuántas tablas y columnas hay en cada capa
+del data lake y en el warehouse.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=169">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT regexp_extract(ubicacion, '^/(datalake/[a-z]+|warehouse)', 1) AS capa,</span>
+<span class="s1">           count(DISTINCT tabla) AS tablas,</span>
+<span class="s1">           count(*) AS columnas</span>
+<span class="s1">    FROM inventario</span>
+<span class="s1">    GROUP BY 1</span>
+<span class="s1">    ORDER BY 1</span>
+<span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=170">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Segunda, entre tablas: qué columnas aparecen en más de una. Es la forma de
+seguir una columna por las capas, de <code>raw</code> a <code>silver</code> y a <code>gold</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=171">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">'''</span>
+<span class="s1">    SELECT columna, count(*) AS tablas, array_sort(collect_list(tabla)) AS en_las_tablas</span>
+<span class="s1">    FROM inventario</span>
+<span class="s1">    GROUP BY columna</span>
+<span class="s1">    HAVING count(*) &gt; 1</span>
+<span class="s1">    ORDER BY tablas DESC, columna</span>
+<span class="s1">'''</span><span class="p">)</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=172">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #0c304d;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#0c304d" noshade="" size="8" style="display:none"/><div style="color:#0c304d;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#0c304d" style="color:inherit"><b>Pregunta guía</b></font></div><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">¿Qué directorios de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">/datalake</code> quedarán sin tabla en el catálogo?</li><li style="margin:10px 0;list-style-position:outside">¿Por qué ése, y no ninguno de los de TPC-DS?</li></ul><hr color="#0c304d" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=173">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Una búsqueda más, la inversa: no qué hay en el catálogo, sino qué hay en el
+data lake que <strong>el catálogo no conoce</strong>. Comparamos los directorios de
+HDFS, <code>/datalake/&lt;capa&gt;/&lt;conjunto&gt;/&lt;tabla&gt;</code>, con las ubicaciones del
+inventario.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=174">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">en_hdfs</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">listar_directorios</span><span class="p">(</span><span class="s2">"/datalake/*/*/*"</span><span class="p">))</span>
+<span class="n">registradas</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">fila</span><span class="p">[</span><span class="s2">"ubicacion"</span><span class="p">]</span> <span class="k">for</span> <span class="n">fila</span> <span class="ow">in</span> <span class="n">inventario</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"ubicacion"</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="p">}</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"directorio sin tabla"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">en_hdfs</span> <span class="o">-</span> <span class="n">registradas</span><span class="p">)})</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=175">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Queda <code>/datalake/raw/ign/municipios</code>: son los municipios del IGN que S2 dejó
+como CSV comprimido, no como Parquet. Spark podría registrarlo con
+<code>USING csv</code> y sus opciones (separador, cabecera, codificación), pero Trino no
+vería sus columnas, así que no sería una tabla compartida. Por eso queda fuera
+hasta que se convierta a Parquet.</p>
+<p>Las dos herramientas se reparten el trabajo. <strong>Trino</strong> busca por nombre y por
+significado con SQL estándar, sobre un catálogo. <strong>Spark</strong> busca por ubicación
+y por linaje, y deja el inventario en un DataFrame que se puede cruzar con
+cualquier otro dato. Las dos leen del mismo metastore.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=176">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Buscar en el catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Trino: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">information_schema.columns</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">system.metadata.table_comments</code>, por nombre y por comentario</li><li style="margin:10px 0;list-style-position:outside">Spark: <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">spark.catalog</code> y <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">DESCRIBE TABLE EXTENDED</code>, convertidos en un inventario con ubicación</li><li style="margin:10px 0;list-style-position:outside">Contrastar el catálogo con HDFS deja ver lo que no está registrado</li><li style="margin:10px 0;list-style-position:outside">Sin comentarios y sin registro no hay nada que buscar: documentar es parte de registrar</li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=177">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #2f6f4f;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#2f6f4f" noshade="" size="8" style="display:none"/><div style="color:#2f6f4f;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#2f6f4f" style="color:inherit"><b>Actividades</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Busca en tu catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Con Trino, busca las columnas cuyo comentario hable de devoluciones y las tablas que las contienen</li><li style="margin:10px 0;list-style-position:outside">Añade con <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">COMMENT ON TABLE</code> una descripción a las tablas que la auditoría señala y repite la auditoría</li><li style="margin:10px 0;list-style-position:outside">Con Spark, busca las tablas con más columnas y las que tienen columnas <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">decimal</code></li><li style="margin:10px 0;list-style-position:outside">Cuenta con el inventario cuántas columnas tiene cada tabla de <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> y compáralo con el apéndice de S2</li></ul><hr color="#2f6f4f" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=178">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #174f7a;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#174f7a" noshade="" size="8" style="display:none"/><div style="color:#174f7a;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#174f7a" style="color:inherit"><b>A continuación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Buenas prácticas de catálogo</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Cada tabla con propietario, descripción, ubicación y contrato de esquema y claves</li><li style="margin:10px 0;list-style-position:outside">Particiones justificadas por las consultas; estadísticas generadas y revisadas cuando hacen falta</li><li style="margin:10px 0;list-style-position:outside">Fuente y derivadas tienen ciclos de vida distintos: borrar una derivada nunca borra su fuente</li><li style="margin:10px 0;list-style-position:outside">Cada derivada apunta su linaje: de qué sale y qué proceso la escribe</li><li style="margin:10px 0;list-style-position:outside">La limpieza va separada de las consultas normales</li><li style="margin:10px 0;list-style-position:outside">El metastore no da transacciones ni versiones: Iceberg las añade sobre una tabla administrada en S7</li></ul><hr color="#174f7a" noshade="" size="2" style="display:none"/></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=179">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10755,7 +11578,8 @@ tablas.</p>
 <h2 id="Buenas-pr%C3%A1cticas-de-cat%C3%A1logo-y-data-lake">Buenas prácticas de catálogo y data lake<a class="anchor-link" href="#Buenas-pr%C3%A1cticas-de-cat%C3%A1logo-y-data-lake">¶</a></h2><p>El metastore permite formalizar las decisiones de S5:</p>
 <ul>
 <li>cada tabla debería tener un propietario y una descripción; este notebook
-demuestra la descripción con <code>item</code> como ejemplo;</li>
+la demuestra con <code>item</code> y con las tablas de <code>raw</code>, y la auditoría de
+comentarios señala las que faltan;</li>
 <li>la ubicación física está documentada;</li>
 <li>el esquema y las claves tienen un contrato;</li>
 <li>las columnas de partición se justifican por las consultas que se van a
@@ -10779,10 +11603,18 @@ concurrentes sobre la misma partición o la necesidad de "viajar en el
 tiempo" a una versión anterior de la tabla son problemas que el Hive
 Metastore no resuelve. Esas limitaciones son exactamente las que motivan
 introducir Iceberg en S7.</p>
+<p>Ninguna depende de dónde viven los ficheros, sino de quién lleva la cuenta de
+ellos: una tabla Hive, externa o administrada, sólo registra un directorio.
+Iceberg conserva el catálogo y la zona <code>/warehouse</code>, pero añade a la tabla
+administrada metadatos propios que registran cada escritura como una versión
+nueva. De ahí salen las consultas ACID sobre una tabla cuyos datos siguen
+siendo Parquet en HDFS, legibles por otras herramientas, pero cuya gestión
+corresponde por entero al metastore y a Iceberg. En S7, <code>tcdm.web_sales</code>
+pasa de ser una fuente externa a ser una tabla administrada Iceberg.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=141">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=180">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10796,7 +11628,7 @@ introducir Iceberg en S7.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=142">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=181">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10832,6 +11664,15 @@ es distinta en cada caso?</li>
 nuevas a <code>/datalake/raw/tpcds/web_sales</code>? ¿Por qué <code>tcdm.item</code> no se
 recalcula nunca? ¿Qué respondería la lista si alguien cambiara el proceso
 de S5 sin actualizar las propiedades de linaje?</li>
+<li>¿Qué ventaja tiene que una tabla administrada tenga un único dueño
+(catálogo y motor) frente a una tabla externa sobre <code>/datalake</code>? ¿Por qué
+la tabla administrada de esta sesión no basta para tener consultas ACID, y
+qué añadirá Iceberg sobre esa misma ubicación?</li>
+<li>¿Por qué <code>raw</code> se registra con Spark y <code>web_sales_silver</code> con Trino? ¿Qué
+comprobación hay que hacer siempre que un motor registra tablas que va a
+leer otro?</li>
+<li>¿Qué buscarías con <code>information_schema</code> de Trino y qué con el inventario
+de Spark? ¿Qué directorio de <code>/datalake</code> no está en el catálogo, y por qué?</li>
 <li>¿Qué limitación del Hive Metastore, de las mencionadas en «Buenas
 prácticas de catálogo y data lake», esperarías que resolviera un formato
 de tabla como Iceberg?</li>
@@ -10839,7 +11680,7 @@ de tabla como Iceberg?</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=143">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=182">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10853,7 +11694,7 @@ de tabla como Iceberg?</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=144">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=183">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10888,14 +11729,19 @@ leída desde Trino, y la lista de tablas que habría que recalcular si
 cambiara <code>/datalake/raw/tpcds/web_sales</code>, en su orden.</li>
 <li>Que sabes explicar, con tus propias palabras, la diferencia entre
 eliminar la definición de una tabla externa y eliminar una tabla
-administrada.</li>
+administrada, y por qué Iceberg se apoya en una tabla administrada.</li>
+<li>Una búsqueda en el catálogo con Trino (por columna o por comentario) y
+otra con el inventario de Spark (por ubicación), y el directorio de
+<code>/datalake</code> que no tiene tabla.</li>
+<li>Tu tabla administrada propia y tu tabla derivada con su linaje, con sus
+observaciones de los ejercicios.</li>
 </ol>
 <h3 id="Memoria-escrita-(una-o-dos-p%C3%A1ginas)">Memoria escrita (una o dos páginas)<a class="anchor-link" href="#Memoria-escrita-(una-o-dos-p%C3%A1ginas)">¶</a></h3><p>Trae también un documento breve —una o dos páginas, no hace falta más— que
 no se limite a pegar capturas de las salidas anteriores: debe explicar con
 tus propias palabras qué papel tiene cada pieza de la arquitectura
 (PostgreSQL, Hive Metastore, Trino y Spark); qué diferencia hay entre una
-tabla externa y una administrada, y qué ocurre con los datos al borrar cada
-una; por qué la tabla particionada devolvía cero filas hasta sincronizar
+tabla externa y una administrada, qué ocurre con los datos al borrar cada
+una y qué ventaja tiene la administrada de cara a Iceberg; por qué la tabla particionada devolvía cero filas hasta sincronizar
 sus particiones; qué es el linaje de una tabla y cómo lo has apuntado; para qué sirven las estadísticas de <code>ANALYZE</code>; y qué
 limitaciones del metastore justifican introducir Iceberg.</p>
 <h3 id="Qu%C3%A9-es-importante-de-cara-al-examen-final">Qué es importante de cara al examen final<a class="anchor-link" href="#Qu%C3%A9-es-importante-de-cara-al-examen-final">¶</a></h3><p>El examen no pide recordar la sintaxis exacta de una sentencia. Debes poder
@@ -10910,6 +11756,9 @@ catálogo, y qué significa que Spark y Trino sean dos clientes de la misma
 definición de tabla;</li>
 <li>la diferencia entre tabla externa y tabla administrada: ubicación y
 ciclo de vida de los datos;</li>
+<li>por qué Iceberg se construye sobre una tabla administrada: un único dueño
+de los ficheros permite escrituras atómicas y consultas ACID, mientras los
+datos siguen siendo Parquet;</li>
 <li>que una partición Hive son dos cosas, un directorio <code>columna=valor</code> y una
 fila de metadatos, y por qué hace falta un paso de descubrimiento;</li>
 <li>cómo se reconoce en un plan la poda de particiones y la selección de
@@ -10923,7 +11772,7 @@ evolución segura del esquema.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=145">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=184">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10933,7 +11782,7 @@ evolución segura del esquema.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=146">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=185">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10947,7 +11796,7 @@ evolución segura del esquema.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=147">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=186">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -10961,7 +11810,7 @@ evolución segura del esquema.</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=148">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=187">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11015,7 +11864,7 @@ volumen y afecta sólo a sus propios servicios.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=149">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=188">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -11023,13 +11872,13 @@ volumen y afecta sólo a sus propios servicios.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 6</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Nombres, esquemas y particiones compartidos entre Trino y Spark</li><li style="margin:10px 0;list-style-position:outside">El linaje en las propiedades de tabla: qué recalcular cuando cambia <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code></li><li style="margin:10px 0;list-style-position:outside">Sin transacciones, sin historial de versiones, sin política de calidad: por eso llega Iceberg</li><li style="margin:10px 0;list-style-position:outside">S7 construye sobre esta misma tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/><div style="box-sizing:border-box;width:100%;max-width:960px;min-height:420px;margin:20px auto;padding:34px 46px;background:#eaf2f8;color:#1f2933;border:1px solid #c9d6e1;border-top:10px solid #a54467;border-radius:10px;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.42;text-align:left;overflow:hidden"><hr color="#a54467" noshade="" size="8" style="display:none"/><div style="color:#a54467;font-size:18px;font-weight:bold;letter-spacing:1px;margin-bottom:18px;text-transform:uppercase"><font color="#a54467" style="color:inherit"><b>Recapitulación</b></font></div><h1 style="color:#0c304d;font-family:Atkinson Hyperlegible,Inter,Aptos,Segoe UI,Helvetica,Arial,sans-serif;font-size:41px;line-height:1.15;margin:0 0 22px">Sesión 6</h1><ul style="margin:18px 0 8px;padding-left:30px"><li style="margin:10px 0;list-style-position:outside">Nombres, esquemas y particiones compartidos entre Trino y Spark</li><li style="margin:10px 0;list-style-position:outside">El linaje en las propiedades de tabla: qué recalcular cuando cambia <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code></li><li style="margin:10px 0;list-style-position:outside">Todo <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">raw</code> registrado con Spark y comentado, y búsquedas por nombre, comentario y ubicación</li><li style="margin:10px 0;list-style-position:outside">Sin transacciones ni versiones sobre Parquet: Iceberg las añade a una tabla administrada del warehouse, y con ellas ACID</li><li style="margin:10px 0;list-style-position:outside">S7 construye sobre esta misma tabla <code style="background:#eaf2f8;color:#0c304d;padding:2px 6px;border-radius:4px;font-size:0.9em">web_sales_silver</code></li></ul><hr color="#a54467" noshade="" size="2" style="display:none"/></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=150">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=189">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

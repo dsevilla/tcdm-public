@@ -8209,7 +8209,20 @@ notebook, como en S4. Cierra cualquier otra sesión Spark antes de continuar
 para que no retenga recursos ni ocupe el puerto 4040.</p>
 <p>Cada ejecutor pide un núcleo, 512 MiB de memoria y 256 MiB adicionales;
 el ApplicationMaster pide 512 MiB en total. Cada NodeManager anuncia
-2560 MiB. La sesión y sus contenedores se liberan con <code>spark.stop()</code>.
+2560 MiB. La sesión y sus contenedores se liberan con <code>spark.stop()</code>.</p>
+<p>La sesión fija además tres opciones sobre las marcas de tiempo. DuckDB guardó
+<code>ws_sold_timestamp</code> en <code>raw</code> como «timestamp sin zona», y Spark 4 lo lee por
+defecto como <code>timestamp_ntz</code>, un tipo que sólo existe en Spark: Trino no lo
+entiende, y en S6 tendrá que leer lo que esta sesión escribe en <code>silver</code>. Con
+<code>spark.sql.parquet.inferTimestampNTZ.enabled=false</code> Spark lee ese campo como
+un <code>timestamp</code> normal, y con <code>spark.sql.session.timeZone=UTC</code> fijamos la zona
+con la que <code>year</code>, <code>month</code> y <code>to_date</code> interpretan esa marca de tiempo: sin
+ella dependería de la configuración de cada máquina. Los valores no cambian,
+porque los contenedores ya están en UTC. Con
+<code>spark.sql.parquet.outputTimestampType=TIMESTAMP_MICROS</code> Spark escribe esa marca
+como un entero de microsegundos, igual que DuckDB, y no en el formato antiguo
+<code>INT96</code> que usa por defecto: un <code>INT96</code> no dice en qué zona está, y cada motor
+lo interpreta con la suya.
 Si faltan NodeManagers, comprueba el clúster desde una terminal de tu equipo
 o en el ResourceManager (<code>http://localhost:8088</code>).</p>
 </div>
@@ -8279,6 +8292,9 @@ o en el ResourceManager (<code>http://localhost:8088</code>).</p>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.yarn.isPython"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.driver.memory"</span><span class="p">,</span> <span class="s2">"1g"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.shuffle.partitions"</span><span class="p">,</span> <span class="s2">"8"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.session.timeZone"</span><span class="p">,</span> <span class="s2">"UTC"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.parquet.inferTimestampNTZ.enabled"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">"spark.sql.parquet.outputTimestampType"</span><span class="p">,</span> <span class="s2">"TIMESTAMP_MICROS"</span><span class="p">)</span>
     <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
 <span class="p">)</span>
 <span class="n">sc</span><span class="p">:</span> <span class="n">SparkContext</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sparkContext</span>
@@ -8579,12 +8595,16 @@ DuckDB. En Spark se llaman de otra forma:</p>
 <td>importes</td>
 </tr>
 <tr>
-<td><code>timestamp</code> (sin zona)</td>
-<td><code>TimestampNTZType()</code></td>
+<td><code>timestamp</code></td>
+<td><code>TimestampType()</code></td>
 <td><code>ws_sold_timestamp</code></td>
 </tr>
 </tbody>
 </table>
+<p><code>ws_sold_timestamp</code> es un <code>TimestampType()</code> y no el <code>TimestampNTZType()</code> que
+Spark inferiría por defecto del Parquet de DuckDB. Lo lee así por las
+opciones que fijó la sesión al crearse, y es el único tipo de fecha con hora
+que Trino sabrá leer en S6 de lo que escribe esta sesión.</p>
 <p>Las columnas que calcula esta sesión tienen el tipo que devuelve la
 función que las calcula: <code>to_date</code> da un <code>DateType()</code>; <code>year</code> y <code>month</code>,
 un <code>IntegerType()</code>; <code>count</code> y <code>countDistinct</code>, un <code>LongType()</code>; y <code>sum</code>
@@ -8614,7 +8634,7 @@ releer la salida. Que una columna no tenga nulos lo comprueban los
     <span class="n">LongType</span><span class="p">,</span>
     <span class="n">StructField</span><span class="p">,</span>
     <span class="n">StructType</span><span class="p">,</span>
-    <span class="n">TimestampNTZType</span><span class="p">,</span>
+    <span class="n">TimestampType</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># Contrato de /datalake/silver/tpcds/web_sales: columnas, orden y tipos.</span>
@@ -8625,7 +8645,7 @@ releer la salida. Que una columna no tenga nulos lo comprueban los
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_item_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_bill_customer_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_bill_addr_sk"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">,</span> <span class="n">TimestampNTZType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_sold_timestamp"</span><span class="p">,</span> <span class="n">TimestampType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_sold_date"</span><span class="p">,</span> <span class="n">DateType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_quantity"</span><span class="p">,</span> <span class="n">LongType</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">StructField</span><span class="p">(</span><span class="s2">"ws_list_price"</span><span class="p">,</span> <span class="n">DecimalType</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
@@ -8665,7 +8685,7 @@ releer la salida. Que una columna no tenga nulos lo comprueban los
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>La salida usa el nombre de cada tipo en SQL (<code>bigint</code>, <code>int</code>,
-<code>decimal(7,2)</code>, <code>timestamp_ntz</code>): son los mismos tipos que el catálogo de
+<code>decimal(7,2)</code>, <code>timestamp</code>): son los mismos tipos que el catálogo de
 S2 y que la definición de tabla que escribirá S6 al registrar estas dos
 rutas en el metastore. El esquema se usa tres veces en el notebook:
 antes de escribir cada salida, para comprobar que el DataFrame que se va
