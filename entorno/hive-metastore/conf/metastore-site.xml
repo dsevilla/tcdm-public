@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  Configuración del Hive Metastore 4.x del curso. El entrypoint de la imagen
+  enlaza los ficheros de HIVE_CUSTOM_CONF_DIR sobre /opt/hive/conf, así que
+  este fichero sustituye al metastore-site.xml de la imagen: todo lo que hace
+  falta de aquél se repite aquí. La conexión a PostgreSQL se pasa como -D en
+  SERVICE_OPTS (compose-warehouse-hdfs.yml), para no escribir la contraseña
+  en un fichero.
+-->
+<configuration>
+  <!-- Un único warehouse en HDFS para tablas administradas y externas, como
+       en Hive 3. HMS 4 distingue dos raíces; aquí ambas son /warehouse, de
+       modo que las tablas creadas sin ubicación quedan en
+       /warehouse/<esquema>.db/<tabla>. Las claves hive.* las lee el
+       HiveCatalog de Iceberg que hay detrás del catálogo REST. -->
+  <property>
+    <name>metastore.warehouse.dir</name>
+    <value>hdfs://namenode:9000/warehouse</value>
+  </property>
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>hdfs://namenode:9000/warehouse</value>
+  </property>
+  <property>
+    <name>metastore.warehouse.external.dir</name>
+    <value>hdfs://namenode:9000/warehouse</value>
+  </property>
+  <property>
+    <name>hive.metastore.warehouse.external.dir</name>
+    <value>hdfs://namenode:9000/warehouse</value>
+  </property>
+
+  <!-- Sin transformador de metadatos. El de HMS 4 convierte toda tabla
+       administrada que no sea ACID en EXTERNAL_TABLE con
+       external.table.purge=true, y obliga a separar las dos raíces del
+       warehouse. Desactivado (valor en blanco), una tabla creada sin
+       ubicación sigue siendo MANAGED_TABLE y DROP TABLE borra sus datos, igual
+       que en Hive 3: la distinción externa/administrada de la sesión 6. -->
+  <property>
+    <name>metastore.metadata.transformer.class</name>
+    <value> </value>
+  </property>
+
+  <!-- Catálogo Iceberg REST que sirve el propio metastore:
+       http://hive-metastore:9001/iceberg. Sin autenticación: laboratorio
+       local, sin puerto publicado en el equipo. -->
+  <property>
+    <name>metastore.catalog.servlet.port</name>
+    <value>9001</value>
+  </property>
+  <property>
+    <name>metastore.catalog.servlet.auth</name>
+    <value>none</value>
+  </property>
+  <property>
+    <name>metastore.thrift.uris</name>
+    <value>thrift://hive-metastore:9083</value>
+  </property>
+
+  <!-- Valores del metastore-site.xml de la imagen. Sin el primero, el
+       metastore intenta arrancar tareas de mantenimiento que necesitan
+       clases de YARN que la imagen no trae (NoClassDefFoundError en el log,
+       sin más efecto). -->
+  <property>
+    <name>metastore.task.threads.always</name>
+    <value>org.apache.hadoop.hive.metastore.events.EventCleanerTask</value>
+  </property>
+  <property>
+    <name>metastore.expression.proxy</name>
+    <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
+  </property>
+  <property>
+    <name>metastore.event.db.notification.api.auth</name>
+    <value>false</value>
+  </property>
+</configuration>
